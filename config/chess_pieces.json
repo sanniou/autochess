@@ -1,0 +1,122 @@
+{
+  "warrior_1": {
+    "id": "warrior_1",
+    "name": "战士",
+    "description": "前排坦克单位，拥有较高的生命值和护甲。",
+    "cost": 1,
+    "health": 650,
+    "attack_damage": 55,
+    "attack_speed": 0.7,
+    "armor": 25,
+    "magic_resist": 20,
+    "attack_range": 1,
+    "move_speed": 325,
+    "ability": {
+      "name": "旋风斩",
+      "description": "对周围敌人造成物理伤害。",
+      "damage": 150,
+      "cooldown": 8,
+      "range": 1
+    },
+    "synergies": ["warrior", "human"],
+    "tier": 1,
+    "icon": "warrior_1.png",
+    "model": "warrior_1.tscn"
+  },
+  "mage_1": {
+    "id": "mage_1",
+    "name": "法师",
+    "description": "后排法术单位，拥有强大的范围伤害能力。",
+    "cost": 2,
+    "health": 450,
+    "attack_damage": 40,
+    "attack_speed": 0.6,
+    "armor": 15,
+    "magic_resist": 20,
+    "attack_range": 4,
+    "move_speed": 300,
+    "ability": {
+      "name": "火球术",
+      "description": "向敌人发射火球，造成魔法伤害。",
+      "damage": 250,
+      "cooldown": 6,
+      "range": 4
+    },
+    "synergies": ["mage", "human"],
+    "tier": 1,
+    "icon": "mage_1.png",
+    "model": "mage_1.tscn"
+  },
+  "archer_1": {
+    "id": "archer_1",
+    "name": "弓箭手",
+    "description": "后排物理输出单位，拥有较高的攻击速度。",
+    "cost": 1,
+    "health": 500,
+    "attack_damage": 65,
+    "attack_speed": 0.9,
+    "armor": 15,
+    "magic_resist": 15,
+    "attack_range": 4,
+    "move_speed": 315,
+    "ability": {
+      "name": "穿透射击",
+      "description": "发射一支穿透敌人的箭矢。",
+      "damage": 180,
+      "cooldown": 7,
+      "range": 5
+    },
+    "synergies": ["ranger", "elf"],
+    "tier": 1,
+    "icon": "archer_1.png",
+    "model": "archer_1.tscn"
+  },
+  "assassin_1": {
+    "id": "assassin_1",
+    "name": "刺客",
+    "description": "高机动性单位，能够快速接近敌方后排。",
+    "cost": 3,
+    "health": 550,
+    "attack_damage": 75,
+    "attack_speed": 0.8,
+    "armor": 20,
+    "magic_resist": 15,
+    "attack_range": 1,
+    "move_speed": 345,
+    "ability": {
+      "name": "暗影突袭",
+      "description": "跳向敌方后排，造成物理伤害。",
+      "damage": 200,
+      "cooldown": 8,
+      "range": 3
+    },
+    "synergies": ["assassin", "elf"],
+    "tier": 1,
+    "icon": "assassin_1.png",
+    "model": "assassin_1.tscn"
+  },
+  "support_1": {
+    "id": "support_1",
+    "name": "辅助",
+    "description": "提供治疗和增益效果的单位。",
+    "cost": 3,
+    "health": 500,
+    "attack_damage": 45,
+    "attack_speed": 0.7,
+    "armor": 15,
+    "magic_resist": 30,
+    "attack_range": 3,
+    "move_speed": 310,
+    "ability": {
+      "name": "治疗光环",
+      "description": "治疗周围友方单位。",
+      "healing": 150,
+      "cooldown": 10,
+      "range": 2
+    },
+    "synergies": ["support", "human"],
+    "tier": 1,
+    "icon": "support_1.png",
+    "model": "support_1.tscn"
+  }
+}

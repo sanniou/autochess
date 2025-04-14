@@ -1,0 +1,224 @@
+{
+  "first_victory": {
+    "id": "first_victory",
+    "name": "初次胜利",
+    "description": "首次完成游戏。",
+    "icon": "first_victory.png",
+    "hidden": false,
+    "requirements": {
+      "type": "victory",
+      "count": 1
+    },
+    "rewards": {
+      "gold": 100
+    }
+  },
+  "three_star_collector": {
+    "id": "three_star_collector",
+    "name": "三星收藏家",
+    "description": "获得10个三星棋子。",
+    "icon": "three_star_collector.png",
+    "hidden": false,
+    "requirements": {
+      "type": "chess_star",
+      "star": 3,
+      "count": 10
+    },
+    "rewards": {
+      "gold": 50
+    }
+  },
+  "synergy_master": {
+    "id": "synergy_master",
+    "name": "羁绊大师",
+    "description": "在一场游戏中激活3个最高级别的羁绊。",
+    "icon": "synergy_master.png",
+    "hidden": false,
+    "requirements": {
+      "type": "synergy",
+      "level": "max",
+      "count": 3,
+      "in_single_game": true
+    },
+    "rewards": {
+      "gold": 75
+    }
+  },
+  "perfect_battle": {
+    "id": "perfect_battle",
+    "name": "完美战斗",
+    "description": "在一场战斗中不损失任何棋子。",
+    "icon": "perfect_battle.png",
+    "hidden": false,
+    "requirements": {
+      "type": "battle",
+      "no_loss": true,
+      "count": 1
+    },
+    "rewards": {
+      "gold": 25
+    }
+  },
+  "rich_player": {
+    "id": "rich_player",
+    "name": "富豪",
+    "description": "在一场游戏中累积50金币。",
+    "icon": "rich_player.png",
+    "hidden": false,
+    "requirements": {
+      "type": "gold",
+      "amount": 50,
+      "in_single_game": true
+    },
+    "rewards": {
+      "gold": 30
+    }
+  },
+  "equipment_collector": {
+    "id": "equipment_collector",
+    "name": "装备收藏家",
+    "description": "收集所有稀有装备。",
+    "icon": "equipment_collector.png",
+    "hidden": false,
+    "requirements": {
+      "type": "equipment",
+      "rarity": "rare",
+      "all": true
+    },
+    "rewards": {
+      "gold": 100
+    }
+  },
+  "relic_hunter": {
+    "id": "relic_hunter",
+    "name": "遗物猎人",
+    "description": "在一场游戏中获得5个遗物。",
+    "icon": "relic_hunter.png",
+    "hidden": false,
+    "requirements": {
+      "type": "relic",
+      "count": 5,
+      "in_single_game": true
+    },
+    "rewards": {
+      "gold": 50
+    }
+  },
+  "win_streak": {
+    "id": "win_streak",
+    "name": "连胜",
+    "description": "在一场游戏中连续赢得5场战斗。",
+    "icon": "win_streak.png",
+    "hidden": false,
+    "requirements": {
+      "type": "streak",
+      "win": true,
+      "count": 5
+    },
+    "rewards": {
+      "gold": 40
+    }
+  },
+  "full_board": {
+    "id": "full_board",
+    "name": "满员",
+    "description": "在棋盘上放置最大数量的棋子。",
+    "icon": "full_board.png",
+    "hidden": false,
+    "requirements": {
+      "type": "board",
+      "full": true
+    },
+    "rewards": {
+      "gold": 30
+    }
+  },
+  "event_master": {
+    "id": "event_master",
+    "name": "事件大师",
+    "description": "完成20个随机事件。",
+    "icon": "event_master.png",
+    "hidden": false,
+    "requirements": {
+      "type": "event",
+      "count": 20
+    },
+    "rewards": {
+      "gold": 60
+    }
+  },
+  "hard_victory": {
+    "id": "hard_victory",
+    "name": "困难胜利",
+    "description": "在困难或更高难度下完成游戏。",
+    "icon": "hard_victory.png",
+    "hidden": false,
+    "requirements": {
+      "type": "victory",
+      "difficulty_min": 3,
+      "count": 1
+    },
+    "rewards": {
+      "gold": 150
+    }
+  },
+  "speed_run": {
+    "id": "speed_run",
+    "name": "速通",
+    "description": "在20分钟内完成游戏。",
+    "icon": "speed_run.png",
+    "hidden": true,
+    "requirements": {
+      "type": "victory",
+      "time_max": 1200,
+      "count": 1
+    },
+    "rewards": {
+      "gold": 200
+    }
+  },
+  "low_health_victory": {
+    "id": "low_health_victory",
+    "name": "绝处逢生",
+    "description": "在生命值低于10的情况下获胜。",
+    "icon": "low_health_victory.png",
+    "hidden": true,
+    "requirements": {
+      "type": "victory",
+      "health_max": 10,
+      "count": 1
+    },
+    "rewards": {
+      "gold": 100
+    }
+  },
+  "chess_master": {
+    "id": "chess_master",
+    "name": "棋子大师",
+    "description": "收集所有棋子。",
+    "icon": "chess_master.png",
+    "hidden": false,
+    "requirements": {
+      "type": "chess",
+      "all": true
+    },
+    "rewards": {
+      "gold": 200
+    }
+  },
+  "completionist": {
+    "id": "completionist",
+    "name": "完美主义者",
+    "description": "解锁所有其他成就。",
+    "icon": "completionist.png",
+    "hidden": true,
+    "requirements": {
+      "type": "achievement",
+      "all": true,
+      "exclude": ["completionist"]
+    },
+    "rewards": {
+      "gold": 500
+    }
+  }
+}

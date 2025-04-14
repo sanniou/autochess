@@ -1,0 +1,211 @@
+{
+  "sword": {
+    "id": "sword",
+    "name": "铁剑",
+    "description": "增加攻击力。",
+    "type": "weapon",
+    "rarity": "common",
+    "stats": {
+      "attack_damage": 10
+    },
+    "effects": [],
+    "combine_recipes": ["giant_sword"],
+    "icon": "sword.png"
+  },
+  "bow": {
+    "id": "bow",
+    "name": "短弓",
+    "description": "增加攻击速度。",
+    "type": "weapon",
+    "rarity": "common",
+    "stats": {
+      "attack_speed": 0.1
+    },
+    "effects": [],
+    "combine_recipes": ["rapid_bow"],
+    "icon": "bow.png"
+  },
+  "armor": {
+    "id": "armor",
+    "name": "铁甲",
+    "description": "增加护甲。",
+    "type": "armor",
+    "rarity": "common",
+    "stats": {
+      "armor": 10
+    },
+    "effects": [],
+    "combine_recipes": ["plate_armor"],
+    "icon": "armor.png"
+  },
+  "cloak": {
+    "id": "cloak",
+    "name": "魔法斗篷",
+    "description": "增加魔法抗性。",
+    "type": "armor",
+    "rarity": "common",
+    "stats": {
+      "magic_resist": 10
+    },
+    "effects": [],
+    "combine_recipes": ["dragon_cloak"],
+    "icon": "cloak.png"
+  },
+  "belt": {
+    "id": "belt",
+    "name": "生命腰带",
+    "description": "增加生命值。",
+    "type": "accessory",
+    "rarity": "common",
+    "stats": {
+      "health": 100
+    },
+    "effects": [],
+    "combine_recipes": ["giants_belt"],
+    "icon": "belt.png"
+  },
+  "staff": {
+    "id": "staff",
+    "name": "法杖",
+    "description": "增加法术强度。",
+    "type": "weapon",
+    "rarity": "common",
+    "stats": {
+      "spell_power": 10
+    },
+    "effects": [],
+    "combine_recipes": ["arcane_staff"],
+    "icon": "staff.png"
+  },
+  "giant_sword": {
+    "id": "giant_sword",
+    "name": "巨人之剑",
+    "description": "大幅增加攻击力。",
+    "type": "weapon",
+    "rarity": "rare",
+    "stats": {
+      "attack_damage": 25
+    },
+    "effects": [
+      {
+        "type": "on_attack",
+        "description": "攻击有10%几率造成双倍伤害。",
+        "trigger": "attack",
+        "chance": 0.1,
+        "effect": "double_damage"
+      }
+    ],
+    "recipe": ["sword", "sword"],
+    "icon": "giant_sword.png"
+  },
+  "rapid_bow": {
+    "id": "rapid_bow",
+    "name": "疾速之弓",
+    "description": "大幅增加攻击速度。",
+    "type": "weapon",
+    "rarity": "rare",
+    "stats": {
+      "attack_speed": 0.25
+    },
+    "effects": [
+      {
+        "type": "passive",
+        "description": "每三次攻击后，下一次攻击造成额外伤害。",
+        "trigger": "attack_count",
+        "count": 3,
+        "effect": "bonus_damage",
+        "bonus": 0.5
+      }
+    ],
+    "recipe": ["bow", "bow"],
+    "icon": "rapid_bow.png"
+  },
+  "plate_armor": {
+    "id": "plate_armor",
+    "name": "板甲",
+    "description": "大幅增加护甲。",
+    "type": "armor",
+    "rarity": "rare",
+    "stats": {
+      "armor": 25
+    },
+    "effects": [
+      {
+        "type": "passive",
+        "description": "受到物理伤害时，有15%几率减少50%伤害。",
+        "trigger": "take_physical_damage",
+        "chance": 0.15,
+        "effect": "damage_reduction",
+        "reduction": 0.5
+      }
+    ],
+    "recipe": ["armor", "armor"],
+    "icon": "plate_armor.png"
+  },
+  "dragon_cloak": {
+    "id": "dragon_cloak",
+    "name": "龙鳞斗篷",
+    "description": "大幅增加魔法抗性。",
+    "type": "armor",
+    "rarity": "rare",
+    "stats": {
+      "magic_resist": 25
+    },
+    "effects": [
+      {
+        "type": "passive",
+        "description": "受到魔法伤害时，有15%几率减少50%伤害。",
+        "trigger": "take_magic_damage",
+        "chance": 0.15,
+        "effect": "damage_reduction",
+        "reduction": 0.5
+      }
+    ],
+    "recipe": ["cloak", "cloak"],
+    "icon": "dragon_cloak.png"
+  },
+  "giants_belt": {
+    "id": "giants_belt",
+    "name": "巨人腰带",
+    "description": "大幅增加生命值。",
+    "type": "accessory",
+    "rarity": "rare",
+    "stats": {
+      "health": 250
+    },
+    "effects": [
+      {
+        "type": "passive",
+        "description": "生命值低于30%时，获得15%的伤害减免。",
+        "trigger": "low_health",
+        "threshold": 0.3,
+        "effect": "damage_reduction",
+        "reduction": 0.15
+      }
+    ],
+    "recipe": ["belt", "belt"],
+    "icon": "giants_belt.png"
+  },
+  "arcane_staff": {
+    "id": "arcane_staff",
+    "name": "奥术法杖",
+    "description": "大幅增加法术强度。",
+    "type": "weapon",
+    "rarity": "rare",
+    "stats": {
+      "spell_power": 25
+    },
+    "effects": [
+      {
+        "type": "on_ability",
+        "description": "使用技能时，有20%几率减少2秒冷却时间。",
+        "trigger": "ability_cast",
+        "chance": 0.2,
+        "effect": "cooldown_reduction",
+        "reduction": 2
+      }
+    ],
+    "recipe": ["staff", "staff"],
+    "icon": "arcane_staff.png"
+  }
+}
