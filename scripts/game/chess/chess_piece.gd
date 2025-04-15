@@ -9,6 +9,9 @@ signal mana_changed(old_value, new_value)
 signal state_changed(old_state, new_state)
 signal ability_activated(target)
 signal died
+signal dodge_successful(attacker)               # 闪避成功信号
+signal critical_hit(target, damage)             # 暴击信号
+signal elemental_effect_triggered(target, element_type) # 元素效果触发信号
 
 # 棋子状态枚举
 enum ChessState {
@@ -39,10 +42,12 @@ var attack_range: float = 1.0      # 攻击范围
 var armor: float = 0.0             # 护甲
 var magic_resist: float = 0.0      # 魔法抗性
 var move_speed: float = 300.0      # 移动速度
+var base_move_speed: float = 300.0 # 基础移动速度
 var crit_chance: float = 0.0       # 暴击几率
 var crit_damage: float = 1.5       # 暴击伤害
 var dodge_chance: float = 0.0      # 闪避几率
 var spell_power: float = 0.0       # 法术强度
+var elemental_effect_chance: float = 0.0 # 元素效果几率
 
 # 技能属性
 var ability_name: String = ""      # 技能名称
@@ -138,6 +143,7 @@ func initialize(piece_data: Dictionary) -> void:
 	armor = piece_data.armor
 	magic_resist = piece_data.magic_resist
 	move_speed = piece_data.move_speed
+	base_move_speed = piece_data.move_speed
 
 	# 设置技能属性
 	if piece_data.has("ability"):
@@ -149,19 +155,37 @@ func initialize(piece_data: Dictionary) -> void:
 
 		# 创建技能实例
 		if piece_data.ability.has("type"):
-			var ability_type = piece_data.ability.type
+			# 获取技能工厂
+			var ability_factory = get_node_or_null("/root/GameManager/AbilityFactory")
 
-			match ability_type:
-				"damage":
-					ability = DamageAbility.new()
-				"heal":
-					ability = HealAbility.new()
-				"buff":
-					ability = BuffAbility.new()
-				_:
-					ability = Ability.new()
+			if ability_factory:
+				# 使用技能工厂创建技能
+				ability = ability_factory.create_ability(piece_data.ability, self)
+			else:
+				# 如果找不到技能工厂，使用简单方式创建
+				var ability_type = piece_data.ability.type
 
-			ability.initialize(piece_data.ability, self)
+				match ability_type:
+					"damage":
+						ability = DamageAbility.new()
+					"heal":
+						ability = HealAbility.new()
+					"buff":
+						ability = BuffAbility.new()
+					"area_damage":
+						ability = AreaDamageAbility.new()
+					"chain":
+						ability = ChainAbility.new()
+					"aura":
+						ability = AuraAbility.new()
+					"summon":
+						ability = SummonAbility.new()
+					"teleport":
+						ability = TeleportAbility.new()
+					_:
+						ability = Ability.new()
+
+				ability.initialize(piece_data.ability, self)
 
 	# 保存基础属性
 	_save_base_stats()
@@ -202,7 +226,9 @@ func take_damage(amount: float, damage_type: String = "physical", source = null)
 	# 检查闪避
 	if randf() < dodge_chance:
 		# 触发闪避效果
-		_on_dodge()
+		_on_dodge(source)
+		# 发送闪避成功信号
+		dodge_successful.emit(source)
 		return 0
 
 	# 计算实际伤害
@@ -256,6 +282,9 @@ func heal(amount: float, source = null) -> float:
 	# 更新生命值显示
 	health_changed.emit(old_health, current_health)
 	_update_health_bar()
+
+	# 发送治疗信号
+	EventBus.healing_done.emit(self, amount, source)
 
 	# 触发治疗效果
 	_on_healed(amount, source)
@@ -312,9 +341,21 @@ func activate_ability() -> bool:
 	# 执行技能逻辑
 	_perform_ability()
 
+	# 创建技能数据
+	var ability_data = {
+		"id": ability_id,
+		"name": ability_name,
+		"type": ability_type,
+		"damage": ability_damage,
+		"target": target
+	}
+
 	# 发送技能激活信号
 	ability_activated.emit(target)
 	EventBus.chess_piece_ability_activated.emit(self, target)
+
+	# 发送技能使用信号
+	EventBus.ability_used.emit(self, ability_data)
 
 	return true
 
@@ -442,17 +483,26 @@ func _perform_attack() -> void:
 	# 计算伤害
 	var damage = attack_damage
 	var is_crit = false
+	var trigger_elemental = false
 
 	# 检查暴击
 	if randf() < crit_chance:
 		damage *= crit_damage
 		is_crit = true
 
+	# 检查元素效果
+	if randf() < elemental_effect_chance:
+		trigger_elemental = true
+
 	# 造成伤害
 	var actual_damage = target.take_damage(damage, "physical", self)
 
 	# 触发攻击效果
 	_on_attack(target, actual_damage, is_crit)
+
+	# 触发元素效果
+	if trigger_elemental:
+		_trigger_elemental_effect(target)
 
 	# 攻击后获得法力值
 	gain_mana(10.0)
@@ -594,6 +644,34 @@ func _apply_effect(effect_data: Dictionary) -> void:
 		if stats.has("spell_power"):
 			spell_power += stats.spell_power
 
+		if stats.has("crit_chance"):
+			crit_chance += stats.crit_chance
+
+		if stats.has("crit_damage"):
+			crit_damage += stats.crit_damage
+
+		if stats.has("dodge_chance"):
+			dodge_chance += stats.dodge_chance
+
+	# 处理召唤物加成效果
+	if effect_data.has("is_summon_boost") and effect_data.is_summon_boost:
+		# 检查是否为召唤物
+		if has_meta("is_summon") and get_meta("is_summon"):
+			# 应用召唤物加成
+			if effect_data.has("summon_health_boost"):
+				var health_boost = max_health * effect_data.summon_health_boost
+				max_health += health_boost
+				current_health += health_boost
+
+			if effect_data.has("summon_damage_boost"):
+				attack_damage += attack_damage * effect_data.summon_damage_boost
+
+	# 处理元素效果
+	if effect_data.has("is_elemental_effect") and effect_data.is_elemental_effect:
+		# 添加元素效果触发器
+		if effect_data.has("elemental_chance"):
+			elemental_effect_chance = effect_data.elemental_chance
+
 	# 更新视觉效果
 	_update_health_bar()
 	_update_effect_visuals()
@@ -614,7 +692,8 @@ func _save_base_stats() -> void:
 		"spell_power": spell_power,
 		"crit_chance": crit_chance,
 		"crit_damage": crit_damage,
-		"dodge_chance": dodge_chance
+		"dodge_chance": dodge_chance,
+		"elemental_effect_chance": elemental_effect_chance
 	}
 
 # 重置属性到基础值
@@ -625,10 +704,12 @@ func _reset_stats() -> void:
 	armor = base_stats.armor
 	magic_resist = base_stats.magic_resist
 	move_speed = base_stats.move_speed
+	base_move_speed = base_stats.move_speed  # 保存基础移动速度
 	spell_power = base_stats.spell_power
 	crit_chance = base_stats.crit_chance
 	crit_damage = base_stats.crit_damage
 	dodge_chance = base_stats.dodge_chance
+	elemental_effect_chance = base_stats.elemental_effect_chance
 
 	# 确保当前生命值不超过最大生命值
 	current_health = min(current_health, max_health)
@@ -636,6 +717,42 @@ func _reset_stats() -> void:
 	# 更新视觉效果
 	_update_health_bar()
 	_update_visuals()
+
+# 重置棋子
+func reset() -> void:
+	# 重置状态
+	current_state = ChessState.IDLE
+
+	# 重置生命值和法力值
+	current_health = max_health
+	current_mana = 0
+
+	# 重置目标
+	target = null
+
+	# 重置计时器
+	attack_timer = 0
+	current_cooldown = 0
+
+	# 重置效果
+	active_effects.clear()
+
+	# 更新显示
+	_update_health_bar()
+	_update_mana_bar()
+
+	# 重置动画速度
+	set_animation_speed(1.0)
+
+# 设置动画速度
+func set_animation_speed(speed: float) -> void:
+	# 如果有动画播放器，设置其速度
+	if has_node("AnimationPlayer"):
+		var anim_player = get_node("AnimationPlayer")
+		anim_player.speed_scale = speed
+
+	# 设置移动速度
+	move_speed = base_move_speed * speed
 
 # 初始化视觉组件
 func _initialize_visuals() -> void:
@@ -827,12 +944,39 @@ func _on_healed(amount: float, source) -> void:
 # 攻击效果
 func _on_attack(target: ChessPiece, damage: float, is_crit: bool) -> void:
 	# 处理攻击效果
-	pass
+	# 如果是暴击，发送暴击信号
+	if is_crit:
+		critical_hit.emit(target, damage)
+
+		# 创建暴击视觉效果
+		var effect = ColorRect.new()
+		effect.color = Color(1.0, 0.0, 0.0, 0.5)  # 红色
+		effect.size = Vector2(60, 60)
+		effect.position = Vector2(-30, -30)
+		target.add_child(effect)
+
+		# 创建消失动画
+		var tween = create_tween()
+		tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
+		tween.tween_callback(effect.queue_free)
 
 # 闪避效果
-func _on_dodge() -> void:
+func _on_dodge(attacker = null) -> void:
 	# 处理闪避效果
-	pass
+	# 创建闪避视觉效果
+	var effect = ColorRect.new()
+	effect.color = Color(0.2, 0.8, 0.8, 0.5)  # 青色
+	effect.size = Vector2(60, 60)
+	effect.position = Vector2(-30, -30)
+	add_child(effect)
+
+	# 创建消失动画
+	var tween = create_tween()
+	tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
+	tween.tween_callback(effect.queue_free)
+
+	# 发送元素效果触发信号
+	elemental_effect_triggered.emit(attacker, "dodge")
 
 # 死亡效果
 func _on_death() -> void:
@@ -843,6 +987,156 @@ func _on_death() -> void:
 func _on_resurrect() -> void:
 	# 处理复活效果
 	pass
+
+# 触发元素效果
+func _trigger_elemental_effect(target: ChessPiece) -> void:
+	# 随机选择一种元素效果
+	var effect_type = randi() % 4
+	var element_name = ""
+
+	match effect_type:
+		0: # 火元素：造成额外的持续伤害
+			_apply_fire_effect(target)
+			element_name = "fire"
+		1: # 冰元素：减速目标
+			_apply_ice_effect(target)
+			element_name = "ice"
+		2: # 雷元素：有几率眼晕目标
+			_apply_lightning_effect(target)
+			element_name = "lightning"
+		3: # 土元素：降低目标护甲
+			_apply_earth_effect(target)
+			element_name = "earth"
+
+	# 发送元素效果触发信号
+	elemental_effect_triggered.emit(target, element_name)
+
+# 应用火元素效果
+func _apply_fire_effect(target: ChessPiece) -> void:
+	# 创建持续伤害效果
+	var effect_data = {
+		"id": "fire_effect_" + str(randi()),
+		"name": "火元素",
+		"description": "每秒造成伤害",
+		"duration": 3.0,
+		"damage_per_second": attack_damage * 0.1,
+		"damage_type": "magical",
+		"source": self,
+		"tick_interval": 1.0,
+		"ticks_remaining": 3
+	}
+
+	# 添加效果
+	target.add_effect(effect_data)
+
+	# 创建定时器处理持续伤害
+	var timer = get_tree().create_timer(1.0)
+	timer.timeout.connect(_on_fire_effect_tick.bind(target, effect_data))
+
+	# 播放效果
+	_play_elemental_effect(target, Color(1.0, 0.3, 0.1, 0.5))
+
+# 火元素效果计时器
+func _on_fire_effect_tick(target: ChessPiece, effect_data: Dictionary) -> void:
+	# 检查目标是否有效
+	if not is_instance_valid(target) or target.current_state == ChessState.DEAD:
+		return
+
+	# 检查效果是否还存在
+	var effect_exists = false
+	for effect in target.active_effects:
+		if effect.id == effect_data.id:
+			effect_exists = true
+			break
+
+	if not effect_exists:
+		return
+
+	# 造成伤害
+	target.take_damage(effect_data.damage_per_second, effect_data.damage_type, effect_data.source)
+
+	# 减少剩余计时器
+	effect_data.ticks_remaining -= 1
+
+	# 如果还有剩余计时器，创建新的定时器
+	if effect_data.ticks_remaining > 0:
+		var timer = get_tree().create_timer(effect_data.tick_interval)
+		timer.timeout.connect(_on_fire_effect_tick.bind(target, effect_data))
+
+# 应用冰元素效果
+func _apply_ice_effect(target: ChessPiece) -> void:
+	# 创建减速效果
+	var effect_data = {
+		"id": "ice_effect_" + str(randi()),
+		"name": "冰元素",
+		"description": "减速目标",
+		"duration": 3.0,
+		"stats": {
+			"attack_speed": -0.2,
+			"move_speed": -50.0
+		}
+	}
+
+	# 添加效果
+	target.add_effect(effect_data)
+
+	# 播放效果
+	_play_elemental_effect(target, Color(0.2, 0.6, 1.0, 0.5))
+
+# 应用雷元素效果
+func _apply_lightning_effect(target: ChessPiece) -> void:
+	# 创建眼晕效果
+	var effect_data = {
+		"id": "lightning_effect_" + str(randi()),
+		"name": "雷元素",
+		"description": "眼晕目标",
+		"duration": 1.5,
+		"is_stun": true
+	}
+
+	# 添加效果
+	target.add_effect(effect_data)
+
+	# 切换目标状态为眼晕
+	target.change_state(ChessState.STUNNED)
+
+	# 播放效果
+	_play_elemental_effect(target, Color(1.0, 1.0, 0.2, 0.5))
+
+# 应用土元素效果
+func _apply_earth_effect(target: ChessPiece) -> void:
+	# 创建降低护甲效果
+	var effect_data = {
+		"id": "earth_effect_" + str(randi()),
+		"name": "土元素",
+		"description": "降低目标护甲",
+		"duration": 4.0,
+		"stats": {
+			"armor": -15.0
+		}
+	}
+
+	# 添加效果
+	target.add_effect(effect_data)
+
+	# 播放效果
+	_play_elemental_effect(target, Color(0.6, 0.4, 0.2, 0.5))
+
+# 播放元素效果
+func _play_elemental_effect(target: ChessPiece, color: Color) -> void:
+	# 创建特效
+	var effect = ColorRect.new()
+	effect.color = color
+	effect.size = Vector2(50, 50)
+	effect.position = Vector2(-25, -25)
+
+	# 添加到目标
+	target.add_child(effect)
+
+	# 创建消失动画
+	var tween = create_tween()
+	tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.8)
+	tween.tween_callback(effect.queue_free)
 
 # ===== 状态处理函数 =====
 

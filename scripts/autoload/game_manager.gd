@@ -47,6 +47,8 @@ var ui_animator = null
 var notification_system = null
 var tooltip_system = null
 var skin_system = null
+var ability_factory = null
+var relic_ui_manager = null
 
 func _ready():
 	# 连接必要的信号
@@ -241,6 +243,18 @@ func _initialize_systems() -> void:
 		skin_system = SkinSystem.new()
 		add_child(skin_system)
 		skin_system.name = "SkinSystem"
+
+	# 初始化技能工厂
+	if ability_factory == null:
+		ability_factory = AbilityFactory.new()
+		add_child(ability_factory)
+		ability_factory.name = "AbilityFactory"
+
+	# 初始化遗物UI管理器
+	if relic_ui_manager == null:
+		relic_ui_manager = load("res://scripts/ui/relic/relic_ui_manager.gd").new()
+		add_child(relic_ui_manager)
+		relic_ui_manager.name = "RelicUIManager"
 
 	# 发送系统初始化完成信号
 	EventBus.debug_message.emit("游戏系统初始化完成", 0)

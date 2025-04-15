@@ -207,7 +207,19 @@ func _on_cell_clicked(cell: BoardCell):
 func _on_cell_hovered(cell: BoardCell):
     # 如果正在拖拽棋子，高亮可放置的格子
     if dragging_piece and cell.is_playable and not cell.current_piece:
-        cell.highlight(true, Color(0.2, 0.8, 0.2, 0.3))
+        # 如果是玩家棋子且格子是出生区
+        if dragging_piece.is_player_piece and cell.cell_type == "spawn":
+            cell.highlight(true, Color(0.2, 0.8, 0.2, 0.4), "valid")  # 绿色，有效放置
+        # 如果是玩家棋子且格子不是出生区
+        elif dragging_piece.is_player_piece and cell.cell_type != "spawn":
+            cell.highlight(true, Color(0.8, 0.8, 0.2, 0.4), "warning")  # 黄色，警告放置
+        # 如果是敌方棋子且格子不是出生区
+        elif not dragging_piece.is_player_piece and cell.cell_type != "blocked":
+            cell.highlight(true, Color(0.2, 0.8, 0.2, 0.4), "valid")  # 绿色，有效放置
+
+    # 如果格子有棋子且不在拖拽状态，显示棋子信息
+    if cell.current_piece and not dragging_piece:
+        EventBus.show_chess_info.emit(cell.current_piece)
 
     # 发送格子悬停信号
     EventBus.cell_hovered.emit(cell)
@@ -217,6 +229,10 @@ func _on_cell_exited(cell: BoardCell):
     # 取消高亮
     if cell.is_highlighted and not is_combining:
         cell.highlight(false)
+
+    # 如果格子有棋子，隐藏棋子信息
+    if cell.current_piece:
+        EventBus.hide_chess_info.emit()
 
     # 发送格子离开信号
     EventBus.cell_exited.emit(cell)
@@ -309,8 +325,21 @@ func start_drag_piece(cell: BoardCell) -> void:
     add_child(dragging_piece)
 
     # 添加视觉反馈
-    dragging_piece.scale = Vector2(1.2, 1.2)  # 缩放效果
-    dragging_piece.modulate.a = 0.8  # 半透明
+    # 创建拖拽动画
+    var tween = create_tween()
+    tween.tween_property(dragging_piece, "scale", Vector2(1.2, 1.2), 0.1)
+    tween.parallel().tween_property(dragging_piece, "modulate:a", 0.8, 0.1)
+
+    # 添加拖拽阴影
+    var shadow = ColorRect.new()
+    shadow.name = "DragShadow"
+    shadow.color = Color(0.2, 0.2, 0.2, 0.3)
+    shadow.size = Vector2(cell_size.x * 0.8, cell_size.y * 0.8)
+    shadow.position = Vector2(-cell_size.x * 0.4, -cell_size.y * 0.4)
+    dragging_piece.add_child(shadow)
+
+    # 播放拖拽音效
+    EventBus.play_sound.emit("drag_start")
 
     # 高亮可放置的格子
     _highlight_valid_cells()
@@ -320,9 +349,9 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
     if not dragging_piece:
         return
 
-    # 恢复棋子的视觉效果
-    dragging_piece.scale = Vector2(1.0, 1.0)
-    dragging_piece.modulate.a = 1.0
+    # 移除拖拽阴影
+    if dragging_piece.has_node("DragShadow"):
+        dragging_piece.get_node("DragShadow").queue_free()
 
     # 取消所有格子的高亮
     _clear_all_highlights()
@@ -333,14 +362,44 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
         target_cell = _find_cell_at_position(mouse_pos)
 
     if target_cell and not target_cell.current_piece and target_cell.is_playable:
+        # 创建放置动画
+        var tween = create_tween()
+        tween.tween_property(dragging_piece, "scale", Vector2(1.0, 1.0), 0.15)
+        tween.parallel().tween_property(dragging_piece, "modulate:a", 1.0, 0.15)
+        tween.parallel().tween_property(dragging_piece, "position", target_cell.position, 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
         # 放置到新格子
         target_cell.place_piece(dragging_piece)
+
+        # 创建放置效果
+        var effect = ColorRect.new()
+        effect.color = Color(0.2, 0.8, 0.2, 0.3)
+        effect.size = Vector2(cell_size.x, cell_size.y)
+        effect.position = Vector2(-cell_size.x/2, -cell_size.y/2)
+        target_cell.add_child(effect)
+
+        # 创建消失动画
+        var effect_tween = create_tween()
+        effect_tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
+        effect_tween.tween_callback(effect.queue_free)
+
+        # 播放放置音效
+        EventBus.play_sound.emit("piece_placed")
 
         # 发送移动信号
         EventBus.chess_piece_moved.emit(dragging_piece, drag_start_cell.grid_position, target_cell.grid_position)
     else:
+        # 创建返回动画
+        var tween = create_tween()
+        tween.tween_property(dragging_piece, "scale", Vector2(1.0, 1.0), 0.15)
+        tween.parallel().tween_property(dragging_piece, "modulate:a", 1.0, 0.15)
+        tween.parallel().tween_property(dragging_piece, "position", drag_start_cell.position, 0.15).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+
         # 放回原格子
         drag_start_cell.place_piece(dragging_piece)
+
+        # 播放取消音效
+        EventBus.play_sound.emit("piece_return")
 
     dragging_piece = null
     drag_start_cell = null
@@ -512,12 +571,20 @@ func _highlight_valid_cells() -> void:
     for row in cells:
         for cell in row:
             if cell.is_playable and not cell.current_piece:
-                cell.highlight(true, Color(0.2, 0.8, 0.2, 0.3))
+                # 如果是玩家棋子且格子是出生区
+                if dragging_piece.is_player_piece and cell.cell_type == "spawn":
+                    cell.highlight(true, Color(0.2, 0.8, 0.2, 0.4), "valid")  # 绿色，有效放置
+                # 如果是玩家棋子且格子不是出生区
+                elif dragging_piece.is_player_piece and cell.cell_type != "spawn":
+                    cell.highlight(true, Color(0.8, 0.8, 0.2, 0.4), "warning")  # 黄色，警告放置
+                # 如果是敌方棋子且格子不是出生区
+                elif not dragging_piece.is_player_piece and cell.cell_type != "blocked":
+                    cell.highlight(true, Color(0.2, 0.8, 0.2, 0.4), "valid")  # 绿色，有效放置
 
     # 高亮备战区的可放置格子
     for cell in bench_cells:
         if cell.is_playable and not cell.current_piece:
-            cell.highlight(true, Color(0.2, 0.8, 0.2, 0.3))
+            cell.highlight(true, Color(0.2, 0.8, 0.2, 0.4), "valid")  # 绿色，有效放置
 
 # 清除所有高亮
 func _clear_all_highlights() -> void:
@@ -560,14 +627,74 @@ func try_combine_pieces(piece: ChessPiece) -> bool:
     if same_pieces.size() >= 3:
         is_combining = true
 
+        # 获取第一个棋子的位置（合成目标位置）
+        var first_piece = same_pieces[0]
+        var first_cell = _find_cell_with_piece(first_piece)
+        var target_position = first_cell.position
+
         # 高亮可合成的棋子
         for p in same_pieces:
             var cell = _find_cell_with_piece(p)
             if cell:
-                cell.highlight(true, Color(1.0, 0.8, 0.2, 0.5))
+                cell.highlight(true, Color(1.0, 0.8, 0.2, 0.5), "valid")
+
+        # 播放合成音效
+        EventBus.play_sound.emit("combine_start")
+
+        # 创建合成动画
+        var animation_duration = 0.5
+
+        # 移除棋子并创建动画
+        var pieces_to_animate = []
+        for i in range(same_pieces.size()):
+            var p = same_pieces[i]
+            var cell = _find_cell_with_piece(p)
+            if cell:
+                var animated_piece = cell.remove_piece()
+                pieces_to_animate.append(animated_piece)
+
+                # 将棋子移到顶层
+                remove_child(animated_piece)
+                add_child(animated_piece)
+
+                # 创建移动动画
+                if i > 0:  # 第一个棋子不需要移动
+                    var tween = create_tween()
+                    tween.tween_property(animated_piece, "position", target_position, animation_duration)
+                    tween.parallel().tween_property(animated_piece, "scale", Vector2(0.8, 0.8), animation_duration)
+                    tween.parallel().tween_property(animated_piece, "modulate:a", 0.7, animation_duration)
+
+        # 等待动画完成
+        await get_tree().create_timer(animation_duration).timeout
+
+        # 创建合成特效
+        var effect = ColorRect.new()
+        effect.color = Color(1.0, 0.8, 0.2, 0.5)
+        effect.size = Vector2(cell_size.x * 2, cell_size.y * 2)
+        effect.position = target_position - Vector2(cell_size.x, cell_size.y)
+        add_child(effect)
+
+        # 创建特效动画
+        var effect_tween = create_tween()
+        effect_tween.tween_property(effect, "scale", Vector2(1.5, 1.5), 0.3)
+        effect_tween.parallel().tween_property(effect, "modulate:a", 0.0, 0.3)
+        effect_tween.tween_callback(effect.queue_free)
+
+        # 清理动画棋子
+        for p in pieces_to_animate:
+            p.queue_free()
 
         # 合成棋子
-        upgrade_piece(piece.id)
+        var upgraded_piece = upgrade_piece(piece.id)
+
+        # 创建升级棋子的动画
+        if upgraded_piece:
+            var upgrade_tween = create_tween()
+            upgrade_tween.tween_property(upgraded_piece, "scale", Vector2(1.3, 1.3), 0.2)
+            upgrade_tween.tween_property(upgraded_piece, "scale", Vector2(1.0, 1.0), 0.2)
+
+            # 播放合成完成音效
+            EventBus.play_sound.emit("combine_complete")
 
         # 取消高亮
         for row in cells:

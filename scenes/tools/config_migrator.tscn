@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqnxj8yvmxnqx"]
+
+[ext_resource type="Script" path="res://scripts/tools/config_migrator.gd" id="1_yjnkw"]
+
+[node name="ConfigMigrator" type="Node"]
+script = ExtResource("1_yjnkw")

@@ -328,6 +328,86 @@ func get_all_nodes() -> Dictionary:
 func is_map_completed() -> bool:
 	return completed
 
+## 获取两个节点之间的路径
+func get_path_between_nodes(from_node_id: String, to_node_id: String) -> Array:
+	# 如果节点不存在，返回空数组
+	if not nodes.has(from_node_id) or not nodes.has(to_node_id):
+		return []
+
+	# 获取节点
+	var from_node = nodes[from_node_id]
+	var to_node = nodes[to_node_id]
+
+	# 如果节点层级不相邻，返回空数组
+	if to_node.layer != from_node.layer + 1:
+		return []
+
+	# 检查直接连接
+	if from_node.connections_to.has(to_node_id):
+		return [from_node_id, to_node_id]
+
+	# 如果没有直接连接，返回空数组
+	return []
+
+## 获取到目标节点的最佳路径
+func get_best_path_to_node(target_node_id: String) -> Array:
+	# 如果没有当前节点或目标节点不存在，返回空数组
+	if not current_node or not nodes.has(target_node_id):
+		return []
+
+	# 获取目标节点
+	var target_node = nodes[target_node_id]
+
+	# 如果目标节点层级不在地图的最后一层，返回空数组
+	if target_node.layer != map_data.layers - 1:
+		return []
+
+	# 使用广度优先搜索找到目标节点的路径
+	return _find_path_bfs(current_node.id, target_node_id)
+
+## 使用广度优先搜索找到目标节点的路径
+func _find_path_bfs(start_node_id: String, target_node_id: String) -> Array:
+	# 初始化队列和访问记录
+	var queue = []
+	var visited = {}
+	var parent = {}
+
+	# 将起点加入队列
+	queue.push_back(start_node_id)
+	visited[start_node_id] = true
+
+	# BFS遍历
+	while not queue.is_empty():
+		var current_id = queue.pop_front()
+
+		# 如果到达目标，重建路径
+		if current_id == target_node_id:
+			return _reconstruct_path(parent, start_node_id, target_node_id)
+
+		# 获取当前节点
+		var current_node = nodes[current_id]
+
+		# 遍历所有连接
+		for next_id in current_node.connections_to:
+			if not visited.has(next_id):
+				queue.push_back(next_id)
+				visited[next_id] = true
+				parent[next_id] = current_id
+
+	# 如果没有找到路径，返回空数组
+	return []
+
+## 重建路径
+func _reconstruct_path(parent: Dictionary, start_node_id: String, target_node_id: String) -> Array:
+	var path = [target_node_id]
+	var current_id = target_node_id
+
+	while current_id != start_node_id:
+		current_id = parent[current_id]
+		path.push_front(current_id)
+
+	return path
+
 ## 战斗结束事件处理
 func _on_battle_ended(result: Dictionary) -> void:
 	# 如果战斗失败，不处理奖励

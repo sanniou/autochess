@@ -22,10 +22,13 @@ var translations = {}
 # 语言文件路径
 const TRANSLATION_PATH = "res://data/localization/"
 
+# 引用
+@onready var config_manager = get_node("/root/ConfigManager")
+
 func _ready():
 	# 加载默认语言
 	load_language(current_language)
-	
+
 	# 连接信号
 	EventBus.language_changed.connect(_on_language_changed)
 
@@ -34,36 +37,28 @@ func load_language(language: int) -> void:
 	if not LANGUAGE_CODES.has(language):
 		EventBus.debug_message.emit("不支持的语言: " + str(language), 2)
 		return
-	
+
 	var language_code = LANGUAGE_CODES[language]
 	var file_path = TRANSLATION_PATH + language_code + ".json"
-	
+
 	if not FileAccess.file_exists(file_path):
 		EventBus.debug_message.emit("语言文件不存在: " + file_path, 2)
-		
+
 		# 如果是调试模式，创建一个空的语言文件
 		if OS.is_debug_build():
 			_create_empty_language_file(language_code)
-		
+
 		return
-	
-	var file = FileAccess.open(file_path, FileAccess.READ)
-	if file == null:
-		EventBus.debug_message.emit("无法打开语言文件: " + file_path, 2)
+
+	# 使用 ConfigManager 加载语言文件
+	var translation_data = config_manager.load_json(file_path)
+	if translation_data.is_empty():
+		EventBus.debug_message.emit("无法加载语言文件: " + file_path, 2)
 		return
-	
-	var json_text = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	var error = json.parse(json_text)
-	if error != OK:
-		EventBus.debug_message.emit("解析语言文件失败: " + file_path + ", 行 " + str(json.get_error_line()) + ": " + json.get_error_message(), 2)
-		return
-	
-	translations = json.get_data()
+
+	translations = translation_data
 	current_language = language
-	
+
 	EventBus.debug_message.emit("已加载语言: " + language_code, 0)
 	EventBus.language_changed.emit(language_code)
 
@@ -71,7 +66,7 @@ func load_language(language: int) -> void:
 func change_language(language: int) -> void:
 	if language == current_language:
 		return
-	
+
 	load_language(language)
 
 ## 获取翻译文本
@@ -79,14 +74,14 @@ func tr(key: String, params: Array = []) -> String:
 	if not translations.has(key):
 		EventBus.debug_message.emit("翻译键不存在: " + key, 1)
 		return key
-	
+
 	var text = translations[key]
-	
+
 	# 处理参数替换
 	for i in range(params.size()):
 		var param_placeholder = "{" + str(i) + "}"
 		text = text.replace(param_placeholder, str(params[i]))
-	
+
 	return text
 
 ## 获取当前语言代码
@@ -99,13 +94,9 @@ func _create_empty_language_file(language_code: String) -> void:
 	var dir = DirAccess.open("res://")
 	if not dir.dir_exists(dir_path):
 		dir.make_dir_recursive(dir_path)
-	
+
 	var file_path = dir_path + language_code + ".json"
-	var file = FileAccess.open(file_path, FileAccess.WRITE)
-	if file == null:
-		EventBus.debug_message.emit("无法创建语言文件: " + file_path, 2)
-		return
-	
+
 	# 创建基本的翻译条目
 	var basic_translations = {
 		"ui.main_menu.start": "开始游戏",
@@ -163,12 +154,13 @@ func _create_empty_language_file(language_code: String) -> void:
 		"error.load_failed": "加载失败",
 		"error.config_not_found": "配置文件不存在"
 	}
-	
-	var json_text = JSON.stringify(basic_translations, "  ")
-	file.store_string(json_text)
-	file.close()
-	
-	EventBus.debug_message.emit("创建了基本语言文件: " + file_path, 1)
+
+	# 使用 ConfigManager 保存语言文件
+	var result = config_manager.save_json(file_path, basic_translations)
+	if result:
+		EventBus.debug_message.emit("创建了基本语言文件: " + file_path, 1)
+	else:
+		EventBus.debug_message.emit("无法创建语言文件: " + file_path, 2)
 
 ## 语言变更处理
 func _on_language_changed(new_language: String) -> void:

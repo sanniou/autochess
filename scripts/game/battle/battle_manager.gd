@@ -27,6 +27,9 @@ var enemy_pieces = []   # 敌方棋子
 # 战斗计时器
 var max_battle_time: float = 90.0  # 最大战斗时间(秒)
 
+# 战斗速度
+var battle_speed: float = 1.0  # 战斗速度倍数
+
 # 战斗回合
 var current_round: int = 1  # 当前回合
 
@@ -35,6 +38,21 @@ var difficulty: int = 1  # 当前难度
 
 # 战斗奖励
 var battle_rewards = {}  # 战斗奖励
+
+# AI控制器
+var ai_controller: AIController
+
+# 战斗统计
+var battle_stats = {
+	"player_damage_dealt": 0,
+	"enemy_damage_dealt": 0,
+	"player_healing": 0,
+	"enemy_healing": 0,
+	"player_kills": 0,
+	"enemy_kills": 0,
+	"battle_duration": 0,
+	"abilities_used": 0
+}
 
 # 引用
 @onready var board_manager: BoardManager = get_node("/root/GameManager/BoardManager")
@@ -45,6 +63,9 @@ func _ready():
 	EventBus.battle_started.connect(_on_battle_started)
 	EventBus.battle_ended.connect(_on_battle_ended)
 	EventBus.chess_piece_died.connect(_on_chess_piece_died)
+	EventBus.damage_dealt.connect(_on_damage_dealt)
+	EventBus.healing_done.connect(_on_healing_done)
+	EventBus.ability_used.connect(_on_ability_used)
 
 func _process(delta):
 	match current_state:
@@ -77,6 +98,12 @@ func start_battle(player_team: Array = [], enemy_team: Array = []):
 	# 重置棋盘
 	board_manager.reset_board()
 
+	# 初始化AI控制器
+	ai_controller = AIController.new(self, board_manager, difficulty)
+
+	# 重置战斗统计
+	_reset_battle_stats()
+
 	# 发送战斗开始信号
 	EventBus.battle_started.emit()
 
@@ -106,7 +133,11 @@ func _update_prepare_phase(delta):
 
 # 更新战斗阶段
 func _update_battle_phase(delta):
-	timer -= delta
+	# 应用战斗速度
+	var adjusted_delta = delta * battle_speed
+
+	timer -= delta  # 计时器使用原始时间
+	battle_stats.battle_duration += delta
 
 	# 检查战斗超时
 	if timer <= 0:
@@ -115,7 +146,11 @@ func _update_battle_phase(delta):
 		return
 
 	# 更新所有棋子状态
-	_update_chess_pieces(delta)
+	_update_chess_pieces(adjusted_delta)
+
+	# 更新AI控制器
+	if ai_controller:
+		ai_controller.update(adjusted_delta, enemy_pieces)
 
 	# 检查战斗是否结束
 	if _check_battle_end():
@@ -196,6 +231,19 @@ func _check_battle_end() -> bool:
 
 	return player_pieces.is_empty() or enemy_pieces.is_empty()
 
+# 重置战斗统计
+func _reset_battle_stats():
+	battle_stats = {
+		"player_damage_dealt": 0,
+		"enemy_damage_dealt": 0,
+		"player_healing": 0,
+		"enemy_healing": 0,
+		"player_kills": 0,
+		"enemy_kills": 0,
+		"battle_duration": 0,
+		"abilities_used": 0
+	}
+
 # 计算战斗结果
 func _calculate_battle_result(victory: bool):
 	# 计算奖励
@@ -205,16 +253,54 @@ func _calculate_battle_result(victory: bool):
 		var gold_reward = 5 + current_round + difficulty
 		var exp_reward = 2 + current_round / 2
 
+		# 根据战斗统计调整奖励
+		var performance_bonus = 0
+
+		# 根据玩家造成伤害增加奖励
+		if battle_stats.player_damage_dealt > 500:
+			performance_bonus += 2
+
+		# 根据玩家击杀数增加奖励
+		performance_bonus += battle_stats.player_kills
+
+		# 根据战斗时间调整奖励
+		if battle_stats.battle_duration < 30:
+			performance_bonus += 3  # 快速胜利奖励
+
+		# 应用效率加成
+		gold_reward += performance_bonus
+		exp_reward += performance_bonus / 2
+
 		# 添加到奖励中
 		rewards["gold"] = gold_reward
 		rewards["exp"] = exp_reward
 
 		# 根据难度和回合随机生成装备或棋子
-		if randf() < 0.3 + difficulty * 0.1:  # 30%+难度加成的概率获得装备
+		var equipment_chance = 0.3 + difficulty * 0.1 + performance_bonus * 0.02
+		if randf() < equipment_chance:  # 装备概率
 			rewards["equipment"] = true
 
-		if randf() < 0.2 + current_round * 0.02:  # 20%+回合加成的概率获得棋子
+			# 根据难度和表现决定装备稀有度
+			var rarity_roll = randf()
+			if rarity_roll < 0.1 + difficulty * 0.05 + performance_bonus * 0.02:
+				rewards["equipment_rarity"] = "epic"
+			elif rarity_roll < 0.3 + difficulty * 0.1 + performance_bonus * 0.03:
+				rewards["equipment_rarity"] = "rare"
+			else:
+				rewards["equipment_rarity"] = "common"
+
+		var chess_piece_chance = 0.2 + current_round * 0.02 + performance_bonus * 0.03
+		if randf() < chess_piece_chance:  # 棋子概率
 			rewards["chess_piece"] = true
+
+			# 根据难度和表现决定棋子稀有度
+			var rarity_roll = randf()
+			if rarity_roll < 0.05 + difficulty * 0.03 + performance_bonus * 0.01:
+				rewards["chess_piece_rarity"] = "epic"
+			elif rarity_roll < 0.2 + difficulty * 0.05 + performance_bonus * 0.02:
+				rewards["chess_piece_rarity"] = "rare"
+			else:
+				rewards["chess_piece_rarity"] = "common"
 
 	# 设置战斗结果
 	battle_result = {
@@ -223,7 +309,8 @@ func _calculate_battle_result(victory: bool):
 		"enemy_pieces_left": enemy_pieces.size(),
 		"round": current_round,
 		"difficulty": difficulty,
-		"rewards": rewards
+		"rewards": rewards,
+		"stats": battle_stats
 	}
 
 # 战斗开始事件处理
@@ -244,13 +331,30 @@ func _on_battle_ended(result: Dictionary):
 	# 处理战斗奖励
 	_process_battle_rewards(result)
 
+# 设置战斗速度
+func set_battle_speed(speed: float) -> void:
+	# 限制速度范围
+	battle_speed = clamp(speed, 0.5, 3.0)
+
+	# 应用速度到棋子
+	for piece in player_pieces + enemy_pieces:
+		if piece.has_method("set_animation_speed"):
+			piece.set_animation_speed(battle_speed)
+
+	# 发送战斗速度变化信号
+	EventBus.battle_speed_changed.emit(battle_speed)
+
 # 棋子死亡事件处理
 func _on_chess_piece_died(piece: ChessPiece):
 	# 从对应数组中移除
 	if piece.is_player_piece:
 		player_pieces.erase(piece)
+		# 更新战斗统计 - 敌方击杀数
+		battle_stats.enemy_kills += 1
 	else:
 		enemy_pieces.erase(piece)
+		# 更新战斗统计 - 玩家击杀数
+		battle_stats.player_kills += 1
 
 	# 检查战斗是否结束
 	if _check_battle_end():
@@ -281,6 +385,11 @@ func _cleanup_battle():
 	player_pieces.clear()
 	enemy_pieces.clear()
 
+	# 清理AI控制器
+	if ai_controller:
+		ai_controller.queue_free()
+		ai_controller = null
+
 # 计算胜利条件
 func _calculate_victory_condition() -> bool:
 	# 如果敌方棋子全部死亡，玩家胜利
@@ -296,6 +405,31 @@ func _calculate_victory_condition() -> bool:
 		return player_pieces.size() >= enemy_pieces.size()
 
 	return false
+
+# 伤害事件处理
+func _on_damage_dealt(source: ChessPiece, target: ChessPiece, amount: float, damage_type: String) -> void:
+	# 更新战斗统计
+	if source and source.is_player_piece:
+		# 玩家造成伤害
+		battle_stats.player_damage_dealt += amount
+	elif source:
+		# 敌方造成伤害
+		battle_stats.enemy_damage_dealt += amount
+
+# 治疗事件处理
+func _on_healing_done(target: ChessPiece, amount: float, source = null) -> void:
+	# 更新战斗统计
+	if target and target.is_player_piece:
+		# 玩家治疗
+		battle_stats.player_healing += amount
+	elif target:
+		# 敌方治疗
+		battle_stats.enemy_healing += amount
+
+# 技能使用事件处理
+func _on_ability_used(piece: ChessPiece, ability_data: Dictionary) -> void:
+	# 更新战斗统计
+	battle_stats.abilities_used += 1
 
 # 处理战斗奖励
 func _process_battle_rewards(result: Dictionary):

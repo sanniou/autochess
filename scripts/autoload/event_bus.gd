@@ -32,6 +32,8 @@ signal chess_piece_moved(piece_data, from_pos, to_pos)
 signal chess_piece_ability_activated(piece_data, target_data)
 signal synergy_activated(synergy_type, level)
 signal synergy_deactivated(synergy_type)
+signal show_chess_info(piece_data)
+signal hide_chess_info()
 
 # 战斗相关信号
 signal battle_started
@@ -39,7 +41,12 @@ signal battle_ended(result)
 signal battle_round_started(round_number)
 signal battle_round_ended(round_number)
 signal damage_dealt(source, target, amount, damage_type)
+signal healing_done(target, amount, source)
+signal ability_used(piece, ability_data)
 signal unit_died(unit_data)
+signal battle_speed_changed(speed_multiplier)
+signal battle_preparing_phase_started
+signal battle_fighting_phase_started
 
 # 经济相关信号
 signal gold_changed(old_amount, new_amount)
@@ -57,6 +64,10 @@ signal equipment_combined(base_equipment, target_equipment, result_equipment)
 signal relic_acquired(relic_data)
 signal relic_activated(relic_data)
 signal relic_effect_triggered(relic_data, effect_data)
+signal show_relic_info(relic_data)
+signal hide_relic_info()
+signal relic_deactivated(relic_data)
+signal relic_removed(relic_data)
 
 # 事件相关信号
 signal event_triggered(event_data)
@@ -103,6 +114,7 @@ signal language_changed(new_language)
 # 音频相关信号
 signal bgm_changed(track_name)
 signal sfx_played(sfx_name)
+signal play_sound(sound_name)
 
 # 皮肤相关信号
 signal skin_changed(skin_type, skin_id)

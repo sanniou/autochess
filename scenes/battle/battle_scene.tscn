@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
 
 [ext_resource type="Script" path="res://scenes/battle/battle_scene.gd" id="1_yvmqe"]
+[ext_resource type="PackedScene" uid="uid://c8qxr6j2yvdgx" path="res://scenes/ui/battle_ui_controller.tscn" id="2_n3m4p"]
 
 [node name="BattleScene" type="Control"]
 layout_mode = 3
@@ -158,6 +159,9 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_font_sizes/font_size = 20
 text = "自动战斗"
+
+[node name="BattleUIController" parent="." instance=ExtResource("2_n3m4p")]
+layout_mode = 1
 
 [connection signal="pressed" from="BottomPanel/ButtonContainer/StartButton" to="." method="_on_start_button_pressed"]
 [connection signal="pressed" from="BottomPanel/ButtonContainer/SkipButton" to="." method="_on_skip_button_pressed"]

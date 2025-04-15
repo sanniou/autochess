@@ -84,10 +84,89 @@ func remove_piece() -> ChessPiece:
     return piece
 
 # 高亮格子
-func highlight(enable: bool, color: Color = Color.YELLOW):
+func highlight(enable: bool, color: Color = Color.YELLOW, highlight_type: String = "default"):
     is_highlighted = enable
     highlight_sprite.visible = enable
     highlight_sprite.modulate = color
+
+    # 根据高亮类型添加不同的视觉效果
+    if enable:
+        # 移除之前的高亮效果
+        for child in get_children():
+            if child.name.begins_with("HighlightEffect"):
+                child.queue_free()
+
+        # 创建新的高亮效果
+        match highlight_type:
+            "valid":
+                # 有效放置高亮 - 添加脉动效果
+                var pulse_effect = ColorRect.new()
+                pulse_effect.name = "HighlightEffectPulse"
+                pulse_effect.color = color
+                pulse_effect.size = Vector2(64, 64)
+                pulse_effect.position = Vector2(-32, -32)
+                add_child(pulse_effect)
+
+                # 创建脉动动画
+                var tween = create_tween()
+                tween.set_loops()
+                tween.tween_property(pulse_effect, "modulate:a", 0.2, 0.8)
+                tween.tween_property(pulse_effect, "modulate:a", 0.5, 0.8)
+
+            "warning":
+                # 警告放置高亮 - 添加边框效果
+                var border_effect = ColorRect.new()
+                border_effect.name = "HighlightEffectBorder"
+                border_effect.color = Color(0, 0, 0, 0)
+                border_effect.size = Vector2(64, 64)
+                border_effect.position = Vector2(-32, -32)
+                add_child(border_effect)
+
+                # 创建边框
+                var border_width = 3
+
+                # 上边框
+                var top_border = ColorRect.new()
+                top_border.color = color
+                top_border.size = Vector2(64, border_width)
+                top_border.position = Vector2(0, 0)
+                border_effect.add_child(top_border)
+
+                # 右边框
+                var right_border = ColorRect.new()
+                right_border.color = color
+                right_border.size = Vector2(border_width, 64)
+                right_border.position = Vector2(64 - border_width, 0)
+                border_effect.add_child(right_border)
+
+                # 下边框
+                var bottom_border = ColorRect.new()
+                bottom_border.color = color
+                bottom_border.size = Vector2(64, border_width)
+                bottom_border.position = Vector2(0, 64 - border_width)
+                border_effect.add_child(bottom_border)
+
+                # 左边框
+                var left_border = ColorRect.new()
+                left_border.color = color
+                left_border.size = Vector2(border_width, 64)
+                left_border.position = Vector2(0, 0)
+                border_effect.add_child(left_border)
+
+                # 创建闪烁动画
+                var tween = create_tween()
+                tween.set_loops()
+                tween.tween_property(border_effect, "modulate:a", 0.5, 0.5)
+                tween.tween_property(border_effect, "modulate:a", 1.0, 0.5)
+
+            _:
+                # 默认高亮 - 仅显示高亮精灵
+                pass
+    else:
+        # 移除所有高亮效果
+        for child in get_children():
+            if child.name.begins_with("HighlightEffect"):
+                child.queue_free()
 
 # 输入事件处理
 func _on_input_event(_viewport, event, _shape_idx):

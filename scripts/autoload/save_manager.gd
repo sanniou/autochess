@@ -13,6 +13,9 @@ const MAX_SAVE_SLOTS = 5
 # 存档版本
 const SAVE_VERSION = "1.0.0"
 
+# 引用
+@onready var config_manager = get_node("/root/ConfigManager")
+
 # 当前加载的存档槽
 var current_save_slot = ""
 # 是否启用自动存档
@@ -28,14 +31,14 @@ var save_metadata = {}
 func _ready():
 	# 确保存档目录存在
 	_ensure_save_directory()
-	
+
 	# 加载存档元数据
 	load_save_metadata()
-	
+
 	# 连接信号
 	EventBus.autosave_triggered.connect(_on_autosave_triggered)
 	EventBus.game_state_changed.connect(_on_game_state_changed)
-	
+
 	# 设置自动存档计时器
 	if autosave_enabled:
 		_autosave_timer = autosave_interval
@@ -66,23 +69,15 @@ func load_save_metadata() -> void:
 		}
 		_save_metadata()
 		return
-	
-	var file = FileAccess.open(metadata_path, FileAccess.READ)
-	if file == null:
-		EventBus.debug_message.emit("无法打开存档元数据文件", 2)
+
+	# 使用 ConfigManager 加载元数据
+	var metadata = config_manager.load_json(metadata_path)
+	if metadata.is_empty():
+		EventBus.debug_message.emit("无法加载存档元数据", 2)
 		return
-	
-	var json_text = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	var error = json.parse(json_text)
-	if error != OK:
-		EventBus.debug_message.emit("解析存档元数据失败: " + json.get_error_message(), 2)
-		return
-	
-	save_metadata = json.get_data()
-	
+
+	save_metadata = metadata
+
 	# 版本兼容性检查
 	if not save_metadata.has("version") or save_metadata.version != SAVE_VERSION:
 		EventBus.debug_message.emit("存档版本不兼容，可能需要迁移", 1)
@@ -90,14 +85,11 @@ func load_save_metadata() -> void:
 ## 保存元数据
 func _save_metadata() -> void:
 	var metadata_path = SAVE_DIR + "metadata.json"
-	var file = FileAccess.open(metadata_path, FileAccess.WRITE)
-	if file == null:
+
+	# 使用 ConfigManager 保存元数据
+	var result = config_manager.save_json(metadata_path, save_metadata)
+	if not result:
 		EventBus.debug_message.emit("无法写入存档元数据文件", 2)
-		return
-	
-	var json_text = JSON.stringify(save_metadata, "  ")
-	file.store_string(json_text)
-	file.close()
 
 ## 保存游戏
 func save_game(slot_name: String = "") -> bool:
@@ -107,7 +99,7 @@ func save_game(slot_name: String = "") -> bool:
 		if slot_name == "":
 			EventBus.debug_message.emit("未指定存档槽", 2)
 			return false
-	
+
 	# 准备存档数据
 	var save_data = {
 		"version": SAVE_VERSION,
@@ -120,18 +112,16 @@ func save_game(slot_name: String = "") -> bool:
 		"achievements": _get_achievements_save_data(),
 		"settings": _get_settings_save_data()
 	}
-	
+
 	# 保存到文件
 	var save_path = SAVE_DIR + slot_name + SAVE_EXTENSION
-	var file = FileAccess.open(save_path, FileAccess.WRITE)
-	if file == null:
+
+	# 使用 ConfigManager 保存存档文件
+	var result = config_manager.save_json(save_path, save_data)
+	if not result:
 		EventBus.debug_message.emit("无法写入存档文件: " + save_path, 2)
 		return false
-	
-	var json_text = JSON.stringify(save_data)
-	file.store_string(json_text)
-	file.close()
-	
+
 	# 更新元数据
 	save_metadata.saves[slot_name] = {
 		"name": slot_name,
@@ -142,13 +132,13 @@ func save_game(slot_name: String = "") -> bool:
 	}
 	save_metadata.last_save = slot_name
 	_save_metadata()
-	
+
 	# 设置当前存档槽
 	current_save_slot = slot_name
-	
+
 	# 发送存档信号
 	EventBus.game_saved.emit(slot_name)
-	
+
 	return true
 
 ## 加载游戏
@@ -157,27 +147,17 @@ func load_game(slot_name: String) -> bool:
 	if not FileAccess.file_exists(save_path):
 		EventBus.debug_message.emit("存档文件不存在: " + save_path, 2)
 		return false
-	
-	var file = FileAccess.open(save_path, FileAccess.READ)
-	if file == null:
-		EventBus.debug_message.emit("无法打开存档文件: " + save_path, 2)
+
+	# 使用 ConfigManager 加载存档文件
+	var save_data = config_manager.load_json(save_path)
+	if save_data.is_empty():
+		EventBus.debug_message.emit("无法加载存档文件: " + save_path, 2)
 		return false
-	
-	var json_text = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	var error = json.parse(json_text)
-	if error != OK:
-		EventBus.debug_message.emit("解析存档文件失败: " + json.get_error_message(), 2)
-		return false
-	
-	var save_data = json.get_data()
-	
+
 	# 版本兼容性检查
 	if not save_data.has("version") or save_data.version != SAVE_VERSION:
 		EventBus.debug_message.emit("存档版本不兼容，可能无法正确加载", 1)
-	
+
 	# 应用存档数据
 	_apply_player_save_data(save_data.player)
 	_apply_map_save_data(save_data.map)
@@ -186,13 +166,13 @@ func load_game(slot_name: String) -> bool:
 	_apply_relics_save_data(save_data.relics)
 	_apply_achievements_save_data(save_data.achievements)
 	_apply_settings_save_data(save_data.settings)
-	
+
 	# 设置当前存档槽
 	current_save_slot = slot_name
-	
+
 	# 发送加载信号
 	EventBus.game_loaded.emit(slot_name)
-	
+
 	return true
 
 ## 获取存档列表
@@ -200,10 +180,10 @@ func get_save_list() -> Array:
 	var saves = []
 	for save_name in save_metadata.saves.keys():
 		saves.append(save_metadata.saves[save_name])
-	
+
 	# 按时间戳排序，最新的在前
 	saves.sort_custom(func(a, b): return a.timestamp > b.timestamp)
-	
+
 	return saves
 
 ## 删除存档
@@ -212,31 +192,31 @@ func delete_save(slot_name: String) -> bool:
 	if not FileAccess.file_exists(save_path):
 		EventBus.debug_message.emit("存档文件不存在: " + save_path, 2)
 		return false
-	
+
 	var dir = DirAccess.open(SAVE_DIR)
 	if dir.remove(slot_name + SAVE_EXTENSION) != OK:
 		EventBus.debug_message.emit("无法删除存档文件: " + save_path, 2)
 		return false
-	
+
 	# 更新元数据
 	save_metadata.saves.erase(slot_name)
 	if save_metadata.last_save == slot_name:
 		save_metadata.last_save = ""
 	_save_metadata()
-	
+
 	return true
 
 ## 创建新存档槽
 func create_new_save_slot() -> String:
 	var timestamp = Time.get_unix_time_from_system()
 	var slot_name = "save_" + str(timestamp)
-	
+
 	# 如果存档数量超过最大值，删除最旧的存档
 	var saves = get_save_list()
 	if saves.size() >= MAX_SAVE_SLOTS:
 		var oldest_save = saves[saves.size() - 1].name
 		delete_save(oldest_save)
-	
+
 	return slot_name
 
 ## 获取玩家存档数据

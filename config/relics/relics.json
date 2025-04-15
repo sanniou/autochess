@@ -1,203 +1,203 @@
 {
-  "lucky_coin": {
-    "id": "lucky_coin",
-    "name": "幸运硬币",
-    "description": "每回合结束时获得1金币。",
-    "rarity": 0,
-    "icon_path": "res://assets/images/relics/lucky_coin.png",
-    "is_passive": true,
+  "ancient_coin": {
+    "description": "获得后立即获得10金币。",
     "effects": [
       {
+        "description": "获得后立即获得10金币。",
+        "trigger": "on_acquire",
         "type": "gold",
-        "value": 1,
-        "trigger": "on_round_end",
-        "description": "每回合结束时获得1金币。"
+        "value": 10.0
       }
-    ]
+    ],
+    "icon_path": "res://assets/images/relics/ancient_coin.png",
+    "id": "ancient_coin",
+    "is_passive": true,
+    "name": "远古硬币",
+    "rarity": 0.0
+  },
+  "crown_of_kings": {
+    "description": "每回合开始时，随机一个友方棋子获得50%攻击力和20%攻击速度，持续整个回合。",
+    "effects": [
+      {
+        "description": "每回合开始时，随机一个友方棋子获得50%攻击力和20%攻击速度，持续整个回合。",
+        "special_effect": "crown_buff",
+        "trigger": "on_round_start",
+        "type": "special"
+      }
+    ],
+    "icon_path": "res://assets/images/relics/crown_of_kings.png",
+    "id": "crown_of_kings",
+    "is_passive": true,
+    "name": "王者之冠",
+    "rarity": 3.0
+  },
+  "dragon_scale": {
+    "description": "所有友方棋子获得10点护甲。",
+    "effects": [
+      {
+        "description": "所有友方棋子获得10点护甲。",
+        "stats": {
+          "armor": 10.0
+        },
+        "trigger": "on_battle_start",
+        "type": "stat_boost"
+      }
+    ],
+    "icon_path": "res://assets/images/relics/dragon_scale.png",
+    "id": "dragon_scale",
+    "is_passive": true,
+    "name": "龙鳞",
+    "rarity": 2.0
+  },
+  "healing_potion": {
+    "charges": 1.0,
+    "cooldown": 0.0,
+    "description": "使用后恢复20点生命值。",
+    "effects": [
+      {
+        "description": "使用后恢复20点生命值。",
+        "trigger": "on_activate",
+        "type": "heal",
+        "value": 20.0
+      }
+    ],
+    "icon_path": "res://assets/images/relics/healing_potion.png",
+    "id": "healing_potion",
+    "is_passive": false,
+    "name": "治疗药水",
+    "rarity": 0.0
   },
   "heart_amulet": {
-    "id": "heart_amulet",
-    "name": "心形护符",
     "description": "所有友方棋子获得10%最大生命值。",
-    "rarity": 1,
-    "icon_path": "res://assets/images/relics/heart_amulet.png",
-    "is_passive": true,
     "effects": [
       {
-        "type": "stat_boost",
+        "description": "所有友方棋子获得10%最大生命值。",
+        "is_percentage": true,
         "stats": {
           "health": 0.1
         },
-        "is_percentage": true,
         "trigger": "on_battle_start",
-        "description": "所有友方棋子获得10%最大生命值。"
+        "type": "stat_boost"
       }
-    ]
-  },
-  "warrior_emblem": {
-    "id": "warrior_emblem",
-    "name": "战士徽章",
-    "description": "所有战士棋子获得15%攻击力。",
-    "rarity": 1,
-    "icon_path": "res://assets/images/relics/warrior_emblem.png",
+    ],
+    "icon_path": "res://assets/images/relics/heart_amulet.png",
+    "id": "heart_amulet",
     "is_passive": true,
+    "name": "心形护符",
+    "rarity": 1.0
+  },
+  "lucky_coin": {
+    "description": "每回合结束时获得1金币。",
     "effects": [
       {
-        "type": "stat_boost",
-        "stats": {
-          "attack_damage": 0.15
-        },
-        "is_percentage": true,
-        "trigger": "on_battle_start",
-        "description": "所有战士棋子获得15%攻击力。",
-        "condition": {
-          "class": "warrior"
-        }
+        "description": "每回合结束时获得1金币。",
+        "trigger": "on_round_end",
+        "type": "gold",
+        "value": 1.0
       }
-    ]
+    ],
+    "icon_path": "res://assets/images/relics/lucky_coin.png",
+    "id": "lucky_coin",
+    "is_passive": true,
+    "name": "幸运硬币",
+    "rarity": 0.0
   },
   "mage_emblem": {
-    "id": "mage_emblem",
-    "name": "法师徽章",
     "description": "所有法师棋子获得20%法术强度。",
-    "rarity": 1,
-    "icon_path": "res://assets/images/relics/mage_emblem.png",
-    "is_passive": true,
     "effects": [
       {
-        "type": "stat_boost",
+        "condition": {
+          "class": "mage"
+        },
+        "description": "所有法师棋子获得20%法术强度。",
+        "is_percentage": true,
         "stats": {
           "spell_power": 0.2
         },
-        "is_percentage": true,
         "trigger": "on_battle_start",
-        "description": "所有法师棋子获得20%法术强度。",
-        "condition": {
-          "class": "mage"
-        }
+        "type": "stat_boost"
       }
-    ]
+    ],
+    "icon_path": "res://assets/images/relics/mage_emblem.png",
+    "id": "mage_emblem",
+    "is_passive": true,
+    "name": "法师徽章",
+    "rarity": 1.0
   },
   "merchants_purse": {
-    "id": "merchants_purse",
-    "name": "商人钱袋",
     "description": "商店刷新费用减少1金币。",
-    "rarity": 0,
-    "icon_path": "res://assets/images/relics/merchants_purse.png",
-    "is_passive": true,
     "effects": [
       {
-        "type": "shop",
+        "description": "商店刷新费用减少1金币。",
         "operation": "discount",
-        "value": 1,
         "trigger": "passive",
-        "description": "商店刷新费用减少1金币。"
+        "type": "shop",
+        "value": 1.0
       }
-    ]
-  },
-  "healing_potion": {
-    "id": "healing_potion",
-    "name": "治疗药水",
-    "description": "使用后恢复20点生命值。",
-    "rarity": 0,
-    "icon_path": "res://assets/images/relics/healing_potion.png",
-    "is_passive": false,
-    "cooldown": 0,
-    "charges": 1,
-    "effects": [
-      {
-        "type": "heal",
-        "value": 20,
-        "trigger": "on_activate",
-        "description": "使用后恢复20点生命值。"
-      }
-    ]
-  },
-  "ancient_coin": {
-    "id": "ancient_coin",
-    "name": "远古硬币",
-    "description": "获得后立即获得10金币。",
-    "rarity": 0,
-    "icon_path": "res://assets/images/relics/ancient_coin.png",
+    ],
+    "icon_path": "res://assets/images/relics/merchants_purse.png",
+    "id": "merchants_purse",
     "is_passive": true,
-    "effects": [
-      {
-        "type": "gold",
-        "value": 10,
-        "trigger": "on_acquire",
-        "description": "获得后立即获得10金币。"
-      }
-    ]
-  },
-  "dragon_scale": {
-    "id": "dragon_scale",
-    "name": "龙鳞",
-    "description": "所有友方棋子获得10点护甲。",
-    "rarity": 2,
-    "icon_path": "res://assets/images/relics/dragon_scale.png",
-    "is_passive": true,
-    "effects": [
-      {
-        "type": "stat_boost",
-        "stats": {
-          "armor": 10
-        },
-        "trigger": "on_battle_start",
-        "description": "所有友方棋子获得10点护甲。"
-      }
-    ]
+    "name": "商人钱袋",
+    "rarity": 0.0
   },
   "mystic_orb": {
-    "id": "mystic_orb",
-    "name": "神秘法球",
     "description": "所有友方棋子获得10点魔法抗性。",
-    "rarity": 2,
-    "icon_path": "res://assets/images/relics/mystic_orb.png",
-    "is_passive": true,
     "effects": [
       {
-        "type": "stat_boost",
+        "description": "所有友方棋子获得10点魔法抗性。",
         "stats": {
-          "magic_resist": 10
+          "magic_resist": 10.0
         },
         "trigger": "on_battle_start",
-        "description": "所有友方棋子获得10点魔法抗性。"
+        "type": "stat_boost"
       }
-    ]
+    ],
+    "icon_path": "res://assets/images/relics/mystic_orb.png",
+    "id": "mystic_orb",
+    "is_passive": true,
+    "name": "神秘法球",
+    "rarity": 2.0
   },
   "swift_boots": {
-    "id": "swift_boots",
-    "name": "迅捷之靴",
     "description": "所有友方棋子获得10%攻击速度。",
-    "rarity": 1,
-    "icon_path": "res://assets/images/relics/swift_boots.png",
-    "is_passive": true,
     "effects": [
       {
-        "type": "stat_boost",
+        "description": "所有友方棋子获得10%攻击速度。",
+        "is_percentage": true,
         "stats": {
           "attack_speed": 0.1
         },
-        "is_percentage": true,
         "trigger": "on_battle_start",
-        "description": "所有友方棋子获得10%攻击速度。"
+        "type": "stat_boost"
       }
-    ]
-  },
-  "crown_of_kings": {
-    "id": "crown_of_kings",
-    "name": "王者之冠",
-    "description": "每回合开始时，随机一个友方棋子获得50%攻击力和20%攻击速度，持续整个回合。",
-    "rarity": 3,
-    "icon_path": "res://assets/images/relics/crown_of_kings.png",
+    ],
+    "icon_path": "res://assets/images/relics/swift_boots.png",
+    "id": "swift_boots",
     "is_passive": true,
+    "name": "迅捷之靴",
+    "rarity": 1.0
+  },
+  "warrior_emblem": {
+    "description": "所有战士棋子获得15%攻击力。",
     "effects": [
       {
-        "type": "special",
-        "trigger": "on_round_start",
-        "description": "每回合开始时，随机一个友方棋子获得50%攻击力和20%攻击速度，持续整个回合。",
-        "special_effect": "crown_buff"
+        "condition": {
+          "class": "warrior"
+        },
+        "description": "所有战士棋子获得15%攻击力。",
+        "is_percentage": true,
+        "stats": {
+          "attack_damage": 0.15
+        },
+        "trigger": "on_battle_start",
+        "type": "stat_boost"
       }
-    ]
+    ],
+    "icon_path": "res://assets/images/relics/warrior_emblem.png",
+    "id": "warrior_emblem",
+    "is_passive": true,
+    "name": "战士徽章",
+    "rarity": 1.0
   }
 }

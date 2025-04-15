@@ -1,212 +1,267 @@
 {
-  "warrior": {
-    "id": "warrior",
-    "name": "战士",
-    "description": "战士获得额外的护甲。",
-    "icon": "warrior_synergy.png",
-    "tiers": [
-      {
-        "count": 2,
-        "effect": {
-          "type": "stat_boost",
-          "stats": {
-            "armor": 15
-          }
-        }
-      },
-      {
-        "count": 4,
-        "effect": {
-          "type": "stat_boost",
-          "stats": {
-            "armor": 35
-          }
-        }
-      },
-      {
-        "count": 6,
-        "effect": {
-          "type": "stat_boost",
-          "stats": {
-            "armor": 60
-          }
-        }
-      }
-    ]
-  },
-  "mage": {
-    "id": "mage",
-    "name": "法师",
-    "description": "法师的技能造成额外伤害。",
-    "icon": "mage_synergy.png",
-    "tiers": [
-      {
-        "count": 2,
-        "effect": {
-          "type": "spell_amp",
-          "amp": 0.2
-        }
-      },
-      {
-        "count": 4,
-        "effect": {
-          "type": "spell_amp",
-          "amp": 0.4
-        }
-      },
-      {
-        "count": 6,
-        "effect": {
-          "type": "spell_amp",
-          "amp": 0.7
-        }
-      }
-    ]
-  },
-  "ranger": {
-    "id": "ranger",
-    "name": "游侠",
-    "description": "游侠有几率造成额外攻击。",
-    "icon": "ranger_synergy.png",
-    "tiers": [
-      {
-        "count": 2,
-        "effect": {
-          "type": "double_attack",
-          "chance": 0.2
-        }
-      },
-      {
-        "count": 4,
-        "effect": {
-          "type": "double_attack",
-          "chance": 0.35
-        }
-      },
-      {
-        "count": 6,
-        "effect": {
-          "type": "double_attack",
-          "chance": 0.5
-        }
-      }
-    ]
-  },
   "assassin": {
+    "description": "刺客获得额外的暴击几率和暴击伤害。",
+    "icon_path": "res://assets/images/synergies/assassin_synergy.png",
     "id": "assassin",
     "name": "刺客",
-    "description": "刺客获得额外的暴击几率和暴击伤害。",
-    "icon": "assassin_synergy.png",
+    "thresholds": [],
     "tiers": [
       {
-        "count": 2,
+        "count": 2.0,
         "effect": {
-          "type": "crit",
           "chance": 0.1,
-          "damage": 0.2
+          "damage": 0.2,
+          "type": "crit"
         }
       },
       {
-        "count": 4,
+        "count": 4.0,
         "effect": {
-          "type": "crit",
           "chance": 0.2,
-          "damage": 0.4
+          "damage": 0.4,
+          "type": "crit"
         }
       },
       {
-        "count": 6,
+        "count": 6.0,
         "effect": {
-          "type": "crit",
           "chance": 0.3,
-          "damage": 0.6
+          "damage": 0.6,
+          "type": "crit"
         }
       }
     ]
   },
-  "support": {
-    "id": "support",
-    "name": "辅助",
-    "description": "辅助提高队伍的攻击速度。",
-    "icon": "support_synergy.png",
+  "elemental": {
+    "description": "元素生物有几率造成元素效果。",
+    "icon_path": "res://assets/images/synergies/elemental_synergy.png",
+    "id": "elemental",
+    "name": "元素",
+    "thresholds": [],
     "tiers": [
       {
-        "count": 2,
+        "count": 2.0,
         "effect": {
-          "type": "team_buff",
-          "stats": {
-            "attack_speed": 0.1
-          }
-        }
-      },
-      {
-        "count": 4,
-        "effect": {
-          "type": "team_buff",
-          "stats": {
-            "attack_speed": 0.2
-          }
-        }
-      }
-    ]
-  },
-  "human": {
-    "id": "human",
-    "name": "人类",
-    "description": "人类有几率在攻击后减少技能冷却时间。",
-    "icon": "human_synergy.png",
-    "tiers": [
-      {
-        "count": 2,
-        "effect": {
-          "type": "cooldown_reduction",
           "chance": 0.2,
-          "reduction": 1
+          "type": "elemental_effect"
         }
       },
       {
-        "count": 4,
+        "count": 4.0,
         "effect": {
-          "type": "cooldown_reduction",
           "chance": 0.4,
-          "reduction": 2
-        }
-      },
-      {
-        "count": 6,
-        "effect": {
-          "type": "cooldown_reduction",
-          "chance": 0.6,
-          "reduction": 3
+          "type": "elemental_effect"
         }
       }
     ]
   },
   "elf": {
+    "description": "精灵有几率闪避攻击。",
+    "icon_path": "res://assets/images/synergies/elf_synergy.png",
     "id": "elf",
     "name": "精灵",
-    "description": "精灵有几率闪避攻击。",
-    "icon": "elf_synergy.png",
+    "thresholds": [],
     "tiers": [
       {
-        "count": 2,
+        "count": 2.0,
         "effect": {
-          "type": "dodge",
-          "chance": 0.15
+          "chance": 0.15,
+          "type": "dodge"
         }
       },
       {
-        "count": 4,
+        "count": 4.0,
         "effect": {
-          "type": "dodge",
-          "chance": 0.3
+          "chance": 0.3,
+          "type": "dodge"
         }
       },
       {
-        "count": 6,
+        "count": 6.0,
         "effect": {
-          "type": "dodge",
-          "chance": 0.45
+          "chance": 0.45,
+          "type": "dodge"
+        }
+      }
+    ]
+  },
+  "human": {
+    "description": "人类有几率在攻击后减少技能冷却时间。",
+    "icon_path": "res://assets/images/synergies/human_synergy.png",
+    "id": "human",
+    "name": "人类",
+    "thresholds": [],
+    "tiers": [
+      {
+        "count": 2.0,
+        "effect": {
+          "chance": 0.2,
+          "reduction": 1.0,
+          "type": "cooldown_reduction"
+        }
+      },
+      {
+        "count": 4.0,
+        "effect": {
+          "chance": 0.4,
+          "reduction": 2.0,
+          "type": "cooldown_reduction"
+        }
+      },
+      {
+        "count": 6.0,
+        "effect": {
+          "chance": 0.6,
+          "reduction": 3.0,
+          "type": "cooldown_reduction"
+        }
+      }
+    ]
+  },
+  "mage": {
+    "description": "法师的技能造成额外伤害。",
+    "icon_path": "res://assets/images/synergies/mage_synergy.png",
+    "id": "mage",
+    "name": "法师",
+    "thresholds": [],
+    "tiers": [
+      {
+        "count": 2.0,
+        "effect": {
+          "amp": 0.2,
+          "type": "spell_amp"
+        }
+      },
+      {
+        "count": 4.0,
+        "effect": {
+          "amp": 0.4,
+          "type": "spell_amp"
+        }
+      },
+      {
+        "count": 6.0,
+        "effect": {
+          "amp": 0.7,
+          "type": "spell_amp"
+        }
+      }
+    ]
+  },
+  "ranger": {
+    "description": "游侠有几率造成额外攻击。",
+    "icon_path": "res://assets/images/synergies/ranger_synergy.png",
+    "id": "ranger",
+    "name": "游侠",
+    "thresholds": [],
+    "tiers": [
+      {
+        "count": 2.0,
+        "effect": {
+          "chance": 0.2,
+          "type": "double_attack"
+        }
+      },
+      {
+        "count": 4.0,
+        "effect": {
+          "chance": 0.35,
+          "type": "double_attack"
+        }
+      },
+      {
+        "count": 6.0,
+        "effect": {
+          "chance": 0.5,
+          "type": "double_attack"
+        }
+      }
+    ]
+  },
+  "summoner": {
+    "description": "召唤师的召唤物获得额外属性加成。",
+    "icon_path": "res://assets/images/synergies/summoner_synergy.png",
+    "id": "summoner",
+    "name": "召唤师",
+    "thresholds": [],
+    "tiers": [
+      {
+        "count": 2.0,
+        "effect": {
+          "damage": 0.2,
+          "health": 0.2,
+          "type": "summon_boost"
+        }
+      },
+      {
+        "count": 4.0,
+        "effect": {
+          "damage": 0.4,
+          "health": 0.4,
+          "type": "summon_boost"
+        }
+      }
+    ]
+  },
+  "support": {
+    "description": "辅助提高队伍的攻击速度。",
+    "icon_path": "res://assets/images/synergies/support_synergy.png",
+    "id": "support",
+    "name": "辅助",
+    "thresholds": [],
+    "tiers": [
+      {
+        "count": 2.0,
+        "effect": {
+          "stats": {
+            "attack_speed": 0.1
+          },
+          "type": "team_buff"
+        }
+      },
+      {
+        "count": 4.0,
+        "effect": {
+          "stats": {
+            "attack_speed": 0.2
+          },
+          "type": "team_buff"
+        }
+      }
+    ]
+  },
+  "warrior": {
+    "description": "战士获得额外的护甲。",
+    "icon_path": "res://assets/images/synergies/warrior_synergy.png",
+    "id": "warrior",
+    "name": "战士",
+    "thresholds": [],
+    "tiers": [
+      {
+        "count": 2.0,
+        "effect": {
+          "stats": {
+            "armor": 15.0
+          },
+          "type": "stat_boost"
+        }
+      },
+      {
+        "count": 4.0,
+        "effect": {
+          "stats": {
+            "armor": 35.0
+          },
+          "type": "stat_boost"
+        }
+      },
+      {
+        "count": 6.0,
+        "effect": {
+          "stats": {
+            "armor": 60.0
+          },
+          "type": "stat_boost"
         }
       }
     ]

@@ -44,12 +44,13 @@ const MAX_UI_PLAYERS = 4
 func _ready():
 	# 初始化音频播放器
 	_initialize_audio_players()
-	
+
 	# 连接信号
 	EventBus.game_paused.connect(_on_game_paused)
 	EventBus.game_state_changed.connect(_on_game_state_changed)
 	EventBus.battle_started.connect(_on_battle_started)
 	EventBus.battle_ended.connect(_on_battle_ended)
+	EventBus.play_sound.connect(_on_play_sound)
 
 ## 初始化音频播放器
 func _initialize_audio_players() -> void:
@@ -60,7 +61,7 @@ func _initialize_audio_players() -> void:
 		player.volume_db = linear_to_db(music_volume)
 		add_child(player)
 		music_players.append(player)
-	
+
 	# 创建音效播放器
 	for i in range(MAX_SFX_PLAYERS):
 		var player = AudioStreamPlayer.new()
@@ -68,7 +69,7 @@ func _initialize_audio_players() -> void:
 		player.volume_db = linear_to_db(sfx_volume)
 		add_child(player)
 		sfx_players.append(player)
-	
+
 	# 创建UI音效播放器
 	for i in range(MAX_UI_PLAYERS):
 		var player = AudioStreamPlayer.new()
@@ -81,32 +82,32 @@ func _initialize_audio_players() -> void:
 func play_music(music_name: String, fade_time: float = 1.0) -> void:
 	if current_music == music_name:
 		return
-	
+
 	var music_path = AUDIO_PATHS[AudioType.MUSIC] + music_name
 	var stream = _load_audio(music_path)
 	if stream == null:
 		EventBus.debug_message.emit("音乐文件不存在: " + music_path, 1)
 		return
-	
+
 	# 找到一个空闲的音乐播放器
 	var player = _get_free_player(AudioType.MUSIC)
 	if player == null:
 		EventBus.debug_message.emit("没有可用的音乐播放器", 1)
 		return
-	
+
 	# 淡出当前音乐
 	for p in music_players:
 		if p != player and p.playing:
 			_fade_out(p, fade_time)
-	
+
 	# 设置新音乐
 	player.stream = stream
 	player.volume_db = linear_to_db(0.0)  # 从静音开始
 	player.play()
-	
+
 	# 淡入新音乐
 	_fade_in(player, fade_time)
-	
+
 	current_music = music_name
 	EventBus.bgm_changed.emit(music_name)
 
@@ -117,19 +118,19 @@ func play_sfx(sfx_name: String, pitch_scale: float = 1.0, volume_scale: float = 
 	if stream == null:
 		EventBus.debug_message.emit("音效文件不存在: " + sfx_path, 1)
 		return
-	
+
 	# 找到一个空闲的音效播放器
 	var player = _get_free_player(AudioType.SFX)
 	if player == null:
 		EventBus.debug_message.emit("没有可用的音效播放器", 1)
 		return
-	
+
 	# 设置音效
 	player.stream = stream
 	player.pitch_scale = pitch_scale
 	player.volume_db = linear_to_db(sfx_volume * volume_scale)
 	player.play()
-	
+
 	EventBus.sfx_played.emit(sfx_name)
 
 ## 播放UI音效
@@ -139,13 +140,13 @@ func play_ui_sound(sound_name: String) -> void:
 	if stream == null:
 		EventBus.debug_message.emit("UI音效文件不存在: " + sound_path, 1)
 		return
-	
+
 	# 找到一个空闲的UI音效播放器
 	var player = _get_free_player(AudioType.UI)
 	if player == null:
 		EventBus.debug_message.emit("没有可用的UI音效播放器", 1)
 		return
-	
+
 	# 设置UI音效
 	player.stream = stream
 	player.volume_db = linear_to_db(ui_volume)
@@ -156,7 +157,7 @@ func stop_all_music(fade_time: float = 1.0) -> void:
 	for player in music_players:
 		if player.playing:
 			_fade_out(player, fade_time)
-	
+
 	current_music = ""
 
 ## 停止所有音效
@@ -178,7 +179,7 @@ func set_master_volume(volume: float) -> void:
 func set_music_volume(volume: float) -> void:
 	music_volume = clamp(volume, 0.0, 1.0)
 	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(music_volume))
-	
+
 	# 更新所有音乐播放器的音量
 	for player in music_players:
 		if player.playing:
@@ -204,17 +205,17 @@ func _load_audio(path: String) -> AudioStream:
 	# 检查缓存
 	if audio_cache.has(path):
 		return audio_cache[path]
-	
+
 	# 检查文件是否存在
 	if not FileAccess.file_exists(path):
 		return null
-	
+
 	# 加载音频资源
 	var stream = load(path)
 	if stream is AudioStream:
 		audio_cache[path] = stream
 		return stream
-	
+
 	return null
 
 ## 获取空闲的音频播放器
@@ -227,22 +228,22 @@ func _get_free_player(type: int) -> AudioStreamPlayer:
 			players = sfx_players
 		AudioType.UI:
 			players = ui_players
-	
+
 	# 首先尝试找到一个未播放的播放器
 	for player in players:
 		if not player.playing:
 			return player
-	
+
 	# 如果所有播放器都在播放，则选择一个最早开始播放的
 	var oldest_player = players[0]
 	var oldest_time = Time.get_ticks_msec()
-	
+
 	for player in players:
 		var playback = player.get_playback_position()
 		if playback < oldest_time:
 			oldest_time = playback
 			oldest_player = player
-	
+
 	return oldest_player
 
 ## 淡入音频
@@ -295,3 +296,21 @@ func _on_battle_ended(result) -> void:
 		play_sfx("victory.ogg")
 	else:
 		play_sfx("defeat.ogg")
+
+## 播放音效处理
+func _on_play_sound(sound_name: String) -> void:
+	# 根据音效名称播放相应的音效
+	match sound_name:
+		"drag_start":
+			play_sfx("drag.ogg")
+		"piece_placed":
+			play_sfx("place.ogg")
+		"piece_return":
+			play_sfx("return.ogg")
+		"combine_start":
+			play_sfx("combine_start.ogg")
+		"combine_complete":
+			play_sfx("combine_complete.ogg")
+		_:
+			# 如果没有特殊处理，直接播放同名音效
+			play_sfx(sound_name)

@@ -52,7 +52,9 @@ func _create_map_data(template) -> Dictionary:
 		"template_id": template.id,
 		"layers": template.layers,
 		"nodes": [],
-		"connections": []
+		"connections": [],
+		"difficulty": GameManager.get_current_difficulty(),
+		"special_nodes": {}
 	}
 
 	# 创建节点
@@ -108,13 +110,66 @@ func _get_node_type_for_position(template, layer: int, pos: int) -> String:
 			if fixed_node.layer == layer and fixed_node.position == pos:
 				return fixed_node.type
 
+	# 第一层固定为起始节点
+	if layer == 0:
+		return "start"
+
+	# 最后一层固定为Boss节点
+	if layer == template.layers - 1:
+		return "boss"
+
+	# 特殊层处理
+	if layer == template.layers - 2:
+		# Boss前一层必定有一个休息节点
+		if pos == 0 or (template.nodes_per_layer[layer] > 1 and pos == template.nodes_per_layer[layer] - 1):
+			return "rest"
+
+	# 精英战斗分布
+	if layer > 1 and layer < template.layers - 1:
+		# 每两层至少有一个精英战斗
+		if layer % 2 == 0 and pos == template.nodes_per_layer[layer] / 2:
+			return "elite_battle"
+
+	# 商店分布
+	if layer > 0 and layer < template.layers - 1:
+		# 每三层至少有一个商店
+		if layer % 3 == 1 and pos == template.nodes_per_layer[layer] - 1:
+			return "shop"
+
+	# 宝藏分布
+	if layer > 1 and layer < template.layers - 2:
+		# 每四层至少有一个宝藏
+		if layer % 4 == 2 and pos == 0:
+			return "treasure"
+
 	# 随机选择节点类型
 	var node_types = []
 	var weights = []
 
+	# 根据难度调整权重
+	var difficulty_factor = 1.0
+	if template.has("difficulty"):
+		if template.difficulty == "easy":
+			difficulty_factor = 0.8  # 简单难度减少战斗节点
+		elif template.difficulty == "hard":
+			difficulty_factor = 1.2  # 困难难度增加战斗节点
+		elif template.difficulty == "expert":
+			difficulty_factor = 1.5  # 专家难度显著增加战斗节点
+
 	for type in template.node_distribution.keys():
 		node_types.append(type)
-		weights.append(template.node_distribution[type])
+
+		var weight = template.node_distribution[type]
+
+		# 根据难度调整战斗节点权重
+		if type == "battle":
+			weight *= difficulty_factor
+		elif type == "elite_battle":
+			weight *= difficulty_factor
+		elif type == "rest" and difficulty_factor > 1.0:
+			weight /= difficulty_factor  # 高难度减少休息节点
+
+		weights.append(weight)
 
 	return _weighted_choice(node_types, weights)
 
@@ -144,6 +199,26 @@ func _create_map_connections(nodes: Array, template) -> Array:
 		var current_layer_nodes = nodes[layer]
 		var next_layer_nodes = nodes[layer + 1]
 
+		# 计算连接密度
+		var connection_density = 0.3  # 默认连接密度
+
+		# 根据层数调整连接密度
+		if layer == 0 or layer == template.layers - 2:
+			# 第一层和最后一层前的连接密度更高
+			connection_density = 0.5
+		elif layer > template.layers / 2:
+			# 后半部分地图连接密度逐渐增加
+			connection_density = 0.3 + (layer - template.layers / 2) * 0.05
+
+		# 根据难度调整连接密度
+		if template.has("difficulty"):
+			if template.difficulty == "easy":
+				# 简单难度增加连接密度，提供更多选择
+				connection_density += 0.1
+			elif template.difficulty == "hard" or template.difficulty == "expert":
+				# 困难难度减少连接密度，减少选择
+				connection_density -= 0.05
+
 		for from_node in current_layer_nodes:
 			var connection = {
 				"from": from_node.id,
@@ -154,13 +229,25 @@ func _create_map_connections(nodes: Array, template) -> Array:
 			var from_pos = from_node.position
 			var from_pos_normalized = float(from_pos) / (current_layer_nodes.size() - 1) if current_layer_nodes.size() > 1 else 0.5
 
+			# 特殊节点类型处理
+			var is_special_node = from_node.type in ["elite_battle", "shop", "treasure", "rest"]
+			var special_connection_bonus = 0.1 if is_special_node else 0.0
+
 			for to_node in next_layer_nodes:
 				var to_pos = to_node.position
 				var to_pos_normalized = float(to_pos) / (next_layer_nodes.size() - 1) if next_layer_nodes.size() > 1 else 0.5
 
 				# 计算距离，决定是否连接
 				var distance = abs(from_pos_normalized - to_pos_normalized)
-				if distance <= 0.3:  # 调整这个值可以改变连接的密度
+
+				# 特殊节点有更高的连接概率
+				var current_density = connection_density + special_connection_bonus
+
+				# 添加随机性
+				var random_factor = randf_range(-0.05, 0.05)
+				current_density += random_factor
+
+				if distance <= current_density:
 					connection.to.append(to_node.id)
 
 			# 确保每个节点至少有一个连接
@@ -179,6 +266,13 @@ func _create_map_connections(nodes: Array, template) -> Array:
 						closest_node = to_node
 
 				connection.to.append(closest_node.id)
+
+			# 限制连接数量，避免过多连接
+			if connection.to.size() > 3:
+				# 随机保留三个连接
+				connection.to.shuffle()
+				while connection.to.size() > 3:
+					connection.to.pop_back()
 
 			layer_connections.append(connection)
 

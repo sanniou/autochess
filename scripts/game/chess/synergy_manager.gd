@@ -232,6 +232,16 @@ func _get_synergy_effect(synergy: String, level: int) -> Dictionary:
 						# 闪避效果
 						effect.is_passive = true
 
+					"summon_boost":
+						# 召唤物加成效果
+						effect.is_passive = true
+						effect.is_summon_boost = true
+
+					"elemental_effect":
+						# 元素效果
+						effect.is_passive = true
+						effect.is_elemental_effect = true
+
 			return effect
 
 	return {}

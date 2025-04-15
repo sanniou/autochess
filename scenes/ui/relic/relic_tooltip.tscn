@@ -1,0 +1,49 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8yvnqavrpwg8t"]
+
+[ext_resource type="Script" path="res://scripts/ui/relic/relic_tooltip.gd" id="1_yvnqr"]
+
+[node name="RelicTooltip" type="Control"]
+z_index = 100
+layout_mode = 3
+anchors_preset = 0
+script = ExtResource("1_yvnqr")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 150.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 5
+
+[node name="NameLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "遗物名称"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+
+[node name="DescriptionLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "遗物描述"
+autowrap_mode = 3
+
+[node name="EffectLabel" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "效果: "
+autowrap_mode = 3
