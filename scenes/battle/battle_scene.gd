@@ -142,25 +142,39 @@ func _start_fighting_phase() -> void:
 	$BottomPanel/ButtonContainer/StartButton.disabled = true
 	$BottomPanel/ButtonContainer/SkipButton.disabled = false
 	
-	# 发送战斗开始信号
-	EventBus.battle_started.emit()
+	# 获取玩家和敌方棋子
+	var player_team = get_tree().get_nodes_in_group("player_chess_pieces")
+	var enemy_team = get_tree().get_nodes_in_group("enemy_chess_pieces")
 	
-	# 模拟战斗过程
-	_simulate_battle()
+	# 开始战斗
+	battle_manager.start_battle(player_team, enemy_team)
 
-## 模拟战斗过程
-func _simulate_battle() -> void:
-	# 这里应该实现战斗逻辑
-	# 暂时使用定时器模拟战斗过程
-	var timer = get_tree().create_timer(3.0)
-	timer.timeout.connect(_on_battle_finished)
+# 战斗管理器
+var battle_manager = null
+
+## 初始化战斗场景
+func _initialize_battle() -> void:
+	# 创建棋盘格子
+	_create_board_cells()
+	
+	# 创建备战区格子
+	_create_bench_cells()
+	
+	# 生成敌方棋子
+	_generate_enemy_pieces()
+	
+	# 加载玩家棋子
+	_load_player_pieces()
+	
+	# 创建战斗管理器
+	battle_manager = BattleManager.new()
+	add_child(battle_manager)
+	battle_manager.battle_ended.connect(_on_battle_ended)
 
 ## 战斗结束处理
-func _on_battle_finished() -> void:
+func _on_battle_ended(victory: bool) -> void:
 	current_state = BattleState.RESULT
-	
-	# 随机战斗结果（实际应该根据战斗逻辑计算）
-	battle_result = randf() > 0.5
+	battle_result = victory
 	
 	# 显示战斗结果
 	if battle_result:
@@ -196,7 +210,7 @@ func _on_skip_button_pressed() -> void:
 		if current_state == BattleState.PREPARE:
 			EventBus.battle_started.emit()
 		
-		_on_battle_finished()
+		_on_battle_ended(randf() > 0.5)  # 跳过时随机结果
 
 ## 自动战斗按钮处理
 func _on_auto_button_pressed() -> void:

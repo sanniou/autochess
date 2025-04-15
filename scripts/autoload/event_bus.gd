@@ -15,8 +15,14 @@ signal map_completed
 
 # 棋盘相关信号
 signal board_initialized
+signal board_reset
 signal cell_selected(cell_position)
 signal cell_hovered(cell_position)
+signal cell_clicked(cell)
+signal piece_placed_on_board(piece)
+signal piece_removed_from_board(piece)
+signal piece_placed_on_bench(piece)
+signal piece_removed_from_bench(piece)
 
 # 棋子相关信号
 signal chess_piece_created(piece_data)
@@ -106,7 +112,7 @@ func register_event(event_name):
 func connect_event(event_name, target, method):
 	if not _custom_events.has(event_name):
 		register_event(event_name)
-	
+
 	if not _custom_events[event_name].has({"target": target, "method": method}):
 		_custom_events[event_name].append({"target": target, "method": method})
 		return true
@@ -116,27 +122,27 @@ func connect_event(event_name, target, method):
 func disconnect_event(event_name, target, method):
 	if not _custom_events.has(event_name):
 		return false
-	
+
 	for i in range(_custom_events[event_name].size()):
 		var connection = _custom_events[event_name][i]
 		if connection.target == target and connection.method == method:
 			_custom_events[event_name].remove_at(i)
 			return true
-	
+
 	return false
 
 ## 触发自定义事件
 func emit_event(event_name, args = []):
 	if not _custom_events.has(event_name):
 		return false
-	
+
 	for connection in _custom_events[event_name]:
 		if connection.target and is_instance_valid(connection.target):
 			if args.size() > 0:
 				connection.target.callv(connection.method, args)
 			else:
 				connection.target.call(connection.method)
-	
+
 	return true
 
 ## 清除特定对象的所有事件连接

@@ -35,6 +35,7 @@ var battle_manager = null
 var board_manager = null
 var player_manager = null
 var economy_manager = null
+var shop_manager = null
 var chess_manager = null
 var equipment_manager = null
 var relic_manager = null
@@ -46,10 +47,10 @@ func _ready():
 	EventBus.game_ended.connect(_on_game_ended)
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.map_completed.connect(_on_map_completed)
-	
+
 	# 初始化游戏状态
 	change_state(GameState.MAIN_MENU)
-	
+
 	# 标记初始化完成
 	_initialized = true
 
@@ -57,10 +58,10 @@ func _ready():
 func change_state(new_state: int) -> void:
 	if new_state == current_state:
 		return
-	
+
 	var old_state = current_state
 	current_state = new_state
-	
+
 	# 处理状态退出逻辑
 	match old_state:
 		GameState.BATTLE:
@@ -69,7 +70,7 @@ func change_state(new_state: int) -> void:
 			_exit_shop_state()
 		GameState.EVENT:
 			_exit_event_state()
-	
+
 	# 处理状态进入逻辑
 	match new_state:
 		GameState.MAIN_MENU:
@@ -86,7 +87,7 @@ func change_state(new_state: int) -> void:
 			_enter_game_over_state()
 		GameState.VICTORY:
 			_enter_victory_state()
-	
+
 	# 发送状态变更信号
 	EventBus.game_state_changed.emit(old_state, new_state)
 
@@ -94,19 +95,19 @@ func change_state(new_state: int) -> void:
 func start_new_game(difficulty: int = 1) -> void:
 	# 设置难度
 	difficulty_level = difficulty
-	
+
 	# 重置游戏数据
 	current_round = 0
-	
+
 	# 初始化各系统
 	_initialize_systems()
-	
+
 	# 切换到地图状态
 	change_state(GameState.MAP)
-	
+
 	# 发送游戏开始信号
 	EventBus.game_started.emit()
-	
+
 	# 触发自动存档
 	EventBus.autosave_triggered.emit()
 
@@ -114,7 +115,7 @@ func start_new_game(difficulty: int = 1) -> void:
 func pause_game() -> void:
 	if is_paused:
 		return
-	
+
 	is_paused = true
 	get_tree().paused = true
 	EventBus.game_paused.emit(true)
@@ -123,7 +124,7 @@ func pause_game() -> void:
 func resume_game() -> void:
 	if not is_paused:
 		return
-	
+
 	is_paused = false
 	get_tree().paused = false
 	EventBus.game_paused.emit(false)
@@ -132,14 +133,68 @@ func resume_game() -> void:
 func quit_game() -> void:
 	# 触发自动存档
 	EventBus.autosave_triggered.emit()
-	
+
 	# 退出游戏
 	get_tree().quit()
 
 ## 初始化所有游戏系统
 func _initialize_systems() -> void:
-	# 这里将在实际实现时初始化各个系统管理器
-	pass
+	# 初始化装备管理器
+	if equipment_manager == null:
+		equipment_manager = EquipmentManager.new()
+		add_child(equipment_manager)
+		equipment_manager.name = "EquipmentManager"
+
+	# 初始化玩家管理器
+	if player_manager == null:
+		player_manager = PlayerManager.new()
+		add_child(player_manager)
+		player_manager.name = "PlayerManager"
+
+	# 初始化经济管理器
+	if economy_manager == null:
+		economy_manager = EconomyManager.new()
+		add_child(economy_manager)
+		economy_manager.name = "EconomyManager"
+
+	# 初始化商店管理器
+	if shop_manager == null:
+		shop_manager = ShopManager.new()
+		add_child(shop_manager)
+		shop_manager.name = "ShopManager"
+
+	# 初始化棋盘管理器
+	if board_manager == null:
+		board_manager = BoardManager.new()
+		add_child(board_manager)
+		board_manager.name = "BoardManager"
+
+	# 初始化战斗管理器
+	if battle_manager == null:
+		battle_manager = BattleManager.new()
+		add_child(battle_manager)
+		battle_manager.name = "BattleManager"
+
+	# 初始化遗物管理器
+	if relic_manager == null:
+		relic_manager = RelicManager.new()
+		add_child(relic_manager)
+		relic_manager.name = "RelicManager"
+
+	# 初始化事件管理器
+	if event_manager == null:
+		event_manager = EventManager.new()
+		add_child(event_manager)
+		event_manager.name = "EventManager"
+
+	# 初始化地图管理器
+	if map_manager == null:
+		map_manager = MapManager.new()
+		add_child(map_manager)
+		map_manager.name = "MapManager"
+
+	# 发送系统初始化完成信号
+	EventBus.debug_message.emit("游戏系统初始化完成", 0)
 
 ## 进入主菜单状态
 func _enter_main_menu_state() -> void:
@@ -161,7 +216,7 @@ func _enter_battle_state() -> void:
 	var battle_scene = load("res://scenes/battle/battle_scene.tscn")
 	if battle_scene:
 		get_tree().change_scene_to_packed(battle_scene)
-	
+
 	# 通知战斗系统开始战斗
 	if battle_manager:
 		battle_manager.start_battle()
@@ -204,7 +259,7 @@ func _enter_game_over_state() -> void:
 	var game_over_scene = load("res://scenes/main_menu/game_over.tscn")
 	if game_over_scene:
 		get_tree().change_scene_to_packed(game_over_scene)
-	
+
 	# 发送游戏结束信号
 	EventBus.game_ended.emit(false)
 
@@ -214,7 +269,7 @@ func _enter_victory_state() -> void:
 	var victory_scene = load("res://scenes/main_menu/victory.tscn")
 	if victory_scene:
 		get_tree().change_scene_to_packed(victory_scene)
-	
+
 	# 发送游戏结束信号
 	EventBus.game_ended.emit(true)
 
