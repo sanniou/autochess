@@ -5,284 +5,243 @@ extends Control
 # 地图节点场景
 const MAP_NODE_SCENE = preload("res://scenes/map/map_node.tscn")
 
-# 地图数据
-var map_data = {}
-# 当前层
-var current_layer = 0
-# 当前节点
-var current_node = null
-# 可选节点
-var selectable_nodes = []
+# 地图管理器
+var map_manager: MapManager
+
+# 节点实例存储
+var node_instances = {}
 
 func _ready():
 	# 设置标题
 	$Title.text = LocalizationManager.tr("ui.map.title")
-	
+
+	# 创建地图管理器
+	map_manager = get_node("/root/GameManager").map_manager
+	if not map_manager:
+		map_manager = MapManager.new()
+		add_child(map_manager)
+
+	# 连接信号
+	map_manager.map_initialized.connect(_on_map_initialized)
+	map_manager.node_selected.connect(_on_map_node_selected)
+	map_manager.map_completed.connect(_on_map_completed)
+
+	# 设置连接容器的鼠标过滤模式
+	$ConnectionsContainer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 	# 设置玩家信息
 	_update_player_info()
-	
-	# 生成地图
-	_generate_map()
-	
+
+	# 初始化地图
+	var difficulty = get_node("/root/GameManager").difficulty_level
+	map_manager.initialize_map("standard", difficulty)
+
 	# 播放地图音乐
 	AudioManager.play_music("map.ogg")
 
 ## 更新玩家信息
 func _update_player_info() -> void:
-	# 这里应该从玩家管理器获取数据
-	# 暂时使用示例数据
-	$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health", ["100", "100"])
-	$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold", ["0"])
-	$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level", ["1"])
+	# 从玩家管理器获取数据
+	var player_manager = get_node("/root/GameManager/PlayerManager")
+	if player_manager and player_manager.current_player:
+		var player = player_manager.current_player
+		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health", [str(player.current_health), str(player.max_health)])
+		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold", [str(player.gold)])
+		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level", [str(player.level)])
+	else:
+		# 没有玩家数据时使用默认值
+		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health", ["100", "100"])
+		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold", ["0"])
+		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level", ["1"])
 
-## 生成地图
-func _generate_map() -> void:
+## 地图初始化处理
+func _on_map_initialized(map_data: Dictionary) -> void:
 	# 清除现有地图
 	for child in $MapContainer.get_children():
 		child.queue_free()
-	
-	# 获取地图模板
-	var map_template = ConfigManager.get_map_templates().standard
-	if map_template == null:
-		push_error("无法加载地图模板")
-		return
-	
-	# 生成地图数据
-	map_data = _create_map_data(map_template)
-	
+
+	# 清除节点实例存储
+	node_instances.clear()
+
 	# 创建地图节点
-	_create_map_nodes()
-	
-	# 设置初始节点
-	current_layer = 0
-	current_node = map_data.nodes[0][0]
-	_update_selectable_nodes()
+	_create_map_nodes(map_data)
 
-## 创建地图数据
-func _create_map_data(template) -> Dictionary:
-	var data = {
-		"layers": template.layers,
-		"nodes": [],
-		"connections": []
-	}
-	
-	# 创建节点
-	for layer in range(template.layers):
-		var nodes_in_layer = []
-		var node_count = template.nodes_per_layer[layer]
-		
-		for pos in range(node_count):
-			var node_type = _get_node_type_for_position(template, layer, pos)
-			var node = {
-				"id": "node_%d_%d" % [layer, pos],
-				"layer": layer,
-				"position": pos,
-				"type": node_type,
-				"visited": false
-			}
-			nodes_in_layer.append(node)
-		
-		data.nodes.append(nodes_in_layer)
-	
-	# 创建连接
-	for layer in range(template.layers - 1):
-		var connections_from_layer = []
-		var current_layer_nodes = data.nodes[layer]
-		var next_layer_nodes = data.nodes[layer + 1]
-		
-		for from_node in current_layer_nodes:
-			var connections_from_node = []
-			
-			# 计算可能的连接
-			var from_pos = from_node.position
-			var from_pos_normalized = float(from_pos) / (current_layer_nodes.size() - 1) if current_layer_nodes.size() > 1 else 0.5
-			
-			for to_node in next_layer_nodes:
-				var to_pos = to_node.position
-				var to_pos_normalized = float(to_pos) / (next_layer_nodes.size() - 1) if next_layer_nodes.size() > 1 else 0.5
-				
-				# 计算距离，决定是否连接
-				var distance = abs(from_pos_normalized - to_pos_normalized)
-				if distance <= 0.3:  # 调整这个值可以改变连接的密度
-					connections_from_node.append(to_node.id)
-			
-			# 确保至少有一个连接
-			if connections_from_node.size() == 0 and next_layer_nodes.size() > 0:
-				var closest_node = next_layer_nodes[0]
-				var closest_distance = 1.0
-				
-				for to_node in next_layer_nodes:
-					var to_pos = to_node.position
-					var to_pos_normalized = float(to_pos) / (next_layer_nodes.size() - 1) if next_layer_nodes.size() > 1 else 0.5
-					var distance = abs(from_pos_normalized - to_pos_normalized)
-					
-					if distance < closest_distance:
-						closest_distance = distance
-						closest_node = to_node
-				
-				connections_from_node.append(closest_node.id)
-			
-			connections_from_layer.append({
-				"from": from_node.id,
-				"to": connections_from_node
-			})
-		
-		data.connections.append(connections_from_layer)
-	
-	return data
+	# 创建连接线
+	_create_map_connections(map_data)
 
-## 获取指定位置的节点类型
-func _get_node_type_for_position(template, layer, pos) -> String:
-	# 检查是否是固定节点
-	for fixed_node in template.fixed_nodes:
-		if fixed_node.layer == layer and fixed_node.position == pos:
-			return fixed_node.type
-	
-	# 随机选择节点类型
-	var node_types = []
-	var weights = []
-	
-	for type in template.node_distribution.keys():
-		node_types.append(type)
-		weights.append(template.node_distribution[type])
-	
-	return _weighted_choice(node_types, weights)
 
-## 加权随机选择
-func _weighted_choice(items, weights) -> Variant:
-	var total_weight = 0.0
-	for weight in weights:
-		total_weight += weight
-	
-	var random_value = randf() * total_weight
-	var current_weight = 0.0
-	
-	for i in range(items.size()):
-		current_weight += weights[i]
-		if random_value <= current_weight:
-			return items[i]
-	
-	return items[items.size() - 1]
 
 ## 创建地图节点
-func _create_map_nodes() -> void:
+func _create_map_nodes(map_data: Dictionary) -> void:
 	# 计算节点位置
 	var map_width = $MapContainer.size.x
 	var map_height = $MapContainer.size.y
 	var layer_height = map_height / (map_data.layers - 1) if map_data.layers > 1 else map_height
-	
+
 	# 创建节点
 	for layer in range(map_data.layers):
 		var nodes_in_layer = map_data.nodes[layer]
 		var layer_width = map_width
 		var node_spacing = layer_width / (nodes_in_layer.size() + 1)
-		
+
 		for i in range(nodes_in_layer.size()):
 			var node_data = nodes_in_layer[i]
 			var node_instance = MAP_NODE_SCENE.instantiate()
 			$MapContainer.add_child(node_instance)
-			
+
 			# 设置节点位置
 			var x_pos = (i + 1) * node_spacing
 			var y_pos = layer * layer_height
 			node_instance.position = Vector2(x_pos, y_pos)
-			
+
 			# 设置节点数据
 			node_instance.setup(node_data)
 			node_instance.node_selected.connect(_on_node_selected)
-	
-	# 创建连接线
-	_create_map_connections()
+
+			# 存储节点实例
+			node_instances[node_data.id] = node_instance
+
+	# 更新节点状态
+	_update_node_states()
 
 ## 创建地图连接线
-func _create_map_connections() -> void:
-	# 这里应该创建连接线
-	# 暂时不实现
-	pass
+func _create_map_connections(map_data: Dictionary) -> void:
+	# 清除现有连接线
+	for child in $ConnectionsContainer.get_children():
+		child.queue_free()
 
-## 更新可选节点
-func _update_selectable_nodes() -> void:
-	selectable_nodes.clear()
-	
-	if current_layer >= map_data.layers - 1:
-		return
-	
-	# 查找当前节点的连接
-	for connection in map_data.connections[current_layer]:
-		if connection.from == current_node.id:
+	# 遍历所有连接
+	for layer_idx in range(map_data.connections.size()):
+		var layer_connections = map_data.connections[layer_idx]
+
+		for connection in layer_connections:
+			var from_node_id = connection.from
+			var from_node_instance = node_instances.get(from_node_id)
+
+			if from_node_instance == null:
+				continue
+
 			for to_node_id in connection.to:
-				# 查找目标节点
-				for layer_nodes in map_data.nodes:
-					for node in layer_nodes:
-						if node.id == to_node_id:
-							selectable_nodes.append(node)
-	
-	# 更新节点状态
-	for layer_nodes in map_data.nodes:
-		for node in layer_nodes:
-			var node_instance = _find_node_instance(node.id)
-			if node_instance:
-				var is_current = (node.id == current_node.id)
-				var is_selectable = selectable_nodes.has(node)
-				var is_visited = node.visited
-				
-				node_instance.set_state(is_current, is_selectable, is_visited)
+				var to_node_instance = node_instances.get(to_node_id)
 
-## 查找节点实例
-func _find_node_instance(node_id: String) -> Node:
-	for child in $MapContainer.get_children():
-		if child.has_method("get_node_id") and child.get_node_id() == node_id:
-			return child
-	
-	return null
+				if to_node_instance == null:
+					continue
+
+				# 创建连接线
+				var line = Line2D.new()
+				line.width = 2.0
+				line.default_color = Color(0.7, 0.7, 0.7, 0.7)  # 浅灰色半透明
+
+				# 设置线的起点和终点
+				# 使用固定的节点大小计算中心点
+				var node_size = Vector2(80, 80)  # 与 map_node.tscn 中的大小一致
+				var from_pos = from_node_instance.position + node_size / 2
+				var to_pos = to_node_instance.position + node_size / 2
+
+				line.add_point(from_pos)
+				line.add_point(to_pos)
+
+				# 添加到连接容器
+				$ConnectionsContainer.add_child(line)
+
+				# 存储连接信息
+				line.set_meta("from_node", from_node_id)
+				line.set_meta("to_node", to_node_id)
+
+## 更新节点状态
+func _update_node_states() -> void:
+	# 获取当前节点和可选节点
+	var current_node = map_manager.get_current_node()
+	var selectable_nodes = map_manager.get_selectable_nodes()
+
+	# 更新所有节点状态
+	for node_id in node_instances.keys():
+		var node_instance = node_instances[node_id]
+		var is_current = (current_node and node_id == current_node.id)
+		var is_selectable = false
+
+		# 检查是否是可选节点
+		for selectable_node in selectable_nodes:
+			if node_id == selectable_node.id:
+				is_selectable = true
+				break
+
+		# 检查是否已访问
+		var is_visited = false
+		var node = map_manager.get_all_nodes().get(node_id)
+		if node:
+			is_visited = node.visited
+
+		# 设置节点状态
+		node_instance.set_state(is_current, is_selectable, is_visited)
+
+	# 更新连接线状态
+	_update_connection_states(current_node)
 
 ## 节点选择处理
 func _on_node_selected(node_data) -> void:
-	# 检查是否是可选节点
-	var is_selectable = false
-	for node in selectable_nodes:
-		if node.id == node_data.id:
-			is_selectable = true
-			break
-	
-	if not is_selectable:
-		return
-	
-	# 更新当前节点
-	for layer_nodes in map_data.nodes:
-		for node in layer_nodes:
-			if node.id == node_data.id:
-				current_node = node
-				current_layer = node.layer
-				node.visited = true
-				break
-	
-	# 更新可选节点
-	_update_selectable_nodes()
-	
-	# 触发节点事件
-	_trigger_node_event(current_node)
+	# 使用地图管理器选择节点
+	var success = map_manager.select_node(node_data.id)
 
-## 触发节点事件
-func _trigger_node_event(node_data) -> void:
-	# 根据节点类型触发不同事件
-	match node_data.type:
-		"battle":
-			GameManager.change_state(GameManager.GameState.BATTLE)
-		"elite_battle":
-			GameManager.change_state(GameManager.GameState.BATTLE)
-		"shop":
-			GameManager.change_state(GameManager.GameState.SHOP)
-		"event":
-			GameManager.change_state(GameManager.GameState.EVENT)
-		"treasure":
-			# 处理宝藏节点
-			pass
-		"rest":
-			# 处理休息节点
-			pass
-		"boss":
-			GameManager.change_state(GameManager.GameState.BATTLE)
-	
-	# 发送节点选择信号
-	EventBus.map_node_selected.emit(node_data)
+	# 如果选择成功，更新节点状态
+	if success:
+		_update_node_states()
+
+## 地图节点选择处理
+func _on_map_node_selected(node_data: Dictionary) -> void:
+	# 处理地图节点选择后的UI更新
+	_update_player_info()
+
+	# 显示节点信息提示
+	var node_type_name = LocalizationManager.tr("ui.map.node_" + node_data.type)
+	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.node_selected", [node_type_name]))
+
+## 地图完成处理
+func _on_map_completed() -> void:
+	# 地图完成后的处理
+	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.completed"))
+	# 播放完成音效
+	AudioManager.play_sfx("victory.ogg")
+
+## 更新连接线状态
+func _update_connection_states(current_node) -> void:
+	# 遍历所有连接线
+	for line in $ConnectionsContainer.get_children():
+		if not line is Line2D:
+			continue
+
+		var from_node_id = line.get_meta("from_node")
+		var to_node_id = line.get_meta("to_node")
+
+		# 获取节点
+		var from_node = map_manager.get_all_nodes().get(from_node_id)
+		var to_node = map_manager.get_all_nodes().get(to_node_id)
+
+		if from_node == null or to_node == null:
+			continue
+
+		# 设置连接线颜色
+		if current_node and from_node_id == current_node.id and to_node.is_accessible(current_node.layer, current_node.id):
+			# 当前节点到可选节点的连接
+			line.default_color = Color(1, 1, 0, 0.8)  # 黄色
+			line.width = 4.0
+
+			# 添加闪烁效果
+			if not line.has_meta("tween_active"):
+				line.set_meta("tween_active", true)
+				var tween = create_tween().set_loops()
+				tween.tween_property(line, "default_color", Color(1, 1, 0, 1), 0.5)
+				tween.tween_property(line, "default_color", Color(1, 1, 0, 0.5), 0.5)
+				tween.finished.connect(func(): line.set_meta("tween_active", false))
+		elif from_node.visited and to_node.visited:
+			# 已访问节点之间的连接
+			line.default_color = Color(0.5, 0.5, 0.5, 0.8)  # 灰色
+			line.width = 3.0
+		elif from_node.visited:
+			# 已访问节点到未访问节点的连接
+			line.default_color = Color(0.7, 0.7, 0.7, 0.5)  # 浅灰色
+			line.width = 2.0
+		else:
+			# 未访问节点之间的连接
+			line.default_color = Color(0.3, 0.3, 0.3, 0.3)  # 深灰色半透明
+			line.width = 1.0

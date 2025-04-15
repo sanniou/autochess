@@ -13,7 +13,7 @@ var _synergy_configs = {}
 func _ready():
 	# 加载羁绊配置
 	_load_synergy_configs()
-	
+
 	# 连接信号
 	EventBus.chess_piece_created.connect(_on_chess_piece_created)
 	EventBus.chess_piece_sold.connect(_on_chess_piece_sold)
@@ -42,7 +42,7 @@ func _on_chess_piece_upgraded(piece: ChessPiece) -> void:
 func _update_synergies() -> void:
 	# 获取所有棋子
 	var all_pieces = _get_all_chess_pieces()
-	
+
 	# 统计羁绊数量
 	var synergy_counts = {}
 	for piece in all_pieces:
@@ -50,26 +50,26 @@ func _update_synergies() -> void:
 			if not synergy_counts.has(synergy):
 				synergy_counts[synergy] = 0
 			synergy_counts[synergy] += 1
-	
+
 	# 检查羁绊激活状态
 	var new_active_synergies = {}
-	
+
 	for synergy in synergy_counts:
 		var count = synergy_counts[synergy]
 		var config = _synergy_configs[synergy]
-		
+
 		if not config:
 			continue
-		
+
 		# 检查满足的等级
 		var max_level = 0
 		for level in config.levels:
 			if count >= level.count:
 				max_level = level.level
-		
+
 		if max_level > 0:
 			new_active_synergies[synergy] = max_level
-	
+
 	# 比较新旧羁绊状态
 	_compare_synergy_changes(new_active_synergies)
 
@@ -78,7 +78,7 @@ func _compare_synergy_changes(new_synergies: Dictionary) -> void:
 	# 检查新增或升级的羁绊
 	for synergy in new_synergies:
 		var new_level = new_synergies[synergy]
-		
+
 		if _active_synergies.has(synergy):
 			var old_level = _active_synergies[synergy]
 			if new_level > old_level:
@@ -87,7 +87,7 @@ func _compare_synergy_changes(new_synergies: Dictionary) -> void:
 		else:
 			# 新激活羁绊
 			_activate_synergy(synergy, new_level)
-	
+
 	# 检查移除或降级的羁绊
 	for synergy in _active_synergies:
 		if not new_synergies.has(synergy):
@@ -96,7 +96,7 @@ func _compare_synergy_changes(new_synergies: Dictionary) -> void:
 		elif new_synergies[synergy] < _active_synergies[synergy]:
 			# 羁绊降级
 			_downgrade_synergy(synergy, _active_synergies[synergy], new_synergies[synergy])
-	
+
 	# 更新当前激活羁绊
 	_active_synergies = new_synergies
 
@@ -105,18 +105,18 @@ func _activate_synergy(synergy: String, level: int) -> void:
 	var config = _synergy_configs[synergy]
 	if not config:
 		return
-	
+
 	# 获取对应等级的效果
 	var effect = _get_synergy_effect(synergy, level)
 	if not effect:
 		return
-	
+
 	# 应用效果给所有符合条件的棋子
 	var all_pieces = _get_all_chess_pieces()
 	for piece in all_pieces:
 		if synergy in piece.synergies:
 			piece.add_effect(effect)
-	
+
 	# 发送羁绊激活信号
 	EventBus.synergy_activated.emit(synergy, level)
 
@@ -125,7 +125,7 @@ func _upgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
 	var config = _synergy_configs[synergy]
 	if not config:
 		return
-	
+
 	# 移除旧效果
 	var old_effect = _get_synergy_effect(synergy, old_level)
 	if old_effect:
@@ -133,7 +133,7 @@ func _upgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
 		for piece in all_pieces:
 			if synergy in piece.synergies:
 				piece.remove_effect(old_effect.id)
-	
+
 	# 添加新效果
 	var new_effect = _get_synergy_effect(synergy, new_level)
 	if new_effect:
@@ -141,7 +141,7 @@ func _upgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
 		for piece in all_pieces:
 			if synergy in piece.synergies:
 				piece.add_effect(new_effect)
-	
+
 	# 发送羁绊升级信号
 	EventBus.synergy_activated.emit(synergy, new_level)
 
@@ -150,7 +150,7 @@ func _downgrade_synergy(synergy: String, old_level: int, new_level: int) -> void
 	var config = _synergy_configs[synergy]
 	if not config:
 		return
-	
+
 	# 移除旧效果
 	var old_effect = _get_synergy_effect(synergy, old_level)
 	if old_effect:
@@ -158,7 +158,7 @@ func _downgrade_synergy(synergy: String, old_level: int, new_level: int) -> void
 		for piece in all_pieces:
 			if synergy in piece.synergies:
 				piece.remove_effect(old_effect.id)
-	
+
 	# 添加新效果
 	var new_effect = _get_synergy_effect(synergy, new_level)
 	if new_effect:
@@ -166,7 +166,7 @@ func _downgrade_synergy(synergy: String, old_level: int, new_level: int) -> void
 		for piece in all_pieces:
 			if synergy in piece.synergies:
 				piece.add_effect(new_effect)
-	
+
 	# 发送羁绊降级信号
 	EventBus.synergy_activated.emit(synergy, new_level)
 
@@ -175,7 +175,7 @@ func _deactivate_synergy(synergy: String, level: int) -> void:
 	var config = _synergy_configs[synergy]
 	if not config:
 		return
-	
+
 	# 移除效果
 	var effect = _get_synergy_effect(synergy, level)
 	if effect:
@@ -183,7 +183,7 @@ func _deactivate_synergy(synergy: String, level: int) -> void:
 		for piece in all_pieces:
 			if synergy in piece.synergies:
 				piece.remove_effect(effect.id)
-	
+
 	# 发送羁绊失效信号
 	EventBus.synergy_deactivated.emit(synergy)
 
@@ -192,28 +192,62 @@ func _get_synergy_effect(synergy: String, level: int) -> Dictionary:
 	var config = _synergy_configs[synergy]
 	if not config:
 		return {}
-	
+
 	# 查找对应等级的效果
-	for lvl in config.levels:
+	for lvl in config.tiers:
 		if lvl.level == level:
 			var effect = lvl.effect.duplicate(true)
 			effect.id = "synergy_%s_%d" % [synergy, level]
+			effect.synergy_id = synergy
+			effect.level = level
+
+			# 根据效果类型进行处理
+			if effect.has("type"):
+				match effect.type:
+					"stat_boost":
+						# 属性提升效果
+						effect.is_passive = true
+
+					"spell_amp":
+						# 法术增强效果
+						effect.is_passive = true
+
+					"double_attack":
+						# 二次攻击效果
+						effect.is_passive = true
+
+					"crit":
+						# 暴击效果
+						effect.is_passive = true
+
+					"team_buff":
+						# 团队增益效果
+						effect.is_passive = true
+
+					"cooldown_reduction":
+						# 冷却缩减效果
+						effect.is_passive = true
+
+					"dodge":
+						# 闪避效果
+						effect.is_passive = true
+
 			return effect
-	
+
 	return {}
 
 ## 获取所有棋子
 func _get_all_chess_pieces() -> Array:
 	var pieces = []
-	
+
 	# 获取玩家棋子
 	var player_pieces = get_tree().get_nodes_in_group("player_chess_pieces")
 	pieces.append_array(player_pieces)
-	
+
 	# 获取场上棋子（如果有）
 	var board_pieces = get_tree().get_nodes_in_group("board_chess_pieces")
 	pieces.append_array(board_pieces)
-	
+
 	return pieces
 
 ## 获取当前激活的羁绊
@@ -236,10 +270,81 @@ func get_synergy_config(synergy: String) -> Dictionary:
 func get_all_synergy_configs() -> Dictionary:
 	return _synergy_configs
 
+## 添加羁绊等级
+func add_synergy_level(synergy_id: String, level_add: int) -> void:
+	# 检查羁绊是否存在
+	if not _synergy_configs.has(synergy_id):
+		return
+
+	# 获取当前等级
+	var current_level = 0
+	if _active_synergies.has(synergy_id):
+		current_level = _active_synergies[synergy_id]
+
+	# 计算新等级
+	var new_level = current_level + level_add
+
+	# 如果新等级小于等于0，取消羁绊
+	if new_level <= 0:
+		if _active_synergies.has(synergy_id):
+			_deactivate_synergy(synergy_id, current_level)
+			_active_synergies.erase(synergy_id)
+		return
+
+	# 如果羁绊已经激活，升级或降级
+	if _active_synergies.has(synergy_id):
+		if new_level > current_level:
+			_upgrade_synergy(synergy_id, current_level, new_level)
+		else:
+			_downgrade_synergy(synergy_id, current_level, new_level)
+	else:
+		# 如果羁绊未激活，激活它
+		_activate_synergy(synergy_id, new_level)
+
+	# 更新激活羁绊
+	_active_synergies[synergy_id] = new_level
+
+## 强制激活羁绊
+func force_activate_synergy(synergy_id: String, level: int = 1) -> void:
+	# 检查羁绊是否存在
+	if not _synergy_configs.has(synergy_id):
+		return
+
+	# 获取当前等级
+	var current_level = 0
+	if _active_synergies.has(synergy_id):
+		current_level = _active_synergies[synergy_id]
+
+		# 如果当前等级已经大于等于目标等级，不做任何操作
+		if current_level >= level:
+			return
+
+		# 升级羁绊
+		_upgrade_synergy(synergy_id, current_level, level)
+	else:
+		# 激活羁绊
+		_activate_synergy(synergy_id, level)
+
+	# 更新激活羁绊
+	_active_synergies[synergy_id] = level
+
+## 强制取消羁绊激活
+func deactivate_forced_synergy(synergy_id: String) -> void:
+	# 检查羁绊是否存在且已激活
+	if not _active_synergies.has(synergy_id):
+		return
+
+	# 取消羁绊
+	_deactivate_synergy(synergy_id, _active_synergies[synergy_id])
+	_active_synergies.erase(synergy_id)
+
+	# 重新计算羁绊
+	_update_synergies()
+
 ## 重置羁绊管理器
 func reset() -> void:
 	# 取消所有激活的羁绊
 	for synergy in _active_synergies:
 		_deactivate_synergy(synergy, _active_synergies[synergy])
-	
+
 	_active_synergies = {}

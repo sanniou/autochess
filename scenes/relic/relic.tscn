@@ -1,0 +1,28 @@
+[gd_scene load_steps=2 format=3 uid="uid://bqnxqavrpwg8t"]
+
+[ext_resource type="Script" path="res://scripts/game/relic/relic.gd" id="1_yvnqr"]
+
+[node name="Relic" type="Node2D"]
+script = ExtResource("1_yvnqr")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="EffectContainer" type="Node2D" parent="."]
+
+[node name="NameLabel" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -70.0
+offset_right = 50.0
+offset_bottom = -50.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DescriptionLabel" type="Label" parent="."]
+offset_left = -60.0
+offset_top = -50.0
+offset_right = 60.0
+offset_bottom = -10.0
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3

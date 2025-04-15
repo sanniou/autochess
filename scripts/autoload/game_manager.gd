@@ -40,6 +40,13 @@ var chess_manager = null
 var equipment_manager = null
 var relic_manager = null
 var event_manager = null
+var ui_manager = null
+var scene_manager = null
+var theme_manager = null
+var ui_animator = null
+var notification_system = null
+var tooltip_system = null
+var skin_system = null
 
 func _ready():
 	# 连接必要的信号
@@ -193,29 +200,83 @@ func _initialize_systems() -> void:
 		add_child(map_manager)
 		map_manager.name = "MapManager"
 
+	# 初始化UI管理器
+	if ui_manager == null:
+		ui_manager = UIManager.new()
+		add_child(ui_manager)
+		ui_manager.name = "UIManager"
+
+	# 初始化场景管理器
+	if scene_manager == null:
+		scene_manager = SceneManager.new()
+		add_child(scene_manager)
+		scene_manager.name = "SceneManager"
+
+	# 初始化主题管理器
+	if theme_manager == null:
+		theme_manager = ThemeManager.new()
+		add_child(theme_manager)
+		theme_manager.name = "ThemeManager"
+
+	# 初始化UI动画器
+	if ui_animator == null:
+		ui_animator = UIAnimator.new()
+		add_child(ui_animator)
+		ui_animator.name = "UIAnimator"
+
+	# 初始化通知系统
+	if notification_system == null:
+		notification_system = NotificationSystem.new()
+		add_child(notification_system)
+		notification_system.name = "NotificationSystem"
+
+	# 初始化工具提示系统
+	if tooltip_system == null:
+		tooltip_system = TooltipSystem.new()
+		add_child(tooltip_system)
+		tooltip_system.name = "TooltipSystem"
+
+	# 初始化皮肤系统
+	if skin_system == null:
+		skin_system = SkinSystem.new()
+		add_child(skin_system)
+		skin_system.name = "SkinSystem"
+
 	# 发送系统初始化完成信号
 	EventBus.debug_message.emit("游戏系统初始化完成", 0)
 
 ## 进入主菜单状态
 func _enter_main_menu_state() -> void:
-	# 加载主菜单场景
-	var main_menu_scene = load("res://scenes/main_menu/main_menu.tscn")
-	if main_menu_scene:
-		get_tree().change_scene_to_packed(main_menu_scene)
+	# 使用场景管理器加载主菜单场景
+	if scene_manager:
+		scene_manager.load_scene("main_menu", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var main_menu_scene = load("res://scenes/main_menu/main_menu.tscn")
+		if main_menu_scene:
+			get_tree().change_scene_to_packed(main_menu_scene)
 
 ## 进入地图状态
 func _enter_map_state() -> void:
-	# 加载地图场景
-	var map_scene = load("res://scenes/map/map_scene.tscn")
-	if map_scene:
-		get_tree().change_scene_to_packed(map_scene)
+	# 使用场景管理器加载地图场景
+	if scene_manager:
+		scene_manager.load_scene("map", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var map_scene = load("res://scenes/map/map_scene.tscn")
+		if map_scene:
+			get_tree().change_scene_to_packed(map_scene)
 
 ## 进入战斗状态
 func _enter_battle_state() -> void:
-	# 加载战斗场景
-	var battle_scene = load("res://scenes/battle/battle_scene.tscn")
-	if battle_scene:
-		get_tree().change_scene_to_packed(battle_scene)
+	# 使用场景管理器加载战斗场景
+	if scene_manager:
+		scene_manager.load_scene("battle", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var battle_scene = load("res://scenes/battle/battle_scene.tscn")
+		if battle_scene:
+			get_tree().change_scene_to_packed(battle_scene)
 
 	# 通知战斗系统开始战斗
 	if battle_manager:
@@ -229,23 +290,31 @@ func _exit_battle_state() -> void:
 
 ## 进入商店状态
 func _enter_shop_state() -> void:
-	# 加载商店场景
-	var shop_scene = load("res://scenes/shop/shop_scene.tscn")
-	if shop_scene:
-		get_tree().change_scene_to_packed(shop_scene)
+	# 使用场景管理器加载商店场景
+	if scene_manager:
+		scene_manager.load_scene("shop", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var shop_scene = load("res://scenes/shop/shop_scene.tscn")
+		if shop_scene:
+			get_tree().change_scene_to_packed(shop_scene)
 
 ## 退出商店状态
 func _exit_shop_state() -> void:
 	# 保存商店状态
-	if economy_manager:
-		economy_manager.save_shop_state()
+	if shop_manager:
+		shop_manager.reset()
 
 ## 进入事件状态
 func _enter_event_state() -> void:
-	# 加载事件场景
-	var event_scene = load("res://scenes/event/event_scene.tscn")
-	if event_scene:
-		get_tree().change_scene_to_packed(event_scene)
+	# 使用场景管理器加载事件场景
+	if scene_manager:
+		scene_manager.load_scene("event", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var event_scene = load("res://scenes/event/event_scene.tscn")
+		if event_scene:
+			get_tree().change_scene_to_packed(event_scene)
 
 ## 退出事件状态
 func _exit_event_state() -> void:
@@ -255,20 +324,28 @@ func _exit_event_state() -> void:
 
 ## 进入游戏结束状态
 func _enter_game_over_state() -> void:
-	# 加载游戏结束场景
-	var game_over_scene = load("res://scenes/main_menu/game_over.tscn")
-	if game_over_scene:
-		get_tree().change_scene_to_packed(game_over_scene)
+	# 使用场景管理器加载游戏结束场景
+	if scene_manager:
+		scene_manager.load_scene("game_over", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var game_over_scene = load("res://scenes/main_menu/game_over.tscn")
+		if game_over_scene:
+			get_tree().change_scene_to_packed(game_over_scene)
 
 	# 发送游戏结束信号
 	EventBus.game_ended.emit(false)
 
 ## 进入胜利状态
 func _enter_victory_state() -> void:
-	# 加载胜利场景
-	var victory_scene = load("res://scenes/main_menu/victory.tscn")
-	if victory_scene:
-		get_tree().change_scene_to_packed(victory_scene)
+	# 使用场景管理器加载胜利场景
+	if scene_manager:
+		scene_manager.load_scene("victory", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var victory_scene = load("res://scenes/main_menu/victory.tscn")
+		if victory_scene:
+			get_tree().change_scene_to_packed(victory_scene)
 
 	# 发送游戏结束信号
 	EventBus.game_ended.emit(true)

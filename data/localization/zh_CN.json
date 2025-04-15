@@ -6,7 +6,7 @@
   "ui.main_menu.achievements": "成就",
   "ui.main_menu.quit": "退出游戏",
   "ui.main_menu.version": "版本 {0}",
-  
+
   "ui.settings.title": "设置",
   "ui.settings.audio": "音频",
   "ui.settings.graphics": "图形",
@@ -25,12 +25,12 @@
   "ui.settings.autosave": "自动保存",
   "ui.settings.back": "返回",
   "ui.settings.apply": "应用",
-  
+
   "ui.difficulty.easy": "简单",
   "ui.difficulty.normal": "普通",
   "ui.difficulty.hard": "困难",
   "ui.difficulty.expert": "专家",
-  
+
   "ui.battle.start": "开始战斗",
   "ui.battle.skip": "跳过战斗",
   "ui.battle.auto": "自动战斗",
@@ -41,7 +41,7 @@
   "ui.battle.fighting": "战斗阶段",
   "ui.battle.time_left": "剩余时间: {0}",
   "ui.battle.enemy_name": "敌人 Lv.{0}",
-  
+
   "ui.shop.title": "商店",
   "ui.shop.refresh": "刷新",
   "ui.shop.refresh_cost": "刷新 ({0} 金币)",
@@ -51,7 +51,7 @@
   "ui.shop.sell": "出售",
   "ui.shop.cost": "花费: {0}",
   "ui.shop.sold_out": "售罄",
-  
+
   "ui.map.title": "地图",
   "ui.map.select_path": "选择路径",
   "ui.map.current_node": "当前位置",
@@ -62,12 +62,26 @@
   "ui.map.node_treasure": "宝藏",
   "ui.map.node_rest": "休息",
   "ui.map.node_boss": "Boss",
-  
+  "ui.map.node_selected": "已选择: {0}",
+  "ui.map.completed": "地图已完成!",
+  "ui.map.difficulty_easy": "简单",
+  "ui.map.difficulty_normal": "普通",
+  "ui.map.difficulty_hard": "困难",
+  "ui.map.difficulty_extreme": "极难",
+  "ui.map.difficulty": "难度: {0} (等级 {1})",
+  "ui.map.reward_gold": "金币: {0}",
+  "ui.map.reward_exp": "经验: {0}",
+  "ui.map.reward_equipment": "装备 (品质 {0})",
+  "ui.map.reward_relic": "遗物 (稀有度 {0})",
+  "ui.map.reward_heal": "治疗: {0}",
+
   "ui.event.title": "事件",
   "ui.event.choose": "选择",
   "ui.event.continue": "继续",
   "ui.event.leave": "离开",
-  
+  "ui.event.random_event": "随机事件",
+  "ui.shop.discount": "折扣: {0}",
+
   "ui.chess.upgrade": "升级",
   "ui.chess.sell": "出售",
   "ui.chess.move": "移动",
@@ -75,25 +89,25 @@
   "ui.chess.star2": "二星",
   "ui.chess.star3": "三星",
   "ui.chess.drag_tip": "拖动棋子到棋盘上",
-  
+
   "ui.equipment.equip": "装备",
   "ui.equipment.unequip": "卸下",
   "ui.equipment.combine": "合成",
   "ui.equipment.drag_tip": "拖动装备到棋子上",
-  
+
   "ui.relic.acquire": "获得遗物",
   "ui.relic.effect": "效果",
-  
+
   "ui.player.level": "等级 {0}",
   "ui.player.exp": "经验: {0}/{1}",
   "ui.player.gold": "金币: {0}",
   "ui.player.health": "生命值: {0}/{1}",
   "ui.player.upgrade_cost": "升级 ({0} 金币)",
-  
+
   "ui.synergy.active": "已激活",
   "ui.synergy.inactive": "未激活",
   "ui.synergy.next_tier": "下一级: {0}",
-  
+
   "ui.common.confirm": "确认",
   "ui.common.cancel": "取消",
   "ui.common.yes": "是",
@@ -104,7 +118,7 @@
   "ui.common.previous": "上一步",
   "ui.common.loading": "加载中...",
   "ui.common.saving": "保存中...",
-  
+
   "ui.save.title": "存档",
   "ui.save.load": "加载",
   "ui.save.save": "保存",
@@ -116,7 +130,7 @@
   "ui.save.date": "日期: {0}",
   "ui.save.confirm_delete": "确定要删除此存档吗?",
   "ui.save.confirm_overwrite": "确定要覆盖此存档吗?",
-  
+
   "ui.game_over.title": "游戏结束",
   "ui.game_over.message": "你的旅程结束了...",
   "ui.game_over.stats": "统计",
@@ -125,7 +139,7 @@
   "ui.game_over.chess_bought": "购买棋子: {0}",
   "ui.game_over.battles_won": "战斗胜利: {0}",
   "ui.game_over.main_menu": "返回主菜单",
-  
+
   "ui.victory.title": "胜利",
   "ui.victory.message": "恭喜你完成了游戏!",
   "ui.victory.stats": "统计",
@@ -134,7 +148,7 @@
   "ui.victory.chess_bought": "购买棋子: {0}",
   "ui.victory.battles_won": "战斗胜利: {0}",
   "ui.victory.main_menu": "返回主菜单",
-  
+
   "ui.tutorial.welcome": "欢迎来到自走棋!",
   "ui.tutorial.map": "这是地图界面，你可以选择不同的路径前进。",
   "ui.tutorial.battle": "这是战斗界面，你需要放置棋子来战斗。",
@@ -142,17 +156,17 @@
   "ui.tutorial.chess": "棋子有不同的职业和种族，组合相同类型可以激活羁绊效果。",
   "ui.tutorial.next": "点击继续",
   "ui.tutorial.skip": "跳过教程",
-  
+
   "error.save_failed": "保存失败",
   "error.load_failed": "加载失败",
   "error.config_not_found": "配置文件不存在",
-  
+
   "game.chess.warrior": "战士",
   "game.chess.mage": "法师",
   "game.chess.archer": "弓箭手",
   "game.chess.assassin": "刺客",
   "game.chess.support": "辅助",
-  
+
   "game.synergy.warrior": "战士",
   "game.synergy.mage": "法师",
   "game.synergy.ranger": "游侠",
@@ -160,7 +174,7 @@
   "game.synergy.support": "辅助",
   "game.synergy.human": "人类",
   "game.synergy.elf": "精灵",
-  
+
   "game.equipment.sword": "铁剑",
   "game.equipment.bow": "短弓",
   "game.equipment.armor": "铁甲",
@@ -173,7 +187,7 @@
   "game.equipment.dragon_cloak": "龙鳞斗篷",
   "game.equipment.giants_belt": "巨人腰带",
   "game.equipment.arcane_staff": "奥术法杖",
-  
+
   "game.relic.warriors_heart": "战士之心",
   "game.relic.mages_tome": "法师之书",
   "game.relic.rangers_bow": "游侠之弓",
@@ -191,7 +205,7 @@
   "game.relic.phoenix_feather": "凤凰之羽",
   "game.relic.treasure_chest": "宝藏箱",
   "game.relic.champions_belt": "冠军腰带",
-  
+
   "game.event.mysterious_merchant": "神秘商人",
   "game.event.abandoned_armory": "废弃的军械库",
   "game.event.ancient_shrine": "远古神龛",

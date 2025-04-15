@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scripts/game/board/board_manager.gd" id="1_yvmqe"]
+[ext_resource type="PackedScene" uid="uid://c8qvt5qjkuv7q" path="res://scenes/chess_board/board_cell.tscn" id="2_n3m4p"]
+
+[node name="ChessBoard" type="Node2D"]
+script = ExtResource("1_yvmqe")
+board_width = 8
+board_height = 4
+bench_size = 9
+cell_size = Vector2(64, 64)
+cell_scene = ExtResource("2_n3m4p")
+board_theme = "default"
+use_special_cells = true
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 512.0
+offset_bottom = 256.0
+color = Color(0.2, 0.2, 0.2, 0.5)
+
+[node name="BenchBackground" type="ColorRect" parent="."]
+offset_top = 276.0
+offset_right = 576.0
+offset_bottom = 340.0
+color = Color(0.2, 0.2, 0.4, 0.5)

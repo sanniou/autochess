@@ -18,7 +18,7 @@ func _ready():
 	$Title.text = LocalizationManager.tr("ui.shop.title")
 
 	# 设置按钮文本
-	$BottomPanel/ButtonContainer/RefreshButton.text = LocalizationManager.tr("ui.shop.refresh_cost", [str(shop_manager.REFRESH_COST)])
+	$BottomPanel/ButtonContainer/RefreshButton.text = LocalizationManager.tr("ui.shop.refresh_cost", [str(shop_manager.get_current_refresh_cost())])
 	$BottomPanel/ButtonContainer/LockButton.text = LocalizationManager.tr("ui.shop.lock")
 	$BottomPanel/ButtonContainer/BackButton.text = LocalizationManager.tr("ui.common.back")
 
@@ -56,7 +56,7 @@ func _refresh_shop() -> void:
 		child.queue_free()
 
 	# 获取商店物品
-	var shop_items = shop_manager.shop_items
+	var shop_items = shop_manager.get_shop_items()
 
 	# 创建棋子商品
 	for chess_data in shop_items.chess:
@@ -65,7 +65,7 @@ func _refresh_shop() -> void:
 
 	# 创建装备商品
 	for equip_id in shop_items.equipment:
-		var equip_data = ConfigManager.get_equipment(equip_id)
+		var equip_data = get_node("/root/ConfigManager").get_equipment(equip_id)
 		if equip_data:
 			var item = _create_shop_item(equip_data, "equipment")
 			$ShopContainer/EquipmentContainer.add_child(item)
@@ -140,7 +140,8 @@ func _on_buy_item_pressed(item_data: Dictionary, item_type: String, price: int) 
 	# 购买物品
 	if item_type == "chess":
 		# 查找棋子索引
-		var chess_index = shop_manager.shop_items.chess.find(item_data)
+		var shop_items = shop_manager.get_shop_items()
+		var chess_index = shop_items.chess.find(item_data)
 		if chess_index != -1:
 			# 购买棋子
 			var chess_piece = shop_manager.purchase_chess(chess_index)
@@ -151,9 +152,10 @@ func _on_buy_item_pressed(item_data: Dictionary, item_type: String, price: int) 
 				AudioManager.play_sfx("item_pickup.ogg")
 	else:
 		# 查找装备索引
+		var shop_items = shop_manager.get_shop_items()
 		var equip_index = -1
-		for i in range(shop_manager.shop_items.equipment.size()):
-			if shop_manager.shop_items.equipment[i] == item_data.id:
+		for i in range(shop_items.equipment.size()):
+			if shop_items.equipment[i] == item_data.id:
 				equip_index = i
 				break
 

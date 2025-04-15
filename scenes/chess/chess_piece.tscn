@@ -1,0 +1,56 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scripts/game/chess/chess_piece.gd" id="1_yvmqe"]
+[ext_resource type="Texture2D" uid="uid://c8qvt5qjkuv7q" path="res://assets/images/chess/piece_default.png" id="2_n3m4p"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_j6k8v"]
+bg_color = Color(0.8, 0.2, 0.2, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k7l9v"]
+bg_color = Color(0.2, 0.4, 0.8, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+[node name="ChessPiece" type="Node2D"]
+script = ExtResource("1_yvmqe")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_n3m4p")
+
+[node name="HealthBar" type="ProgressBar" parent="."]
+offset_left = -25.0
+offset_top = -40.0
+offset_right = 25.0
+offset_bottom = -35.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_j6k8v")
+value = 100.0
+show_percentage = false
+
+[node name="ManaBar" type="ProgressBar" parent="."]
+offset_left = -25.0
+offset_top = -35.0
+offset_right = 25.0
+offset_bottom = -32.0
+theme_override_styles/fill = SubResource("StyleBoxFlat_k7l9v")
+value = 50.0
+show_percentage = false
+
+[node name="StarIndicator" type="Node2D" parent="."]
+
+[node name="EffectContainer" type="Node2D" parent="."]

@@ -1,0 +1,211 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scenes/synergy/synergy_info_scene.gd" id="1_yvmqe"]
+
+[node name="SynergyInfoScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvmqe")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.1, 0.9)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderPanel" type="Panel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/HeaderPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "羁绊信息"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "关闭"
+
+[node name="ContentPanel" type="Panel" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/ContentPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="ActiveSynergiesPanel" type="Panel" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 150)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/ActiveSynergiesPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/ActiveSynergiesPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/ActiveSynergiesPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "激活的羁绊"
+horizontal_alignment = 1
+
+[node name="ActiveSynergiesGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/ActiveSynergiesPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="AllSynergiesPanel" type="Panel" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/AllSynergiesPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/AllSynergiesPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/AllSynergiesPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "所有羁绊"
+horizontal_alignment = 1
+
+[node name="AllSynergiesGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/ContentPanel/ScrollContainer/VBoxContainer/AllSynergiesPanel/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="FooterPanel" type="Panel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/FooterPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="InfoLabel" type="Label" parent="MarginContainer/VBoxContainer/FooterPanel/HBoxContainer"]
+layout_mode = 2
+text = "羁绊可以为棋子提供额外的属性加成"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SynergyItemTemplate" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(150, 180)
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 180.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SynergyItemTemplate"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SynergyIcon" type="TextureRect" parent="SynergyItemTemplate/VBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SynergyName" type="Label" parent="SynergyItemTemplate/VBoxContainer"]
+layout_mode = 2
+text = "羁绊名称"
+horizontal_alignment = 1
+
+[node name="SynergyLevel" type="Label" parent="SynergyItemTemplate/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "等级: 1"
+horizontal_alignment = 1
+
+[node name="SynergyDesc" type="Label" parent="SynergyItemTemplate/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "羁绊描述"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="SynergyCountLabel" type="Label" parent="SynergyItemTemplate/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "数量: 0/2"
+horizontal_alignment = 1
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]

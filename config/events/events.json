@@ -1,0 +1,374 @@
+{
+  "merchant": {
+    "id": "merchant",
+    "title": "流浪商人",
+    "description": "你遇到了一位流浪商人，他愿意以优惠的价格出售一些物品。",
+    "image_path": "res://assets/images/events/merchant.png",
+    "event_type": "shop",
+    "weight": 100,
+    "is_one_time": false,
+    "choices": [
+      {
+        "text": "购买物品",
+        "effects": [
+          {
+            "type": "shop",
+            "operation": "open"
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  },
+  "treasure_chest": {
+    "id": "treasure_chest",
+    "title": "宝箱",
+    "description": "你发现了一个宝箱，但它似乎被锁住了。",
+    "image_path": "res://assets/images/events/treasure_chest.png",
+    "event_type": "treasure",
+    "weight": 80,
+    "is_one_time": true,
+    "choices": [
+      {
+        "text": "强行打开",
+        "effects": [
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "random",
+            "chance": 0.7
+          },
+          {
+            "type": "health",
+            "operation": "subtract",
+            "value": 5,
+            "chance": 0.3
+          }
+        ]
+      },
+      {
+        "text": "使用钥匙打开",
+        "requirements": {
+          "has_item": "key"
+        },
+        "effects": [
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "random"
+          },
+          {
+            "type": "item",
+            "operation": "remove",
+            "item_id": "key"
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  },
+  "healing_fountain": {
+    "id": "healing_fountain",
+    "title": "治疗之泉",
+    "description": "你发现了一个散发着神秘光芒的泉水。",
+    "image_path": "res://assets/images/events/healing_fountain.png",
+    "event_type": "normal",
+    "weight": 90,
+    "is_one_time": true,
+    "choices": [
+      {
+        "text": "饮用泉水",
+        "effects": [
+          {
+            "type": "health",
+            "operation": "add",
+            "value": 20
+          }
+        ]
+      },
+      {
+        "text": "将泉水倒在武器上",
+        "effects": [
+          {
+            "type": "chess_piece",
+            "operation": "buff",
+            "buff_type": "attack_damage",
+            "value": 10,
+            "target": "random"
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  },
+  "mysterious_stranger": {
+    "id": "mysterious_stranger",
+    "title": "神秘陌生人",
+    "description": "一个披着斗篷的陌生人向你走来，他似乎有话要说。",
+    "image_path": "res://assets/images/events/mysterious_stranger.png",
+    "event_type": "normal",
+    "weight": 70,
+    "is_one_time": false,
+    "choices": [
+      {
+        "text": "听他说话",
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "add",
+            "value": 10,
+            "chance": 0.5
+          },
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "random",
+            "chance": 0.3
+          },
+          {
+            "type": "health",
+            "operation": "subtract",
+            "value": 10,
+            "chance": 0.2
+          }
+        ]
+      },
+      {
+        "text": "给他一些金币",
+        "requirements": {
+          "gold": 5
+        },
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "subtract",
+            "value": 5
+          },
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "random",
+            "chance": 0.7
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  },
+  "abandoned_workshop": {
+    "id": "abandoned_workshop",
+    "title": "废弃工坊",
+    "description": "你发现了一个废弃的工坊，里面散落着各种工具和材料。",
+    "image_path": "res://assets/images/events/abandoned_workshop.png",
+    "event_type": "normal",
+    "weight": 60,
+    "is_one_time": true,
+    "choices": [
+      {
+        "text": "搜索工具",
+        "effects": [
+          {
+            "type": "item",
+            "operation": "add",
+            "item_id": "random_equipment",
+            "chance": 0.8
+          }
+        ]
+      },
+      {
+        "text": "搜索材料",
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "add",
+            "value": 15,
+            "chance": 0.8
+          }
+        ]
+      },
+      {
+        "text": "修复一件装备",
+        "requirements": {
+          "has_damaged_equipment": true
+        },
+        "effects": [
+          {
+            "type": "item",
+            "operation": "repair",
+            "item_id": "damaged"
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  },
+  "elite_enemy": {
+    "id": "elite_enemy",
+    "title": "精英敌人",
+    "description": "一个强大的敌人挡住了你的去路。",
+    "image_path": "res://assets/images/events/elite_enemy.png",
+    "event_type": "battle",
+    "weight": 50,
+    "is_one_time": false,
+    "choices": [
+      {
+        "text": "战斗",
+        "effects": [
+          {
+            "type": "battle",
+            "operation": "start",
+            "battle_type": "elite",
+            "difficulty": 1.2
+          }
+        ]
+      },
+      {
+        "text": "逃跑",
+        "effects": [
+          {
+            "type": "health",
+            "operation": "subtract",
+            "value": 10
+          }
+        ]
+      }
+    ]
+  },
+  "gambling_game": {
+    "id": "gambling_game",
+    "title": "赌博游戏",
+    "description": "一个小贩邀请你参加一个简单的赌博游戏。",
+    "image_path": "res://assets/images/events/gambling_game.png",
+    "event_type": "normal",
+    "weight": 40,
+    "is_one_time": false,
+    "choices": [
+      {
+        "text": "下注5金币",
+        "requirements": {
+          "gold": 5
+        },
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "subtract",
+            "value": 5
+          },
+          {
+            "type": "gold",
+            "operation": "add",
+            "value": 10,
+            "chance": 0.4
+          }
+        ]
+      },
+      {
+        "text": "下注10金币",
+        "requirements": {
+          "gold": 10
+        },
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "subtract",
+            "value": 10
+          },
+          {
+            "type": "gold",
+            "operation": "add",
+            "value": 25,
+            "chance": 0.3
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  },
+  "ancient_altar": {
+    "id": "ancient_altar",
+    "title": "远古祭坛",
+    "description": "你发现了一个古老的祭坛，上面刻着神秘的符文。",
+    "image_path": "res://assets/images/events/ancient_altar.png",
+    "event_type": "normal",
+    "weight": 30,
+    "is_one_time": true,
+    "choices": [
+      {
+        "text": "献祭生命",
+        "effects": [
+          {
+            "type": "health",
+            "operation": "subtract",
+            "value": 15
+          },
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "random",
+            "rarity": 2
+          }
+        ]
+      },
+      {
+        "text": "献祭金币",
+        "requirements": {
+          "gold": 20
+        },
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "subtract",
+            "value": 20
+          },
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "random",
+            "rarity": 1
+          }
+        ]
+      },
+      {
+        "text": "献祭棋子",
+        "requirements": {
+          "has_chess_piece": true
+        },
+        "effects": [
+          {
+            "type": "chess_piece",
+            "operation": "remove",
+            "target": "select"
+          },
+          {
+            "type": "chess_piece",
+            "operation": "add",
+            "piece_id": "random",
+            "star_level": 2
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  }
+}

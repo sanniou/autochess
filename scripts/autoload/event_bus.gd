@@ -73,6 +73,20 @@ signal ui_screen_changed(old_screen, new_screen)
 signal ui_popup_opened(popup_name)
 signal ui_popup_closed(popup_name)
 signal ui_button_pressed(button_name)
+signal show_toast(message, duration)
+signal show_popup(popup_name, popup_data)
+signal close_popup(popup_instance)
+signal start_transition(transition_type, duration)
+signal transition_midpoint
+signal battle_preparing_phase_started
+signal battle_fighting_phase_started
+signal shop_manually_refreshed(cost)
+signal shop_discount_applied(discount_rate)
+signal event_started(event)
+signal event_option_selected(option_index, result)
+signal map_node_hovered(node_data)
+signal treasure_collected(rewards)
+signal rest_completed(heal_amount)
 
 # 成就相关信号
 signal achievement_progress(achievement_id, progress, total)
@@ -89,6 +103,26 @@ signal language_changed(new_language)
 # 音频相关信号
 signal bgm_changed(track_name)
 signal sfx_played(sfx_name)
+
+# 皮肤相关信号
+signal skin_changed(skin_type, skin_id)
+signal skin_unlocked(skin_type, skin_id)
+signal chess_skin_changed(skin_id)
+signal board_skin_changed(skin_id)
+signal ui_skin_changed(skin_id)
+
+# 通知相关信号
+signal show_notification(message, notification_type, duration, notification_id)
+signal hide_notification(notification_id)
+signal clear_notifications
+
+# 工具提示相关信号
+signal show_tooltip(control)
+signal hide_tooltip(control)
+signal update_tooltip(control, tooltip_text)
+
+# 主题相关信号
+signal theme_changed(theme_name)
 
 # 调试相关信号
 signal debug_message(message, level)

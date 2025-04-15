@@ -1,0 +1,98 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="PackedScene" uid="uid://c8qvt5qjkuv7q" path="res://scenes/chess_board/chess_board.tscn" id="1_yvmqe"]
+[ext_resource type="Script" path="res://scenes/test/board_test.gd" id="2_n3m4p"]
+
+[node name="BoardTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_n3m4p")
+
+[node name="ChessBoard" parent="." instance=ExtResource("1_yvmqe")]
+position = Vector2(100, 100)
+
+[node name="UI" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopPanel" type="Panel" parent="UI"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 80.0
+grow_horizontal = 2
+
+[node name="Title" type="Label" parent="UI/TopPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -15.0
+offset_right = 100.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "棋盘测试"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ButtonPanel" type="Panel" parent="UI"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = 80.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/ButtonPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="AddPieceButton" type="Button" parent="UI/ButtonPanel/VBoxContainer"]
+layout_mode = 2
+text = "添加棋子"
+
+[node name="RemovePieceButton" type="Button" parent="UI/ButtonPanel/VBoxContainer"]
+layout_mode = 2
+text = "移除棋子"
+
+[node name="ResetBoardButton" type="Button" parent="UI/ButtonPanel/VBoxContainer"]
+layout_mode = 2
+text = "重置棋盘"
+
+[node name="StartBattleButton" type="Button" parent="UI/ButtonPanel/VBoxContainer"]
+layout_mode = 2
+text = "开始战斗"
+
+[node name="EndBattleButton" type="Button" parent="UI/ButtonPanel/VBoxContainer"]
+layout_mode = 2
+text = "结束战斗"
+
+[connection signal="pressed" from="UI/ButtonPanel/VBoxContainer/AddPieceButton" to="." method="_on_add_piece_button_pressed"]
+[connection signal="pressed" from="UI/ButtonPanel/VBoxContainer/RemovePieceButton" to="." method="_on_remove_piece_button_pressed"]
+[connection signal="pressed" from="UI/ButtonPanel/VBoxContainer/ResetBoardButton" to="." method="_on_reset_board_button_pressed"]
+[connection signal="pressed" from="UI/ButtonPanel/VBoxContainer/StartBattleButton" to="." method="_on_start_battle_button_pressed"]
+[connection signal="pressed" from="UI/ButtonPanel/VBoxContainer/EndBattleButton" to="." method="_on_end_battle_button_pressed"]

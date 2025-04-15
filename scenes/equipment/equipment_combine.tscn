@@ -1,0 +1,257 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scenes/equipment/equipment_combine.gd" id="1_yvmqe"]
+
+[node name="EquipmentCombine" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvmqe")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.1, 0.1, 0.9)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderPanel" type="Panel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HeaderPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "装备合成"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="CombinePanel" type="Panel" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/CombinePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="EquipmentList" type="ScrollContainer" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/EquipmentList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/EquipmentList/VBoxContainer"]
+layout_mode = 2
+text = "可用装备"
+horizontal_alignment = 1
+
+[node name="EquipmentGrid" type="GridContainer" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/EquipmentList/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 3
+
+[node name="CombineArea" type="VBoxContainer" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea"]
+layout_mode = 2
+text = "合成区域"
+horizontal_alignment = 1
+
+[node name="Slot1" type="Panel" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea"]
+custom_minimum_size = Vector2(120, 150)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="PlusLabel" type="Label" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "+"
+horizontal_alignment = 1
+
+[node name="Slot2" type="Panel" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea"]
+custom_minimum_size = Vector2(120, 150)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="EqualsLabel" type="Label" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "="
+horizontal_alignment = 1
+
+[node name="ResultSlot" type="Panel" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea"]
+custom_minimum_size = Vector2(120, 150)
+layout_mode = 2
+size_flags_horizontal = 4
+
+[node name="CombineButton" type="Button" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "合成"
+
+[node name="RecipeList" type="ScrollContainer" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/RecipeList"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/RecipeList/VBoxContainer"]
+layout_mode = 2
+text = "合成配方"
+horizontal_alignment = 1
+
+[node name="RecipeGrid" type="VBoxContainer" parent="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/RecipeList/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="FooterPanel" type="Panel" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/FooterPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="CloseButton" type="Button" parent="MarginContainer/VBoxContainer/FooterPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "关闭"
+
+[node name="EquipmentItemTemplate" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(120, 150)
+layout_mode = 0
+offset_right = 120.0
+offset_bottom = 150.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="EquipmentItemTemplate"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EquipmentIcon" type="TextureRect" parent="EquipmentItemTemplate/VBoxContainer"]
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EquipmentName" type="Label" parent="EquipmentItemTemplate/VBoxContainer"]
+layout_mode = 2
+text = "装备名称"
+horizontal_alignment = 1
+
+[node name="EquipmentType" type="Label" parent="EquipmentItemTemplate/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "武器"
+horizontal_alignment = 1
+
+[node name="SelectButton" type="Button" parent="EquipmentItemTemplate/VBoxContainer"]
+layout_mode = 2
+text = "选择"
+
+[node name="RecipeItemTemplate" type="Panel" parent="."]
+visible = false
+custom_minimum_size = Vector2(0, 80)
+layout_mode = 0
+offset_right = 200.0
+offset_bottom = 80.0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="RecipeItemTemplate"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Ingredient1" type="TextureRect" parent="RecipeItemTemplate/HBoxContainer"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlusLabel" type="Label" parent="RecipeItemTemplate/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "+"
+
+[node name="Ingredient2" type="TextureRect" parent="RecipeItemTemplate/HBoxContainer"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EqualsLabel" type="Label" parent="RecipeItemTemplate/HBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+text = "="
+
+[node name="Result" type="TextureRect" parent="RecipeItemTemplate/HBoxContainer"]
+custom_minimum_size = Vector2(60, 60)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[connection signal="pressed" from="MarginContainer/VBoxContainer/CombinePanel/HBoxContainer/CombineArea/CombineButton" to="." method="_on_combine_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/FooterPanel/HBoxContainer/CloseButton" to="." method="_on_close_button_pressed"]

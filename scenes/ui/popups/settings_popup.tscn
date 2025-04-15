@@ -1,0 +1,193 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scenes/ui/popups/settings_popup.gd" id="1_yvmqe"]
+
+[node name="SettingsPopup" type="Window"]
+title = "设置"
+initial_position = 2
+size = Vector2i(500, 400)
+exclusive = true
+script = ExtResource("1_yvmqe")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TabContainer" type="TabContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="游戏" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/游戏"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="DifficultyContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer/DifficultyContainer"]
+layout_mode = 2
+text = "难度"
+
+[node name="DifficultyOption" type="OptionButton" parent="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer/DifficultyContainer"]
+layout_mode = 2
+item_count = 3
+selected = 0
+popup/item_0/text = "简单"
+popup/item_0/id = 0
+popup/item_1/text = "普通"
+popup/item_1/id = 1
+popup/item_2/text = "困难"
+popup/item_2/id = 2
+
+[node name="LanguageContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer/LanguageContainer"]
+layout_mode = 2
+text = "语言"
+
+[node name="LanguageOption" type="OptionButton" parent="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer/LanguageContainer"]
+layout_mode = 2
+item_count = 1
+selected = 0
+popup/item_0/text = "简体中文"
+popup/item_0/id = 0
+
+[node name="音频" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/音频"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="MasterVolumeContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MasterVolumeContainer"]
+layout_mode = 2
+text = "主音量"
+
+[node name="MasterVolumeSlider" type="HSlider" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MasterVolumeContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicVolumeContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MusicVolumeContainer"]
+layout_mode = 2
+text = "音乐音量"
+
+[node name="MusicVolumeSlider" type="HSlider" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MusicVolumeContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="SFXVolumeContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/SFXVolumeContainer"]
+layout_mode = 2
+text = "音效音量"
+
+[node name="SFXVolumeSlider" type="HSlider" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/SFXVolumeContainer"]
+layout_mode = 2
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MuteContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer"]
+layout_mode = 2
+
+[node name="MuteCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MuteContainer"]
+layout_mode = 2
+text = "静音"
+
+[node name="图形" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/图形"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="FullscreenContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer"]
+layout_mode = 2
+
+[node name="FullscreenCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer/FullscreenContainer"]
+layout_mode = 2
+text = "全屏"
+
+[node name="VSyncContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer"]
+layout_mode = 2
+
+[node name="VSyncCheckBox" type="CheckBox" parent="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer/VSyncContainer"]
+layout_mode = 2
+text = "垂直同步"
+
+[node name="ResolutionContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer/ResolutionContainer"]
+layout_mode = 2
+text = "分辨率"
+
+[node name="ResolutionOption" type="OptionButton" parent="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer/ResolutionContainer"]
+layout_mode = 2
+item_count = 3
+selected = 1
+popup/item_0/text = "1280x720"
+popup/item_0/id = 0
+popup/item_1/text = "1920x1080"
+popup/item_1/id = 1
+popup/item_2/text = "2560x1440"
+popup/item_2/id = 2
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="ApplyButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "应用"
+
+[node name="CancelButton" type="Button" parent="MarginContainer/VBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "取消"
+
+[connection signal="close_requested" from="." to="." method="_on_close_requested"]
+[connection signal="item_selected" from="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer/DifficultyContainer/DifficultyOption" to="." method="_on_difficulty_option_item_selected"]
+[connection signal="item_selected" from="MarginContainer/VBoxContainer/TabContainer/游戏/VBoxContainer/LanguageContainer/LanguageOption" to="." method="_on_language_option_item_selected"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MasterVolumeContainer/MasterVolumeSlider" to="." method="_on_master_volume_slider_value_changed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MusicVolumeContainer/MusicVolumeSlider" to="." method="_on_music_volume_slider_value_changed"]
+[connection signal="value_changed" from="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/SFXVolumeContainer/SFXVolumeSlider" to="." method="_on_sfx_volume_slider_value_changed"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/TabContainer/音频/VBoxContainer/MuteContainer/MuteCheckBox" to="." method="_on_mute_check_box_toggled"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer/FullscreenContainer/FullscreenCheckBox" to="." method="_on_fullscreen_check_box_toggled"]
+[connection signal="toggled" from="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer/VSyncContainer/VSyncCheckBox" to="." method="_on_v_sync_check_box_toggled"]
+[connection signal="item_selected" from="MarginContainer/VBoxContainer/TabContainer/图形/VBoxContainer/ResolutionContainer/ResolutionOption" to="." method="_on_resolution_option_item_selected"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ButtonsContainer/ApplyButton" to="." method="_on_apply_button_pressed"]
+[connection signal="pressed" from="MarginContainer/VBoxContainer/ButtonsContainer/CancelButton" to="." method="_on_cancel_button_pressed"]

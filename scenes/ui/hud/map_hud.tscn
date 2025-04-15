@@ -1,0 +1,165 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scenes/ui/hud/map_hud.gd" id="1_yvmqe"]
+
+[node name="MapHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_yvmqe")
+
+[node name="TopPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 60.0
+grow_horizontal = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TopPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="PlayerInfoContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HealthContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer"]
+layout_mode = 2
+
+[node name="HealthIcon" type="TextureRect" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/HealthContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/HealthContainer"]
+layout_mode = 2
+text = "100/100"
+vertical_alignment = 1
+
+[node name="GoldContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="GoldIcon" type="TextureRect" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/GoldContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/GoldContainer"]
+layout_mode = 2
+text = "10"
+vertical_alignment = 1
+
+[node name="LevelContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="LevelIcon" type="TextureRect" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/LevelContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LevelLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/LevelContainer"]
+layout_mode = 2
+text = "Lv.1"
+vertical_alignment = 1
+
+[node name="ExpContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="ExpIcon" type="TextureRect" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/ExpContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ExpLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/ExpContainer"]
+layout_mode = 2
+text = "0/2"
+vertical_alignment = 1
+
+[node name="ButtonsContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="ChessButton" type="Button" parent="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "棋子"
+
+[node name="EquipmentButton" type="Button" parent="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "装备"
+
+[node name="RelicButton" type="Button" parent="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "遗物"
+
+[node name="SynergyButton" type="Button" parent="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "羁绊"
+
+[node name="SettingsButton" type="Button" parent="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer"]
+layout_mode = 2
+text = "设置"
+
+[node name="BottomPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="BottomPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="BottomPanel/MarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="InfoLabel" type="Label" parent="BottomPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+text = "选择地图节点继续游戏"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer/ChessButton" to="." method="_on_chess_button_pressed"]
+[connection signal="pressed" from="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer/EquipmentButton" to="." method="_on_equipment_button_pressed"]
+[connection signal="pressed" from="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer/RelicButton" to="." method="_on_relic_button_pressed"]
+[connection signal="pressed" from="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer/SynergyButton" to="." method="_on_synergy_button_pressed"]
+[connection signal="pressed" from="TopPanel/MarginContainer/HBoxContainer/ButtonsContainer/SettingsButton" to="." method="_on_settings_button_pressed"]
