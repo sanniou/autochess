@@ -641,6 +641,12 @@ func _perform_attack() -> void:
 	if randf() < crit_chance:
 		damage *= crit_damage
 		is_crit = true
+		# 设置暴击元数据，供伤害数字管理器使用
+		set_meta("last_attack_was_crit", true)
+	else:
+		# 清除暴击元数据
+		if has_meta("last_attack_was_crit"):
+			set_meta("last_attack_was_crit", false)
 
 	# 检查元素效果
 	if randf() < elemental_effect_chance:

@@ -1,0 +1,87 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scenes/blacksmith/blacksmith_scene.gd" id="1_yvmqe"]
+
+[node name="BlacksmithScene" type="Node"]
+script = ExtResource("1_yvmqe")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BlacksmithContainer" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = -50.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="BlacksmithContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 48
+text = "铁匠铺"
+horizontal_alignment = 1
+
+[node name="ServiceDescriptionLabel" type="Label" parent="BlacksmithContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "选择服务类型和装备，进行升级、修复、重铸或附魔。"
+horizontal_alignment = 1
+
+[node name="ServiceContainer" type="HBoxContainer" parent="BlacksmithContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="UpgradeButton" type="Button" parent="BlacksmithContainer/ServiceContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "升级装备"
+
+[node name="RepairButton" type="Button" parent="BlacksmithContainer/ServiceContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "修复装备"
+
+[node name="ReforgeButton" type="Button" parent="BlacksmithContainer/ServiceContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "重铸装备"
+
+[node name="EnchantButton" type="Button" parent="BlacksmithContainer/ServiceContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "附魔装备"
+
+[node name="EquipmentContainer" type="GridContainer" parent="BlacksmithContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/h_separation = 20
+theme_override_constants/v_separation = 20
+columns = 5
+
+[node name="ActionContainer" type="HBoxContainer" parent="BlacksmithContainer"]
+layout_mode = 2
+theme_override_constants/separation = 50
+alignment = 1
+
+[node name="ConfirmButton" type="Button" parent="BlacksmithContainer/ActionContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+disabled = true
+text = "确认 (0金币)"
+
+[node name="CancelButton" type="Button" parent="BlacksmithContainer/ActionContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "返回"

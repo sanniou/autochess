@@ -1,0 +1,38 @@
+{
+  "id": "fireball",
+  "name": "火球术",
+  "description": "向目标发射一个火球，造成魔法伤害并有几率使目标燃烧。",
+  "icon": "res://assets/images/abilities/fireball_icon.png",
+  "cooldown": 8.0,
+  "mana_cost": 60.0,
+  "damage": 80.0,
+  "range": 5.0,
+  "duration": 0.0,
+  "target_type": "enemy",
+  "target_strategy": "nearest",
+  "max_targets": 1,
+  "min_range": 0.0,
+  "effects": [
+    {
+      "type": "damage",
+      "value": 80.0,
+      "damage_type": "magical"
+    },
+    {
+      "type": "damage",
+      "value": 20.0,
+      "duration": 3.0,
+      "damage_type": "fire"
+    },
+    {
+      "type": "visual",
+      "visual_type": "particle",
+      "visual_path": "res://assets/effects/fire_particle.tres",
+      "duration": 1.0
+    },
+    {
+      "type": "sound",
+      "sound_path": "res://assets/sounds/fireball.ogg"
+    }
+  ]
+}

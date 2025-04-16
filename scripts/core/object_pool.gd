@@ -24,11 +24,15 @@ var auto_resize_settings = {
 	"check_interval": 5.0,  # 检查间隔（秒）
 	"usage_threshold": 0.8,  # 使用率阈值
 	"min_grow_size": 5,     # 最小增长大小
-	"max_grow_size": 20     # 最大增长大小
+	"max_grow_size": 20,    # 最大增长大小
+	"shrink_threshold": 0.3, # 缩小阈值
+	"shrink_interval": 30.0, # 缩小检查间隔（秒）
+	"min_pool_size": 10     # 最小池大小
 }
 
 # 计时器
 var _resize_timer = 0.0
+var _shrink_timer = 0.0
 
 ## 创建对象池
 func create_pool(pool_name: String, object_scene: PackedScene, initial_size: int = 0, grow_size: int = 5, max_size: int = 100) -> void:
@@ -182,18 +186,51 @@ func _process(delta: float) -> void:
 	if not auto_resize_settings.enabled:
 		return
 
-	# 更新计时器
+	# 更新增长计时器
 	_resize_timer += delta
 
-	# 检查是否需要调整
+	# 更新缩小计时器
+	_shrink_timer += delta
+
+	# 检查是否需要调整增长
 	if _resize_timer >= auto_resize_settings.check_interval:
 		_resize_timer = 0.0
 		_check_pools_for_resize()
+
+	# 检查是否需要缩小
+	if _shrink_timer >= auto_resize_settings.shrink_interval:
+		_shrink_timer = 0.0
+		_check_pools_for_shrink()
 
 ## 检查并调整所有对象池
 func _check_pools_for_resize() -> void:
 	for pool_name in _pools.keys():
 		_check_pool_for_resize(pool_name)
+
+## 检查并缩小所有对象池
+func _check_pools_for_shrink() -> void:
+	for pool_name in _pools.keys():
+		_check_pool_for_shrink(pool_name)
+
+## 检查并缩小单个对象池
+func _check_pool_for_shrink(pool_name: String) -> void:
+	if not _pools.has(pool_name) or _pools[pool_name].is_empty():
+		return
+
+	# 获取池统计信息
+	var stats = _pool_stats[pool_name]
+	var config = _pool_configs[pool_name]
+	var current_size = _pools[pool_name].size()
+
+	# 只有当使用率低于缩小阈值且当前大小大于最小池大小时才缩小
+	if stats.usage_rate <= auto_resize_settings.shrink_threshold and current_size > auto_resize_settings.min_pool_size:
+		# 计算新大小，保持在最小池大小之上
+		var target_size = max(auto_resize_settings.min_pool_size, int(current_size * 0.7))
+
+		# 缩小池
+		if target_size < current_size:
+			set_pool_size(pool_name, target_size)
+			EventBus.debug_message.emit("对象池 " + pool_name + " 自动缩小，使用率: " + str(stats.usage_rate * 100) + "%", 0)
 
 ## 检查并调整单个对象池
 func _check_pool_for_resize(pool_name: String) -> void:
@@ -204,10 +241,13 @@ func _check_pool_for_resize(pool_name: String) -> void:
 	var stats = _pool_stats[pool_name]
 	var config = _pool_configs[pool_name]
 
+	# 获取当前时间
+	var current_time = Time.get_unix_time_from_system()
+	var current_size = _pools[pool_name].size()
+
 	# 检查使用率
 	if stats.usage_rate >= auto_resize_settings.usage_threshold:
 		# 计算增长大小
-		var current_size = _pools[pool_name].size()
 		var grow_size = min(max(config.grow_size, auto_resize_settings.min_grow_size), auto_resize_settings.max_grow_size)
 
 		# 检查是否达到最大大小
@@ -218,7 +258,22 @@ func _check_pool_for_resize(pool_name: String) -> void:
 			# 更新自动调整计数
 			stats.auto_resizes += 1
 
-			EventBus.debug_message.emit("对象池 " + pool_name + " 自动调整大小，使用率: " + str(stats.usage_rate * 100) + "%", 0)
+			EventBus.debug_message.emit("对象池 " + pool_name + " 自动增长，使用率: " + str(stats.usage_rate * 100) + "%", 0)
+
+	# 检查是否需要缩小池
+	elif stats.usage_rate <= auto_resize_settings.shrink_threshold and current_size > auto_resize_settings.min_pool_size:
+		# 检查上次缩小时间
+		var time_since_last_resize = current_time - config.last_resize_time
+
+		# 只有在超过缩小间隔时才缩小
+		if time_since_last_resize >= auto_resize_settings.shrink_interval:
+			# 计算新大小，保持在最小池大小之上
+			var target_size = max(auto_resize_settings.min_pool_size, int(current_size * 0.7))
+
+			# 缩小池
+			if target_size < current_size:
+				set_pool_size(pool_name, target_size)
+				EventBus.debug_message.emit("对象池 " + pool_name + " 自动缩小，使用率: " + str(stats.usage_rate * 100) + "%", 0)
 
 ## 设置池大小
 func set_pool_size(pool_name: String, new_size: int) -> bool:

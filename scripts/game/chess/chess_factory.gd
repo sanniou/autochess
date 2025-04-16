@@ -51,7 +51,7 @@ func _initialize_pool() -> void:
 		push_error("无法获取对象池引用")
 
 ## 创建棋子
-func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: bool = true) -> ChessPiece:
+func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: bool = true) -> Node2D:
 	# 检查棋子类型是否存在
 	if not _chess_piece_types.has(chess_id):
 		push_error("未知的棋子类型: " + chess_id)
@@ -95,7 +95,7 @@ func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: 
 	return chess_piece
 
 ## 创建随机棋子
-func create_random_chess_piece(cost_range: Array = [], star_level: int = 1, is_player_piece: bool = true) -> ChessPiece:
+func create_random_chess_piece(cost_range: Array = [], star_level: int = 1, is_player_piece: bool = true) -> Node2D:
 	# 筛选符合条件的棋子
 	var valid_chess_ids = []
 
@@ -122,7 +122,7 @@ func create_random_chess_piece(cost_range: Array = [], star_level: int = 1, is_p
 	return create_chess_piece(random_chess_id, star_level, is_player_piece)
 
 ## 创建特定羁绊的棋子
-func create_synergy_chess_piece(synergy: String, cost_range: Array = [], star_level: int = 1, is_player_piece: bool = true) -> ChessPiece:
+func create_synergy_chess_piece(synergy: String, cost_range: Array = [], star_level: int = 1, is_player_piece: bool = true) -> Node2D:
 	# 筛选符合条件的棋子
 	var valid_chess_ids = []
 
@@ -241,12 +241,12 @@ func _calculate_star_level(strength: float) -> int:
 	return star_level
 
 ## 释放棋子回对象池
-func release_chess_piece(chess_piece: ChessPiece) -> void:
+func release_chess_piece(chess_piece: Node2D) -> void:
 	if _chess_pool and chess_piece:
 		_chess_pool.release_object("chess_pieces", chess_piece)
 
 ## 合并棋子升级
-func merge_chess_pieces(pieces: Array) -> ChessPiece:
+func merge_chess_pieces(pieces: Array) -> Node2D:
 	if pieces.size() < 3:
 		push_error("合并棋子需要至少3个相同棋子")
 		return null

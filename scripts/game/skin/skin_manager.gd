@@ -15,14 +15,7 @@ enum SkinType {
 }
 
 # 皮肤配置文件路径
-const SKIN_CONFIG_PATH = "res://configs/skins/"
-
-# 皮肤配置文件
-const SKIN_CONFIG_FILES = {
-	"chess": "chess_skins.json",
-	"board": "board_skins.json",
-	"ui": "ui_skins.json"
-}
+const SKIN_CONFIG_PATH = "res://config/skins.json"
 
 # 皮肤数据
 var chess_skins = {}
@@ -51,53 +44,85 @@ var selected_skins = {
 func _ready():
 	# 加载皮肤配置
 	_load_skin_configs()
-	
+
 	# 加载已解锁的皮肤
 	_load_unlocked_skins()
-	
+
 	# 加载选中的皮肤
 	_load_selected_skins()
 
+	# 连接事件总线信号
+	_connect_signals()
+
+# 连接信号
+func _connect_signals() -> void:
+	# 皮肤相关信号
+	EventBus.skin_changed.connect(_on_skin_changed)
+	EventBus.skin_unlocked.connect(_on_skin_unlocked)
+
+	# 游戏状态信号
+	EventBus.game_loaded.connect(_on_game_loaded)
+
+# 皮肤变化处理
+func _on_skin_changed(skin_type: String, skin_id: String) -> void:
+	# 检查皮肤类型是否有效
+	if not selected_skins.has(skin_type):
+		EventBus.debug_message.emit("无效的皮肤类型: " + skin_type, 1)
+		return
+
+	# 检查皮肤是否已解锁
+	if not is_skin_unlocked(skin_id, skin_type):
+		EventBus.debug_message.emit("皮肤未解锁: " + skin_id, 1)
+		return
+
+	# 更新选中的皮肤
+	var skins = {skin_type: skin_id}
+	apply_skins(skins)
+
+# 皮肤解锁处理
+func _on_skin_unlocked(skin_type: String, skin_id: String) -> void:
+	# 解锁皮肤
+	unlock_skin(skin_id, skin_type)
+
+# 游戏加载处理
+func _on_game_loaded(slot_name: String) -> void:
+	# 重新加载皮肤数据
+	_load_unlocked_skins()
+	_load_selected_skins()
+
+	# 应用皮肤效果
+	_apply_skin_effects()
+
 # 加载皮肤配置
 func _load_skin_configs() -> void:
-	# 加载棋子皮肤配置
-	chess_skins = _load_skin_config("chess")
-	
-	# 加载棋盘皮肤配置
-	board_skins = _load_skin_config("board")
-	
-	# 加载UI皮肤配置
-	ui_skins = _load_skin_config("ui")
+	# 使用ConfigManager加载皮肤配置
+	var skins_config = config_manager.get_all_skins()
 
-# 加载皮肤配置文件
-func _load_skin_config(skin_type: String) -> Dictionary:
-	var config_file = SKIN_CONFIG_PATH + SKIN_CONFIG_FILES[skin_type]
-	
-	# 检查文件是否存在
-	if not FileAccess.file_exists(config_file):
-		EventBus.debug_message.emit("皮肤配置文件不存在: " + config_file, 1)
-		return {}
-	
-	# 加载配置文件
-	var file = FileAccess.open(config_file, FileAccess.READ)
-	var content = file.get_as_text()
-	file.close()
-	
-	# 解析JSON
-	var json = JSON.new()
-	var error = json.parse(content)
-	
-	if error == OK:
-		return json.data
-	else:
-		EventBus.debug_message.emit("无法解析皮肤配置文件: " + json.get_error_message(), 1)
-		return {}
+	if skins_config.is_empty():
+		EventBus.debug_message.emit("皮肤配置为空", 1)
+		return
+
+	# 处理配置数据，分类存储
+	for skin_id in skins_config.keys():
+		var skin_data = skins_config[skin_id]
+
+		# 根据皮肤类型分类
+		if skin_data.has("chess_pieces"):
+			chess_skins[skin_id] = skin_data
+
+		if skin_data.has("board"):
+			board_skins[skin_id] = skin_data
+
+		if skin_data.has("ui"):
+			ui_skins[skin_id] = skin_data
+
+	EventBus.debug_message.emit("皮肤配置加载完成: 棋子皮肤" + str(chess_skins.size()) + ", 棋盘皮肤" + str(board_skins.size()) + ", UI皮肤" + str(ui_skins.size()), 0)
 
 # 加载已解锁的皮肤
 func _load_unlocked_skins() -> void:
 	# 从存档中加载已解锁的皮肤
 	var save_data = save_manager.get_save_data()
-	
+
 	if save_data.has("unlocked_skins"):
 		unlocked_skins = save_data.unlocked_skins
 	else:
@@ -107,7 +132,7 @@ func _load_unlocked_skins() -> void:
 			"board": ["default"],
 			"ui": ["default"]
 		}
-		
+
 		# 保存到存档
 		save_data.unlocked_skins = unlocked_skins
 		save_manager.save_game()
@@ -116,7 +141,7 @@ func _load_unlocked_skins() -> void:
 func _load_selected_skins() -> void:
 	# 从存档中加载选中的皮肤
 	var save_data = save_manager.get_save_data()
-	
+
 	if save_data.has("selected_skins"):
 		selected_skins = save_data.selected_skins
 	else:
@@ -126,7 +151,7 @@ func _load_selected_skins() -> void:
 			"board": "default",
 			"ui": "default"
 		}
-		
+
 		# 保存到存档
 		save_data.selected_skins = selected_skins
 		save_manager.save_game()
@@ -146,17 +171,17 @@ func get_all_skins(skin_type: String) -> Dictionary:
 # 获取皮肤数据
 func get_skin_data(skin_id: String, skin_type: String) -> Dictionary:
 	var skins = get_all_skins(skin_type)
-	
+
 	if skins.has(skin_id):
 		return skins[skin_id]
-	
+
 	return {}
 
 # 获取已解锁的皮肤
 func get_unlocked_skins(skin_type: String) -> Array:
 	if unlocked_skins.has(skin_type):
 		return unlocked_skins[skin_type]
-	
+
 	return []
 
 # 获取选中的皮肤
@@ -167,14 +192,14 @@ func get_selected_skins() -> Dictionary:
 func get_selected_skin_id(skin_type: String) -> String:
 	if selected_skins.has(skin_type):
 		return selected_skins[skin_type]
-	
+
 	return "default"
 
 # 检查皮肤是否已解锁
 func is_skin_unlocked(skin_id: String, skin_type: String) -> bool:
 	if unlocked_skins.has(skin_type):
 		return unlocked_skins[skin_type].has(skin_id)
-	
+
 	return false
 
 # 解锁皮肤
@@ -183,47 +208,47 @@ func unlock_skin(skin_id: String, skin_type: String) -> bool:
 	var skins = get_all_skins(skin_type)
 	if not skins.has(skin_id):
 		return false
-	
+
 	# 检查皮肤是否已解锁
 	if is_skin_unlocked(skin_id, skin_type):
 		return true
-	
+
 	# 获取皮肤数据
 	var skin_data = skins[skin_id]
-	
+
 	# 检查是否有解锁条件
 	if skin_data.has("unlock_condition"):
 		var condition = skin_data.unlock_condition
-		
+
 		# 检查金币条件
 		if condition.has("gold"):
 			var required_gold = condition.gold
 			var player_gold = save_manager.get_save_data().gold
-			
+
 			if player_gold < required_gold:
 				return false
-			
+
 			# 扣除金币
 			save_manager.get_save_data().gold -= required_gold
-		
+
 		# 检查成就条件
 		if condition.has("achievement"):
 			var required_achievement = condition.achievement
 			var player_achievements = save_manager.get_save_data().achievements
-			
+
 			if not player_achievements.has(required_achievement):
 				return false
-	
+
 	# 解锁皮肤
 	unlocked_skins[skin_type].append(skin_id)
-	
+
 	# 保存到存档
 	save_manager.get_save_data().unlocked_skins = unlocked_skins
 	save_manager.save_game()
-	
+
 	# 发送解锁信号
 	skin_unlocked.emit(skin_id, skin_type)
-	
+
 	return true
 
 # 应用皮肤
@@ -231,21 +256,21 @@ func apply_skins(skins: Dictionary) -> void:
 	# 检查皮肤是否已解锁
 	for skin_type in skins:
 		var skin_id = skins[skin_type]
-		
+
 		if not is_skin_unlocked(skin_id, skin_type):
 			EventBus.debug_message.emit("皮肤未解锁: " + skin_id, 1)
 			continue
-		
+
 		# 应用皮肤
 		selected_skins[skin_type] = skin_id
-		
+
 		# 发送应用信号
 		skin_applied.emit(skin_id, skin_type)
-	
+
 	# 保存到存档
 	save_manager.get_save_data().selected_skins = selected_skins
 	save_manager.save_game()
-	
+
 	# 应用皮肤效果
 	_apply_skin_effects()
 
@@ -253,10 +278,10 @@ func apply_skins(skins: Dictionary) -> void:
 func _apply_skin_effects() -> void:
 	# 应用棋子皮肤
 	_apply_chess_skin()
-	
+
 	# 应用棋盘皮肤
 	_apply_board_skin()
-	
+
 	# 应用UI皮肤
 	_apply_ui_skin()
 
@@ -264,50 +289,37 @@ func _apply_skin_effects() -> void:
 func _apply_chess_skin() -> void:
 	var skin_id = selected_skins.chess
 	var skin_data = get_skin_data(skin_id, "chess")
-	
+
 	if skin_data.is_empty():
 		return
-	
-	# 应用棋子皮肤效果
-	if skin_data.has("texture_overrides"):
-		var overrides = skin_data.texture_overrides
-		
-		# 通知棋子工厂更新皮肤
-		if has_node("/root/GameManager/ChessFactory"):
-			var chess_factory = get_node("/root/GameManager/ChessFactory")
-			chess_factory.update_skin_overrides(overrides)
+
+	# 通过事件总线发送皮肤变化信号
+	EventBus.chess_skin_changed.emit(skin_id)
+
+	EventBus.debug_message.emit("应用棋子皮肤: " + skin_id, 0)
 
 # 应用棋盘皮肤
 func _apply_board_skin() -> void:
 	var skin_id = selected_skins.board
 	var skin_data = get_skin_data(skin_id, "board")
-	
+
 	if skin_data.is_empty():
 		return
-	
-	# 应用棋盘皮肤效果
-	if skin_data.has("texture"):
-		var texture_path = skin_data.texture
-		
-		# 通知棋盘管理器更新皮肤
-		if has_node("/root/GameManager/BoardManager"):
-			var board_manager = get_node("/root/GameManager/BoardManager")
-			board_manager.update_board_texture(texture_path)
+
+	# 通过事件总线发送皮肤变化信号
+	EventBus.board_skin_changed.emit(skin_id)
+
+	EventBus.debug_message.emit("应用棋盘皮肤: " + skin_id, 0)
 
 # 应用UI皮肤
 func _apply_ui_skin() -> void:
 	var skin_id = selected_skins.ui
 	var skin_data = get_skin_data(skin_id, "ui")
-	
+
 	if skin_data.is_empty():
 		return
-	
-	# 应用UI皮肤效果
-	if skin_data.has("theme"):
-		var theme_path = skin_data.theme
-		
-		# 加载主题
-		var theme = load(theme_path)
-		if theme:
-			# 应用主题到根节点
-			get_tree().root.theme = theme
+
+	# 通过事件总线发送皮肤变化信号
+	EventBus.ui_skin_changed.emit(skin_id)
+
+	EventBus.debug_message.emit("应用UI皮肤: " + skin_id, 0)

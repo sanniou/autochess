@@ -17,6 +17,9 @@ class_name MapNode
 @export var discount: bool = false
 @export var heal_amount: int = 0
 @export var boss_id: String = ""
+@export var challenge_type: String = ""
+@export var altar_type: String = ""
+@export var blacksmith_service: String = ""
 
 # 节点奖励
 @export var rewards: Dictionary = {}
@@ -37,7 +40,7 @@ func initialize(node_data: Dictionary) -> void:
 	position = node_data.get("position", 0)
 	type = node_data.get("type", "battle")
 	visited = node_data.get("visited", false)
-	
+
 	# 设置特定属性
 	difficulty = node_data.get("difficulty", 1.0)
 	enemy_level = node_data.get("enemy_level", 1)
@@ -45,10 +48,13 @@ func initialize(node_data: Dictionary) -> void:
 	discount = node_data.get("discount", false)
 	heal_amount = node_data.get("heal_amount", 0)
 	boss_id = node_data.get("boss_id", "")
-	
+	challenge_type = node_data.get("challenge_type", "")
+	altar_type = node_data.get("altar_type", "")
+	blacksmith_service = node_data.get("blacksmith_service", "")
+
 	# 设置奖励
 	rewards = node_data.get("rewards", {})
-	
+
 	# 设置视觉属性
 	_set_visual_properties()
 
@@ -83,31 +89,31 @@ func get_description() -> String:
 ## 获取节点奖励描述
 func get_rewards_description() -> String:
 	var desc = ""
-	
+
 	if rewards.has("gold"):
 		desc += LocalizationManager.tr("ui.map.reward_gold", [str(rewards.gold)]) + "\n"
-	
+
 	if rewards.has("exp"):
 		desc += LocalizationManager.tr("ui.map.reward_exp", [str(rewards.exp)]) + "\n"
-	
+
 	if rewards.has("equipment") and rewards.equipment.has("guaranteed") and rewards.equipment.guaranteed:
 		var quality = rewards.equipment.get("quality", 1)
 		desc += LocalizationManager.tr("ui.map.reward_equipment", [str(quality)]) + "\n"
-	
+
 	if rewards.has("relic") and rewards.relic.has("guaranteed") and rewards.relic.guaranteed:
 		var rarity = rewards.relic.get("rarity", 0)
 		desc += LocalizationManager.tr("ui.map.reward_relic", [str(rarity)]) + "\n"
-	
+
 	if rewards.has("heal"):
 		desc += LocalizationManager.tr("ui.map.reward_heal", [str(rewards.heal)]) + "\n"
-	
+
 	return desc.strip_edges()
 
 ## 获取节点难度描述
 func get_difficulty_description() -> String:
-	if type == "battle" or type == "elite_battle" or type == "boss":
+	if type == "battle" or type == "elite_battle" or type == "boss" or type == "challenge":
 		var difficulty_text = ""
-		
+
 		if difficulty < 1.2:
 			difficulty_text = LocalizationManager.tr("ui.map.difficulty_easy")
 		elif difficulty < 1.5:
@@ -116,9 +122,23 @@ func get_difficulty_description() -> String:
 			difficulty_text = LocalizationManager.tr("ui.map.difficulty_hard")
 		else:
 			difficulty_text = LocalizationManager.tr("ui.map.difficulty_extreme")
-		
-		return LocalizationManager.tr("ui.map.difficulty", [difficulty_text, str(enemy_level)])
-	
+
+		var desc = LocalizationManager.tr("ui.map.difficulty", [difficulty_text, str(enemy_level)])
+
+		# 挑战节点显示挑战类型
+		if type == "challenge" and not challenge_type.is_empty():
+			desc += "\n" + LocalizationManager.tr("ui.map.challenge_type", [LocalizationManager.tr("ui.challenge." + challenge_type)])
+
+		return desc
+
+	# 祭坛节点显示祭坛类型
+	if type == "altar" and not altar_type.is_empty():
+		return LocalizationManager.tr("ui.map.altar_type", [LocalizationManager.tr("ui.altar." + altar_type)])
+
+	# 铁匠铺节点显示服务类型
+	if type == "blacksmith" and not blacksmith_service.is_empty():
+		return LocalizationManager.tr("ui.map.blacksmith_service", [LocalizationManager.tr("ui.blacksmith." + blacksmith_service)])
+
 	return ""
 
 ## 获取节点数据
@@ -131,7 +151,7 @@ func get_data() -> Dictionary:
 		"visited": visited,
 		"rewards": rewards.duplicate()
 	}
-	
+
 	# 添加特定属性
 	match type:
 		"battle", "elite_battle":
@@ -145,7 +165,19 @@ func get_data() -> Dictionary:
 			data["heal_amount"] = heal_amount
 		"boss":
 			data["boss_id"] = boss_id
-	
+		"challenge":
+			data["difficulty"] = difficulty
+			data["enemy_level"] = enemy_level
+			data["challenge_type"] = challenge_type
+		"altar":
+			data["altar_type"] = altar_type
+		"blacksmith":
+			data["discount"] = discount
+			data["blacksmith_service"] = blacksmith_service
+		"mystery":
+			# 神秘节点不需要额外属性
+			pass
+
 	return data
 
 ## 标记为已访问
@@ -157,10 +189,10 @@ func is_accessible(current_layer: int, current_node_id: String) -> bool:
 	# 如果不是下一层，不可访问
 	if layer != current_layer + 1:
 		return false
-	
+
 	# 检查是否有从当前节点到此节点的连接
 	for connection in connections_from:
 		if connection == current_node_id:
 			return true
-	
+
 	return false

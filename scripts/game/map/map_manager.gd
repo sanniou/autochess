@@ -159,6 +159,14 @@ func _trigger_node_event(node: MapNode) -> void:
 			_rest_at_node(node)
 		"boss":
 			_start_boss_battle(node)
+		"mystery":
+			_trigger_mystery_node(node)
+		"challenge":
+			_start_challenge(node)
+		"altar":
+			_open_altar(node)
+		"blacksmith":
+			_open_blacksmith(node)
 
 ## 开始普通战斗
 func _start_battle(node: MapNode) -> void:
@@ -432,3 +440,134 @@ func _on_shop_exited() -> void:
 ## 地图生成事件处理
 func _on_map_generated(data: Dictionary) -> void:
 	map_data = data
+
+## 触发神秘节点
+func _trigger_mystery_node(node: MapNode) -> void:
+	# 随机决定节点类型
+	var possible_types = ["battle", "shop", "event", "treasure", "rest"]
+	var random_type = possible_types[randi() % possible_types.size()]
+
+	# 创建一个新的节点数据
+	var mystery_node = MapNode.new()
+	mystery_node.initialize({
+		"id": node.id,
+		"layer": node.layer,
+		"position": node.position,
+		"type": random_type,
+		"visited": true
+	})
+
+	# 根据随机类型设置额外属性
+	match random_type:
+		"battle":
+			mystery_node.difficulty = _calculate_battle_difficulty(node.layer, false)
+			mystery_node.enemy_level = _calculate_enemy_level(node.layer)
+		"event":
+			mystery_node.event_id = _select_event_for_node(node.layer)
+		"shop":
+			mystery_node.discount = true  # 神秘商店总是有折扣
+		"treasure":
+			mystery_node.rewards = _generate_better_rewards(node.layer)
+		"rest":
+			mystery_node.heal_amount = 30 + node.layer * 5  # 神秘休息点治疗量更高
+
+	# 显示提示
+	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.mystery_revealed", [LocalizationManager.tr("ui.map.node_" + random_type)]))
+
+	# 触发对应类型的节点事件
+	_trigger_node_event(mystery_node)
+
+## 开始挑战
+func _start_challenge(node: MapNode) -> void:
+	# 设置挑战参数
+	var challenge_params = {
+		"difficulty": node.difficulty * 1.2,  # 挑战难度更高
+		"enemy_level": node.enemy_level,
+		"is_elite": false,
+		"is_boss": false,
+		"is_challenge": true,
+		"challenge_type": _select_challenge_type(),
+		"rewards": _generate_better_rewards(node.layer)
+	}
+
+	# 存储战斗参数
+	game_manager.battle_params = challenge_params
+
+	# 切换到战斗状态
+	game_manager.change_state(GameManager.GameState.BATTLE)
+
+## 打开祭坛
+func _open_altar(node: MapNode) -> void:
+	# 设置祭坛参数
+	var altar_params = {
+		"layer": node.layer,
+		"altar_type": _select_altar_type()
+	}
+
+	# 存储祭坛参数
+	game_manager.altar_params = altar_params
+
+	# 切换到祭坛状态
+	game_manager.change_state(GameManager.GameState.ALTAR)
+
+## 打开铁匠铺
+func _open_blacksmith(node: MapNode) -> void:
+	# 设置铁匠铺参数
+	var blacksmith_params = {
+		"layer": node.layer,
+		"discount": randf() < 0.3  # 30%概率有折扣
+	}
+
+	# 存储铁匠铺参数
+	game_manager.blacksmith_params = blacksmith_params
+
+	# 切换到铁匠铺状态
+	game_manager.change_state(GameManager.GameState.BLACKSMITH)
+
+## 计算战斗难度
+func _calculate_battle_difficulty(layer: int, is_elite: bool) -> float:
+	var base_difficulty = 1.0 + (layer * 0.2)  # 每层增加20%难度
+	if is_elite:
+		base_difficulty *= 1.5  # 精英战斗难度提高50%
+	return base_difficulty
+
+## 计算敌人等级
+func _calculate_enemy_level(layer: int) -> int:
+	return 1 + layer  # 敌人等级 = 层数 + 1
+
+## 选择节点事件
+func _select_event_for_node(layer: int) -> String:
+	# 这里应该根据层数选择适合的事件
+	# 暂时返回随机事件
+	var event_ids = ["mysterious_merchant", "abandoned_armory", "ancient_shrine", "wandering_trainer", "gambling_goblin"]
+	return event_ids[randi() % event_ids.size()]
+
+## 选择挑战类型
+func _select_challenge_type() -> String:
+	# 这里应该返回不同类型的挑战
+	var challenge_types = ["time_limit", "no_abilities", "limited_mana", "elite_enemies", "restricted_movement"]
+	return challenge_types[randi() % challenge_types.size()]
+
+## 选择祭坛类型
+func _select_altar_type() -> String:
+	# 这里应该返回不同类型的祭坛
+	var altar_types = ["health", "attack", "defense", "ability", "gold"]
+	return altar_types[randi() % altar_types.size()]
+
+## 生成更好的奖励
+func _generate_better_rewards(layer: int) -> Dictionary:
+	# 生成更好的奖励
+	var rewards = {
+		"gold": 20 + layer * 10,
+		"exp": 10 + layer * 5,
+		"equipment": {
+			"guaranteed": true,
+			"quality": min(3, 1 + layer / 3)  # 最高品质为3
+		},
+		"relic": {
+			"guaranteed": layer > 3,  # 第4层以后必定有遗物
+			"rarity": min(2, layer / 4)  # 最高稀有度为2
+		},
+		"relic_chance": min(0.5, 0.1 + layer * 0.05)  # 最高概率50%
+	}
+	return rewards

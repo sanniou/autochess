@@ -41,7 +41,7 @@ var current_settings = {}
 func _ready() -> void:
 	# 加载设置
 	load_settings()
-	
+
 	# 应用设置
 	apply_settings()
 
@@ -49,26 +49,26 @@ func _ready() -> void:
 func load_settings() -> void:
 	# 复制默认设置
 	current_settings = DEFAULT_SETTINGS.duplicate(true)
-	
+
 	# 检查设置文件是否存在
 	if FileAccess.file_exists(SETTINGS_FILE):
 		# 打开文件
 		var file = FileAccess.open(SETTINGS_FILE, FileAccess.READ)
 		var content = file.get_as_text()
 		file.close()
-		
+
 		# 解析JSON
 		var json = JSON.new()
 		var error = json.parse(content)
-		
+
 		if error == OK:
 			var data = json.data
-			
+
 			# 合并设置
 			_merge_settings(current_settings, data)
 		else:
 			EventBus.debug_message.emit("无法解析设置文件: " + json.get_error_message(), 1)
-	
+
 	# 发送设置变化信号
 	settings_changed.emit(current_settings)
 
@@ -77,15 +77,15 @@ func save_settings(settings: Dictionary = {}) -> void:
 	# 如果提供了设置，则更新当前设置
 	if not settings.is_empty():
 		_merge_settings(current_settings, settings)
-	
+
 	# 转换为JSON
 	var json_string = JSON.stringify(current_settings, "\t")
-	
+
 	# 保存到文件
 	var file = FileAccess.open(SETTINGS_FILE, FileAccess.WRITE)
 	file.store_string(json_string)
 	file.close()
-	
+
 	# 发送设置变化信号
 	settings_changed.emit(current_settings)
 
@@ -97,11 +97,13 @@ func apply_settings() -> void:
 		audio_manager.set_master_volume(current_settings.audio.master_volume)
 		audio_manager.set_music_volume(current_settings.audio.music_volume)
 		audio_manager.set_sfx_volume(current_settings.audio.sfx_volume)
-	
+	else:
+		EventBus.debug_message.emit("无法获取AudioManager引用", 1)
+
 	# 应用显示设置
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if current_settings.display.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if current_settings.display.vsync else DisplayServer.VSYNC_DISABLED)
-	
+
 	# 应用分辨率
 	var resolution = current_settings.display.resolution.split("x")
 	if resolution.size() == 2:
@@ -109,13 +111,14 @@ func apply_settings() -> void:
 		var height = resolution[1].to_int()
 		if width > 0 and height > 0:
 			DisplayServer.window_set_size(Vector2i(width, height))
-	
+
 	# 应用语言设置
-	if has_node("/root/LocalizationManager"):
-		var localization_manager = get_node("/root/LocalizationManager")
-		var language_codes = ["zh_CN"]
-		if current_settings.game.language < language_codes.size():
-			localization_manager.set_language(language_codes[current_settings.game.language])
+	# 使用EventBus代替LocalizationManager
+	var language_codes = ["zh_CN"]
+	if current_settings.game.language < language_codes.size():
+		var language_code = language_codes[current_settings.game.language]
+		EventBus.language_changed.emit(language_code)
+		EventBus.debug_message.emit("通过EventBus设置语言: " + language_code, 0)
 
 # 获取设置
 func get_settings() -> Dictionary:
@@ -132,13 +135,13 @@ func set_setting(section: String, key: String, value) -> void:
 	# 检查部分是否存在
 	if not current_settings.has(section):
 		current_settings[section] = {}
-	
+
 	# 更新设置
 	current_settings[section][key] = value
-	
+
 	# 发送设置变化信号
 	setting_changed.emit(section, key, value)
-	
+
 	# 保存设置
 	save_settings()
 
@@ -146,10 +149,10 @@ func set_setting(section: String, key: String, value) -> void:
 func reset_settings() -> void:
 	# 恢复默认设置
 	current_settings = DEFAULT_SETTINGS.duplicate(true)
-	
+
 	# 保存设置
 	save_settings()
-	
+
 	# 应用设置
 	apply_settings()
 

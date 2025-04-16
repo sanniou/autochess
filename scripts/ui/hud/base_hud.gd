@@ -12,15 +12,20 @@ var is_initialized: bool = false
 var is_visible: bool = true
 
 # 引用
-@onready var game_manager = get_node("/root/GameManager")
-@onready var config_manager = get_node("/root/ConfigManager")
-@onready var localization_manager = get_node("/root/LocalizationManager")
+@onready var game_manager = get_node_or_null("/root/GameManager")
+@onready var config_manager = get_node_or_null("/root/ConfigManager")
+@onready var localization_manager = get_node_or_null("/root/LocalizationManager")
+@onready var font_manager = get_node_or_null("/root/FontManager")
+
+# 工具类
+@onready var text_utils = load("res://scripts/ui/text_utils.gd")
+@onready var ui_utils = load("res://scripts/ui/ui_utils.gd")
 
 # 初始化
 func _ready() -> void:
 	# 连接信号
 	EventBus.game_paused.connect(_on_game_paused)
-	
+
 	# 初始化HUD
 	_initialize()
 
@@ -28,14 +33,14 @@ func _ready() -> void:
 func _initialize() -> void:
 	# 子类应该重写此方法
 	is_initialized = true
-	
+
 	# 发送初始化信号
 	hud_initialized.emit()
 
 # 更新HUD
 func update_hud() -> void:
 	# 子类应该重写此方法
-	
+
 	# 发送更新信号
 	hud_updated.emit()
 
@@ -61,6 +66,8 @@ func _on_game_paused(paused: bool) -> void:
 
 # 获取本地化文本
 func tr(key: String, params: Array = []) -> String:
+	if text_utils:
+		return text_utils.tr(key, params)
 	return localization_manager.tr(key, params)
 
 # 播放UI音效

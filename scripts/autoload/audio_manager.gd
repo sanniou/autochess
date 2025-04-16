@@ -42,6 +42,9 @@ const MAX_SFX_PLAYERS = 8
 const MAX_UI_PLAYERS = 4
 
 func _ready():
+	# 初始化音频总线
+	_initialize_audio_buses()
+
 	# 初始化音频播放器
 	_initialize_audio_players()
 
@@ -51,6 +54,38 @@ func _ready():
 	EventBus.battle_started.connect(_on_battle_started)
 	EventBus.battle_ended.connect(_on_battle_ended)
 	EventBus.play_sound.connect(_on_play_sound)
+
+	# 调试信息
+	EventBus.debug_message.emit("音频管理器初始化完成", 0)
+
+## 初始化音频总线
+func _initialize_audio_buses() -> void:
+	# 检查并创建必要的音频总线
+	var required_buses = ["Master", "Music", "SFX", "UI"]
+
+	# 检查Master总线是否存在
+	var master_idx = AudioServer.get_bus_index("Master")
+	if master_idx < 0:
+		# Master总线应该默认存在，如果不存在则创建
+		AudioServer.add_bus(0) # 添加到第一个位置
+		AudioServer.set_bus_name(0, "Master")
+		EventBus.debug_message.emit("创建了Master音频总线", 0)
+
+	# 创建其他总线
+	for bus_name in required_buses:
+		if bus_name == "Master":
+			continue # 已经处理过Master
+
+		var bus_idx = AudioServer.get_bus_index(bus_name)
+		if bus_idx < 0:
+			# 总线不存在，创建它
+			bus_idx = AudioServer.bus_count
+			AudioServer.add_bus() # 添加到最后
+			AudioServer.set_bus_name(bus_idx, bus_name)
+
+			# 将新总线发送到Master
+			AudioServer.set_bus_send(bus_idx, "Master")
+			EventBus.debug_message.emit("创建了" + bus_name + "音频总线", 0)
 
 ## 初始化音频播放器
 func _initialize_audio_players() -> void:
@@ -173,12 +208,18 @@ func stop_all_ui_sounds() -> void:
 ## 设置主音量
 func set_master_volume(volume: float) -> void:
 	master_volume = clamp(volume, 0.0, 1.0)
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Master"), linear_to_db(master_volume))
+	var bus_idx = AudioServer.get_bus_index("Master")
+	if bus_idx >= 0:
+		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(master_volume))
 
 ## 设置音乐音量
 func set_music_volume(volume: float) -> void:
 	music_volume = clamp(volume, 0.0, 1.0)
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("Music"), linear_to_db(music_volume))
+	var bus_idx = AudioServer.get_bus_index("Music")
+	if bus_idx >= 0:
+		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(music_volume))
+	else:
+		EventBus.debug_message.emit("Music音频总线不存在", 1)
 
 	# 更新所有音乐播放器的音量
 	for player in music_players:
@@ -188,17 +229,29 @@ func set_music_volume(volume: float) -> void:
 ## 设置音效音量
 func set_sfx_volume(volume: float) -> void:
 	sfx_volume = clamp(volume, 0.0, 1.0)
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("SFX"), linear_to_db(sfx_volume))
+	var bus_idx = AudioServer.get_bus_index("SFX")
+	if bus_idx >= 0:
+		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(sfx_volume))
+	else:
+		EventBus.debug_message.emit("SFX音频总线不存在", 1)
 
 ## 设置UI音效音量
 func set_ui_volume(volume: float) -> void:
 	ui_volume = clamp(volume, 0.0, 1.0)
-	AudioServer.set_bus_volume_db(AudioServer.get_bus_index("UI"), linear_to_db(ui_volume))
+	var bus_idx = AudioServer.get_bus_index("UI")
+	if bus_idx >= 0:
+		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(ui_volume))
+	else:
+		EventBus.debug_message.emit("UI音频总线不存在", 1)
 
 ## 静音/取消静音
 func toggle_mute() -> void:
 	is_muted = !is_muted
-	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), is_muted)
+	var bus_idx = AudioServer.get_bus_index("Master")
+	if bus_idx >= 0:
+		AudioServer.set_bus_mute(bus_idx, is_muted)
+	else:
+		EventBus.debug_message.emit("Master音频总线不存在", 1)
 
 ## 加载音频资源
 func _load_audio(path: String) -> AudioStream:

@@ -1,0 +1,253 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8y6vxe5xgj8s"]
+
+[ext_resource type="Script" path="res://scenes/test/performance_test.gd" id="1_yjnvr"]
+[ext_resource type="PackedScene" uid="uid://c8y6vxe5xgj8r" path="res://scenes/ui/debug/performance_hotkeys.tscn" id="2_yjnvs"]
+
+[node name="PerformanceTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yjnvr")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="ParticleContainer" type="Node2D" parent="."]
+
+[node name="SpriteContainer" type="Node2D" parent="."]
+
+[node name="NodeContainer" type="Node" parent="."]
+
+[node name="TestControls" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -300.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 580.0
+grow_horizontal = 0
+
+[node name="Title" type="Label" parent="TestControls"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "性能测试"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="TestControls"]
+layout_mode = 2
+
+[node name="FPSLabel" type="Label" parent="TestControls"]
+layout_mode = 2
+text = "FPS: 60"
+
+[node name="ParticleControls" type="VBoxContainer" parent="TestControls"]
+layout_mode = 2
+
+[node name="ParticleTitle" type="Label" parent="TestControls/ParticleControls"]
+layout_mode = 2
+text = "粒子测试"
+
+[node name="ParticleCountLabel" type="Label" parent="TestControls/ParticleControls"]
+layout_mode = 2
+text = "粒子数量: 0"
+
+[node name="ParticleCountSpinBox" type="SpinBox" parent="TestControls/ParticleControls"]
+layout_mode = 2
+min_value = 1.0
+max_value = 1000.0
+value = 10.0
+suffix = "个"
+
+[node name="AddParticlesButton" type="Button" parent="TestControls/ParticleControls"]
+layout_mode = 2
+text = "添加粒子"
+
+[node name="ClearParticlesButton" type="Button" parent="TestControls/ParticleControls"]
+layout_mode = 2
+text = "清除粒子"
+
+[node name="HSeparator2" type="HSeparator" parent="TestControls"]
+layout_mode = 2
+
+[node name="SpriteControls" type="VBoxContainer" parent="TestControls"]
+layout_mode = 2
+
+[node name="SpriteTitle" type="Label" parent="TestControls/SpriteControls"]
+layout_mode = 2
+text = "精灵测试"
+
+[node name="SpriteCountLabel" type="Label" parent="TestControls/SpriteControls"]
+layout_mode = 2
+text = "精灵数量: 0"
+
+[node name="SpriteCountSpinBox" type="SpinBox" parent="TestControls/SpriteControls"]
+layout_mode = 2
+min_value = 1.0
+max_value = 1000.0
+value = 10.0
+suffix = "个"
+
+[node name="AddSpritesButton" type="Button" parent="TestControls/SpriteControls"]
+layout_mode = 2
+text = "添加精灵"
+
+[node name="ClearSpritesButton" type="Button" parent="TestControls/SpriteControls"]
+layout_mode = 2
+text = "清除精灵"
+
+[node name="HSeparator3" type="HSeparator" parent="TestControls"]
+layout_mode = 2
+
+[node name="NodeControls" type="VBoxContainer" parent="TestControls"]
+layout_mode = 2
+
+[node name="NodeTitle" type="Label" parent="TestControls/NodeControls"]
+layout_mode = 2
+text = "节点测试"
+
+[node name="NodeCountLabel" type="Label" parent="TestControls/NodeControls"]
+layout_mode = 2
+text = "节点数量: 0"
+
+[node name="NodeCountSpinBox" type="SpinBox" parent="TestControls/NodeControls"]
+layout_mode = 2
+min_value = 1.0
+max_value = 10000.0
+value = 100.0
+suffix = "个"
+
+[node name="AddNodesButton" type="Button" parent="TestControls/NodeControls"]
+layout_mode = 2
+text = "添加节点"
+
+[node name="ClearNodesButton" type="Button" parent="TestControls/NodeControls"]
+layout_mode = 2
+text = "清除节点"
+
+[node name="HSeparator4" type="HSeparator" parent="TestControls"]
+layout_mode = 2
+
+[node name="MemoryControls" type="VBoxContainer" parent="TestControls"]
+layout_mode = 2
+
+[node name="MemoryTitle" type="Label" parent="TestControls/MemoryControls"]
+layout_mode = 2
+text = "内存测试"
+
+[node name="MemoryUsageLabel" type="Label" parent="TestControls/MemoryControls"]
+layout_mode = 2
+text = "内存使用: 0 MB"
+
+[node name="HSeparator5" type="HSeparator" parent="TestControls"]
+layout_mode = 2
+
+[node name="ClearAllButton" type="Button" parent="TestControls"]
+layout_mode = 2
+text = "清除所有"
+
+[node name="GenerateReportButton" type="Button" parent="TestControls"]
+layout_mode = 2
+text = "生成性能报告"
+
+[node name="ToggleMonitorButton" type="Button" parent="TestControls"]
+layout_mode = 2
+text = "切换性能监控"
+
+[node name="BackButton" type="Button" parent="TestControls"]
+layout_mode = 2
+text = "返回"
+
+[node name="ReportDialog" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -250.0
+offset_right = 400.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ReportTitle" type="Label" parent="ReportDialog"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 40.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 20
+text = "性能报告"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="ReportDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 50.0
+offset_right = -20.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ReportText" type="Label" parent="ReportDialog"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 50.0
+offset_right = -20.0
+offset_bottom = -50.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "性能报告将在这里显示"
+autowrap_mode = 3
+
+[node name="CloseReportButton" type="Button" parent="ReportDialog"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -40.0
+offset_right = 50.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "关闭"
+
+[node name="PerformanceHotkeys" parent="." instance=ExtResource("2_yjnvs")]
+
+[connection signal="pressed" from="TestControls/ParticleControls/AddParticlesButton" to="." method="_on_add_particles_button_pressed"]
+[connection signal="pressed" from="TestControls/ParticleControls/ClearParticlesButton" to="." method="_on_clear_particles_button_pressed"]
+[connection signal="pressed" from="TestControls/SpriteControls/AddSpritesButton" to="." method="_on_add_sprites_button_pressed"]
+[connection signal="pressed" from="TestControls/SpriteControls/ClearSpritesButton" to="." method="_on_clear_sprites_button_pressed"]
+[connection signal="pressed" from="TestControls/NodeControls/AddNodesButton" to="." method="_on_add_nodes_button_pressed"]
+[connection signal="pressed" from="TestControls/NodeControls/ClearNodesButton" to="." method="_on_clear_nodes_button_pressed"]
+[connection signal="pressed" from="TestControls/ClearAllButton" to="." method="_on_clear_all_button_pressed"]
+[connection signal="pressed" from="TestControls/GenerateReportButton" to="." method="_on_generate_report_button_pressed"]
+[connection signal="pressed" from="TestControls/ToggleMonitorButton" to="." method="_on_toggle_monitor_button_pressed"]
+[connection signal="pressed" from="TestControls/BackButton" to="." method="_on_back_button_pressed"]
+[connection signal="pressed" from="ReportDialog/CloseReportButton" to="." method="_on_close_report_button_pressed"]

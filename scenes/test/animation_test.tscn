@@ -1,0 +1,179 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj9b"]
+
+[ext_resource type="Script" path="res://scenes/test/animation_test.gd" id="1_yjnwa"]
+
+[node name="AnimationTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yjnwa")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "动画和特效测试"
+horizontal_alignment = 1
+
+[node name="AnimationContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EffectContainer" type="Node2D" parent="AnimationContainer"]
+
+[node name="TestSprite" type="Sprite2D" parent="AnimationContainer"]
+position = Vector2(400, 200)
+
+[node name="ControlPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -300.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "特效控制"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="EffectContainer" type="HBoxContainer" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer/EffectContainer"]
+layout_mode = 2
+text = "特效:"
+
+[node name="EffectOption" type="OptionButton" parent="ControlPanel/VBoxContainer/EffectContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayEffectButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "播放特效"
+
+[node name="HSeparator2" type="HSeparator" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="AnimationContainer" type="HBoxContainer" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer/AnimationContainer"]
+layout_mode = 2
+text = "动画:"
+
+[node name="AnimationOption" type="OptionButton" parent="ControlPanel/VBoxContainer/AnimationContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PlayAnimationButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "播放动画"
+
+[node name="HSeparator3" type="HSeparator" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="DamageButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "显示伤害数字"
+
+[node name="FloatingTextButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "显示浮动文字"
+
+[node name="InfoPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -200.0
+offset_right = 300.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "特效信息"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ActiveEffectsLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "活动特效: 0"
+
+[node name="ActiveAnimationsLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "活动动画: 0"
+
+[node name="StatusLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "状态: 空闲"
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 40.0
+grow_horizontal = 0
+text = "返回"

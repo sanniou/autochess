@@ -1,0 +1,125 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud/blacksmith_hud.gd" id="1_yvmqe"]
+
+[node name="BlacksmithHUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_yvmqe")
+
+[node name="TopPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 60.0
+grow_horizontal = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="TopPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="TopPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 24
+text = "铁匠铺"
+vertical_alignment = 1
+
+[node name="PlayerInfoContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="GoldContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer"]
+layout_mode = 2
+
+[node name="GoldIcon" type="TextureRect" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/GoldContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="GoldLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/GoldContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "0"
+vertical_alignment = 1
+
+[node name="EquipmentContainer" type="HBoxContainer" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="EquipmentIcon" type="TextureRect" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/EquipmentContainer"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EquipmentLabel" type="Label" parent="TopPanel/MarginContainer/HBoxContainer/PlayerInfoContainer/EquipmentContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "装备: 0"
+vertical_alignment = 1
+
+[node name="BottomPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="BottomPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="HBoxContainer" type="HBoxContainer" parent="BottomPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="InfoLabel" type="Label" parent="BottomPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "选择服务类型和装备，进行升级、修复、重铸或附魔。"
+vertical_alignment = 1
+
+[node name="ButtonContainer" type="HBoxContainer" parent="BottomPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 20
+alignment = 2
+
+[node name="HomeButton" type="Button" parent="BottomPanel/MarginContainer/HBoxContainer/ButtonContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "主菜单"
+
+[node name="SettingsButton" type="Button" parent="BottomPanel/MarginContainer/HBoxContainer/ButtonContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "设置"

@@ -1,0 +1,38 @@
+{
+  "id": "chain_lightning",
+  "name": "连锁闪电",
+  "description": "释放一道闪电，对目标造成伤害，然后跳跃到附近的敌人。",
+  "icon": "res://assets/images/abilities/chain_lightning_icon.png",
+  "cooldown": 18.0,
+  "mana_cost": 110.0,
+  "damage": 70.0,
+  "range": 4.0,
+  "duration": 0.0,
+  "target_type": "enemy",
+  "target_strategy": "nearest",
+  "max_targets": 3,
+  "min_range": 0.0,
+  "effects": [
+    {
+      "type": "damage",
+      "value": 70.0,
+      "damage_type": "magical"
+    },
+    {
+      "type": "control",
+      "control_type": "stun",
+      "value": 1.0,
+      "duration": 1.0
+    },
+    {
+      "type": "visual",
+      "visual_type": "particle",
+      "visual_path": "res://assets/effects/lightning_particle.tres",
+      "duration": 1.0
+    },
+    {
+      "type": "sound",
+      "sound_path": "res://assets/sounds/lightning.ogg"
+    }
+  ]
+}

@@ -138,8 +138,15 @@ func show_popup(popup_name: String, popup_data: Dictionary = {}) -> Control:
 	if popup_instance.has_method("set_popup_data"):
 		popup_instance.set_popup_data(popup_data)
 
+	# 初始化弹窗
+	if popup_instance.has_method("_initialize"):
+		popup_instance._initialize()
+
 	# 显示弹窗
-	popup_instance.popup_centered()
+	if popup_instance.has_method("popup_centered"):
+		popup_instance.popup_centered()
+	else:
+		popup_instance.visible = true
 
 	# 更新UI状态
 	current_state = UIState.POPUP
@@ -160,8 +167,13 @@ func close_popup(popup_instance: Control = null) -> void:
 		# 关闭最后一个弹窗
 		popup_instance = active_popups.back()
 
-	if popup_instance != null and popup_instance.has_method("hide"):
-		popup_instance.hide()
+	if popup_instance != null:
+		# 如果弹窗有hide方法，调用hide
+		if popup_instance.has_method("hide"):
+			popup_instance.hide()
+		else:
+			# 否则直接设置为不可见
+			popup_instance.visible = false
 
 		# 从活动弹窗列表中移除
 		active_popups.erase(popup_instance)
@@ -273,6 +285,10 @@ func _on_game_state_changed(old_state: int, new_state: int) -> void:
 			load_hud("shop_hud")
 		GameManager.GameState.EVENT:
 			load_hud("event_hud")
+		GameManager.GameState.ALTAR:
+			load_hud("altar_hud")
+		GameManager.GameState.BLACKSMITH:
+			load_hud("blacksmith_hud")
 		_:
 			# 默认HUD
 			load_hud("default_hud")

@@ -10,6 +10,8 @@ enum GameState {
 	BATTLE,         # 战斗界面
 	SHOP,           # 商店界面
 	EVENT,          # 事件界面
+	ALTAR,          # 祭坛界面
+	BLACKSMITH,     # 铁匠铺界面
 	GAME_OVER,      # 游戏结束
 	VICTORY         # 游戏胜利
 }
@@ -25,6 +27,15 @@ var current_round: int = 0
 
 # 当前游戏难度
 var difficulty_level: int = 1
+
+# 存档相关参数
+var save_params: Dictionary = {}
+
+# 祭坛相关参数
+var altar_params: Dictionary = {}
+
+# 铁匠铺相关参数
+var blacksmith_params: Dictionary = {}
 
 # 游戏是否已初始化
 var _initialized: bool = false
@@ -63,6 +74,16 @@ func _ready():
 	EventBus.player_died.connect(_on_player_died)
 	EventBus.map_completed.connect(_on_map_completed)
 
+	# 初始化UI工具
+	var ui_utils = load("res://scripts/ui/ui_utils.gd")
+	if ui_utils:
+		ui_utils.initialize()
+
+	# 初始化文本工具
+	var text_utils = load("res://scripts/ui/text_utils.gd")
+	if text_utils:
+		text_utils.initialize()
+
 	# 初始化游戏状态
 	change_state(GameState.MAIN_MENU)
 
@@ -85,6 +106,10 @@ func change_state(new_state: int) -> void:
 			_exit_shop_state()
 		GameState.EVENT:
 			_exit_event_state()
+		GameState.ALTAR:
+			_exit_altar_state()
+		GameState.BLACKSMITH:
+			_exit_blacksmith_state()
 
 	# 处理状态进入逻辑
 	match new_state:
@@ -98,6 +123,10 @@ func change_state(new_state: int) -> void:
 			_enter_shop_state()
 		GameState.EVENT:
 			_enter_event_state()
+		GameState.ALTAR:
+			_enter_altar_state()
+		GameState.BLACKSMITH:
+			_enter_blacksmith_state()
 		GameState.GAME_OVER:
 			_enter_game_over_state()
 		GameState.VICTORY:
@@ -126,6 +155,45 @@ func start_new_game(difficulty: int = 1) -> void:
 	# 触发自动存档
 	EventBus.autosave_triggered.emit()
 
+## 加载存档
+func load_game(save_slot: String) -> bool:
+	# 获取存档管理器
+	var save_manager = get_node_or_null("/root/SaveManager")
+	if save_manager == null:
+		EventBus.debug_message.emit("无法获取存档管理器", 2)
+		return false
+
+	# 加载存档
+	var success = save_manager.load_game(save_slot)
+	if success:
+		# 切换到地图状态
+		change_state(GameState.MAP)
+
+		# 发送游戏开始信号
+		EventBus.game_started.emit()
+
+		return true
+	else:
+		EventBus.debug_message.emit("加载存档失败", 2)
+		return false
+
+## 保存游戏
+func save_game(save_slot: String = "") -> bool:
+	# 获取存档管理器
+	var save_manager = get_node_or_null("/root/SaveManager")
+	if save_manager == null:
+		EventBus.debug_message.emit("无法获取存档管理器", 2)
+		return false
+
+	# 保存游戏
+	var success = save_manager.save_game(save_slot)
+	if success:
+		EventBus.debug_message.emit("游戏已成功保存", 0)
+		return true
+	else:
+		EventBus.debug_message.emit("保存游戏失败", 2)
+		return false
+
 ## 暂停游戏
 func pause_game() -> void:
 	if is_paused:
@@ -146,157 +214,196 @@ func resume_game() -> void:
 
 ## 退出游戏
 func quit_game() -> void:
-	# 触发自动存档
-	EventBus.autosave_triggered.emit()
+	# 获取存档管理器
+	var save_manager = get_node_or_null("/root/SaveManager")
+	if save_manager != null:
+		# 触发自动存档
+		save_manager.trigger_autosave()
+	else:
+		# 如果无法获取存档管理器，使用信号
+		EventBus.autosave_triggered.emit()
 
 	# 退出游戏
 	get_tree().quit()
+
+## 安全地添加子节点
+func _safe_add_child(child_node: Node, node_name: String = "") -> void:
+	# 使用 call_deferred 延迟添加子节点
+	call_deferred("add_child", child_node)
+
+	# 设置节点名称（如果提供）
+	if node_name != "":
+		child_node.name = node_name
 
 ## 初始化所有游戏系统
 func _initialize_systems() -> void:
 	# 初始化装备管理器
 	if equipment_manager == null:
-		equipment_manager = EquipmentManager.new()
-		add_child(equipment_manager)
-		equipment_manager.name = "EquipmentManager"
+		var equipment_manager_script = load("res://scripts/managers/equipment_manager.gd")
+		if equipment_manager_script:
+			equipment_manager = equipment_manager_script.new()
+			_safe_add_child(equipment_manager, "EquipmentManager")
 
 	# 初始化玩家管理器
 	if player_manager == null:
-		player_manager = PlayerManager.new()
-		add_child(player_manager)
-		player_manager.name = "PlayerManager"
+		var player_manager_script = load("res://scripts/managers/player_manager.gd")
+		if player_manager_script:
+			player_manager = player_manager_script.new()
+			_safe_add_child(player_manager, "PlayerManager")
 
 	# 初始化经济管理器
 	if economy_manager == null:
-		economy_manager = EconomyManager.new()
-		add_child(economy_manager)
-		economy_manager.name = "EconomyManager"
+		var economy_manager_script = load("res://scripts/managers/economy_manager.gd")
+		if economy_manager_script:
+			economy_manager = economy_manager_script.new()
+			_safe_add_child(economy_manager, "EconomyManager")
 
 	# 初始化商店管理器
 	if shop_manager == null:
-		shop_manager = ShopManager.new()
-		add_child(shop_manager)
-		shop_manager.name = "ShopManager"
+		var shop_manager_script = load("res://scripts/managers/shop_manager.gd")
+		if shop_manager_script:
+			shop_manager = shop_manager_script.new()
+			_safe_add_child(shop_manager, "ShopManager")
 
 	# 初始化棋盘管理器
 	if board_manager == null:
-		board_manager = BoardManager.new()
-		add_child(board_manager)
-		board_manager.name = "BoardManager"
+		var board_manager_script = load("res://scripts/managers/board_manager.gd")
+		if board_manager_script:
+			board_manager = board_manager_script.new()
+			_safe_add_child(board_manager, "BoardManager")
 
 	# 初始化战斗管理器
 	if battle_manager == null:
-		battle_manager = BattleManager.new()
-		add_child(battle_manager)
-		battle_manager.name = "BattleManager"
+		var battle_manager_script = load("res://scripts/managers/battle_manager.gd")
+		if battle_manager_script:
+			battle_manager = battle_manager_script.new()
+			_safe_add_child(battle_manager, "BattleManager")
 
 	# 初始化遗物管理器
 	if relic_manager == null:
-		relic_manager = RelicManager.new()
-		add_child(relic_manager)
-		relic_manager.name = "RelicManager"
+		var relic_manager_script = load("res://scripts/managers/relic_manager.gd")
+		if relic_manager_script:
+			relic_manager = relic_manager_script.new()
+			_safe_add_child(relic_manager, "RelicManager")
 
 	# 初始化事件管理器
 	if event_manager == null:
-		event_manager = EventManager.new()
-		add_child(event_manager)
-		event_manager.name = "EventManager"
+		var event_manager_script = load("res://scripts/managers/event_manager.gd")
+		if event_manager_script:
+			event_manager = event_manager_script.new()
+			_safe_add_child(event_manager, "EventManager")
 
 	# 初始化诅咒管理器
 	if curse_manager == null:
-		curse_manager = CurseManager.new()
-		add_child(curse_manager)
-		curse_manager.name = "CurseManager"
+		var curse_manager_script = load("res://scripts/managers/curse_manager.gd")
+		if curse_manager_script:
+			curse_manager = curse_manager_script.new()
+			_safe_add_child(curse_manager, "CurseManager")
 
 	# 初始化剧情管理器
 	if story_manager == null:
-		story_manager = StoryManager.new()
-		add_child(story_manager)
-		story_manager.name = "StoryManager"
+		var story_manager_script = load("res://scripts/managers/story_manager.gd")
+		if story_manager_script:
+			story_manager = story_manager_script.new()
+			_safe_add_child(story_manager, "StoryManager")
 
 	# 初始化地图管理器
 	if map_manager == null:
-		map_manager = MapManager.new()
-		add_child(map_manager)
-		map_manager.name = "MapManager"
+		var map_manager_script = load("res://scripts/managers/map_manager.gd")
+		if map_manager_script:
+			map_manager = map_manager_script.new()
+			_safe_add_child(map_manager, "MapManager")
 
 	# 初始化UI管理器
 	if ui_manager == null:
-		ui_manager = UIManager.new()
-		add_child(ui_manager)
-		ui_manager.name = "UIManager"
+		var ui_manager_script = load("res://scripts/managers/ui_manager.gd")
+		if ui_manager_script:
+			ui_manager = ui_manager_script.new()
+			_safe_add_child(ui_manager, "UIManager")
 
 	# 初始化场景管理器
 	if scene_manager == null:
-		scene_manager = SceneManager.new()
-		add_child(scene_manager)
-		scene_manager.name = "SceneManager"
+		var scene_manager_script = load("res://scripts/managers/scene_manager.gd")
+		if scene_manager_script:
+			scene_manager = scene_manager_script.new()
+			_safe_add_child(scene_manager, "SceneManager")
 
 	# 初始化主题管理器
 	if theme_manager == null:
-		theme_manager = ThemeManager.new()
-		add_child(theme_manager)
-		theme_manager.name = "ThemeManager"
+		var theme_manager_script = load("res://scripts/managers/theme_manager.gd")
+		if theme_manager_script:
+			theme_manager = theme_manager_script.new()
+			_safe_add_child(theme_manager, "ThemeManager")
 
 	# 初始化UI动画器
 	if ui_animator == null:
-		ui_animator = UIAnimator.new()
-		add_child(ui_animator)
-		ui_animator.name = "UIAnimator"
+		var ui_animator_script = load("res://scripts/ui/ui_animator.gd")
+		if ui_animator_script:
+			ui_animator = ui_animator_script.new()
+			_safe_add_child(ui_animator, "UIAnimator")
 
 	# 初始化通知系统
 	if notification_system == null:
-		notification_system = NotificationSystem.new()
-		add_child(notification_system)
-		notification_system.name = "NotificationSystem"
+		var notification_system_script = load("res://scripts/ui/notification_system.gd")
+		if notification_system_script:
+			notification_system = notification_system_script.new()
+			_safe_add_child(notification_system, "NotificationSystem")
 
 	# 初始化工具提示系统
 	if tooltip_system == null:
-		tooltip_system = TooltipSystem.new()
-		add_child(tooltip_system)
-		tooltip_system.name = "TooltipSystem"
+		var tooltip_system_script = load("res://scripts/ui/tooltip_system.gd")
+		if tooltip_system_script:
+			tooltip_system = tooltip_system_script.new()
+			_safe_add_child(tooltip_system, "TooltipSystem")
 
 	# 初始化皮肤管理器
 	if skin_manager == null:
-		skin_manager = SkinManager.new()
-		add_child(skin_manager)
-		skin_manager.name = "SkinManager"
+		var skin_manager_script = load("res://scripts/managers/skin_manager.gd")
+		if skin_manager_script:
+			skin_manager = skin_manager_script.new()
+			_safe_add_child(skin_manager, "SkinManager")
 
 	# 初始化环境特效管理器
 	if environment_effect_manager == null:
-		environment_effect_manager = EnvironmentEffectManager.new()
-		add_child(environment_effect_manager)
-		environment_effect_manager.name = "EnvironmentEffectManager"
+		var environment_effect_manager_script = load("res://scripts/managers/environment_effect_manager.gd")
+		if environment_effect_manager_script:
+			environment_effect_manager = environment_effect_manager_script.new()
+			_safe_add_child(environment_effect_manager, "EnvironmentEffectManager")
 
 	# 初始化伤害数字管理器
 	if damage_number_manager == null:
-		damage_number_manager = DamageNumberManager.new()
-		add_child(damage_number_manager)
-		damage_number_manager.name = "DamageNumberManager"
+		var damage_number_manager_script = load("res://scripts/ui/damage_number_manager.gd")
+		if damage_number_manager_script:
+			damage_number_manager = damage_number_manager_script.new()
+			_safe_add_child(damage_number_manager, "DamageNumberManager")
 
 	# 初始化成就管理器
 	if achievement_manager == null:
-		achievement_manager = AchievementManager.new()
-		add_child(achievement_manager)
-		achievement_manager.name = "AchievementManager"
+		var achievement_manager_script = load("res://scripts/managers/achievement_manager.gd")
+		if achievement_manager_script:
+			achievement_manager = achievement_manager_script.new()
+			_safe_add_child(achievement_manager, "AchievementManager")
 
 	# 初始化教程管理器
 	if tutorial_manager == null:
-		tutorial_manager = TutorialManager.new()
-		add_child(tutorial_manager)
-		tutorial_manager.name = "TutorialManager"
+		var tutorial_manager_script = load("res://scripts/managers/tutorial_manager.gd")
+		if tutorial_manager_script:
+			tutorial_manager = tutorial_manager_script.new()
+			_safe_add_child(tutorial_manager, "TutorialManager")
 
 	# 初始化技能工厂
 	if ability_factory == null:
-		ability_factory = AbilityFactory.new()
-		add_child(ability_factory)
-		ability_factory.name = "AbilityFactory"
+		var ability_factory_script = load("res://scripts/game/abilities/ability_factory.gd")
+		if ability_factory_script:
+			ability_factory = ability_factory_script.new()
+			_safe_add_child(ability_factory, "AbilityFactory")
 
 	# 初始化遗物UI管理器
 	if relic_ui_manager == null:
-		relic_ui_manager = load("res://scripts/ui/relic/relic_ui_manager.gd").new()
-		add_child(relic_ui_manager)
-		relic_ui_manager.name = "RelicUIManager"
+		var relic_ui_manager_script = load("res://scripts/ui/relic/relic_ui_manager.gd")
+		if relic_ui_manager_script:
+			relic_ui_manager = relic_ui_manager_script.new()
+			_safe_add_child(relic_ui_manager, "RelicUIManager")
 
 	# 发送系统初始化完成信号
 	EventBus.debug_message.emit("游戏系统初始化完成", 0)
@@ -424,3 +531,35 @@ func _on_player_died() -> void:
 ## 地图完成事件处理
 func _on_map_completed() -> void:
 	change_state(GameState.VICTORY)
+
+## 进入祭坛状态
+func _enter_altar_state() -> void:
+	# 使用场景管理器加载祭坛场景
+	if scene_manager:
+		scene_manager.load_scene("altar", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var altar_scene = load("res://scenes/altar/altar_scene.tscn")
+		if altar_scene:
+			get_tree().change_scene_to_packed(altar_scene)
+
+## 退出祭坛状态
+func _exit_altar_state() -> void:
+	# 清理祭坛状态
+	pass
+
+## 进入铁匠铺状态
+func _enter_blacksmith_state() -> void:
+	# 使用场景管理器加载铁匠铺场景
+	if scene_manager:
+		scene_manager.load_scene("blacksmith", true)
+	else:
+		# 如果场景管理器不可用，使用传统方式
+		var blacksmith_scene = load("res://scenes/blacksmith/blacksmith_scene.tscn")
+		if blacksmith_scene:
+			get_tree().change_scene_to_packed(blacksmith_scene)
+
+## 退出铁匠铺状态
+func _exit_blacksmith_state() -> void:
+	# 清理铁匠铺状态
+	pass

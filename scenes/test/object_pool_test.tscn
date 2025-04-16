@@ -1,0 +1,219 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj9c"]
+
+[ext_resource type="Script" path="res://scenes/test/object_pool_test.gd" id="1_yjnwb"]
+
+[node name="ObjectPoolTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yjnwb")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -200.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "对象池测试"
+horizontal_alignment = 1
+
+[node name="ObjectContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -200.0
+offset_right = 400.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ControlPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -300.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "对象池控制"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="PoolContainer" type="HBoxContainer" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer/PoolContainer"]
+layout_mode = 2
+text = "对象池:"
+
+[node name="PoolOption" type="OptionButton" parent="ControlPanel/VBoxContainer/PoolContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CountContainer" type="HBoxContainer" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer/CountContainer"]
+layout_mode = 2
+text = "数量:"
+
+[node name="CountSpinBox" type="SpinBox" parent="ControlPanel/VBoxContainer/CountContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 1000.0
+value = 10.0
+
+[node name="CreatePoolButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "创建对象池"
+
+[node name="HSeparator2" type="HSeparator" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="SpawnContainer" type="HBoxContainer" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer/SpawnContainer"]
+layout_mode = 2
+text = "生成数量:"
+
+[node name="SpawnSpinBox" type="SpinBox" parent="ControlPanel/VBoxContainer/SpawnContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 1000.0
+value = 10.0
+
+[node name="SpawnObjectsButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "生成对象"
+
+[node name="ReleaseAllButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "释放所有对象"
+
+[node name="HSeparator3" type="HSeparator" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ResizeContainer" type="HBoxContainer" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="ControlPanel/VBoxContainer/ResizeContainer"]
+layout_mode = 2
+text = "新大小:"
+
+[node name="ResizeSpinBox" type="SpinBox" parent="ControlPanel/VBoxContainer/ResizeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 1.0
+max_value = 1000.0
+value = 20.0
+
+[node name="ResizePoolButton" type="Button" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+text = "调整对象池大小"
+
+[node name="InfoPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -300.0
+offset_right = 300.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "对象池信息"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="PoolSizeLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "对象池大小: 0"
+
+[node name="ActiveObjectsLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "活动对象: 0"
+
+[node name="TotalRequestsLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "总请求数: 0"
+
+[node name="FailedRequestsLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "失败请求数: 0"
+
+[node name="UsageRateLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "使用率: 0%"
+
+[node name="AutoResizesLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "自动调整次数: 0"
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 40.0
+grow_horizontal = 0
+text = "返回"

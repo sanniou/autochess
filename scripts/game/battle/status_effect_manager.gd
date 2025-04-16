@@ -154,6 +154,9 @@ func add_effect(effect: StatusEffect) -> bool:
 	if is_immune_to(effect.type):
 		# 显示免疫视觉效果
 		_show_immunity_effect()
+
+		# 发送免疫触发信号
+		EventBus.status_effect_immunity_triggered.emit(chess_piece, effect.type)
 		return false
 
 	# 检查是否已有同类型效果
@@ -168,8 +171,19 @@ func add_effect(effect: StatusEffect) -> bool:
 			# 如果可叠加，增加叠加层数
 			if existing_effect.is_stackable:
 				existing_effect.add_stack()
+
+				# 发送效果叠加信号
+				EventBus.status_effect_stacked.emit(chess_piece, existing_effect, existing_effect.stack_count)
+
+				# 显示叠加视觉效果
+				_show_stack_visual(existing_effect)
 				return true
 			else:
+				# 如果不可叠加，刷新持续时间
+				existing_effect.refresh(effect.duration)
+
+				# 发送效果刷新信号
+				EventBus.status_effect_refreshed.emit(chess_piece, existing_effect)
 				return false
 
 	# 检查互斥效果
@@ -419,6 +433,9 @@ func process_dot_effects(delta: float) -> void:
 				if chess_piece.has_method("_play_effect"):
 					chess_piece._play_effect("burning", Color(1.0, 0.5, 0.0, 0.7))
 
+				# 发送持续伤害触发信号
+				EventBus.status_effect_dot_triggered.emit(chess_piece, effect, damage)
+
 			StatusEffectType.POISONED:
 				# 中毒伤害
 				var damage = effect.value * delta
@@ -427,6 +444,9 @@ func process_dot_effects(delta: float) -> void:
 				# 播放中毒效果
 				if chess_piece.has_method("_play_effect"):
 					chess_piece._play_effect("poisoned", Color(0.5, 1.0, 0.0, 0.7))
+
+				# 发送持续伤害触发信号
+				EventBus.status_effect_dot_triggered.emit(chess_piece, effect, damage)
 
 # 处理移动时的效果
 func process_movement_effects() -> void:
@@ -442,6 +462,9 @@ func process_movement_effects() -> void:
 				# 播放流血效果
 				if chess_piece.has_method("_play_effect"):
 					chess_piece._play_effect("bleeding", Color(1.0, 0.0, 0.0, 0.7))
+
+				# 发送持续伤害触发信号
+				EventBus.status_effect_dot_triggered.emit(chess_piece, effect, damage)
 
 # 获取所有活跃效果
 func get_all_effects() -> Array:
@@ -1337,6 +1360,42 @@ func _add_buff_visual_effect() -> void:
 	piece_tween.tween_property(chess_piece, "modulate", Color(1.2, 1.2, 0.8, 1.0), 0.5) # 金色色调
 	piece_tween.tween_property(chess_piece, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.5)
 	piece_tween.set_loops() # 无限循环
+
+# 显示叠加视觉效果
+func _show_stack_visual(effect: StatusEffect) -> void:
+	if not chess_piece or not is_instance_valid(chess_piece):
+		return
+
+	# 创建叠加效果容器
+	var stack_container = Node2D.new()
+	chess_piece.add_child(stack_container)
+
+	# 创建叠加数字文本
+	var stack_label = Label.new()
+	stack_label.text = "x" + str(effect.stack_count)
+	stack_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	stack_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	stack_label.size = Vector2(40, 40)
+	stack_label.position = Vector2(-20, -20)
+	stack_label.modulate = _get_effect_color(effect.type)
+	stack_container.add_child(stack_label)
+
+	# 创建效果名称文本
+	var name_label = Label.new()
+	name_label.text = effect.name
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.size = Vector2(60, 20)
+	name_label.position = Vector2(-30, -50)
+	name_label.modulate = _get_effect_color(effect.type)
+	stack_container.add_child(name_label)
+
+	# 创建消失动画
+	var tween = create_tween()
+	tween.tween_property(stack_container, "scale", Vector2(1.5, 1.5), 0.2)
+	tween.tween_property(stack_container, "scale", Vector2(1.0, 1.0), 0.2)
+	tween.tween_property(stack_container, "modulate", Color(1, 1, 1, 0), 0.5)
+	tween.tween_callback(stack_container.queue_free)
 
 # 添加减益视觉效果
 func _add_debuff_visual_effect() -> void:

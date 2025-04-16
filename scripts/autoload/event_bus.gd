@@ -12,6 +12,13 @@ signal game_ended(win)
 signal map_generated
 signal map_node_selected(node_data)
 signal map_completed
+signal mystery_node_revealed(node_type)
+signal challenge_started(challenge_type)
+signal challenge_completed(challenge_type, success)
+signal altar_opened(altar_type)
+signal altar_sacrifice_made(altar_type, sacrifice_data)
+signal blacksmith_opened(blacksmith_type)
+signal equipment_upgraded(equipment_data, success)
 
 # 棋盘相关信号
 signal board_initialized
@@ -42,12 +49,16 @@ signal battle_ended(result)
 signal battle_round_started(round_number)
 signal battle_round_ended(round_number)
 signal damage_dealt(source, target, amount, damage_type)
-signal healing_done(target, amount, source)
+signal heal_received(target, amount, source)
 signal ability_used(piece, ability_data)
+signal ability_effect_applied(source, target, effect_type, effect_value)
 signal unit_died(unit_data)
 signal battle_speed_changed(speed_multiplier)
 signal battle_preparing_phase_started
 signal battle_fighting_phase_started
+signal critical_hit(source, target, amount)
+signal attack_missed(source, target)
+signal mana_changed(piece, old_value, new_value, source)
 
 # 经济相关信号
 signal gold_changed(old_amount, new_amount)
@@ -117,8 +128,9 @@ signal show_popup(popup_name, popup_data)
 signal close_popup(popup_instance)
 signal start_transition(transition_type, duration)
 signal transition_midpoint
-signal battle_preparing_phase_started
-signal battle_fighting_phase_started
+# 这些信号已在上面定义
+# signal battle_preparing_phase_started
+# signal battle_fighting_phase_started
 signal shop_manually_refreshed(cost)
 signal shop_discount_applied(discount_rate)
 signal event_started(event)
@@ -141,9 +153,18 @@ signal tutorial_step_changed(tutorial_id, step)
 signal game_saved(save_slot)
 signal game_loaded(save_slot)
 signal autosave_triggered
+signal save_requested(save_slot)
+signal load_requested(save_slot)
+signal save_deleted(save_slot)
+signal save_created(save_slot)
+signal save_renamed(old_name, new_name)
 
 # 多语言相关信号
 signal language_changed(new_language)
+signal font_changed(font_name)
+signal font_loaded(font_name, font_data)
+signal request_font(font_name)
+signal request_language_code()
 
 # 音频相关信号
 signal bgm_changed(track_name)
@@ -156,6 +177,15 @@ signal skin_unlocked(skin_type, skin_id)
 signal chess_skin_changed(skin_id)
 signal board_skin_changed(skin_id)
 signal ui_skin_changed(skin_id)
+
+# 状态效果相关信号
+signal status_effect_added(target, effect_id, effect_data)
+signal status_effect_removed(target, effect_id)
+signal status_effect_refreshed(target, effect_id, effect_data)
+signal status_effect_stacked(target, effect_id, stack_count)
+signal status_effect_immunity_triggered(target, effect_type)
+signal status_effect_dot_triggered(target, effect_id, damage)
+signal status_effect_resisted(target, effect_id)
 
 # 通知相关信号
 signal show_notification(message, notification_type, duration, notification_id)

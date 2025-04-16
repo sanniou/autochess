@@ -94,6 +94,17 @@ func _create_map_data(template) -> Dictionary:
 					node["heal_amount"] = 20 + layer * 5  # 基础治疗量随层数增加
 				"boss":
 					node["boss_id"] = _select_boss_for_layer(layer)
+				"mystery":
+					# 神秘节点不需要额外数据
+					pass
+				"challenge":
+					node["difficulty"] = _calculate_battle_difficulty(layer, true) * 1.2  # 挑战难度更高
+					node["enemy_level"] = _calculate_enemy_level(layer) + 1  # 挑战敌人等级更高
+					node["challenge_type"] = _select_challenge_type()
+				"altar":
+					node["altar_type"] = _select_altar_type()
+				"blacksmith":
+					node["discount"] = randf() < 0.3  # 30%概率铁匠铺有折扣
 
 			nodes_in_layer.append(node)
 
@@ -397,6 +408,26 @@ func _generate_node_rewards(node_type: String, layer: int) -> Dictionary:
 					"rarity": min(1 + floor(layer / 3), 3)  # 稀有遗物
 				}
 			}
+		"mystery":
+			# 神秘节点的奖励在触发时决定
+			pass
+		"challenge":
+			# 挑战节点奖励更丰厚
+			rewards = {
+				"gold": 25 + layer * 4,
+				"exp": 5 + layer * 1.5,
+				"equipment": {
+					"guaranteed": true,
+					"quality": min(1 + floor(layer / 2), 3)  # 装备品质随层数提升
+				},
+				"relic_chance": 0.4 + layer * 0.05  # 遗物掉落概率更高
+			}
+		"altar":
+			# 祭坛节点没有直接奖励，需要献祭才能获得效果
+			pass
+		"blacksmith":
+			# 铁匠铺节点没有直接奖励，需要支付才能获得服务
+			pass
 
 	return rewards
 
@@ -434,3 +465,15 @@ func _select_boss_for_layer(layer: int, template = null) -> String:
 	else:
 		# 最终Boss
 		return boss_list[boss_list.size() - 1]
+
+## 选择挑战类型
+func _select_challenge_type() -> String:
+	# 这里应该返回不同类型的挑战
+	var challenge_types = ["time_limit", "no_abilities", "limited_mana", "elite_enemies", "restricted_movement"]
+	return challenge_types[randi() % challenge_types.size()]
+
+## 选择祭坛类型
+func _select_altar_type() -> String:
+	# 这里应该返回不同类型的祭坛
+	var altar_types = ["health", "attack", "defense", "ability", "gold"]
+	return altar_types[randi() % altar_types.size()]

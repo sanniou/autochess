@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj8r"]
+
+[ext_resource type="Script" path="res://scripts/ui/debug/performance_hotkeys.gd" id="1_yjnvq"]
+
+[node name="PerformanceHotkeys" type="Node"]
+script = ExtResource("1_yjnvq")

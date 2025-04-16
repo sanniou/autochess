@@ -1,0 +1,44 @@
+{
+  "id": "frost_nova",
+  "name": "冰霜新星",
+  "description": "释放一股冰霜能量，对周围敌人造成伤害并减速。",
+  "icon": "res://assets/images/abilities/frost_nova_icon.png",
+  "cooldown": 15.0,
+  "mana_cost": 100.0,
+  "damage": 60.0,
+  "range": 3.0,
+  "duration": 0.0,
+  "target_type": "area",
+  "target_strategy": "nearest",
+  "max_targets": 5,
+  "min_range": 0.0,
+  "effects": [
+    {
+      "type": "damage",
+      "value": 60.0,
+      "damage_type": "magical"
+    },
+    {
+      "type": "debuff",
+      "debuff_type": "speed",
+      "value": 30.0,
+      "duration": 4.0
+    },
+    {
+      "type": "control",
+      "control_type": "slow",
+      "value": 0.5,
+      "duration": 2.0
+    },
+    {
+      "type": "visual",
+      "visual_type": "particle",
+      "visual_path": "res://assets/effects/frost_particle.tres",
+      "duration": 1.0
+    },
+    {
+      "type": "sound",
+      "sound_path": "res://assets/sounds/frost_nova.ogg"
+    }
+  ]
+}

@@ -17,6 +17,9 @@ var achievements_config = {}
 var skins_config = {}
 var tutorials_config = {}
 
+# 缓存数据
+var cache = {}
+
 # 配置文件路径
 const CONFIG_PATH = {
 	"chess_pieces": "res://config/chess_pieces.json",
@@ -495,7 +498,18 @@ func save_json(file_path: String, data: Variant) -> bool:
 ## 加载指定配置
 ## 用于加载任意配置文件
 func load_json(file_path: String) -> Variant:
-	return _load_json_file(file_path)
+	# 检查缓存
+	if cache.has(file_path):
+		return cache[file_path]
+
+	# 加载文件
+	var data = _load_json_file(file_path)
+
+	# 缓存数据
+	if not data.is_empty():
+		cache[file_path] = data
+
+	return data
 
 ## 获取指定配置
 ## 用于获取任意配置数据
@@ -526,6 +540,10 @@ func get_config(config_name: String) -> Variant:
 ## 获取配置目录下的所有JSON文件
 ## 用于扫描配置目录下的所有JSON文件
 func get_all_config_files() -> Dictionary:
+	# 检查缓存
+	if cache.has("all_config_files"):
+		return cache["all_config_files"]
+
 	var result = {}
 	var dir = DirAccess.open(CONFIG_DIR)
 	if dir == null:
@@ -555,4 +573,26 @@ func get_all_config_files() -> Dictionary:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
+	# 缓存结果
+	cache["all_config_files"] = result
+
 	return result
+
+## 设置缓存
+func set_cache(key: String, data: Variant) -> void:
+	cache[key] = data
+
+## 获取缓存
+func get_cache(key: String, default_value: Variant = null) -> Variant:
+	if cache.has(key):
+		return cache[key]
+	return default_value
+
+## 清除缓存
+func clear_cache() -> void:
+	cache.clear()
+
+## 清除指定缓存
+func clear_cache_key(key: String) -> void:
+	if cache.has(key):
+		cache.erase(key)

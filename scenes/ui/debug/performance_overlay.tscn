@@ -1,0 +1,102 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8y6vxe5xgj8q"]
+
+[ext_resource type="Script" path="res://scripts/ui/debug/performance_overlay.gd" id="1_yjnvp"]
+[ext_resource type="Script" path="res://scripts/ui/debug/performance_overlay.gd::PerformanceGraph" id="2_yjnvp"]
+
+[node name="PerformanceOverlay" type="Control"]
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -250.0
+offset_bottom = 200.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("1_yjnvp")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="FpsContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="FpsLabel" type="Label" parent="VBoxContainer/FpsContainer"]
+layout_mode = 2
+text = "FPS: 60"
+
+[node name="MemoryContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="MemoryLabel" type="Label" parent="VBoxContainer/MemoryContainer"]
+layout_mode = 2
+text = "内存: 256 MB"
+
+[node name="ObjectsContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="ObjectsLabel" type="Label" parent="VBoxContainer/ObjectsContainer"]
+layout_mode = 2
+text = "对象: 1000 / 节点: 500"
+
+[node name="DrawCallsContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="DrawCallsLabel" type="Label" parent="VBoxContainer/DrawCallsContainer"]
+layout_mode = 2
+text = "绘制调用: 100"
+
+[node name="GraphContainer" type="VBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="FpsGraph" type="Control" parent="VBoxContainer/GraphContainer"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+script = ExtResource("2_yjnvp")
+
+[node name="MemoryGraph" type="Control" parent="VBoxContainer/GraphContainer"]
+custom_minimum_size = Vector2(200, 50)
+layout_mode = 2
+script = ExtResource("2_yjnvp")
+
+[node name="ToggleButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -25.0
+offset_top = -25.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "+"
+
+[node name="DetailsPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 200.0
+offset_bottom = 400.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="DetailsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DetailsText" type="Label" parent="DetailsPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "性能详情将在这里显示"
+autowrap_mode = 3

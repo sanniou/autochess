@@ -46,7 +46,7 @@ var loading_thread: Thread = null
 func _ready() -> void:
 	# 连接信号
 	EventBus.transition_midpoint.connect(_on_transition_midpoint)
-	
+
 	# 获取当前场景
 	var root = get_tree().get_root()
 	current_scene = root.get_child(root.get_child_count() - 1).name
@@ -57,21 +57,21 @@ func load_scene(scene_name: String, use_transition: bool = true, cache_scene: bo
 	if current_state != SceneState.IDLE:
 		EventBus.debug_message.emit("场景管理器正忙，无法加载场景: " + scene_name, 1)
 		return
-	
+
 	# 更新状态
 	current_state = SceneState.LOADING
-	
+
 	# 发送信号
 	scene_loading_started.emit(scene_name)
-	
+
 	# 检查场景缓存
 	if scene_cache.has(scene_name):
 		_on_scene_loaded(scene_name, scene_cache[scene_name], use_transition)
 		return
-	
+
 	# 构建场景路径
 	var scene_path = SCENE_PATH
-	
+
 	# 根据场景名称确定具体路径
 	match scene_name:
 		"main_menu":
@@ -84,10 +84,14 @@ func load_scene(scene_name: String, use_transition: bool = true, cache_scene: bo
 			scene_path += "shop/shop_scene.tscn"
 		"event":
 			scene_path += "event/event_scene.tscn"
+		"altar":
+			scene_path += "altar/altar_scene.tscn"
+		"blacksmith":
+			scene_path += "blacksmith/blacksmith_scene.tscn"
 		_:
 			# 尝试直接使用场景名称
 			scene_path += scene_name + ".tscn"
-	
+
 	# 开始加载场景
 	if ResourceLoader.has_cached(scene_path):
 		# 场景已缓存，直接加载
@@ -106,17 +110,17 @@ func _load_scene_thread(scene_path: String, scene_name: String, use_transition: 
 		EventBus.debug_message.emit("无法加载场景: " + scene_path + ", 错误: " + str(err), 2)
 		current_state = SceneState.IDLE
 		return
-	
+
 	var progress = [0.0]
 	var scene = null
-	
+
 	# 等待加载完成
 	while true:
 		var status = ResourceLoader.load_threaded_get_status(scene_path, progress)
-		
+
 		# 发送加载进度信号
 		scene_loading_progress.emit(progress[0])
-		
+
 		match status:
 			ResourceLoader.THREAD_LOAD_LOADED:
 				# 加载完成
@@ -132,14 +136,14 @@ func _load_scene_thread(scene_path: String, scene_name: String, use_transition: 
 				EventBus.debug_message.emit("无效的场景资源: " + scene_path, 2)
 				current_state = SceneState.IDLE
 				return
-		
+
 		# 等待一帧
 		await get_tree().process_frame
-	
+
 	# 缓存场景
 	if cache_scene:
 		scene_cache[scene_name] = scene
-	
+
 	# 切换到主线程完成场景加载
 	call_deferred("_on_scene_loaded", scene_name, scene, use_transition)
 
@@ -147,19 +151,19 @@ func _load_scene_thread(scene_path: String, scene_name: String, use_transition: 
 func _on_scene_loaded(scene_name: String, scene: PackedScene, use_transition: bool) -> void:
 	# 更新状态
 	current_state = SceneState.CHANGING
-	
+
 	# 发送信号
 	scene_loading_finished.emit(scene_name)
-	
+
 	# 保存上一个场景
 	previous_scene = current_scene
-	
+
 	# 添加到历史记录
 	scene_history.append(current_scene)
-	
+
 	# 更新当前场景
 	current_scene = scene_name
-	
+
 	# 使用过渡效果
 	if use_transition:
 		current_state = SceneState.TRANSITION
@@ -174,7 +178,7 @@ func _on_transition_midpoint() -> void:
 	if scene == null:
 		# 构建场景路径
 		var scene_path = SCENE_PATH
-		
+
 		# 根据场景名称确定具体路径
 		match current_scene:
 			"main_menu":
@@ -187,13 +191,17 @@ func _on_transition_midpoint() -> void:
 				scene_path += "shop/shop_scene.tscn"
 			"event":
 				scene_path += "event/event_scene.tscn"
+			"altar":
+				scene_path += "altar/altar_scene.tscn"
+			"blacksmith":
+				scene_path += "blacksmith/blacksmith_scene.tscn"
 			_:
 				# 尝试直接使用场景名称
 				scene_path += current_scene + ".tscn"
-		
+
 		# 加载场景
 		scene = load(scene_path)
-	
+
 	# 切换场景
 	_change_scene(scene)
 
@@ -202,18 +210,18 @@ func _change_scene(scene: PackedScene) -> void:
 	# 获取当前场景
 	var root = get_tree().get_root()
 	var current = root.get_child(root.get_child_count() - 1)
-	
+
 	# 移除当前场景
 	root.remove_child(current)
 	current.queue_free()
-	
+
 	# 添加新场景
 	var new_scene = scene.instantiate()
 	root.add_child(new_scene)
-	
+
 	# 发送场景变化信号
 	scene_changed.emit(previous_scene, current_scene)
-	
+
 	# 更新状态
 	current_state = SceneState.IDLE
 
@@ -223,10 +231,10 @@ func go_back(use_transition: bool = true) -> void:
 	if scene_history.size() == 0:
 		EventBus.debug_message.emit("没有上一个场景可返回", 1)
 		return
-	
+
 	# 获取上一个场景
 	var previous = scene_history.pop_back()
-	
+
 	# 加载上一个场景
 	load_scene(previous, use_transition)
 
@@ -250,7 +258,7 @@ func clear_scene_cache() -> void:
 func preload_scene(scene_name: String) -> void:
 	# 构建场景路径
 	var scene_path = SCENE_PATH
-	
+
 	# 根据场景名称确定具体路径
 	match scene_name:
 		"main_menu":
@@ -263,20 +271,24 @@ func preload_scene(scene_name: String) -> void:
 			scene_path += "shop/shop_scene.tscn"
 		"event":
 			scene_path += "event/event_scene.tscn"
+		"altar":
+			scene_path += "altar/altar_scene.tscn"
+		"blacksmith":
+			scene_path += "blacksmith/blacksmith_scene.tscn"
 		_:
 			# 尝试直接使用场景名称
 			scene_path += scene_name + ".tscn"
-	
+
 	# 检查场景是否已缓存
 	if scene_cache.has(scene_name):
 		return
-	
+
 	# 开始加载场景
 	var err = ResourceLoader.load_threaded_request(scene_path)
 	if err != OK:
 		EventBus.debug_message.emit("无法预加载场景: " + scene_path + ", 错误: " + str(err), 1)
 		return
-	
+
 	# 创建线程监控加载进度
 	var thread = Thread.new()
 	thread.start(_monitor_preload.bind(scene_path, scene_name))
@@ -284,11 +296,11 @@ func preload_scene(scene_name: String) -> void:
 # 监控预加载进度
 func _monitor_preload(scene_path: String, scene_name: String) -> void:
 	var progress = [0.0]
-	
+
 	# 等待加载完成
 	while true:
 		var status = ResourceLoader.load_threaded_get_status(scene_path, progress)
-		
+
 		match status:
 			ResourceLoader.THREAD_LOAD_LOADED:
 				# 加载完成
@@ -304,6 +316,6 @@ func _monitor_preload(scene_path: String, scene_name: String) -> void:
 				# 无效资源
 				EventBus.debug_message.emit("无效的预加载场景资源: " + scene_path, 1)
 				break
-		
+
 		# 等待一帧
 		OS.delay_msec(100)  # 等待100毫秒

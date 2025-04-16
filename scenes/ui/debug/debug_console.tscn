@@ -1,0 +1,99 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8y6vxe5xgj8t"]
+
+[ext_resource type="Script" path="res://scripts/ui/debug/debug_console.gd" id="1_yjnvt"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.1, 0.1, 0.1, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="DebugConsole" type="Control"]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 300.0
+grow_horizontal = 2
+script = ExtResource("1_yjnvt")
+
+[node name="ConsoleContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Background" type="Panel" parent="ConsoleContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="TitleContainer" type="HBoxContainer" parent="ConsoleContainer"]
+layout_mode = 2
+
+[node name="TitleLabel" type="Label" parent="ConsoleContainer/TitleContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 16
+text = "调试控制台"
+horizontal_alignment = 1
+
+[node name="OutputContainer" type="ScrollContainer" parent="ConsoleContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="OutputText" type="TextEdit" parent="ConsoleContainer/OutputContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/background_color = Color(0.1, 0.1, 0.1, 0)
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 14
+editable = false
+context_menu_enabled = false
+shortcut_keys_enabled = false
+virtual_keyboard_enabled = false
+middle_mouse_paste_enabled = false
+wrap_mode = 1
+
+[node name="InputContainer" type="HBoxContainer" parent="ConsoleContainer"]
+layout_mode = 2
+
+[node name="PromptLabel" type="Label" parent="ConsoleContainer/InputContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = ">"
+
+[node name="InputField" type="LineEdit" parent="ConsoleContainer/InputContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.8, 0.8, 0.8, 1)
+theme_override_font_sizes/font_size = 14
+placeholder_text = "输入命令..."
+caret_blink = true
+
+[node name="ControlsContainer" type="HBoxContainer" parent="ConsoleContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="HistoryButton" type="Button" parent="ConsoleContainer/ControlsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "历史"
+
+[node name="ClearButton" type="Button" parent="ConsoleContainer/ControlsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "清除"
+
+[node name="CloseButton" type="Button" parent="ConsoleContainer/ControlsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "关闭"

@@ -106,6 +106,16 @@ func _on_environment_test_button_pressed():
 	_play_button_sound()
 	_transition_to_scene("res://scenes/test/environment_test.tscn")
 
+# 性能测试按钮处理
+func _on_performance_test_button_pressed():
+	_play_button_sound()
+	_transition_to_scene("res://scenes/test/performance_test.tscn")
+
+# 测试菜单按钮处理
+func _on_test_menu_button_pressed():
+	_play_button_sound()
+	_transition_to_scene("res://scenes/test/test_menu.tscn")
+
 # 设置按钮处理
 func _on_settings_button_pressed():
 	_play_button_sound()
