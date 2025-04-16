@@ -4,8 +4,7 @@
     "icon_path": "res://assets/images/synergies/assassin_synergy.png",
     "id": "assassin",
     "name": "刺客",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -37,8 +36,7 @@
     "icon_path": "res://assets/images/synergies/elemental_synergy.png",
     "id": "elemental",
     "name": "元素",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -60,8 +58,7 @@
     "icon_path": "res://assets/images/synergies/elf_synergy.png",
     "id": "elf",
     "name": "精灵",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -90,8 +87,7 @@
     "icon_path": "res://assets/images/synergies/human_synergy.png",
     "id": "human",
     "name": "人类",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -123,8 +119,7 @@
     "icon_path": "res://assets/images/synergies/mage_synergy.png",
     "id": "mage",
     "name": "法师",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -153,8 +148,7 @@
     "icon_path": "res://assets/images/synergies/ranger_synergy.png",
     "id": "ranger",
     "name": "游侠",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -183,8 +177,7 @@
     "icon_path": "res://assets/images/synergies/summoner_synergy.png",
     "id": "summoner",
     "name": "召唤师",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -208,8 +201,7 @@
     "icon_path": "res://assets/images/synergies/support_synergy.png",
     "id": "support",
     "name": "辅助",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {
@@ -235,8 +227,7 @@
     "icon_path": "res://assets/images/synergies/warrior_synergy.png",
     "id": "warrior",
     "name": "战士",
-    "thresholds": [],
-    "tiers": [
+    "thresholds": [
       {
         "count": 2.0,
         "effect": {

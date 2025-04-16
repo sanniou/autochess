@@ -147,6 +147,32 @@ func get_chess_piece_config(piece_id: String) -> Dictionary:
 func get_all_chess_pieces() -> Dictionary:
 	return chess_pieces_config
 
+## 获取棋子
+func get_chess_piece(piece_id: String) -> Dictionary:
+	return get_chess_piece_config(piece_id)
+
+## 根据羁绊获取棋子
+func get_chess_pieces_by_synergy(synergy_id: String) -> Array:
+	var result = []
+
+	for piece_id in chess_pieces_config:
+		var piece = chess_pieces_config[piece_id]
+		if piece.has("synergies") and piece.synergies.has(synergy_id):
+			result.append(piece)
+
+	return result
+
+## 根据费用获取棋子
+func get_chess_pieces_by_cost(costs: Array) -> Array:
+	var result = []
+
+	for piece_id in chess_pieces_config:
+		var piece = chess_pieces_config[piece_id]
+		if piece.has("cost") and costs.has(piece.cost):
+			result.append(piece)
+
+	return result
+
 ## 获取装备配置
 func get_equipment_config(equipment_id: String) -> Dictionary:
 	if equipment_config.has(equipment_id):
@@ -156,6 +182,21 @@ func get_equipment_config(equipment_id: String) -> Dictionary:
 ## 获取所有装备配置
 func get_all_equipment() -> Dictionary:
 	return equipment_config
+
+## 获取装备
+func get_equipment(equipment_id: String) -> Dictionary:
+	return get_equipment_config(equipment_id)
+
+## 根据稀有度获取装备
+func get_equipments_by_rarity(rarities: Array) -> Array:
+	var result = []
+
+	for equip_id in equipment_config:
+		var equip = equipment_config[equip_id]
+		if equip.has("rarity") and rarities.has(equip.rarity):
+			result.append(equip_id)
+
+	return result
 
 ## 获取遗物配置
 func get_relic_config(relic_id: String) -> Dictionary:
@@ -308,11 +349,15 @@ func validate_relics_config() -> void:
 func validate_synergies_config() -> void:
 	for synergy_id in synergies_config:
 		var synergy = synergies_config[synergy_id]
-		var required_fields = ["id", "name", "description", "thresholds"]
+		var required_fields = ["id", "name", "description"]
 
 		for field in required_fields:
 			if not synergy.has(field):
 				EventBus.debug_message.emit("羁绑配置验证失败: " + synergy_id + " 缺少必要字段 " + field, 2)
+
+		# 验证羁绊阈值字段
+		if not synergy.has("thresholds") and not synergy.has("tiers"):
+			EventBus.debug_message.emit("羁绑配置验证失败: " + synergy_id + " 缺少必要字段 thresholds 或 tiers", 2)
 
 ## 验证事件配置
 func validate_events_config() -> void:

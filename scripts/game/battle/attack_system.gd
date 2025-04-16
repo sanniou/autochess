@@ -35,12 +35,14 @@ class StatusEffect:
 	var duration: float     # 持续时间
 	var value: float = 0.0  # 效果值
 	var source = null       # 效果来源
+	var id: String = ""     # 唯一标识符
 
 	func _init(effect_type: String, effect_duration: float, effect_value: float = 0.0, effect_source = null):
 		type = effect_type
 		duration = effect_duration
 		value = effect_value
 		source = effect_source
+		id = "effect_" + str(randi()) + "_" + effect_type  # 生成唯一ID
 
 # 引用
 @onready var board_manager = get_node("/root/GameManager/BoardManager")
@@ -177,11 +179,25 @@ func apply_damage(attacker: ChessPiece, defender: ChessPiece, damage_result: Dic
 		_trigger_dodge_effects(defender, attacker)
 		return
 
+	# 确定伤害类型字符串
+	var damage_type_str = "physical"
+	match damage_result.damage_type:
+		DamageType.MAGICAL: damage_type_str = "magical"
+		DamageType.TRUE: damage_type_str = "true"
+		DamageType.PURE: damage_type_str = "pure"
+		DamageType.FIRE: damage_type_str = "fire"
+		DamageType.ICE: damage_type_str = "ice"
+		DamageType.LIGHTNING: damage_type_str = "lightning"
+		DamageType.POISON: damage_type_str = "poison"
+
 	# 造成伤害
-	var actual_damage = defender.take_damage(damage_result.final_damage, "physical", attacker)
+	var actual_damage = defender.take_damage(damage_result.final_damage, damage_type_str, attacker)
 
 	# 更新伤害结果
 	damage_result.final_damage = actual_damage
+
+	# 应用状态效果
+	_apply_status_effects(defender, damage_result.status_effects)
 
 	# 触发攻击效果
 	_trigger_attack_effects(attacker, defender, damage_result)
@@ -203,7 +219,7 @@ func apply_damage(attacker: ChessPiece, defender: ChessPiece, damage_result: Dic
 	attacker.attack_timer = 1.0 / attacker.attack_speed
 
 	# 发送伤害事件
-	EventBus.damage_dealt.emit(attacker, defender, actual_damage, "physical")
+	EventBus.damage_dealt.emit(attacker, defender, actual_damage, damage_type_str)
 
 # 触发攻击效果
 func _trigger_attack_effects(attacker: ChessPiece, defender: ChessPiece, damage_result: Dictionary) -> void:
@@ -232,6 +248,54 @@ func _trigger_dodge_effects(defender: ChessPiece, attacker: ChessPiece) -> void:
 			if not effect.has("chance") or randf() < effect.chance:
 				_apply_effect(effect, defender, attacker)
 
+# 应用状态效果
+func _apply_status_effects(target: ChessPiece, effects: Array) -> void:
+	# 检查目标是否有状态效果管理器
+	if not target.status_effect_manager:
+		return
+
+	# 应用所有状态效果
+	for effect in effects:
+		# 根据状态类型创建相应的状态效果
+		var status_effect_type = StatusEffectManager.StatusEffectType.BUFF  # 默认为增益效果
+
+		# 根据状态类型设置相应的状态效果类型
+		match effect.type:
+			"stunned":
+				status_effect_type = StatusEffectManager.StatusEffectType.STUN
+			"silenced":
+				status_effect_type = StatusEffectManager.StatusEffectType.SILENCE
+			"slowed":
+				status_effect_type = StatusEffectManager.StatusEffectType.SLOW
+			"disarmed":
+				status_effect_type = StatusEffectManager.StatusEffectType.DISARM
+			"taunt":
+				status_effect_type = StatusEffectManager.StatusEffectType.TAUNT
+			"burning":
+				status_effect_type = StatusEffectManager.StatusEffectType.BURNING
+			"poisoned":
+				status_effect_type = StatusEffectManager.StatusEffectType.POISONED
+			"frozen":
+				status_effect_type = StatusEffectManager.StatusEffectType.FROZEN
+			"bleeding":
+				status_effect_type = StatusEffectManager.StatusEffectType.BLEEDING
+
+		# 创建状态效果对象
+		var status_effect = StatusEffectManager.StatusEffect.new(
+			effect.id,
+			status_effect_type,
+			effect.type.capitalize(),  # 使用首字母大写的状态类型作为名称
+			"",  # 描述留空
+			effect.duration,
+			effect.value,
+			effect.source,
+			"",  # 图标留空
+			false  # 不可叠加
+		)
+
+		# 添加到状态效果管理器
+		target.status_effect_manager.add_effect(status_effect)
+
 # 应用效果
 func _apply_effect(effect: Dictionary, source: ChessPiece, target: ChessPiece) -> void:
 	# 根据效果类型应用不同效果
@@ -250,28 +314,73 @@ func _apply_effect(effect: Dictionary, source: ChessPiece, target: ChessPiece) -
 
 			"stun":
 				# 眩晕效果
-				if effect.has("duration"):
-					target.apply_status_effect("stun", effect.duration)
+				if effect.has("duration") and target.status_effect_manager:
+					var stun_effect = StatusEffectManager.StatusEffect.new(
+						"stun_" + str(randi()),
+						StatusEffectManager.StatusEffectType.STUN,
+						"Stun",
+						"Cannot act",
+						effect.duration,
+						0.0,
+						source
+					)
+					target.status_effect_manager.add_effect(stun_effect)
 
 			"silence":
 				# 沉默效果
-				if effect.has("duration"):
-					target.apply_status_effect("silence", effect.duration)
+				if effect.has("duration") and target.status_effect_manager:
+					var silence_effect = StatusEffectManager.StatusEffect.new(
+						"silence_" + str(randi()),
+						StatusEffectManager.StatusEffectType.SILENCE,
+						"Silence",
+						"Cannot use abilities",
+						effect.duration,
+						0.0,
+						source
+					)
+					target.status_effect_manager.add_effect(silence_effect)
 
 			"slow":
 				# 减速效果
-				if effect.has("value") and effect.has("duration"):
-					target.apply_status_effect("slow", effect.duration, effect.value)
+				if effect.has("value") and effect.has("duration") and target.status_effect_manager:
+					var slow_effect = StatusEffectManager.StatusEffect.new(
+						"slow_" + str(randi()),
+						StatusEffectManager.StatusEffectType.SLOW,
+						"Slow",
+						"Movement and attack speed reduced",
+						effect.duration,
+						effect.value,
+						source
+					)
+					target.status_effect_manager.add_effect(slow_effect)
 
 			"disarm":
 				# 缴械效果
-				if effect.has("duration"):
-					target.apply_status_effect("disarm", effect.duration)
+				if effect.has("duration") and target.status_effect_manager:
+					var disarm_effect = StatusEffectManager.StatusEffect.new(
+						"disarm_" + str(randi()),
+						StatusEffectManager.StatusEffectType.DISARM,
+						"Disarm",
+						"Cannot attack",
+						effect.duration,
+						0.0,
+						source
+					)
+					target.status_effect_manager.add_effect(disarm_effect)
 
 			"taunt":
 				# 嘲讽效果
-				if effect.has("duration"):
-					target.apply_status_effect("taunt", effect.duration, source)
+				if effect.has("duration") and target.status_effect_manager:
+					var taunt_effect = StatusEffectManager.StatusEffect.new(
+						"taunt_" + str(randi()),
+						StatusEffectManager.StatusEffectType.TAUNT,
+						"Taunt",
+						"Forced to attack source",
+						effect.duration,
+						0.0,
+						source
+					)
+					target.status_effect_manager.add_effect(taunt_effect)
 
 # 战斗开始事件处理
 func _on_battle_started() -> void:

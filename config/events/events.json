@@ -370,5 +370,214 @@
         "effects": []
       }
     ]
+  },
+  "cursed_mirror": {
+    "id": "cursed_mirror",
+    "title": "诅咒之镜",
+    "description": "你发现了一面古怪的镜子，当你朝它看去时，镜子中的影像似乎在移动。",
+    "image_path": "res://assets/images/events/cursed_mirror.png",
+    "event_type": "curse",
+    "weight": 40,
+    "is_one_time": true,
+    "choices": [
+      {
+        "text": "准备接受诅咒",
+        "effects": [
+          {
+            "type": "special",
+            "operation": "curse",
+            "curse_type": "mirror",
+            "duration": 3
+          },
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "mirror_shard"
+          }
+        ]
+      },
+      {
+        "text": "打破镜子",
+        "effects": [
+          {
+            "type": "health",
+            "operation": "subtract",
+            "value": 10
+          },
+          {
+            "type": "gold",
+            "operation": "add",
+            "value": 15,
+            "chance": 0.5
+          }
+        ]
+      },
+      {
+        "text": "离开",
+        "effects": []
+      }
+    ]
+  },
+  "story_crossroads": {
+    "id": "story_crossroads",
+    "title": "命运十字路",
+    "description": "你来到了一个十字路口，一个神秘的老人站在那里，他说你必须做出选择。",
+    "image_path": "res://assets/images/events/story_crossroads.png",
+    "event_type": "story",
+    "weight": 20,
+    "is_one_time": true,
+    "choices": [
+      {
+        "text": "选择力量之路",
+        "effects": [
+          {
+            "type": "chess_piece",
+            "operation": "buff_all",
+            "buff_type": "attack_damage",
+            "value": 5
+          },
+          {
+            "type": "special",
+            "operation": "story_flag",
+            "flag": "chose_power"
+          }
+        ]
+      },
+      {
+        "text": "选择智慧之路",
+        "effects": [
+          {
+            "type": "chess_piece",
+            "operation": "buff_all",
+            "buff_type": "spell_power",
+            "value": 10
+          },
+          {
+            "type": "special",
+            "operation": "story_flag",
+            "flag": "chose_wisdom"
+          }
+        ]
+      },
+      {
+        "text": "选择财富之路",
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "add",
+            "value": 30
+          },
+          {
+            "type": "special",
+            "operation": "story_flag",
+            "flag": "chose_wealth"
+          }
+        ]
+      }
+    ]
+  },
+  "special_battle": {
+    "id": "special_battle",
+    "title": "奇怪的挑战",
+    "description": "一个戴着面具的神秘人物向你发起挑战，但他提出了一些特殊的规则。",
+    "image_path": "res://assets/images/events/special_battle.png",
+    "event_type": "battle",
+    "weight": 30,
+    "is_one_time": false,
+    "choices": [
+      {
+        "text": "接受挑战（只能使用3个棋子）",
+        "effects": [
+          {
+            "type": "battle",
+            "operation": "start",
+            "battle_type": "special",
+            "special_rules": {
+              "max_pieces": 3,
+              "rewards_multiplier": 2.0
+            }
+          }
+        ]
+      },
+      {
+        "text": "接受挑战（棋子生命值减半）",
+        "effects": [
+          {
+            "type": "battle",
+            "operation": "start",
+            "battle_type": "special",
+            "special_rules": {
+              "health_multiplier": 0.5,
+              "rewards_multiplier": 1.5
+            }
+          }
+        ]
+      },
+      {
+        "text": "拒绝挑战",
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "subtract",
+            "value": 5
+          }
+        ]
+      }
+    ]
+  },
+  "treasure_room": {
+    "id": "treasure_room",
+    "title": "宝藏室",
+    "description": "你发现了一个充满宝物的房间，但似乎只能选择其中一件。",
+    "image_path": "res://assets/images/events/treasure_room.png",
+    "event_type": "reward",
+    "weight": 25,
+    "is_one_time": true,
+    "choices": [
+      {
+        "text": "选择金币宝箱",
+        "effects": [
+          {
+            "type": "gold",
+            "operation": "add",
+            "value": 50
+          }
+        ]
+      },
+      {
+        "text": "选择遗物宝箱",
+        "effects": [
+          {
+            "type": "relic",
+            "operation": "add",
+            "relic_id": "random",
+            "rarity": 2
+          }
+        ]
+      },
+      {
+        "text": "选择装备宝箱",
+        "effects": [
+          {
+            "type": "item",
+            "operation": "add",
+            "item_id": "random_equipment",
+            "rarity": "rare"
+          }
+        ]
+      },
+      {
+        "text": "选择棋子宝箱",
+        "effects": [
+          {
+            "type": "chess_piece",
+            "operation": "add",
+            "piece_id": "random",
+            "cost": 4,
+            "star_level": 1
+          }
+        ]
+      }
+    ]
   }
 }

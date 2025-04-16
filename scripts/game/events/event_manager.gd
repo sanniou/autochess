@@ -18,7 +18,7 @@ var event_history: Array = []  # 事件历史记录
 func _ready():
 	# 初始化事件工厂
 	_initialize_event_factory()
-	
+
 	# 连接信号
 	EventBus.map_node_selected.connect(_on_map_node_selected)
 
@@ -26,7 +26,7 @@ func _ready():
 func _initialize_event_factory() -> void:
 	# 加载所有事件配置
 	var events_config = config_manager.get_all_events()
-	
+
 	# 创建事件工厂
 	for event_id in events_config:
 		var event_data = events_config[event_id]
@@ -38,26 +38,26 @@ func trigger_event(event_id: String) -> bool:
 	if not event_factory.has(event_id):
 		EventBus.debug_message.emit("事件不存在: " + event_id, 2)
 		return false
-	
+
 	# 检查是否已有正在进行的事件
 	if current_event != null:
 		EventBus.debug_message.emit("已有正在进行的事件", 1)
 		return false
-	
+
 	# 创建事件实例
 	var event = _create_event(event_id)
 	if not event:
 		return false
-	
+
 	# 设置为当前事件
 	current_event = event
-	
+
 	# 开始事件
 	event.start()
-	
+
 	# 记录事件历史
 	_record_event(event_id)
-	
+
 	return true
 
 # 创建事件实例
@@ -65,86 +65,86 @@ func _create_event(event_id: String) -> Event:
 	# 检查事件是否存在
 	if not event_factory.has(event_id):
 		return null
-	
+
 	# 获取事件数据
 	var event_data = event_factory[event_id]
-	
+
 	# 创建事件实例
 	var event_instance = EVENT_SCENE.instantiate()
 	add_child(event_instance)
-	
+
 	# 初始化事件
 	event_instance.initialize(event_data)
-	
+
 	# 连接信号
 	event_instance.event_completed.connect(_on_event_completed)
-	
+
 	return event_instance
 
 # 随机触发事件
 func trigger_random_event(context: Dictionary = {}, event_type: String = "") -> bool:
 	# 获取符合条件的事件列表
 	var eligible_events = _get_eligible_events(context, event_type)
-	
+
 	# 如果没有符合条件的事件，返回失败
 	if eligible_events.is_empty():
 		EventBus.debug_message.emit("没有符合条件的事件可触发", 1)
 		return false
-	
+
 	# 根据权重随机选择一个事件
 	var selected_event = _weighted_random_selection(eligible_events)
-	
+
 	# 触发选中的事件
 	return trigger_event(selected_event)
 
 # 获取符合条件的事件列表
 func _get_eligible_events(context: Dictionary = {}, event_type: String = "") -> Array:
 	var eligible_events = []
-	
+
 	for event_id in event_factory:
 		var event_data = event_factory[event_id]
-		
+
 		# 检查事件类型
 		if not event_type.is_empty() and event_data.event_type != event_type:
 			continue
-		
+
 		# 检查是否为一次性事件且已完成
 		if event_data.get("is_one_time", false) and completed_events.has(event_id):
 			continue
-		
+
 		# 创建临时事件实例检查条件
 		var temp_event = Event.new()
 		temp_event.initialize(event_data)
-		
+
 		# 检查是否满足触发条件
 		if temp_event.check_requirements(context):
 			eligible_events.append({
 				"id": event_id,
 				"weight": event_data.get("weight", 100)
 			})
-		
+
 		# 清理临时实例
 		temp_event.queue_free()
-	
+
 	return eligible_events
 
 # 根据权重随机选择事件
 func _weighted_random_selection(events: Array) -> String:
 	var total_weight = 0
-	
+
 	# 计算总权重
 	for event in events:
 		total_weight += event.weight
-	
+
 	# 随机选择
 	var random_value = randi() % total_weight
 	var current_weight = 0
-	
+
 	for event in events:
 		current_weight += event.weight
 		if random_value < current_weight:
 			return event.id
-	
+
 	# 默认返回第一个事件
 	return events[0].id if not events.is_empty() else ""
 
@@ -166,7 +166,7 @@ func _on_event_completed(result: Dictionary) -> void:
 	# 记录已完成事件
 	if current_event and current_event.is_one_time:
 		completed_events.append(current_event.id)
-	
+
 	# 清理当前事件
 	clear_current_event()
 
@@ -213,7 +213,7 @@ func save_events_state() -> Dictionary:
 func load_events_state(save_data: Dictionary) -> void:
 	if save_data.has("completed_events"):
 		completed_events = save_data.completed_events.duplicate()
-	
+
 	if save_data.has("event_history"):
 		event_history = save_data.event_history.duplicate()
 
@@ -222,3 +222,28 @@ func reset_events() -> void:
 	completed_events.clear()
 	event_history.clear()
 	clear_current_event()
+
+# 修改事件权重
+func modify_event_weight(event_id: String, weight_modifier: float) -> void:
+	# 检查事件是否存在
+	if not event_factory.has(event_id):
+		EventBus.debug_message.emit("事件不存在: " + event_id, 2)
+		return
+
+	# 获取当前权重
+	var current_weight = event_factory[event_id].weight
+
+	# 计算新权重
+	var new_weight = max(1, current_weight + weight_modifier)
+
+	# 更新权重
+	event_factory[event_id].weight = new_weight
+
+	# 发送事件权重修改信号
+	EventBus.debug_message.emit("事件权重修改: " + event_id + ", " + str(current_weight) + " -> " + str(new_weight), 0)
+
+# 获取事件权重
+func get_event_weight(event_id: String) -> int:
+	if event_factory.has(event_id):
+		return event_factory[event_id].weight
+	return 0

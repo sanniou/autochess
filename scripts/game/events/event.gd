@@ -293,8 +293,48 @@ func _apply_battle_effect(effect: Dictionary) -> void:
 
 # 应用特殊效果
 func _apply_special_effect(effect: Dictionary) -> void:
-	# 特殊效果需要在子类中实现
-	pass
+	if not effect.has("operation"):
+		return
+
+	var game_manager = get_node("/root/GameManager")
+	var player_manager = get_node("/root/GameManager/PlayerManager")
+	var player = player_manager.get_current_player() if player_manager else null
+
+	match effect.operation:
+		"curse":
+			# 应用诅咒效果
+			if effect.has("curse_type") and effect.has("duration"):
+				_apply_curse_effect(effect.curse_type, effect.duration)
+
+		"story_flag":
+			# 设置剧情标记
+			if effect.has("flag"):
+				_set_story_flag(effect.flag)
+
+		"chain_event":
+			# 触发连锁事件
+			if effect.has("event_id"):
+				_trigger_chain_event(effect.event_id)
+
+		"modify_event_weight":
+			# 修改事件权重
+			if effect.has("event_id") and effect.has("weight_modifier"):
+				_modify_event_weight(effect.event_id, effect.weight_modifier)
+
+		"unlock_achievement":
+			# 解锁成就
+			if effect.has("achievement_id"):
+				_unlock_achievement(effect.achievement_id)
+
+		"modify_difficulty":
+			# 修改游戏难度
+			if effect.has("difficulty_modifier"):
+				_modify_difficulty(effect.difficulty_modifier)
+
+		"apply_buff_to_all":
+			# 应用增益效果给所有棋子
+			if effect.has("buff_type") and effect.has("value"):
+				_apply_buff_to_all_pieces(effect.buff_type, effect.value, effect.get("duration", -1))
 
 # 获取奖励
 func _get_rewards(choice_data: Dictionary) -> Dictionary:
@@ -370,3 +410,63 @@ func get_info() -> Dictionary:
 		"choices": choices.size(),
 		"is_completed": is_completed
 	}
+
+# 应用诅咒效果
+func _apply_curse_effect(curse_type: String, duration: int) -> void:
+	var curse_manager = get_node("/root/GameManager/CurseManager")
+	if curse_manager:
+		curse_manager.apply_curse(curse_type, duration)
+		EventBus.debug_message.emit("应用诅咒效果: " + curse_type + ", 持续" + str(duration) + "回合", 0)
+		EventBus.show_toast.emit(tr("ui.event.curse_applied", [tr("curse." + curse_type)]))
+
+# 设置剧情标记
+func _set_story_flag(flag: String) -> void:
+	var story_manager = get_node("/root/GameManager/StoryManager")
+	if story_manager:
+		story_manager.set_flag(flag, true)
+		EventBus.debug_message.emit("设置剧情标记: " + flag, 0)
+
+# 触发连锁事件
+func _trigger_chain_event(event_id: String) -> void:
+	var event_manager = get_node("/root/GameManager/EventManager")
+	if event_manager:
+		# 完成当前事件
+		complete()
+
+		# 触发连锁事件
+		event_manager.trigger_event(event_id)
+		EventBus.debug_message.emit("触发连锁事件: " + event_id, 0)
+
+# 修改事件权重
+func _modify_event_weight(event_id: String, weight_modifier: float) -> void:
+	var event_manager = get_node("/root/GameManager/EventManager")
+	if event_manager:
+		event_manager.modify_event_weight(event_id, weight_modifier)
+		EventBus.debug_message.emit("修改事件权重: " + event_id + ", 修改值: " + str(weight_modifier), 0)
+
+# 解锁成就
+func _unlock_achievement(achievement_id: String) -> void:
+	var achievement_manager = get_node("/root/GameManager/AchievementManager")
+	if achievement_manager:
+		achievement_manager.unlock_achievement(achievement_id)
+		EventBus.debug_message.emit("解锁成就: " + achievement_id, 0)
+
+# 修改游戏难度
+func _modify_difficulty(difficulty_modifier: float) -> void:
+	var game_manager = get_node("/root/GameManager")
+	if game_manager:
+		var current_difficulty = game_manager.difficulty_level
+		var new_difficulty = clamp(current_difficulty + difficulty_modifier, 1, 3)
+		game_manager.set_difficulty(new_difficulty)
+		EventBus.debug_message.emit("修改游戏难度: " + str(current_difficulty) + " -> " + str(new_difficulty), 0)
+
+# 应用增益效果给所有棋子
+func _apply_buff_to_all_pieces(buff_type: String, value: float, duration: int = -1) -> void:
+	var board_manager = get_node("/root/GameManager/BoardManager")
+	if board_manager:
+		var pieces = board_manager.get_all_player_pieces()
+		for piece in pieces:
+			piece.add_buff(buff_type, value, duration)
+
+		EventBus.debug_message.emit("应用增益效果给所有棋子: " + buff_type + ", 值: " + str(value), 0)
+		EventBus.show_toast.emit(tr("ui.event.buff_applied", [tr("buff." + buff_type), str(value)]))

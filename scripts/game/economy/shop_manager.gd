@@ -9,6 +9,11 @@ const MAX_EQUIPMENT_ITEMS = 3  # 最大装备商品数
 const DEFAULT_REFRESH_COST = 2  # 默认刷新费用
 const DEFAULT_EQUIPMENT_COST = 3  # 默认装备价格
 
+# 特殊商店常量
+const BLACK_MARKET_CHANCE = 0.35  # 黑市商人出现概率(每3回合检查)
+const MYSTERY_SHOP_CHANCE = 0.40  # 神秘商店出现概率(精英战斗胜利后)
+const EQUIPMENT_SHOP_ROUNDS = [3, 6, 9]  # 装备商店出现的回合
+
 # 商店参数
 var shop_params = {
 	"refresh_cost": DEFAULT_REFRESH_COST,  # 刷新费用
@@ -16,7 +21,12 @@ var shop_params = {
 	"discount_rate": 1.0,  # 折扣率，1.0表示无折扣
 	"max_chess_items": MAX_CHESS_ITEMS,  # 最大棋子商品数
 	"max_equipment_items": MAX_EQUIPMENT_ITEMS,  # 最大装备商品数
-	"special_offer": false  # 是否有特价商品
+	"special_offer": false,  # 是否有特价商品
+	"is_black_market": false,  # 是否为黑市商人
+	"is_mystery_shop": false,  # 是否为神秘商店
+	"is_equipment_shop": false,  # 是否为装备商店
+	"consecutive_refresh_count": 0,  # 连续刷新次数（用于保底机制）
+	"target_chess_id": ""  # 目标棋子ID（用于保底机制）
 }
 
 # 商店状态
@@ -60,11 +70,18 @@ func refresh_shop(force: bool = false) -> bool:
 	if player == null:
 		return false
 
+	# 如果不是强制刷新，增加连续刷新计数
+	if not force and shop_params.target_chess_id != "":
+		shop_params.consecutive_refresh_count += 1
+
 	# 生成新的棋子
 	_generate_chess_items(player.level)
 
 	# 生成新的装备
 	_generate_equipment_items(player.level)
+
+	# 应用保底机制
+	_apply_pity_system(player.level)
 
 	# 发送商店刷新信号
 	EventBus.shop_refreshed.emit()
@@ -466,6 +483,19 @@ func _sync_with_economy_manager() -> void:
 
 # 回合开始事件处理
 func _on_battle_round_started(round_number: int) -> void:
+	# 重置特殊商店状态
+	shop_params.is_black_market = false
+	shop_params.is_mystery_shop = false
+	shop_params.is_equipment_shop = false
+
+	# 检查黑市商人触发
+	if round_number % 3 == 0 and randf() < BLACK_MARKET_CHANCE:
+		_trigger_black_market()
+
+	# 检查装备商店触发
+	if EQUIPMENT_SHOP_ROUNDS.has(round_number):
+		_trigger_equipment_shop()
+
 	# 刷新商店
 	refresh_shop(true)
 
@@ -480,6 +510,11 @@ func _on_shop_refreshed() -> void:
 func _on_map_node_selected(node_data: Dictionary) -> void:
 	# 检查是否是商店节点
 	if node_data.type == "shop":
+		# 重置特殊商店状态
+		shop_params.is_black_market = false
+		shop_params.is_mystery_shop = false
+		shop_params.is_equipment_shop = false
+
 		# 应用商店节点特性
 		if node_data.has("discount") and node_data.discount:
 			# 应用折扣
@@ -488,8 +523,25 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 			# 重置折扣
 			apply_discount(1.0)
 
+		# 检查是否是特殊商店
+		if node_data.has("shop_type"):
+			match node_data.shop_type:
+				"black_market":
+					_trigger_black_market()
+				"mystery_shop":
+					_trigger_mystery_shop()
+				"equipment_shop":
+					_trigger_equipment_shop()
+
 		# 刷新商店
 		refresh_shop(true)
+
+	# 检查是否是精英战斗节点
+	elif node_data.type == "elite_battle" and node_data.has("result") and node_data.result == "victory":
+		# 检查神秘商店触发
+		if randf() < MYSTERY_SHOP_CHANCE:
+			_trigger_mystery_shop()
+			refresh_shop(true)
 
 # 难度变化事件处理
 func _on_difficulty_changed(old_level: int, new_level: int) -> void:
@@ -512,8 +564,164 @@ func reset() -> void:
 		"discount_rate": 1.0,
 		"max_chess_items": MAX_CHESS_ITEMS,
 		"max_equipment_items": MAX_EQUIPMENT_ITEMS,
-		"special_offer": false
+		"special_offer": false,
+		"is_black_market": false,
+		"is_mystery_shop": false,
+		"is_equipment_shop": false,
+		"consecutive_refresh_count": 0,
+		"target_chess_id": ""
 	}
 
 	# 从经济管理器同步参数
 	_sync_with_economy_manager()
+
+# 触发黑市商人
+func _trigger_black_market() -> void:
+	# 设置黑市商人状态
+	shop_params.is_black_market = true
+
+	# 应用折扣，随机60-80%折扣
+	var discount_rate = randf_range(0.6, 0.8)
+	apply_discount(discount_rate)
+
+	# 增加特殊道具
+	_add_special_black_market_items()
+
+	# 发送黑市商人触发信号
+	EventBus.debug_message.emit("黑市商人出现了！", 0)
+	EventBus.show_toast.emit(tr("ui.shop.black_market_appeared"))
+
+# 触发神秘商店
+func _trigger_mystery_shop() -> void:
+	# 设置神秘商店状态
+	shop_params.is_mystery_shop = true
+
+	# 添加高级棋子
+	_add_high_tier_chess_pieces()
+
+	# 发送神秘商店触发信号
+	EventBus.debug_message.emit("神秘商店出现了！", 0)
+	EventBus.show_toast.emit(tr("ui.shop.mystery_shop_appeared"))
+
+# 触发装备商店
+func _trigger_equipment_shop() -> void:
+	# 设置装备商店状态
+	shop_params.is_equipment_shop = true
+
+	# 增加装备数量
+	shop_params.max_equipment_items = 6
+
+	# 发送装备商店触发信号
+	EventBus.debug_message.emit("装备商店出现了！", 0)
+	EventBus.show_toast.emit(tr("ui.shop.equipment_shop_appeared"))
+
+# 添加黑市特殊道具
+func _add_special_black_market_items() -> void:
+	# 获取当前玩家等级
+	var player = player_manager.get_current_player()
+	if player == null:
+		return
+
+	# 随机添加特殊道具
+	var special_items = [
+		"equipment_disassembler",  # 装备分解券
+		"chess_transformer",       # 棋子改造卷轴
+		"refresh_token",          # 免费刷新令牌
+		"exp_potion"              # 经验药水
+	]
+
+	# 随机选择1-2个特殊道具添加到商店
+	var num_items = 1 + int(randf() < 0.5)
+	for i in range(num_items):
+		if special_items.size() > 0:
+			var index = randi() % special_items.size()
+			add_specific_item(special_items[index])
+			special_items.remove_at(index)
+
+# 添加高级棋子
+func _add_high_tier_chess_pieces() -> void:
+	# 获取当前玩家
+	var player = player_manager.get_current_player()
+	if player == null:
+		return
+
+	# 获取玩家阵容相关的棋子
+	var player_synergies = synergy_manager.get_active_synergies()
+	var related_chess_pieces = []
+
+	# 根据玩家的羁绊找出相关棋子
+	for synergy in player_synergies:
+		var synergy_chess = config_manager.get_chess_pieces_by_synergy(synergy.id)
+		related_chess_pieces.append_array(synergy_chess)
+
+	# 如果没有相关棋子，使用高费用棋子
+	if related_chess_pieces.is_empty():
+		var high_cost_chess = config_manager.get_chess_pieces_by_cost([4, 5])
+		related_chess_pieces.append_array(high_cost_chess)
+
+	# 清空当前棋子库
+	shop_items.chess.clear()
+
+	# 添加相关棋子到商店
+	var max_items = min(shop_params.max_chess_items, related_chess_pieces.size())
+	for i in range(max_items):
+		if related_chess_pieces.size() > 0:
+			var index = randi() % related_chess_pieces.size()
+			shop_items.chess.append(related_chess_pieces[index])
+			related_chess_pieces.remove_at(index)
+
+# 应用保底机制
+func _apply_pity_system(player_level: int) -> void:
+	# 检查目标棋子保底机制
+	if shop_params.target_chess_id != "" and shop_params.consecutive_refresh_count >= 3:
+		# 第4次刷新必出目标棋子
+		var chess_data = config_manager.get_chess_piece(shop_params.target_chess_id)
+		if chess_data != null and not shop_items.chess.has(chess_data):
+			# 添加目标棋子
+			shop_items.chess.append(chess_data)
+
+			# 如果超过最大棋子数量，移除一个
+			if shop_items.chess.size() > shop_params.max_chess_items:
+				shop_items.chess.remove_at(0)
+
+			# 重置计数器
+			shop_params.consecutive_refresh_count = 0
+			shop_params.target_chess_id = ""
+
+			# 发送保底触发信号
+			EventBus.debug_message.emit("保底机制触发，目标棋子出现", 0)
+
+	# 检查高等级保底机制
+	if player_level >= 8:
+		# 检查是否有至少4费以上棋子
+		var has_high_cost_chess = false
+		for chess in shop_items.chess:
+			if chess.cost >= 4:
+				has_high_cost_chess = true
+				break
+
+		# 如果没有高费用棋子，添加一个
+		if not has_high_cost_chess:
+			var high_cost_chess = config_manager.get_chess_pieces_by_cost([4, 5])
+			if not high_cost_chess.is_empty():
+				var random_index = randi() % high_cost_chess.size()
+				var chess_data = high_cost_chess[random_index]
+
+				# 添加高费用棋子
+				shop_items.chess.append(chess_data)
+
+				# 如果超过最大棋子数量，移除一个
+				if shop_items.chess.size() > shop_params.max_chess_items:
+					# 移除一个低费用棋子
+					var lowest_cost_index = 0
+					var lowest_cost = 5
+					for i in range(shop_items.chess.size() - 1):  # 不检查刚添加的棋子
+						if shop_items.chess[i].cost < lowest_cost:
+							lowest_cost = shop_items.chess[i].cost
+							lowest_cost_index = i
+					shop_items.chess.remove_at(lowest_cost_index)
+
+# 设置目标棋子（用于保底机制）
+func set_target_chess(chess_id: String) -> void:
+	shop_params.target_chess_id = chess_id
+	shop_params.consecutive_refresh_count = 0

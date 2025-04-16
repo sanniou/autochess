@@ -53,6 +53,14 @@ signal gold_changed(old_amount, new_amount)
 signal shop_refreshed
 signal item_purchased(item_data)
 signal item_sold(item_data)
+signal income_granted(amount)
+signal shop_inventory_updated(inventory)
+signal black_market_appeared
+signal mystery_shop_appeared
+signal equipment_shop_appeared
+signal chess_piece_obtained(piece_data)
+signal equipment_obtained(equipment_data)
+signal exp_gained(amount)
 
 # 装备相关信号
 signal equipment_created(equipment_data)
@@ -73,6 +81,16 @@ signal relic_removed(relic_data)
 signal event_triggered(event_data)
 signal event_choice_made(event_data, choice_data)
 signal event_completed(event_data, result_data)
+
+# 剧情相关信号
+signal story_flag_set(flag_name, value)
+signal story_branch_selected(branch_name, path)
+signal story_progress_advanced(progress)
+
+# 诅咒相关信号
+signal curse_applied(curse_type, duration)
+signal curse_removed(curse_type)
+signal curse_effect_triggered(curse_type, effect)
 
 # 玩家相关信号
 signal player_health_changed(old_health, new_health)

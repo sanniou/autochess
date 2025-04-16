@@ -173,6 +173,17 @@ func _start_battle_phase():
 	# 设置所有棋子为战斗状态
 	var pieces = board_manager.pieces
 	for piece in pieces:
+		# 重置棋子的控制效果状态
+		piece.is_silenced = false
+		piece.is_disarmed = false
+		piece.is_frozen = false
+		piece.taunted_by = null
+
+		# 清除状态效果管理器中的所有效果
+		if piece.status_effect_manager:
+			piece.status_effect_manager.clear_all_effects()
+
+		# 切换到空闲状态
 		piece.change_state(ChessPiece.ChessState.IDLE)
 
 # 更新棋子状态
@@ -199,12 +210,31 @@ func _update_chess_pieces(delta):
 
 # 处理移动逻辑
 func _process_movement(piece: ChessPiece, delta):
+	# 检查目标是否有效
+	if not piece.target or piece.target.current_state == ChessPiece.ChessState.DEAD:
+		piece.clear_target()
+		return
+
+	# 检查是否被冰冻
+	if piece.is_frozen:
+		return
+
+	# 检查是否被嘲讽
+	if piece.taunted_by and is_instance_valid(piece.taunted_by) and piece.taunted_by.current_state != ChessPiece.ChessState.DEAD:
+		# 如果被嘲讽，强制将嘲讽源设为目标
+		if piece.target != piece.taunted_by:
+			piece.set_target(piece.taunted_by)
+
 	# 简化版移动逻辑 - 实际项目中需要更复杂的寻路
 	var target_pos = piece.target.board_position
 	var dir = (Vector2(target_pos) - Vector2(piece.board_position)).normalized()
 
 	# 移动棋子
 	piece.position += dir * piece.move_speed * delta
+
+	# 如果有状态效果管理器，处理移动时的效果（如流血）
+	if piece.status_effect_manager:
+		piece.status_effect_manager.process_movement_effects()
 
 	# 检查是否到达攻击范围
 	var distance = piece.position.distance_to(piece.target.position)
@@ -216,6 +246,17 @@ func _process_attack(piece: ChessPiece, delta):
 	# 检查目标是否有效
 	if not piece.target or piece.target.current_state == ChessPiece.ChessState.DEAD:
 		piece.clear_target()
+		return
+
+	# 检查是否被嘲讽
+	if piece.taunted_by and is_instance_valid(piece.taunted_by) and piece.taunted_by.current_state != ChessPiece.ChessState.DEAD:
+		# 如果被嘲讽，强制将嘲讽源设为目标
+		if piece.target != piece.taunted_by:
+			piece.set_target(piece.taunted_by)
+			return
+
+	# 检查是否被缴械
+	if piece.is_disarmed:
 		return
 
 	# 更新攻击计时器

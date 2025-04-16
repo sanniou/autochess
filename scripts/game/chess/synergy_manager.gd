@@ -194,7 +194,9 @@ func _get_synergy_effect(synergy: String, level: int) -> Dictionary:
 		return {}
 
 	# 查找对应等级的效果
-	for lvl in config.tiers:
+	# 优先使用thresholds字段，如果不存在则尝试使用tiers字段（向后兼容）
+	var levels = config.thresholds if config.has("thresholds") and config.thresholds.size() > 0 else config.tiers if config.has("tiers") else []
+	for lvl in levels:
 		if lvl.level == level:
 			var effect = lvl.effect.duplicate(true)
 			effect.id = "synergy_%s_%d" % [synergy, level]

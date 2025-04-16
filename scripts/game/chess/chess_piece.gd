@@ -63,7 +63,17 @@ var ability: Ability = null        # 技能实例
 var weapon_slot: Equipment = null  # 武器槽
 var armor_slot: Equipment = null   # 护甲槽
 var accessory_slot: Equipment = null # 饰品槽
-var active_effects: Array = []     # 激活的效果
+var active_effects: Array = []     # 激活的效果（旧系统，保留向后兼容）
+
+# 控制效果相关
+var is_silenced: bool = false      # 是否被沉默
+var is_disarmed: bool = false      # 是否被缴械
+var is_frozen: bool = false        # 是否被冰冻
+var taunted_by = null              # 嘲讽来源
+var control_resistance: float = 0.0 # 控制抗性
+
+# 状态效果管理器
+var status_effect_manager = null   # 状态效果管理器
 
 # 位置和目标
 var board_position: Vector2i = Vector2i(-1, -1)  # 棋盘位置
@@ -97,6 +107,9 @@ func _ready():
 	# 初始化状态机
 	_initialize_state_machine()
 
+	# 初始化状态效果管理器
+	_initialize_status_effect_manager()
+
 	# 保存基础属性
 	_save_base_stats()
 
@@ -109,6 +122,11 @@ func _physics_process(delta):
 	if state_machine:
 		state_machine.physics_process(delta)
 
+	# 更新状态效果管理器
+	if status_effect_manager:
+		status_effect_manager.update(delta)
+		status_effect_manager.process_dot_effects(delta)
+
 	# 更新冷却时间
 	if current_cooldown > 0:
 		current_cooldown -= delta
@@ -116,7 +134,7 @@ func _physics_process(delta):
 			current_cooldown = 0
 
 	# 更新攻击计时器
-	if current_state == ChessState.ATTACKING:
+	if current_state == ChessState.ATTACKING and not is_disarmed:
 		attack_timer += delta
 		if attack_timer >= 1.0 / attack_speed:
 			attack_timer = 0
@@ -144,6 +162,9 @@ func initialize(piece_data: Dictionary) -> void:
 	magic_resist = piece_data.magic_resist
 	move_speed = piece_data.move_speed
 	base_move_speed = piece_data.move_speed
+
+	# 设置控制抗性（基于费用和星级）
+	control_resistance = 0.05 * cost + 0.05 * star_level  # 每费用5%，每星级5%
 
 	# 设置技能属性
 	if piece_data.has("ability"):
@@ -211,6 +232,13 @@ func upgrade() -> void:
 	current_health = max_health
 	attack_damage *= multiplier
 	ability_damage *= multiplier
+
+	# 提升控制抗性
+	control_resistance += 0.05  # 每星级提升控制抗性加5%
+
+	# 重新初始化状态效果管理器
+	if status_effect_manager:
+		_initialize_status_effect_manager()
 
 	# 更新视觉效果
 	_update_visuals()
@@ -296,6 +324,36 @@ func gain_mana(amount: float) -> float:
 	if current_state == ChessState.DEAD:
 		return 0
 
+	# 应用法力获取系数
+	var mana_gain_multiplier = 1.0
+
+	# 根据棋子星级提升法力获取
+	mana_gain_multiplier += 0.1 * star_level  # 每星级提升法力获取10%
+
+	# 根据装备提升法力获取
+	if weapon_slot and weapon_slot.has_method("get_stat") and weapon_slot.has_method("has_stat"):
+		if weapon_slot.has_stat("mana_gain"):
+			mana_gain_multiplier += weapon_slot.get_stat("mana_gain") / 100.0
+
+	if armor_slot and armor_slot.has_method("get_stat") and armor_slot.has_method("has_stat"):
+		if armor_slot.has_stat("mana_gain"):
+			mana_gain_multiplier += armor_slot.get_stat("mana_gain") / 100.0
+
+	if accessory_slot and accessory_slot.has_method("get_stat") and accessory_slot.has_method("has_stat"):
+		if accessory_slot.has_stat("mana_gain"):
+			mana_gain_multiplier += accessory_slot.get_stat("mana_gain") / 100.0
+
+	# 根据状态调整法力获取
+	if current_state == ChessState.ATTACKING:
+		# 攻击状态下获得更多法力
+		mana_gain_multiplier *= 1.2
+	elif current_state == ChessState.STUNNED:
+		# 眩晕状态下获得更少法力
+		mana_gain_multiplier *= 0.5
+
+	# 应用法力获取系数
+	amount *= mana_gain_multiplier
+
 	var old_mana = current_mana
 	current_mana = min(current_mana + amount, max_mana)
 
@@ -304,7 +362,7 @@ func gain_mana(amount: float) -> float:
 	_update_mana_bar()
 
 	# 检查是否可以释放技能
-	if current_mana >= ability_mana_cost and current_cooldown <= 0:
+	if current_mana >= ability_mana_cost and current_cooldown <= 0 and not is_silenced:
 		activate_ability()
 
 	return current_mana - old_mana
@@ -325,7 +383,12 @@ func spend_mana(amount: float) -> bool:
 
 # 激活技能
 func activate_ability() -> bool:
+	# 检查是否可以使用技能
 	if current_state == ChessState.DEAD or current_cooldown > 0 or current_mana < ability_mana_cost:
+		return false
+
+	# 检查是否被沉默
+	if is_silenced:
 		return false
 
 	# 消耗法力值
@@ -572,19 +635,92 @@ func unequip_item(slot: String) -> Equipment:
 
 # 添加效果
 func add_effect(effect_data: Dictionary) -> void:
-	# 添加效果
-	active_effects.append(effect_data)
+	# 兼容旧系统，将字典效果转换为状态效果管理器的效果
+	if status_effect_manager:
+		# 根据效果数据创建状态效果
+		var effect_type = StatusEffectManager.StatusEffectType.BUFF  # 默认为增益效果
 
-	# 应用效果
-	_apply_effect(effect_data)
+		# 根据效果属性确定类型
+		if effect_data.has("is_stun") and effect_data.is_stun:
+			effect_type = StatusEffectManager.StatusEffectType.STUN
+		elif effect_data.has("is_silence") and effect_data.is_silence:
+			effect_type = StatusEffectManager.StatusEffectType.SILENCE
+		elif effect_data.has("is_disarm") and effect_data.is_disarm:
+			effect_type = StatusEffectManager.StatusEffectType.DISARM
+		elif effect_data.has("is_taunt") and effect_data.is_taunt:
+			effect_type = StatusEffectManager.StatusEffectType.TAUNT
+		elif effect_data.has("is_slow") and effect_data.is_slow:
+			effect_type = StatusEffectManager.StatusEffectType.SLOW
+		elif effect_data.has("is_frozen") and effect_data.is_frozen:
+			effect_type = StatusEffectManager.StatusEffectType.FROZEN
+		elif effect_data.has("damage_per_second"):
+			if effect_data.has("damage_type") and effect_data.damage_type == "fire":
+				effect_type = StatusEffectManager.StatusEffectType.BURNING
+			else:
+				effect_type = StatusEffectManager.StatusEffectType.POISONED
+		elif effect_data.has("stats"):
+			# 检查是增益还是减益
+			var is_debuff = false
+			for stat_name in effect_data.stats:
+				if effect_data.stats[stat_name] < 0:
+					is_debuff = true
+					break
 
-	# 如果效果有持续时间，设置定时器
-	if effect_data.has("duration") and effect_data.duration > 0:
-		var timer = get_tree().create_timer(effect_data.duration)
-		timer.timeout.connect(_on_effect_timeout.bind(effect_data))
+			if is_debuff:
+				effect_type = StatusEffectManager.StatusEffectType.DEBUFF
+			else:
+				effect_type = StatusEffectManager.StatusEffectType.BUFF
+
+		# 创建效果
+		var effect_id = effect_data.get("id", "effect_" + str(randi()))
+		var effect_name = effect_data.get("name", "Effect")
+		var effect_description = effect_data.get("description", "")
+		var effect_duration = effect_data.get("duration", 5.0)
+		var effect_value = 0.0
+
+		# 根据效果类型设置值
+		if effect_type == StatusEffectManager.StatusEffectType.SLOW and effect_data.has("stats") and effect_data.stats.has("move_speed"):
+			effect_value = abs(effect_data.stats.move_speed) / base_move_speed
+		elif effect_type == StatusEffectManager.StatusEffectType.BURNING and effect_data.has("damage_per_second"):
+			effect_value = effect_data.damage_per_second
+		elif effect_type == StatusEffectManager.StatusEffectType.POISONED and effect_data.has("damage_per_second"):
+			effect_value = effect_data.damage_per_second
+
+		# 创建状态效果对象
+		var status_effect = StatusEffectManager.StatusEffect.new(
+			effect_id,
+			effect_type,
+			effect_name,
+			effect_description,
+			effect_duration,
+			effect_value,
+			effect_data.get("source", null),
+			effect_data.get("icon", ""),
+			effect_data.get("is_stackable", false)
+		)
+
+		# 添加到状态效果管理器
+		status_effect_manager.add_effect(status_effect)
+	else:
+		# 旧系统兼容处理
+		# 添加效果
+		active_effects.append(effect_data)
+
+		# 应用效果
+		_apply_effect(effect_data)
+
+		# 如果效果有持续时间，设置定时器
+		if effect_data.has("duration") and effect_data.duration > 0:
+			var timer = get_tree().create_timer(effect_data.duration)
+			timer.timeout.connect(_on_effect_timeout.bind(effect_data))
 
 # 移除效果
 func remove_effect(effect_id: String) -> void:
+	# 先尝试使用状态效果管理器
+	if status_effect_manager:
+		status_effect_manager.remove_effect(effect_id)
+
+	# 兼容旧系统
 	var index = -1
 
 	# 查找效果
@@ -693,7 +829,8 @@ func _save_base_stats() -> void:
 		"crit_chance": crit_chance,
 		"crit_damage": crit_damage,
 		"dodge_chance": dodge_chance,
-		"elemental_effect_chance": elemental_effect_chance
+		"elemental_effect_chance": elemental_effect_chance,
+		"control_resistance": control_resistance
 	}
 
 # 重置属性到基础值
@@ -710,6 +847,13 @@ func _reset_stats() -> void:
 	crit_damage = base_stats.crit_damage
 	dodge_chance = base_stats.dodge_chance
 	elemental_effect_chance = base_stats.elemental_effect_chance
+	control_resistance = base_stats.control_resistance
+
+	# 重置控制效果状态
+	is_silenced = false
+	is_disarmed = false
+	is_frozen = false
+	taunted_by = null
 
 	# 确保当前生命值不超过最大生命值
 	current_health = min(current_health, max_health)
@@ -734,8 +878,18 @@ func reset() -> void:
 	attack_timer = 0
 	current_cooldown = 0
 
+	# 重置控制效果状态
+	is_silenced = false
+	is_disarmed = false
+	is_frozen = false
+	taunted_by = null
+
 	# 重置效果
 	active_effects.clear()
+
+	# 清除状态效果管理器中的所有效果
+	if status_effect_manager:
+		status_effect_manager.clear_all_effects()
 
 	# 更新显示
 	_update_health_bar()
@@ -925,6 +1079,14 @@ func _initialize_state_machine() -> void:
 
 	# 设置初始状态
 	state_machine.set_initial_state("idle")
+
+# 初始化状态效果管理器
+func _initialize_status_effect_manager() -> void:
+	# 创建状态效果管理器实例
+	status_effect_manager = StatusEffectManager.new(self)
+
+	# 设置控制抗性（根据星级提升）
+	control_resistance = 0.1 * star_level  # 基础值10%，每星级提升10%
 
 # 连接信号
 func _connect_signals() -> void:
@@ -1182,9 +1344,22 @@ func _on_state_moving_process(delta: float) -> void:
 		state_machine.change_state("idle")
 		return
 
+	# 检查是否被冰冻
+	if is_frozen:
+		return
+
+	# 检查是否被嘲讽
+	if taunted_by and is_instance_valid(taunted_by) and taunted_by.current_state != ChessState.DEAD:
+		# 如果被嘲讽，强制将嘲讽源设为目标
+		target = taunted_by
+
 	# 移动到目标
 	var direction = (target.global_position - global_position).normalized()
 	global_position += direction * move_speed * delta
+
+	# 如果有状态效果管理器，处理移动时的效果（如流血）
+	if status_effect_manager:
+		status_effect_manager.process_movement_effects()
 
 	# 检查是否到达攻击范围
 	var distance = global_position.distance_to(target.global_position)
@@ -1214,6 +1389,17 @@ func _on_state_attacking_process(delta: float) -> void:
 		state_machine.change_state("idle")
 		return
 
+	# 检查是否被嘲讽
+	if taunted_by and is_instance_valid(taunted_by) and taunted_by.current_state != ChessState.DEAD:
+		# 如果被嘲讽，强制将嘲讽源设为目标
+		if target != taunted_by:
+			target = taunted_by
+			# 检查是否超出攻击范围
+			var taunt_distance = global_position.distance_to(target.global_position)
+			if taunt_distance > attack_range * 64:
+				state_machine.change_state("moving")
+				return
+
 	# 检查是否超出攻击范围
 	var distance = global_position.distance_to(target.global_position)
 	if distance > attack_range * 64:  # 假设一个格子是64像素
@@ -1221,13 +1407,14 @@ func _on_state_attacking_process(delta: float) -> void:
 		return
 
 	# 更新攻击计时器
-	attack_timer += delta
-	if attack_timer >= 1.0 / attack_speed:
-		attack_timer = 0
-		_perform_attack()
+	if not is_disarmed:  # 检查是否被缴械
+		attack_timer += delta
+		if attack_timer >= 1.0 / attack_speed:
+			attack_timer = 0
+			_perform_attack()
 
 	# 检查是否可以释放技能
-	if current_mana >= ability_mana_cost and current_cooldown <= 0:
+	if current_mana >= ability_mana_cost and current_cooldown <= 0 and not is_silenced:
 		activate_ability()
 
 # 施法状态进入

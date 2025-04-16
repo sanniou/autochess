@@ -40,6 +40,8 @@ var chess_manager = null
 var equipment_manager = null
 var relic_manager = null
 var event_manager = null
+var curse_manager = null
+var story_manager = null
 var ui_manager = null
 var scene_manager = null
 var theme_manager = null
@@ -195,6 +197,18 @@ func _initialize_systems() -> void:
 		event_manager = EventManager.new()
 		add_child(event_manager)
 		event_manager.name = "EventManager"
+
+	# 初始化诅咒管理器
+	if curse_manager == null:
+		curse_manager = CurseManager.new()
+		add_child(curse_manager)
+		curse_manager.name = "CurseManager"
+
+	# 初始化剧情管理器
+	if story_manager == null:
+		story_manager = StoryManager.new()
+		add_child(story_manager)
+		story_manager.name = "StoryManager"
 
 	# 初始化地图管理器
 	if map_manager == null:
