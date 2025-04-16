@@ -28,20 +28,20 @@ var battle_result = false
 
 func _ready():
 	# 设置标签文本
-	$TopPanel/RoundLabel.text = LocalizationManager.tr("ui.battle.round", [str(current_round)])
+	$TopPanel/RoundLabel.text = LocalizationManager.tr("ui.battle.round").format({"round": str(current_round)})
 	$TopPanel/PhaseLabel.text = LocalizationManager.tr("ui.battle.prepare")
-	$TopPanel/TimeLabel.text = LocalizationManager.tr("ui.battle.time_left", [str(prepare_time)])
-	
+	$TopPanel/TimeLabel.text = LocalizationManager.tr("ui.battle.time_left").format({"time": str(prepare_time)})
+
 	$BottomPanel/ButtonContainer/StartButton.text = LocalizationManager.tr("ui.battle.start")
 	$BottomPanel/ButtonContainer/SkipButton.text = LocalizationManager.tr("ui.battle.skip")
 	$BottomPanel/ButtonContainer/AutoButton.text = LocalizationManager.tr("ui.battle.auto")
-	
+
 	# 初始化战斗场景
 	_initialize_battle()
-	
+
 	# 开始准备阶段
 	_start_prepare_phase()
-	
+
 	# 播放战斗音乐
 	AudioManager.play_music("battle.ogg")
 
@@ -52,37 +52,25 @@ func _process(delta):
 		if current_time <= 0:
 			current_time = 0
 			_start_fighting_phase()
-		
-		$TopPanel/TimeLabel.text = LocalizationManager.tr("ui.battle.time_left", [str(int(current_time))])
 
-## 初始化战斗场景
-func _initialize_battle() -> void:
-	# 创建棋盘格子
-	_create_board_cells()
-	
-	# 创建备战区格子
-	_create_bench_cells()
-	
-	# 生成敌方棋子
-	_generate_enemy_pieces()
-	
-	# 加载玩家棋子
-	_load_player_pieces()
+		$TopPanel/TimeLabel.text = LocalizationManager.tr("ui.battle.time_left").format({"time": str(int(current_time))})
+
+
 
 ## 创建棋盘格子
 func _create_board_cells() -> void:
 	# 清除现有格子
 	for child in $BoardContainer/PlayerBoard.get_children():
 		child.queue_free()
-	
+
 	for child in $BoardContainer/EnemyBoard.get_children():
 		child.queue_free()
-	
+
 	# 创建玩家棋盘格子
 	for i in range(32):  # 4行8列
 		var cell = _create_board_cell()
 		$BoardContainer/PlayerBoard.add_child(cell)
-	
+
 	# 创建敌方棋盘格子
 	for i in range(32):  # 4行8列
 		var cell = _create_board_cell()
@@ -92,11 +80,11 @@ func _create_board_cells() -> void:
 func _create_board_cell() -> Control:
 	var cell = Control.new()
 	cell.custom_minimum_size = Vector2(80, 80)
-	
+
 	var panel = Panel.new()
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	cell.add_child(panel)
-	
+
 	return cell
 
 ## 创建备战区格子
@@ -104,7 +92,7 @@ func _create_bench_cells() -> void:
 	# 清除现有格子
 	for child in $BottomPanel/BenchContainer.get_children():
 		child.queue_free()
-	
+
 	# 创建备战区格子
 	for i in range(8):
 		var cell = _create_board_cell()
@@ -126,26 +114,26 @@ func _load_player_pieces() -> void:
 func _start_prepare_phase() -> void:
 	current_state = BattleState.PREPARE
 	current_time = prepare_time
-	
+
 	$TopPanel/PhaseLabel.text = LocalizationManager.tr("ui.battle.prepare")
 	$BottomPanel/ButtonContainer/StartButton.disabled = false
 	$BottomPanel/ButtonContainer/SkipButton.disabled = false
-	
+
 	# 发送战斗准备信号
 	EventBus.battle_round_started.emit(current_round)
 
 ## 开始战斗阶段
 func _start_fighting_phase() -> void:
 	current_state = BattleState.FIGHTING
-	
+
 	$TopPanel/PhaseLabel.text = LocalizationManager.tr("ui.battle.fighting")
 	$BottomPanel/ButtonContainer/StartButton.disabled = true
 	$BottomPanel/ButtonContainer/SkipButton.disabled = false
-	
+
 	# 获取玩家和敌方棋子
 	var player_team = get_tree().get_nodes_in_group("player_chess_pieces")
 	var enemy_team = get_tree().get_nodes_in_group("enemy_chess_pieces")
-	
+
 	# 开始战斗
 	battle_manager.start_battle(player_team, enemy_team)
 
@@ -156,16 +144,16 @@ var battle_manager = null
 func _initialize_battle() -> void:
 	# 创建棋盘格子
 	_create_board_cells()
-	
+
 	# 创建备战区格子
 	_create_bench_cells()
-	
+
 	# 生成敌方棋子
 	_generate_enemy_pieces()
-	
+
 	# 加载玩家棋子
 	_load_player_pieces()
-	
+
 	# 创建战斗管理器
 	battle_manager = BattleManager.new()
 	add_child(battle_manager)
@@ -175,17 +163,17 @@ func _initialize_battle() -> void:
 func _on_battle_ended(victory: bool) -> void:
 	current_state = BattleState.RESULT
 	battle_result = victory
-	
+
 	# 显示战斗结果
 	if battle_result:
 		$TopPanel/PhaseLabel.text = LocalizationManager.tr("ui.battle.victory")
 	else:
 		$TopPanel/PhaseLabel.text = LocalizationManager.tr("ui.battle.defeat")
-	
+
 	# 发送战斗结束信号
 	EventBus.battle_ended.emit(battle_result)
 	EventBus.battle_round_ended.emit(current_round)
-	
+
 	# 延迟返回地图
 	var timer = get_tree().create_timer(2.0)
 	timer.timeout.connect(_return_to_map)
@@ -197,27 +185,27 @@ func _return_to_map() -> void:
 ## 开始战斗按钮处理
 func _on_start_button_pressed() -> void:
 	AudioManager.play_ui_sound("button_click.ogg")
-	
+
 	if current_state == BattleState.PREPARE:
 		_start_fighting_phase()
 
 ## 跳过战斗按钮处理
 func _on_skip_button_pressed() -> void:
 	AudioManager.play_ui_sound("button_click.ogg")
-	
+
 	if current_state == BattleState.PREPARE or current_state == BattleState.FIGHTING:
 		# 直接结束战斗
 		if current_state == BattleState.PREPARE:
 			EventBus.battle_started.emit()
-		
+
 		_on_battle_ended(randf() > 0.5)  # 跳过时随机结果
 
 ## 自动战斗按钮处理
 func _on_auto_button_pressed() -> void:
 	AudioManager.play_ui_sound("button_click.ogg")
-	
+
 	auto_battle = !auto_battle
-	
+
 	if auto_battle:
 		$BottomPanel/ButtonContainer/AutoButton.text = LocalizationManager.tr("ui.battle.auto") + " (开启)"
 	else:

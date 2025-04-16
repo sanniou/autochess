@@ -11,7 +11,7 @@ var current_state = null
 var previous_state = null
 
 # 状态机所有者
-var owner = null
+var state_owner = null
 
 # 是否激活
 var active = true
@@ -19,11 +19,11 @@ var active = true
 # 初始化
 func _ready():
 	# 获取所有者
-	owner = get_parent()
-	
+	state_owner = get_parent()
+
 	# 等待一帧，确保所有状态都已注册
 	await get_tree().process_frame
-	
+
 	# 如果有初始状态，切换到初始状态
 	if states.size() > 0 and current_state == null:
 		var first_state = states.keys()[0]
@@ -33,7 +33,7 @@ func _ready():
 func physics_process(delta):
 	if not active or current_state == null:
 		return
-	
+
 	# 更新当前状态
 	var state = states[current_state]
 	if state.has("physics_process"):
@@ -47,7 +47,7 @@ func register_state(state_name: String, state_dict: Dictionary) -> void:
 func set_initial_state(state_name: String) -> void:
 	if states.has(state_name):
 		current_state = state_name
-		
+
 		# 调用进入状态回调
 		var state = states[current_state]
 		if state.has("enter"):
@@ -58,22 +58,22 @@ func change_state(new_state_name: String) -> void:
 	if not states.has(new_state_name):
 		push_error("状态不存在: " + new_state_name)
 		return
-	
+
 	if current_state == new_state_name:
 		return
-	
+
 	# 调用退出状态回调
 	if current_state != null and states.has(current_state):
 		var state = states[current_state]
 		if state.has("exit"):
 			state.exit()
-	
+
 	# 保存前一个状态
 	previous_state = current_state
-	
+
 	# 切换到新状态
 	current_state = new_state_name
-	
+
 	# 调用进入状态回调
 	var state = states[current_state]
 	if state.has("enter"):

@@ -196,7 +196,8 @@ func _update_chess_pieces(delta):
 
 		# 自动寻找目标
 		if piece.current_state == ChessPiece.ChessState.IDLE:
-			var target = board_manager.find_attack_target(piece)
+			# 寻找最近的敌人棋子
+			var target = _find_nearest_enemy(piece)
 			if target:
 				piece.set_target(target)
 
@@ -209,7 +210,7 @@ func _update_chess_pieces(delta):
 			_process_attack(piece, delta)
 
 # 处理移动逻辑
-func _process_movement(piece: ChessPiece, delta):
+func _process_movement(piece, delta):
 	# 检查目标是否有效
 	if not piece.target or piece.target.current_state == ChessPiece.ChessState.DEAD:
 		piece.clear_target()
@@ -242,7 +243,7 @@ func _process_movement(piece: ChessPiece, delta):
 		piece.change_state(ChessPiece.ChessState.ATTACKING)
 
 # 处理攻击逻辑
-func _process_attack(piece: ChessPiece, delta):
+func _process_attack(piece, delta):
 	# 检查目标是否有效
 	if not piece.target or piece.target.current_state == ChessPiece.ChessState.DEAD:
 		piece.clear_target()
@@ -386,7 +387,7 @@ func set_battle_speed(speed: float) -> void:
 	EventBus.battle_speed_changed.emit(battle_speed)
 
 # 棋子死亡事件处理
-func _on_chess_piece_died(piece: ChessPiece):
+func _on_chess_piece_died(piece):
 	# 从对应数组中移除
 	if piece.is_player_piece:
 		player_pieces.erase(piece)
@@ -448,7 +449,7 @@ func _calculate_victory_condition() -> bool:
 	return false
 
 # 伤害事件处理
-func _on_damage_dealt(source: ChessPiece, target: ChessPiece, amount: float, damage_type: String) -> void:
+func _on_damage_dealt(source, target, amount: float, damage_type: String) -> void:
 	# 更新战斗统计
 	if source and source.is_player_piece:
 		# 玩家造成伤害
@@ -458,7 +459,7 @@ func _on_damage_dealt(source: ChessPiece, target: ChessPiece, amount: float, dam
 		battle_stats.enemy_damage_dealt += amount
 
 # 治疗事件处理
-func _on_healing_done(target: ChessPiece, amount: float, source = null) -> void:
+func _on_healing_done(target, amount: float, source = null) -> void:
 	# 更新战斗统计
 	if target and target.is_player_piece:
 		# 玩家治疗
@@ -468,7 +469,7 @@ func _on_healing_done(target: ChessPiece, amount: float, source = null) -> void:
 		battle_stats.enemy_healing += amount
 
 # 技能使用事件处理
-func _on_ability_used(piece: ChessPiece, ability_data: Dictionary) -> void:
+func _on_ability_used(piece, ability_data: Dictionary) -> void:
 	# 更新战斗统计
 	battle_stats.abilities_used += 1
 
@@ -499,49 +500,33 @@ func _process_battle_rewards(result: Dictionary):
 		# 生成随机棋子
 		EventBus.chess_piece_obtained.emit(null)  # 暂时使用null，应该由棋子系统生成
 
-# 更新棋子状态
-func _update_chess_pieces(delta):
-	# 更新玩家棋子
-	for piece in player_pieces:
-		# 跳过死亡棋子
-		if piece.current_state == ChessPiece.ChessState.DEAD:
-			continue
+# 寻找最近的敌人棋子
+func _find_nearest_enemy(piece) -> Object:
+	# 获取敌人棋子列表
+	var target_pieces = []
+	if piece.is_player_piece:
+		target_pieces = enemy_pieces
+	else:
+		target_pieces = player_pieces
 
-		# 更新状态
-		piece.update_state(delta)
-
-		# 如果没有目标，查找最近的敌人
-		if piece.target == null and piece.current_state != ChessPiece.ChessState.DEAD:
-			piece.target = _find_nearest_enemy(piece, enemy_pieces)
-
-	# 更新敌方棋子
-	for piece in enemy_pieces:
-		# 跳过死亡棋子
-		if piece.current_state == ChessPiece.ChessState.DEAD:
-			continue
-
-		# 更新状态
-		piece.update_state(delta)
-
-		# 如果没有目标，查找最近的敌人
-		if piece.target == null and piece.current_state != ChessPiece.ChessState.DEAD:
-			piece.target = _find_nearest_enemy(piece, player_pieces)
-
-# 查找最近的敌人
-func _find_nearest_enemy(piece: ChessPiece, enemies: Array) -> ChessPiece:
-	if enemies.is_empty():
+	# 如果没有敌人，返回null
+	if target_pieces.is_empty():
 		return null
 
+	# 找到最近的敌人
 	var nearest_enemy = null
-	var min_distance = INF
+	var min_distance = 9999.0
 
-	for enemy in enemies:
+	for enemy in target_pieces:
+		# 跳过死亡棋子
 		if enemy.current_state == ChessPiece.ChessState.DEAD:
 			continue
 
-		var distance = piece.global_position.distance_to(enemy.global_position)
+		# 计算距离
+		var distance = piece.position.distance_to(enemy.position)
 		if distance < min_distance:
 			min_distance = distance
 			nearest_enemy = enemy
 
 	return nearest_enemy
+

@@ -328,9 +328,7 @@ func get_current_node() -> MapNode:
 func get_selectable_nodes() -> Array:
 	return selectable_nodes
 
-## 获取所有节点
-func get_all_nodes() -> Dictionary:
-	return nodes
+
 
 ## 获取地图完成状态
 func is_map_completed() -> bool:
@@ -472,7 +470,7 @@ func _trigger_mystery_node(node: MapNode) -> void:
 			mystery_node.heal_amount = 30 + node.layer * 5  # 神秘休息点治疗量更高
 
 	# 显示提示
-	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.mystery_revealed", [LocalizationManager.tr("ui.map.node_" + random_type)]))
+	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.mystery_revealed").format({"type": LocalizationManager.tr("ui.map.node_" + random_type)}))
 
 	# 触发对应类型的节点事件
 	_trigger_node_event(mystery_node)

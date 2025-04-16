@@ -329,43 +329,40 @@ func _get_node_tooltip() -> String:
 			else:
 				difficulty_text = LocalizationManager.tr("ui.map.difficulty_extreme")
 
-			tooltip += LocalizationManager.tr("ui.map.difficulty", [difficulty_text, str(node_data.get("enemy_level", 1))]) + "\n"
+			tooltip += LocalizationManager.tr("ui.map.difficulty").format({"difficulty": difficulty_text, "level": str(node_data.get("enemy_level", 1))}) + "\n"
 
 			# 添加奖励信息
 			var rewards = node_data.get("rewards", {})
 			if rewards.has("gold"):
-				tooltip += LocalizationManager.tr("ui.map.reward_gold", [str(rewards.gold)]) + "\n"
+				tooltip += LocalizationManager.tr("ui.map.reward_gold").format({"amount": str(rewards.gold)}) + "\n"
 			if rewards.has("exp"):
-				tooltip += LocalizationManager.tr("ui.map.reward_exp", [str(rewards.exp)]) + "\n"
+				tooltip += LocalizationManager.tr("ui.map.reward_exp").format({"amount": str(rewards.exp)}) + "\n"
 		"shop":
 			# 添加商店信息
 			if node_data.get("discount", false):
-				tooltip += LocalizationManager.tr("ui.shop.discount", ["20%"]) + "\n"
+				tooltip += LocalizationManager.tr("ui.shop.discount").format({"percent": "20%"}) + "\n"
 		"treasure":
 			# 添加宝藏信息
 			var rewards = node_data.get("rewards", {})
 			if rewards.has("gold"):
-				tooltip += LocalizationManager.tr("ui.map.reward_gold", [str(rewards.gold)]) + "\n"
+				tooltip += LocalizationManager.tr("ui.map.reward_gold").format({"amount": str(rewards.gold)}) + "\n"
 			if rewards.has("equipment") and rewards.equipment.has("guaranteed") and rewards.equipment.guaranteed:
 				var quality = rewards.equipment.get("quality", 1)
-				tooltip += LocalizationManager.tr("ui.map.reward_equipment", [str(quality)]) + "\n"
+				tooltip += LocalizationManager.tr("ui.map.reward_equipment").format({"quality": str(quality)}) + "\n"
 			if rewards.has("relic") and rewards.relic.has("guaranteed") and rewards.relic.guaranteed:
 				var rarity = rewards.relic.get("rarity", 0)
-				tooltip += LocalizationManager.tr("ui.map.reward_relic", [str(rarity)]) + "\n"
+				tooltip += LocalizationManager.tr("ui.map.reward_relic").format({"rarity": str(rarity)}) + "\n"
 		"rest":
 			# 添加休息信息
 			var heal_amount = node_data.get("heal_amount", 0)
-			tooltip += LocalizationManager.tr("ui.map.reward_heal", [str(heal_amount)]) + "\n"
+			tooltip += LocalizationManager.tr("ui.map.reward_heal").format({"amount": str(heal_amount)}) + "\n"
 		"event":
 			# 添加事件信息
 			tooltip += LocalizationManager.tr("ui.event.random_event") + "\n"
 
 	return tooltip.strip_edges()
 
-## 鼠标离开处理
-func _on_mouse_exited() -> void:
-	# 恢复原始大小
-	scale = Vector2(1.0, 1.0)
+
 
 ## 添加粒子效果
 func _add_particle_effect(color: Color) -> void:

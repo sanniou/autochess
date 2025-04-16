@@ -16,13 +16,13 @@ func _ready() -> void:
 	var altar_params = game_manager.altar_params
 	if altar_params:
 		altar_type = altar_params.get("altar_type", "")
-	
+
 	# 连接信号
 	EventBus.altar_sacrifice_made.connect(_on_altar_sacrifice_made)
-	
+
 	# 播放背景音乐
 	AudioManager.play_music("altar_theme.ogg")
-	
+
 	# 显示祭坛效果
 	_show_altar_effect()
 
@@ -53,7 +53,7 @@ func _show_health_altar_effect() -> void:
 	particles.position = Vector2(get_viewport().size.x / 2, get_viewport().size.y / 2)
 	particles.amount = 100
 	particles.lifetime = 2.0
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	particles.emission_sphere_radius = 100.0
 	particles.direction = Vector2(0, -1)
 	particles.spread = 45.0
@@ -71,7 +71,7 @@ func _show_attack_altar_effect() -> void:
 	particles.position = Vector2(get_viewport().size.x / 2, get_viewport().size.y / 2)
 	particles.amount = 100
 	particles.lifetime = 2.0
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	particles.emission_sphere_radius = 100.0
 	particles.direction = Vector2(0, -1)
 	particles.spread = 45.0
@@ -89,7 +89,7 @@ func _show_defense_altar_effect() -> void:
 	particles.position = Vector2(get_viewport().size.x / 2, get_viewport().size.y / 2)
 	particles.amount = 100
 	particles.lifetime = 2.0
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	particles.emission_sphere_radius = 100.0
 	particles.direction = Vector2(0, -1)
 	particles.spread = 45.0
@@ -107,7 +107,7 @@ func _show_ability_altar_effect() -> void:
 	particles.position = Vector2(get_viewport().size.x / 2, get_viewport().size.y / 2)
 	particles.amount = 100
 	particles.lifetime = 2.0
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	particles.emission_sphere_radius = 100.0
 	particles.direction = Vector2(0, -1)
 	particles.spread = 45.0
@@ -125,7 +125,7 @@ func _show_gold_altar_effect() -> void:
 	particles.position = Vector2(get_viewport().size.x / 2, get_viewport().size.y / 2)
 	particles.amount = 100
 	particles.lifetime = 2.0
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	particles.emission_sphere_radius = 100.0
 	particles.direction = Vector2(0, -1)
 	particles.spread = 45.0
@@ -140,10 +140,10 @@ func _show_gold_altar_effect() -> void:
 func _on_altar_sacrifice_made(altar_type: String, sacrifice_data: Dictionary) -> void:
 	# 播放牺牲音效
 	AudioManager.play_sfx("altar_sacrifice.ogg")
-	
+
 	# 显示牺牲效果
 	_show_sacrifice_effect(sacrifice_data)
-	
+
 	# 延迟返回地图
 	var timer = get_tree().create_timer(2.0)
 	timer.timeout.connect(func(): game_manager.change_state(GameManager.GameState.MAP))
@@ -155,7 +155,7 @@ func _show_sacrifice_effect(sacrifice_data: Dictionary) -> void:
 	particles.position = Vector2(get_viewport().size.x / 2, get_viewport().size.y / 2)
 	particles.amount = 200
 	particles.lifetime = 2.0
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
+	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
 	particles.emission_sphere_radius = 150.0
 	particles.direction = Vector2(0, -1)
 	particles.spread = 180.0
@@ -163,7 +163,7 @@ func _show_sacrifice_effect(sacrifice_data: Dictionary) -> void:
 	particles.initial_velocity_min = 100.0
 	particles.initial_velocity_max = 200.0
 	particles.scale_amount = 8.0
-	
+
 	# 根据物品类型设置颜色
 	match sacrifice_data.type:
 		"chess":
@@ -174,9 +174,9 @@ func _show_sacrifice_effect(sacrifice_data: Dictionary) -> void:
 			particles.color = Color(0.8, 0.2, 0.8, 0.8)
 		"relic":
 			particles.color = Color(1.0, 0.8, 0.2, 0.8)
-	
+
 	add_child(particles)
-	
+
 	# 显示获得效果的文本
 	var label = Label.new()
 	label.text = "+" + str(sacrifice_data.value)
@@ -184,7 +184,7 @@ func _show_sacrifice_effect(sacrifice_data: Dictionary) -> void:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.position = Vector2(get_viewport().size.x / 2 - 50, get_viewport().size.y / 2 - 50)
 	label.add_theme_font_size_override("font_size", 48)
-	
+
 	# 根据物品类型设置颜色
 	match sacrifice_data.type:
 		"chess":
@@ -195,9 +195,9 @@ func _show_sacrifice_effect(sacrifice_data: Dictionary) -> void:
 			label.add_theme_color_override("font_color", Color(0.8, 0.2, 0.8))
 		"relic":
 			label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2))
-	
+
 	add_child(label)
-	
+
 	# 创建动画
 	var tween = create_tween()
 	tween.tween_property(label, "position:y", label.position.y - 100, 2.0)

@@ -18,7 +18,7 @@ func _ready():
 	$Title.text = LocalizationManager.tr("ui.shop.title")
 
 	# 设置按钮文本
-	$BottomPanel/ButtonContainer/RefreshButton.text = LocalizationManager.tr("ui.shop.refresh_cost", [str(shop_manager.get_current_refresh_cost())])
+	$BottomPanel/ButtonContainer/RefreshButton.text = LocalizationManager.tr("ui.shop.refresh_cost").format({"cost": str(shop_manager.get_current_refresh_cost())})
 	$BottomPanel/ButtonContainer/LockButton.text = LocalizationManager.tr("ui.shop.lock")
 	$BottomPanel/ButtonContainer/BackButton.text = LocalizationManager.tr("ui.common.back")
 
@@ -42,9 +42,9 @@ func _update_player_info() -> void:
 	if current_player == null:
 		return
 
-	$BottomPanel/PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health", [str(current_player.current_health), str(current_player.max_health)])
-	$BottomPanel/PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold", [str(current_player.gold)])
-	$BottomPanel/PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level", [str(current_player.level)])
+	$BottomPanel/PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health").format({"current": str(current_player.current_health), "max": str(current_player.max_health)})
+	$BottomPanel/PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": str(current_player.gold)})
+	$BottomPanel/PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": str(current_player.level)})
 
 ## 刷新商店
 func _refresh_shop() -> void:
@@ -83,7 +83,7 @@ func _create_shop_item(item_data: Dictionary, item_type: String) -> Control:
 
 	# 物品图标
 	var icon = TextureRect.new()
-	icon.expand_mode = TextureRect.EXPAND_KEEP_ASPECT_CENTERED
+	icon.expand_mode = 1 # Ignore Size
 	icon.custom_minimum_size = Vector2(80, 80)
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 
@@ -111,7 +111,7 @@ func _create_shop_item(item_data: Dictionary, item_type: String) -> Control:
 	# 物品价格
 	var price_label = Label.new()
 	var price = item_data.cost if item_type == "chess" else 3  # 装备固定价格为3
-	price_label.text = LocalizationManager.tr("ui.shop.cost", [str(price)])
+	price_label.text = LocalizationManager.tr("ui.shop.cost").format({"cost": str(price)})
 	price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	vbox.add_child(price_label)
 
@@ -202,17 +202,17 @@ func _on_back_button_pressed() -> void:
 ## 玩家金币变化事件处理
 func _on_player_gold_changed(old_value: int, new_value: int) -> void:
 	# 更新金币显示
-	$BottomPanel/PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold", [str(new_value)])
+	$BottomPanel/PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": str(new_value)})
 
 ## 玩家生命值变化事件处理
 func _on_player_health_changed(old_value: int, new_value: int) -> void:
 	# 更新生命值显示
-	$BottomPanel/PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health", [str(new_value), str(current_player.max_health)])
+	$BottomPanel/PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health").format({"current": str(new_value), "max": str(current_player.max_health)})
 
 ## 玩家等级变化事件处理
 func _on_player_level_changed(old_level: int, new_level: int) -> void:
 	# 更新等级显示
-	$BottomPanel/PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level", [str(new_level)])
+	$BottomPanel/PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": str(new_level)})
 
 	# 刷新商店（等级变化可能影响可购买的棋子和装备）
 	shop_manager.refresh_shop(true)

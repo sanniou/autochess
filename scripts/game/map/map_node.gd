@@ -91,21 +91,21 @@ func get_rewards_description() -> String:
 	var desc = ""
 
 	if rewards.has("gold"):
-		desc += LocalizationManager.tr("ui.map.reward_gold", [str(rewards.gold)]) + "\n"
+		desc += LocalizationManager.tr("ui.map.reward_gold").format({"amount": str(rewards.gold)}) + "\n"
 
 	if rewards.has("exp"):
-		desc += LocalizationManager.tr("ui.map.reward_exp", [str(rewards.exp)]) + "\n"
+		desc += LocalizationManager.tr("ui.map.reward_exp").format({"amount": str(rewards.exp)}) + "\n"
 
 	if rewards.has("equipment") and rewards.equipment.has("guaranteed") and rewards.equipment.guaranteed:
 		var quality = rewards.equipment.get("quality", 1)
-		desc += LocalizationManager.tr("ui.map.reward_equipment", [str(quality)]) + "\n"
+		desc += LocalizationManager.tr("ui.map.reward_equipment").format({"quality": str(quality)}) + "\n"
 
 	if rewards.has("relic") and rewards.relic.has("guaranteed") and rewards.relic.guaranteed:
 		var rarity = rewards.relic.get("rarity", 0)
-		desc += LocalizationManager.tr("ui.map.reward_relic", [str(rarity)]) + "\n"
+		desc += LocalizationManager.tr("ui.map.reward_relic").format({"rarity": str(rarity)}) + "\n"
 
 	if rewards.has("heal"):
-		desc += LocalizationManager.tr("ui.map.reward_heal", [str(rewards.heal)]) + "\n"
+		desc += LocalizationManager.tr("ui.map.reward_heal").format({"amount": str(rewards.heal)}) + "\n"
 
 	return desc.strip_edges()
 
@@ -123,21 +123,21 @@ func get_difficulty_description() -> String:
 		else:
 			difficulty_text = LocalizationManager.tr("ui.map.difficulty_extreme")
 
-		var desc = LocalizationManager.tr("ui.map.difficulty", [difficulty_text, str(enemy_level)])
+		var desc = LocalizationManager.tr("ui.map.difficulty").format({"difficulty": difficulty_text, "level": str(enemy_level)})
 
 		# 挑战节点显示挑战类型
 		if type == "challenge" and not challenge_type.is_empty():
-			desc += "\n" + LocalizationManager.tr("ui.map.challenge_type", [LocalizationManager.tr("ui.challenge." + challenge_type)])
+			desc += "\n" + LocalizationManager.tr("ui.map.challenge_type").format({"type": LocalizationManager.tr("ui.challenge." + challenge_type)})
 
 		return desc
 
 	# 祭坛节点显示祭坛类型
 	if type == "altar" and not altar_type.is_empty():
-		return LocalizationManager.tr("ui.map.altar_type", [LocalizationManager.tr("ui.altar." + altar_type)])
+		return LocalizationManager.tr("ui.map.altar_type").format({"type": LocalizationManager.tr("ui.altar." + altar_type)})
 
 	# 铁匠铺节点显示服务类型
 	if type == "blacksmith" and not blacksmith_service.is_empty():
-		return LocalizationManager.tr("ui.map.blacksmith_service", [LocalizationManager.tr("ui.blacksmith." + blacksmith_service)])
+		return LocalizationManager.tr("ui.map.blacksmith_service").format({"service": LocalizationManager.tr("ui.blacksmith." + blacksmith_service)})
 
 	return ""
 

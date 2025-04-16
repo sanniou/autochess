@@ -45,14 +45,14 @@ func _update_player_info() -> void:
 	var player_manager = get_node("/root/GameManager/PlayerManager")
 	if player_manager and player_manager.current_player:
 		var player = player_manager.current_player
-		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health", [str(player.current_health), str(player.max_health)])
-		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold", [str(player.gold)])
-		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level", [str(player.level)])
+		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health").format({"current": str(player.current_health), "max": str(player.max_health)})
+		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": str(player.gold)})
+		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": str(player.level)})
 	else:
 		# 没有玩家数据时使用默认值
-		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health", ["100", "100"])
-		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold", ["0"])
-		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level", ["1"])
+		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health").format({"current": "100", "max": "100"})
+		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": "0"})
+		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": "1"})
 
 ## 地图初始化处理
 func _on_map_initialized(map_data: Dictionary) -> void:
@@ -231,7 +231,7 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 
 	# 显示节点信息提示
 	var node_type_name = LocalizationManager.tr("ui.map.node_" + node_data.type)
-	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.node_selected", [node_type_name]))
+	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name}))
 
 ## 地图完成处理
 func _on_map_completed() -> void:

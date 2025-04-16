@@ -1,5 +1,5 @@
 # Godot 4+ specific ignores
-/.godot/    # 忽略整个.godot目录及其所有内容
+.godot/
 
 # Godot-specific ignores
 .import/

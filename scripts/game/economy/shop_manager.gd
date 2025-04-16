@@ -47,6 +47,7 @@ func get_shop_items() -> Dictionary:
 @onready var economy_manager = get_node("/root/GameManager/EconomyManager")
 @onready var equipment_manager = get_node("/root/GameManager/EquipmentManager")
 @onready var config_manager = get_node("/root/ConfigManager")
+@onready var synergy_manager = get_node("/root/GameManager/SynergyManager")
 
 # 初始化
 func _ready() -> void:
@@ -121,7 +122,7 @@ func toggle_shop_lock() -> bool:
 	return is_locked
 
 # 购买棋子
-func purchase_chess(chess_index: int) -> ChessPiece:
+func purchase_chess(chess_index: int):
 	# 检查索引是否有效
 	if chess_index < 0 or chess_index >= shop_items.chess.size():
 		return null
@@ -266,7 +267,7 @@ func purchase_exp() -> bool:
 	return false
 
 # 出售棋子
-func sell_chess(chess_piece: ChessPiece) -> bool:
+func sell_chess(chess_piece) -> bool:
 	# 检查棋子是否有效
 	if chess_piece == null:
 		return false
@@ -388,9 +389,7 @@ func add_specific_item(item_id: String) -> bool:
 
 	return false
 
-# 获取商店物品
-func get_shop_items() -> Dictionary:
-	return shop_items.duplicate(true)
+
 
 # 获取商店参数
 func get_shop_params() -> Dictionary:
@@ -646,7 +645,9 @@ func _add_high_tier_chess_pieces() -> void:
 		return
 
 	# 获取玩家阵容相关的棋子
-	var player_synergies = synergy_manager.get_active_synergies()
+	var player_synergies = []
+	if synergy_manager:
+		player_synergies = synergy_manager.get_active_synergies()
 	var related_chess_pieces = []
 
 	# 根据玩家的羁绊找出相关棋子
