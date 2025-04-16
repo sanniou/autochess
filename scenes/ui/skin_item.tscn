@@ -1,0 +1,140 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scenes/ui/skin_item.gd" id="1_yvmqe"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.2, 0.2, 0.2, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="SkinItem" type="Panel"]
+custom_minimum_size = Vector2(250, 300)
+offset_right = 250.0
+offset_bottom = 300.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+script = ExtResource("1_yvmqe")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="NameLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "皮肤名称"
+horizontal_alignment = 1
+
+[node name="IconContainer" type="CenterContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="SkinIcon" type="TextureRect" parent="VBoxContainer/IconContainer"]
+custom_minimum_size = Vector2(200, 150)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DescriptionLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "皮肤描述"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="RarityLabel" type="Label" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 0.2, 1)
+theme_override_font_sizes/font_size = 14
+text = "稀有度: 普通"
+horizontal_alignment = 1
+
+[node name="ButtonContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SelectButton" type="Button" parent="VBoxContainer/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "选择"
+
+[node name="PreviewButton" type="Button" parent="VBoxContainer/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "预览"
+
+[node name="SelectedIndicator" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -80.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 36.0
+grow_horizontal = 0
+theme_override_colors/font_color = Color(0.2, 0.8, 0.2, 1)
+text = "已选择"
+horizontal_alignment = 1
+
+[node name="LockedOverlay" type="ColorRect" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="LockedLabel" type="Label" parent="LockedOverlay"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -50.0
+offset_top = -13.0
+offset_right = 50.0
+offset_bottom = 13.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+text = "未解锁"
+horizontal_alignment = 1
+
+[node name="UnlockButton" type="Button" parent="LockedOverlay"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -50.0
+offset_right = 50.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "解锁"
+
+[connection signal="pressed" from="VBoxContainer/ButtonContainer/SelectButton" to="." method="_on_select_button_pressed"]
+[connection signal="pressed" from="VBoxContainer/ButtonContainer/PreviewButton" to="." method="_on_preview_button_pressed"]
+[connection signal="pressed" from="LockedOverlay/UnlockButton" to="." method="_on_unlock_button_pressed"]

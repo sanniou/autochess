@@ -1,0 +1,204 @@
+{
+    "rain": {
+        "name": "雨天",
+        "description": "下雨天气，会影响视野和移动速度",
+        "type": "weather",
+        "script_path": "res://scripts/game/environment/rain_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "wind_direction": {"x": 0.2, "y": 0},
+            "wind_strength": 0.5,
+            "sound_enabled": true,
+            "sound_volume": 0.8,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "movement_speed": -0.1,
+            "visibility": -0.2,
+            "fire_damage": -0.2
+        }
+    },
+    "heavy_rain": {
+        "name": "暴雨",
+        "description": "暴雨天气，会严重影响视野和移动速度",
+        "type": "weather",
+        "script_path": "res://scripts/game/environment/rain_effect.gd",
+        "default_params": {
+            "intensity": 2.0,
+            "duration": 0.0,
+            "wind_direction": {"x": 0.3, "y": 0},
+            "wind_strength": 1.0,
+            "sound_enabled": true,
+            "sound_volume": 1.0,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "movement_speed": -0.2,
+            "visibility": -0.4,
+            "fire_damage": -0.4
+        }
+    },
+    "snow": {
+        "name": "雪天",
+        "description": "下雪天气，会影响视野和移动速度",
+        "type": "weather",
+        "script_path": "res://scripts/game/environment/snow_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "wind_direction": {"x": 0.1, "y": 0},
+            "wind_strength": 0.3,
+            "sound_enabled": true,
+            "sound_volume": 0.6,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "movement_speed": -0.15,
+            "visibility": -0.1,
+            "ice_damage": 0.2
+        }
+    },
+    "blizzard": {
+        "name": "暴风雪",
+        "description": "暴风雪天气，会严重影响视野和移动速度",
+        "type": "weather",
+        "script_path": "res://scripts/game/environment/snow_effect.gd",
+        "default_params": {
+            "intensity": 2.0,
+            "duration": 0.0,
+            "wind_direction": {"x": 0.4, "y": 0},
+            "wind_strength": 1.2,
+            "sound_enabled": true,
+            "sound_volume": 0.9,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "movement_speed": -0.3,
+            "visibility": -0.5,
+            "ice_damage": 0.4
+        }
+    },
+    "fog": {
+        "name": "雾天",
+        "description": "雾天天气，会严重影响视野",
+        "type": "weather",
+        "script_path": "res://scripts/game/environment/fog_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "wind_direction": {"x": 0.1, "y": 0},
+            "wind_strength": 0.2,
+            "sound_enabled": true,
+            "sound_volume": 0.5,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "visibility": -0.4
+        }
+    },
+    "dense_fog": {
+        "name": "浓雾",
+        "description": "浓雾天气，会极大影响视野",
+        "type": "weather",
+        "script_path": "res://scripts/game/environment/fog_effect.gd",
+        "default_params": {
+            "intensity": 2.0,
+            "duration": 0.0,
+            "wind_direction": {"x": 0.05, "y": 0},
+            "wind_strength": 0.1,
+            "sound_enabled": true,
+            "sound_volume": 0.4,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "visibility": -0.7
+        }
+    },
+    "sunny": {
+        "name": "晴天",
+        "description": "晴朗天气，提高移动速度",
+        "type": "weather",
+        "script_path": "res://scripts/game/environment/sunny_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "wind_direction": {"x": 0.1, "y": 0},
+            "wind_strength": 0.1,
+            "sound_enabled": true,
+            "sound_volume": 0.3,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "movement_speed": 0.1,
+            "fire_damage": 0.1
+        }
+    },
+    "night": {
+        "name": "夜晚",
+        "description": "夜晚环境，降低视野",
+        "type": "ambient",
+        "script_path": "res://scripts/game/environment/night_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "sound_enabled": true,
+            "sound_volume": 0.5,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "visibility": -0.3
+        }
+    },
+    "forest": {
+        "name": "森林",
+        "description": "森林环境，提供掩护",
+        "type": "terrain",
+        "script_path": "res://scripts/game/environment/forest_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "sound_enabled": true,
+            "sound_volume": 0.6,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "stealth": 0.2,
+            "ranged_damage": -0.1
+        }
+    },
+    "desert": {
+        "name": "沙漠",
+        "description": "沙漠环境，降低移动速度",
+        "type": "terrain",
+        "script_path": "res://scripts/game/environment/desert_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "sound_enabled": true,
+            "sound_volume": 0.4,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "movement_speed": -0.1,
+            "fire_damage": 0.2
+        }
+    },
+    "mountain": {
+        "name": "山地",
+        "description": "山地环境，提高防御",
+        "type": "terrain",
+        "script_path": "res://scripts/game/environment/mountain_effect.gd",
+        "default_params": {
+            "intensity": 1.0,
+            "duration": 0.0,
+            "sound_enabled": true,
+            "sound_volume": 0.5,
+            "affect_gameplay": true
+        },
+        "gameplay_effects": {
+            "defense": 0.2,
+            "movement_speed": -0.2
+        }
+    }
+}

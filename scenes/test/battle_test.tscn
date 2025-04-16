@@ -1,0 +1,152 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8yvxr1yvqnx8"]
+
+[ext_resource type="Script" path="res://scenes/test/battle_test.gd" id="1_yjnkl"]
+[ext_resource type="PackedScene" uid="uid://c4m7yjvxk5v7t" path="res://scenes/board/chess_board.tscn" id="2_yjnkl"]
+
+[node name="BattleTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yjnkl")
+
+[node name="ChessBoard" parent="." instance=ExtResource("2_yjnkl")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -300.0
+offset_right = 400.0
+offset_bottom = 300.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ControlPanel" type="Panel"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -200.0
+offset_bottom = 600.0
+grow_horizontal = 0
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label"]
+layout_mode = 2
+text = "战斗测试控制面板"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator"]
+layout_mode = 2
+
+[node name="AddPieceButton" type="Button"]
+layout_mode = 2
+text = "添加棋子"
+
+[node name="RemovePieceButton" type="Button"]
+layout_mode = 2
+text = "移除棋子"
+
+[node name="ResetBoardButton" type="Button"]
+layout_mode = 2
+text = "重置棋盘"
+
+[node name="HSeparator2" type="HSeparator"]
+layout_mode = 2
+
+[node name="StartBattleButton" type="Button"]
+layout_mode = 2
+text = "开始战斗"
+
+[node name="EndBattleButton" type="Button"]
+layout_mode = 2
+text = "结束战斗"
+
+[node name="HSeparator3" type="HSeparator"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label"]
+layout_mode = 2
+text = "棋盘状态: 0 个棋子"
+autowrap_mode = 3
+
+[node name="HSeparator4" type="HSeparator"]
+layout_mode = 2
+
+[node name="Label2" type="Label"]
+layout_mode = 2
+text = "效果测试"
+horizontal_alignment = 1
+
+[node name="EffectButtons" type="VBoxContainer"]
+layout_mode = 2
+
+[node name="StunButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "眩晕"
+
+[node name="SilenceButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "沉默"
+
+[node name="SlowButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "减速"
+
+[node name="DisarmButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "缴械"
+
+[node name="TauntButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "嘲讽"
+
+[node name="BuffButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "增益"
+
+[node name="DebuffButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "减益"
+
+[node name="ClearEffectsButton" type="Button"]
+layout_mode = 2
+disabled = true
+text = "清除效果"
+
+[connection signal="pressed" from="ControlPanel/VBoxContainer/AddPieceButton" to="." method="_on_add_piece_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/RemovePieceButton" to="." method="_on_remove_piece_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/ResetBoardButton" to="." method="_on_reset_board_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/StartBattleButton" to="." method="_on_start_battle_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EndBattleButton" to="." method="_on_end_battle_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/StunButton" to="." method="_on_stun_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/SilenceButton" to="." method="_on_silence_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/SlowButton" to="." method="_on_slow_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/DisarmButton" to="." method="_on_disarm_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/TauntButton" to="." method="_on_taunt_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/BuffButton" to="." method="_on_buff_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/DebuffButton" to="." method="_on_debuff_button_pressed"]
+[connection signal="pressed" from="ControlPanel/VBoxContainer/EffectButtons/ClearEffectsButton" to="." method="_on_clear_effects_button_pressed"]

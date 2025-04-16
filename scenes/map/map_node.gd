@@ -42,6 +42,10 @@ func set_state(is_current: bool, is_selectable: bool, is_visited: bool) -> void:
 		get_node("GlowEffect").queue_free()
 	if has_node("PulseEffect"):
 		get_node("PulseEffect").queue_free()
+	if has_node("ParticleEffect"):
+		get_node("ParticleEffect").queue_free()
+	if has_node("NodeMarker"):
+		get_node("NodeMarker").queue_free()
 
 	if is_current:
 		# 当前节点
@@ -63,23 +67,35 @@ func set_state(is_current: bool, is_selectable: bool, is_visited: bool) -> void:
 		tween.tween_property(glow_effect, "modulate:a", 0.3, 0.5)
 
 		# 添加当前节点标记
-		var current_marker = Label.new()
-		current_marker.name = "CurrentMarker"
-		current_marker.text = "当前"
-		current_marker.position = Vector2(-20, -40)
-		current_marker.add_theme_color_override("font_color", Color(1, 1, 0))
-		add_child(current_marker)
+		var marker = Label.new()
+		marker.name = "NodeMarker"
+		marker.text = "当前"
+		marker.position = Vector2(-20, -40)
+		marker.add_theme_color_override("font_color", Color(1, 1, 0))
+		add_child(marker)
+
+		# 添加粒子效果
+		_add_particle_effect(Color(1, 1, 0.5, 0.7))
 	elif is_visited:
 		# 已访问节点
 		modulate = Color(0.5, 0.5, 0.5, 0.7)  # 灰色半透明
 
 		# 添加已访问标记
-		var visited_marker = Label.new()
-		visited_marker.name = "VisitedMarker"
-		visited_marker.text = "已访问"
-		visited_marker.position = Vector2(-20, -40)
-		visited_marker.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
-		add_child(visited_marker)
+		var marker = Label.new()
+		marker.name = "NodeMarker"
+		marker.text = "已访问"
+		marker.position = Vector2(-20, -40)
+		marker.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		add_child(marker)
+
+		# 添加已访问效果
+		var visited_effect = ColorRect.new()
+		visited_effect.name = "GlowEffect"
+		visited_effect.color = Color(0.5, 0.5, 0.5, 0.2)
+		visited_effect.size = Vector2(80, 80)
+		visited_effect.position = Vector2(-40, -40)
+		visited_effect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(visited_effect)
 	elif is_selectable:
 		# 可选节点
 		modulate = _get_node_color(node_data.type)
@@ -103,15 +119,26 @@ func set_state(is_current: bool, is_selectable: bool, is_visited: bool) -> void:
 		tween.parallel().tween_property(pulse_effect, "modulate:a", 0.5, 0.8)
 
 		# 添加可选标记
-		var selectable_marker = Label.new()
-		selectable_marker.name = "SelectableMarker"
-		selectable_marker.text = "可选"
-		selectable_marker.position = Vector2(-20, -40)
-		selectable_marker.add_theme_color_override("font_color", Color(0.2, 0.8, 0.2))
-		add_child(selectable_marker)
+		var marker = Label.new()
+		marker.name = "NodeMarker"
+		marker.text = "可选"
+		marker.position = Vector2(-20, -40)
+		marker.add_theme_color_override("font_color", Color(0.2, 0.8, 0.2))
+		add_child(marker)
+
+		# 添加粒子效果
+		_add_particle_effect(_get_node_color(node_data.type))
 	else:
 		# 不可选节点
 		modulate = Color(0.3, 0.3, 0.3, 0.5)  # 半透明灰色
+
+		# 添加不可选标记
+		var marker = Label.new()
+		marker.name = "NodeMarker"
+		marker.text = "锁定"
+		marker.position = Vector2(-20, -40)
+		marker.add_theme_color_override("font_color", Color(0.5, 0.5, 0.5))
+		add_child(marker)
 
 ## 获取节点ID
 func get_node_id() -> String:
@@ -339,3 +366,33 @@ func _get_node_tooltip() -> String:
 func _on_mouse_exited() -> void:
 	# 恢复原始大小
 	scale = Vector2(1.0, 1.0)
+
+## 添加粒子效果
+func _add_particle_effect(color: Color) -> void:
+	# 创建粒子容器
+	var particle_container = Node2D.new()
+	particle_container.name = "ParticleEffect"
+	add_child(particle_container)
+
+	# 创建多个粒子
+	for i in range(5):
+		# 创建粒子
+		var particle = ColorRect.new()
+		particle.color = color
+		particle.size = Vector2(4, 4)
+		particle.position = Vector2(randf_range(-20, 20), randf_range(-20, 20))
+		particle_container.add_child(particle)
+
+		# 创建粒子动画
+		var tween = create_tween().set_loops()
+		tween.tween_property(particle, "position",
+			particle.position + Vector2(randf_range(-10, 10), randf_range(-10, 10)),
+			randf_range(0.5, 1.5))
+		tween.tween_property(particle, "position",
+			particle.position,
+			randf_range(0.5, 1.5))
+
+		# 创建透明度动画
+		var alpha_tween = create_tween().set_loops()
+		alpha_tween.tween_property(particle, "modulate:a", 0.3, randf_range(0.5, 1.0))
+		alpha_tween.tween_property(particle, "modulate:a", 1.0, randf_range(0.5, 1.0))

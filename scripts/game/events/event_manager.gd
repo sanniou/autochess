@@ -247,3 +247,73 @@ func get_event_weight(event_id: String) -> int:
 	if event_factory.has(event_id):
 		return event_factory[event_id].weight
 	return 0
+
+# 创建随机事件
+func create_random_event() -> Event:
+	# 获取所有事件配置
+	var all_events = event_factory.keys()
+
+	# 按类型分类事件
+	var events_by_type = {}
+	for event_id in all_events:
+		var event_data = event_factory[event_id]
+		var event_type = event_data.get("event_type", "general")
+
+		if not events_by_type.has(event_type):
+			events_by_type[event_type] = []
+		events_by_type[event_type].append(event_id)
+
+	# 随机选择事件类型
+	var event_types = events_by_type.keys()
+	var random_type = event_types[randi() % event_types.size()]
+
+	# 从选中类型中随机选择事件
+	var type_events = events_by_type[random_type]
+	var random_event_id = type_events[randi() % type_events.size()]
+
+	# 创建事件
+	return _create_event(random_event_id)
+
+# 创建指定类型的随机事件
+func create_random_event_by_type(event_type: String) -> Event:
+	# 获取所有事件配置
+	var all_events = event_factory.keys()
+
+	# 筛选指定类型的事件
+	var type_events = []
+	for event_id in all_events:
+		var event_data = event_factory[event_id]
+		if event_data.get("event_type", "general") == event_type:
+			type_events.append(event_id)
+
+	# 如果没有指定类型的事件，返回随机事件
+	if type_events.is_empty():
+		return create_random_event()
+
+	# 随机选择事件
+	var random_event_id = type_events[randi() % type_events.size()]
+
+	# 创建事件
+	return _create_event(random_event_id)
+
+# 创建指定难度的随机事件
+func create_random_event_by_difficulty(difficulty: String) -> Event:
+	# 获取所有事件配置
+	var all_events = event_factory.keys()
+
+	# 筛选指定难度的事件
+	var difficulty_events = []
+	for event_id in all_events:
+		var event_data = event_factory[event_id]
+		if event_data.get("difficulty", "normal") == difficulty:
+			difficulty_events.append(event_id)
+
+	# 如果没有指定难度的事件，返回随机事件
+	if difficulty_events.is_empty():
+		return create_random_event()
+
+	# 随机选择事件
+	var random_event_id = difficulty_events[randi() % difficulty_events.size()]
+
+	# 创建事件
+	return _create_event(random_event_id)

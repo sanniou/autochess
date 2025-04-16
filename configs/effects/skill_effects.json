@@ -1,0 +1,187 @@
+{
+    "fireball": {
+        "id": "fireball",
+        "name": "火球术",
+        "type": "combined",
+        "duration": 1.0,
+        "effects": [
+            {
+                "type": "particle",
+                "name": "fire_particles",
+                "position": {"x": 0, "y": 0},
+                "duration": 1.0,
+                "params": {
+                    "amount": 30,
+                    "lifetime": 0.8,
+                    "speed": 80.0,
+                    "color": {"r": 1.0, "g": 0.5, "b": 0.0, "a": 0.8},
+                    "scale": {"x": 1.5, "y": 1.5},
+                    "emission_shape": 1,
+                    "emission_radius": 15.0,
+                    "direction": {"x": 0, "y": -1},
+                    "spread": 30.0,
+                    "gravity": {"x": 0, "y": 20}
+                }
+            },
+            {
+                "type": "sprite",
+                "texture_path": "res://assets/images/vfx/fireball.png",
+                "frame_count": 8,
+                "frame_duration": 0.1,
+                "position": {"x": 0, "y": 0},
+                "params": {
+                    "scale": {"x": 2.0, "y": 2.0},
+                    "modulate": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}
+                }
+            }
+        ]
+    },
+    "ice_spike": {
+        "id": "ice_spike",
+        "name": "冰刺术",
+        "type": "combined",
+        "duration": 1.2,
+        "effects": [
+            {
+                "type": "particle",
+                "name": "ice_particles",
+                "position": {"x": 0, "y": 0},
+                "duration": 1.2,
+                "params": {
+                    "amount": 25,
+                    "lifetime": 1.0,
+                    "speed": 60.0,
+                    "color": {"r": 0.5, "g": 0.8, "b": 1.0, "a": 0.8},
+                    "scale": {"x": 1.2, "y": 1.2},
+                    "emission_shape": 1,
+                    "emission_radius": 10.0,
+                    "direction": {"x": 0, "y": -1},
+                    "spread": 20.0,
+                    "gravity": {"x": 0, "y": 10}
+                }
+            },
+            {
+                "type": "sprite",
+                "texture_path": "res://assets/images/vfx/ice_spike.png",
+                "frame_count": 10,
+                "frame_duration": 0.12,
+                "position": {"x": 0, "y": 0},
+                "params": {
+                    "scale": {"x": 1.8, "y": 1.8},
+                    "modulate": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}
+                }
+            }
+        ]
+    },
+    "lightning_bolt": {
+        "id": "lightning_bolt",
+        "name": "闪电术",
+        "type": "combined",
+        "duration": 0.8,
+        "effects": [
+            {
+                "type": "particle",
+                "name": "lightning_particles",
+                "position": {"x": 0, "y": 0},
+                "duration": 0.8,
+                "params": {
+                    "amount": 40,
+                    "lifetime": 0.6,
+                    "speed": 100.0,
+                    "color": {"r": 0.8, "g": 0.8, "b": 1.0, "a": 0.8},
+                    "scale": {"x": 1.0, "y": 1.0},
+                    "emission_shape": 1,
+                    "emission_radius": 20.0,
+                    "direction": {"x": 0, "y": -1},
+                    "spread": 40.0,
+                    "gravity": {"x": 0, "y": 0}
+                }
+            },
+            {
+                "type": "sprite",
+                "texture_path": "res://assets/images/vfx/lightning.png",
+                "frame_count": 6,
+                "frame_duration": 0.08,
+                "position": {"x": 0, "y": 0},
+                "params": {
+                    "scale": {"x": 2.2, "y": 2.2},
+                    "modulate": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 1.0}
+                }
+            }
+        ]
+    },
+    "heal": {
+        "id": "heal",
+        "name": "治疗术",
+        "type": "combined",
+        "duration": 1.5,
+        "effects": [
+            {
+                "type": "particle",
+                "name": "heal_particles",
+                "position": {"x": 0, "y": 0},
+                "duration": 1.5,
+                "params": {
+                    "amount": 20,
+                    "lifetime": 1.2,
+                    "speed": 40.0,
+                    "color": {"r": 0.2, "g": 1.0, "b": 0.2, "a": 0.8},
+                    "scale": {"x": 1.2, "y": 1.2},
+                    "emission_shape": 1,
+                    "emission_radius": 25.0,
+                    "direction": {"x": 0, "y": -1},
+                    "spread": 180.0,
+                    "gravity": {"x": 0, "y": -20}
+                }
+            },
+            {
+                "type": "sprite",
+                "texture_path": "res://assets/images/vfx/heal.png",
+                "frame_count": 12,
+                "frame_duration": 0.12,
+                "position": {"x": 0, "y": 0},
+                "params": {
+                    "scale": {"x": 2.0, "y": 2.0},
+                    "modulate": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.8}
+                }
+            }
+        ]
+    },
+    "poison_cloud": {
+        "id": "poison_cloud",
+        "name": "毒云术",
+        "type": "combined",
+        "duration": 2.0,
+        "effects": [
+            {
+                "type": "particle",
+                "name": "poison_particles",
+                "position": {"x": 0, "y": 0},
+                "duration": 2.0,
+                "params": {
+                    "amount": 35,
+                    "lifetime": 1.5,
+                    "speed": 30.0,
+                    "color": {"r": 0.5, "g": 1.0, "b": 0.0, "a": 0.7},
+                    "scale": {"x": 1.5, "y": 1.5},
+                    "emission_shape": 1,
+                    "emission_radius": 30.0,
+                    "direction": {"x": 0, "y": -1},
+                    "spread": 180.0,
+                    "gravity": {"x": 0, "y": -5}
+                }
+            },
+            {
+                "type": "sprite",
+                "texture_path": "res://assets/images/vfx/poison_cloud.png",
+                "frame_count": 15,
+                "frame_duration": 0.13,
+                "position": {"x": 0, "y": 0},
+                "params": {
+                    "scale": {"x": 2.5, "y": 2.5},
+                    "modulate": {"r": 1.0, "g": 1.0, "b": 1.0, "a": 0.8}
+                }
+            }
+        ]
+    }
+}

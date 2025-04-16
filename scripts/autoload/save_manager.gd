@@ -110,6 +110,7 @@ func save_game(slot_name: String = "") -> bool:
 		"equipment": _get_equipment_save_data(),
 		"relics": _get_relics_save_data(),
 		"achievements": _get_achievements_save_data(),
+		"tutorials": _get_tutorials_save_data(),
 		"settings": _get_settings_save_data()
 	}
 
@@ -165,6 +166,8 @@ func load_game(slot_name: String) -> bool:
 	_apply_equipment_save_data(save_data.equipment)
 	_apply_relics_save_data(save_data.relics)
 	_apply_achievements_save_data(save_data.achievements)
+	if save_data.has("tutorials"):
+		_apply_tutorials_save_data(save_data.tutorials)
 	_apply_settings_save_data(save_data.settings)
 
 	# 设置当前存档槽
@@ -268,6 +271,17 @@ func _get_achievements_save_data() -> Dictionary:
 	# 暂时返回示例数据
 	return {}
 
+## 获取教程存档数据
+func _get_tutorials_save_data() -> Dictionary:
+	# 这里将从教程管理器获取数据
+	var tutorial_manager = get_node_or_null("/root/GameManager/TutorialManager")
+	if tutorial_manager:
+		return {
+			"completed_tutorials": tutorial_manager.get_completed_tutorials(),
+			"skipped_tutorials": tutorial_manager.get_skipped_tutorials()
+		}
+	return {}
+
 ## 获取设置存档数据
 func _get_settings_save_data() -> Dictionary:
 	# 这里将从设置管理器获取数据
@@ -321,14 +335,124 @@ func _apply_relics_save_data(data: Array) -> void:
 ## 应用成就存档数据
 func _apply_achievements_save_data(data: Dictionary) -> void:
 	# 这里将应用数据到成就管理器
-	# 暂时只打印日志
+	var achievement_manager = get_node_or_null("/root/GameManager/AchievementManager")
+	if achievement_manager and not data.is_empty():
+		achievement_manager.load_achievement_data(data)
 	EventBus.debug_message.emit("应用成就存档数据", 0)
+
+## 应用教程存档数据
+func _apply_tutorials_save_data(data: Dictionary) -> void:
+	# 这里将应用数据到教程管理器
+	var tutorial_manager = get_node_or_null("/root/GameManager/TutorialManager")
+	if tutorial_manager and not data.is_empty():
+		# 加载已完成的教程
+		if data.has("completed_tutorials"):
+			for tutorial_id in data.completed_tutorials:
+				tutorial_manager.mark_tutorial_completed(tutorial_id)
+
+		# 加载已跳过的教程
+		if data.has("skipped_tutorials"):
+			for tutorial_id in data.skipped_tutorials:
+				tutorial_manager.mark_tutorial_skipped(tutorial_id)
+	EventBus.debug_message.emit("应用教程存档数据", 0)
 
 ## 应用设置存档数据
 func _apply_settings_save_data(data: Dictionary) -> void:
 	# 这里将应用数据到设置管理器
 	# 暂时只打印日志
 	EventBus.debug_message.emit("应用设置存档数据", 0)
+
+## 保存成就数据
+func save_achievement_data(data: Dictionary) -> bool:
+	# 如果没有当前存档槽，使用全局成就数据文件
+	var save_path = ""
+	if current_save_slot != "":
+		# 使用当前存档槽
+		save_path = SAVE_DIR + current_save_slot + "_achievements.json"
+	else:
+		# 使用全局成就数据文件
+		save_path = SAVE_DIR + "global_achievements.json"
+
+	# 使用 ConfigManager 保存成就数据
+	var result = config_manager.save_json(save_path, data)
+	if not result:
+		EventBus.debug_message.emit("无法写入成就数据文件: " + save_path, 2)
+		return false
+
+	return true
+
+## 加载成就数据
+func load_achievement_data() -> Dictionary:
+	# 如果没有当前存档槽，使用全局成就数据文件
+	var save_path = ""
+	if current_save_slot != "":
+		# 使用当前存档槽
+		save_path = SAVE_DIR + current_save_slot + "_achievements.json"
+
+		# 如果文件不存在，尝试使用全局成就数据文件
+		if not FileAccess.file_exists(save_path):
+			save_path = SAVE_DIR + "global_achievements.json"
+	else:
+		# 使用全局成就数据文件
+		save_path = SAVE_DIR + "global_achievements.json"
+
+	# 如果文件不存在，返回空字典
+	if not FileAccess.file_exists(save_path):
+		return {}
+
+	# 使用 ConfigManager 加载成就数据
+	var data = config_manager.load_json(save_path)
+	if data.is_empty():
+		EventBus.debug_message.emit("无法加载成就数据文件: " + save_path, 2)
+		return {}
+
+	return data
+
+## 保存教程数据
+func save_tutorial_data(data: Dictionary) -> bool:
+	# 如果没有当前存档槽，使用全局教程数据文件
+	var save_path = ""
+	if current_save_slot != "":
+		# 使用当前存档槽
+		save_path = SAVE_DIR + current_save_slot + "_tutorials.json"
+	else:
+		# 使用全局教程数据文件
+		save_path = SAVE_DIR + "global_tutorials.json"
+
+	# 使用 ConfigManager 保存教程数据
+	var result = config_manager.save_json(save_path, data)
+	if not result:
+		EventBus.debug_message.emit("无法写入教程数据文件: " + save_path, 2)
+		return false
+
+	return true
+
+## 加载教程数据
+func load_tutorial_data() -> Dictionary:
+	# 如果没有当前存档槽，使用全局教程数据文件
+	var save_path = ""
+	if current_save_slot != "":
+		# 使用当前存档槽
+		save_path = SAVE_DIR + current_save_slot + "_tutorials.json"
+
+		# 如果文件不存在，尝试使用全局教程数据文件
+		if not FileAccess.file_exists(save_path):
+			save_path = SAVE_DIR + "global_tutorials.json"
+	else:
+		# 使用全局教程数据文件
+		save_path = SAVE_DIR + "global_tutorials.json"
+
+	# 如果文件不存在，返回空字典
+	if not FileAccess.file_exists(save_path):
+		return {}
+
+	# 使用 ConfigManager 加载教程数据
+	var data = config_manager.load_json(save_path)
+	if data.is_empty():
+		EventBus.debug_message.emit("无法加载教程数据文件: " + save_path, 2)
+		return {}
+
+	return data
 
 ## 自动存档触发处理
 func _on_autosave_triggered() -> void:

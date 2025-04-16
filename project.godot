@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="AutoChess"
-run/main_scene="res://scenes/main_menu/main_menu.tscn"
+run/main_scene="res://scenes/main_menu.tscn"
 config/features=PackedStringArray("4.4")
 config/icon="res://assets/images/icons/app_icon.png"
 
@@ -23,6 +23,7 @@ SaveManager="*res://scripts/autoload/save_manager.gd"
 ConfigManager="*res://scripts/autoload/config_manager.gd"
 LocalizationManager="*res://scripts/autoload/localization_manager.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
+SettingsManager="*res://scripts/autoload/settings_manager.gd"
 DebugManager="*res://scripts/autoload/debug_manager.gd"
 
 [display]

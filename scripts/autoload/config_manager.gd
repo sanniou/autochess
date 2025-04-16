@@ -15,6 +15,7 @@ var events_config = {}
 var difficulty_config = {}
 var achievements_config = {}
 var skins_config = {}
+var tutorials_config = {}
 
 # 配置文件路径
 const CONFIG_PATH = {
@@ -26,7 +27,8 @@ const CONFIG_PATH = {
 	"events": "res://config/events/events.json",
 	"difficulty": "res://config/difficulty.json",
 	"achievements": "res://config/achievements.json",
-	"skins": "res://config/skins.json"
+	"skins": "res://config/skins.json",
+	"tutorials": "res://config/tutorials.json"
 }
 
 # 配置目录
@@ -55,6 +57,7 @@ func load_all_configs() -> void:
 	load_difficulty_config()
 	load_achievements_config()
 	load_skins_config()
+	load_tutorials_config()
 
 	# 验证所有配置文件
 	if debug_mode:
@@ -73,6 +76,7 @@ func validate_all_configs() -> void:
 	validate_difficulty_config()
 	validate_achievements_config()
 	validate_skins_config()
+	validate_tutorials_config()
 
 ## 加载棋子配置
 func load_chess_pieces_config() -> void:
@@ -136,6 +140,13 @@ func load_skins_config() -> void:
 	if config:
 		skins_config = config
 		EventBus.debug_message.emit("皮肤配置加载完成", 0)
+
+## 加载教程配置
+func load_tutorials_config() -> void:
+	var config = _load_json_file(CONFIG_PATH.tutorials)
+	if config:
+		tutorials_config = config
+		EventBus.debug_message.emit("教程配置加载完成", 0)
 
 ## 获取棋子配置
 func get_chess_piece_config(piece_id: String) -> Dictionary:
@@ -254,6 +265,16 @@ func get_skin_config(skin_id: String) -> Dictionary:
 ## 获取所有皮肤配置
 func get_all_skins() -> Dictionary:
 	return skins_config
+
+## 获取教程配置
+func get_tutorial_config(tutorial_id: String) -> Dictionary:
+	if tutorials_config.has(tutorial_id):
+		return tutorials_config[tutorial_id]
+	return {}
+
+## 获取所有教程配置
+func get_all_tutorials() -> Dictionary:
+	return tutorials_config
 
 ## 重新加载配置（用于热重载）
 func reload_configs() -> void:
@@ -399,6 +420,26 @@ func validate_skins_config() -> void:
 			if not skin.has(field):
 				EventBus.debug_message.emit("皮肤配置验证失败: " + skin_id + " 缺少必要字段 " + field, 2)
 
+## 验证教程配置
+func validate_tutorials_config() -> void:
+	for tutorial_id in tutorials_config:
+		var tutorial = tutorials_config[tutorial_id]
+		var required_fields = ["id", "title", "description", "steps"]
+
+		for field in required_fields:
+			if not tutorial.has(field):
+				EventBus.debug_message.emit("教程配置验证失败: " + tutorial_id + " 缺少必要字段 " + field, 2)
+
+		# 验证步骤
+		if tutorial.has("steps") and tutorial.steps is Array:
+			for i in range(tutorial.steps.size()):
+				var step = tutorial.steps[i]
+				var step_required_fields = ["content"]
+
+				for field in step_required_fields:
+					if not step.has(field):
+						EventBus.debug_message.emit("教程步骤配置验证失败: " + tutorial_id + " 步骤 " + str(i) + " 缺少必要字段 " + field, 2)
+
 ## 验证配置文件结构
 func validate_config_structure(config: Dictionary, schema: Dictionary, config_name: String, config_id: String) -> bool:
 	var valid = true
@@ -477,6 +518,8 @@ func get_config(config_name: String) -> Variant:
 		return achievements_config
 	elif config_name == "skins":
 		return skins_config
+	elif config_name == "tutorials":
+		return tutorials_config
 	else:
 		return {}
 

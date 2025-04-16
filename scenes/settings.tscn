@@ -1,0 +1,277 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+
+[ext_resource type="Script" path="res://scenes/settings.gd" id="1_yvmqe"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+background_color = Color(0.1, 0.1, 0.1, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="Settings" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvmqe")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 6
+
+[node name="ColorOverlay" type="ColorRect" parent="Background"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 0.7)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 50.0
+offset_right = 100.0
+offset_bottom = 100.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 36
+text = "设置"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SettingsPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="SettingsContainer" type="VBoxContainer" parent="SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+
+[node name="AudioSettings" type="VBoxContainer" parent="SettingsPanel/SettingsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="AudioTitle" type="Label" parent="SettingsPanel/SettingsContainer/AudioSettings"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "音频设置"
+
+[node name="HSeparator" type="HSeparator" parent="SettingsPanel/SettingsContainer/AudioSettings"]
+layout_mode = 2
+
+[node name="MasterVolumeContainer" type="HBoxContainer" parent="SettingsPanel/SettingsContainer/AudioSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SettingsPanel/SettingsContainer/AudioSettings/MasterVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "主音量"
+
+[node name="MasterVolumeSlider" type="HSlider" parent="SettingsPanel/SettingsContainer/AudioSettings/MasterVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+value = 1.0
+
+[node name="MusicVolumeContainer" type="HBoxContainer" parent="SettingsPanel/SettingsContainer/AudioSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SettingsPanel/SettingsContainer/AudioSettings/MusicVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "音乐音量"
+
+[node name="MusicVolumeSlider" type="HSlider" parent="SettingsPanel/SettingsContainer/AudioSettings/MusicVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+value = 0.8
+
+[node name="SFXVolumeContainer" type="HBoxContainer" parent="SettingsPanel/SettingsContainer/AudioSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SettingsPanel/SettingsContainer/AudioSettings/SFXVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "音效音量"
+
+[node name="SFXVolumeSlider" type="HSlider" parent="SettingsPanel/SettingsContainer/AudioSettings/SFXVolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.01
+value = 0.8
+
+[node name="DisplaySettings" type="VBoxContainer" parent="SettingsPanel/SettingsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="DisplayTitle" type="Label" parent="SettingsPanel/SettingsContainer/DisplaySettings"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "显示设置"
+
+[node name="HSeparator" type="HSeparator" parent="SettingsPanel/SettingsContainer/DisplaySettings"]
+layout_mode = 2
+
+[node name="FullscreenContainer" type="HBoxContainer" parent="SettingsPanel/SettingsContainer/DisplaySettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SettingsPanel/SettingsContainer/DisplaySettings/FullscreenContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "全屏模式"
+
+[node name="FullscreenCheckBox" type="CheckBox" parent="SettingsPanel/SettingsContainer/DisplaySettings/FullscreenContainer"]
+layout_mode = 2
+
+[node name="VSyncContainer" type="HBoxContainer" parent="SettingsPanel/SettingsContainer/DisplaySettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SettingsPanel/SettingsContainer/DisplaySettings/VSyncContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "垂直同步"
+
+[node name="VSyncCheckBox" type="CheckBox" parent="SettingsPanel/SettingsContainer/DisplaySettings/VSyncContainer"]
+layout_mode = 2
+
+[node name="GameSettings" type="VBoxContainer" parent="SettingsPanel/SettingsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="GameTitle" type="Label" parent="SettingsPanel/SettingsContainer/GameSettings"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "游戏设置"
+
+[node name="HSeparator" type="HSeparator" parent="SettingsPanel/SettingsContainer/GameSettings"]
+layout_mode = 2
+
+[node name="DifficultyContainer" type="HBoxContainer" parent="SettingsPanel/SettingsContainer/GameSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SettingsPanel/SettingsContainer/GameSettings/DifficultyContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "游戏难度"
+
+[node name="DifficultyOption" type="OptionButton" parent="SettingsPanel/SettingsContainer/GameSettings/DifficultyContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 4
+selected = 1
+popup/item_0/text = "简单"
+popup/item_0/id = 0
+popup/item_1/text = "普通"
+popup/item_1/id = 1
+popup/item_2/text = "困难"
+popup/item_2/id = 2
+popup/item_3/text = "专家"
+popup/item_3/id = 3
+
+[node name="LanguageContainer" type="HBoxContainer" parent="SettingsPanel/SettingsContainer/GameSettings"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="SettingsPanel/SettingsContainer/GameSettings/LanguageContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "语言"
+
+[node name="LanguageOption" type="OptionButton" parent="SettingsPanel/SettingsContainer/GameSettings/LanguageContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 1
+selected = 0
+popup/item_0/text = "简体中文"
+popup/item_0/id = 0
+
+[node name="ButtonContainer" type="HBoxContainer" parent="SettingsPanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = -60.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 20
+
+[node name="ApplyButton" type="Button" parent="SettingsPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "应用"
+
+[node name="ResetButton" type="Button" parent="SettingsPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "重置"
+
+[node name="BackButton" type="Button" parent="SettingsPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "返回"
+
+[connection signal="value_changed" from="SettingsPanel/SettingsContainer/AudioSettings/MasterVolumeContainer/MasterVolumeSlider" to="." method="_on_master_volume_slider_value_changed"]
+[connection signal="value_changed" from="SettingsPanel/SettingsContainer/AudioSettings/MusicVolumeContainer/MusicVolumeSlider" to="." method="_on_music_volume_slider_value_changed"]
+[connection signal="value_changed" from="SettingsPanel/SettingsContainer/AudioSettings/SFXVolumeContainer/SFXVolumeSlider" to="." method="_on_sfx_volume_slider_value_changed"]
+[connection signal="toggled" from="SettingsPanel/SettingsContainer/DisplaySettings/FullscreenContainer/FullscreenCheckBox" to="." method="_on_fullscreen_check_box_toggled"]
+[connection signal="toggled" from="SettingsPanel/SettingsContainer/DisplaySettings/VSyncContainer/VSyncCheckBox" to="." method="_on_v_sync_check_box_toggled"]
+[connection signal="item_selected" from="SettingsPanel/SettingsContainer/GameSettings/DifficultyContainer/DifficultyOption" to="." method="_on_difficulty_option_item_selected"]
+[connection signal="item_selected" from="SettingsPanel/SettingsContainer/GameSettings/LanguageContainer/LanguageOption" to="." method="_on_language_option_item_selected"]
+[connection signal="pressed" from="SettingsPanel/ButtonContainer/ApplyButton" to="." method="_on_apply_button_pressed"]
+[connection signal="pressed" from="SettingsPanel/ButtonContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="SettingsPanel/ButtonContainer/BackButton" to="." method="_on_back_button_pressed"]

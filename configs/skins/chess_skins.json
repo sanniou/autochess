@@ -1,0 +1,48 @@
+{
+    "default": {
+        "id": "default",
+        "name": "默认棋子皮肤",
+        "description": "基础棋子外观，简洁大方。",
+        "rarity": "common",
+        "icon": "res://assets/images/skins/chess/default_icon.png",
+        "preview": "res://assets/images/skins/chess/default_preview.png",
+        "texture_overrides": {}
+    },
+    "fantasy": {
+        "id": "fantasy",
+        "name": "奇幻棋子皮肤",
+        "description": "具有奇幻风格的棋子外观，充满魔法元素。",
+        "rarity": "rare",
+        "icon": "res://assets/images/skins/chess/fantasy_icon.png",
+        "preview": "res://assets/images/skins/chess/fantasy_preview.png",
+        "texture_overrides": {},
+        "unlock_condition": {
+            "gold": 1000
+        }
+    },
+    "sci_fi": {
+        "id": "sci_fi",
+        "name": "科幻棋子皮肤",
+        "description": "未来科技风格的棋子外观，充满科技感。",
+        "rarity": "epic",
+        "icon": "res://assets/images/skins/chess/sci_fi_icon.png",
+        "preview": "res://assets/images/skins/chess/sci_fi_preview.png",
+        "texture_overrides": {},
+        "unlock_condition": {
+            "gold": 2000
+        }
+    },
+    "golden": {
+        "id": "golden",
+        "name": "黄金棋子皮肤",
+        "description": "闪耀的黄金棋子外观，彰显尊贵。",
+        "rarity": "legendary",
+        "icon": "res://assets/images/skins/chess/golden_icon.png",
+        "preview": "res://assets/images/skins/chess/golden_preview.png",
+        "texture_overrides": {},
+        "unlock_condition": {
+            "gold": 5000,
+            "achievement": "win_100_battles"
+        }
+    }
+}

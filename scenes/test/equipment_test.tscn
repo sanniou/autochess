@@ -1,0 +1,258 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1yvqnx8"]
+
+[ext_resource type="Script" path="res://scenes/test/equipment_test.gd" id="1_yjnkl"]
+
+[node name="EquipmentTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yjnkl")
+
+[node name="EquipmentPanel" type="Panel"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 250.0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label"]
+layout_mode = 2
+text = "装备列表"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator"]
+layout_mode = 2
+
+[node name="EquipmentList" type="PanelContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="ChessPanel" type="Panel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 250.0
+offset_right = 250.0
+offset_bottom = 300.0
+grow_horizontal = 2
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label"]
+layout_mode = 2
+text = "棋子列表"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator"]
+layout_mode = 2
+
+[node name="ChessList" type="PanelContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="EquipPanel" type="Panel"]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -250.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label"]
+layout_mode = 2
+text = "装备操作"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator"]
+layout_mode = 2
+
+[node name="SlotSelection" type="HBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label"]
+layout_mode = 2
+text = "槽位:"
+
+[node name="OptionButton" type="OptionButton"]
+layout_mode = 2
+size_flags_horizontal = 3
+item_count = 3
+selected = 0
+popup/item_0/text = "Weapon"
+popup/item_0/id = 0
+popup/item_1/text = "Armor"
+popup/item_1/id = 1
+popup/item_2/text = "Accessory"
+popup/item_2/id = 2
+
+[node name="EquipButton" type="Button"]
+layout_mode = 2
+text = "装备"
+
+[node name="UnequipButton" type="Button"]
+layout_mode = 2
+text = "卸下"
+
+[node name="HSeparator2" type="HSeparator"]
+layout_mode = 2
+
+[node name="TriggerEffectButton" type="Button"]
+layout_mode = 2
+text = "触发效果"
+
+[node name="HSeparator3" type="HSeparator"]
+layout_mode = 2
+
+[node name="ResetButton" type="Button"]
+layout_mode = 2
+text = "重置"
+
+[node name="BackButton" type="Button"]
+layout_mode = 2
+text = "返回"
+
+[node name="EffectPanel" type="Panel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 250.0
+offset_top = -300.0
+offset_right = -250.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label"]
+layout_mode = 2
+text = "效果列表"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator"]
+layout_mode = 2
+
+[node name="EffectList" type="PanelContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ScrollContainer" type="ScrollContainer"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="StatusPanel" type="Panel"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -250.0
+offset_top = -150.0
+offset_bottom = 150.0
+grow_horizontal = 0
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label"]
+layout_mode = 2
+text = "状态信息"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator"]
+layout_mode = 2
+
+[node name="StatusLabel" type="Label"]
+layout_mode = 2
+size_flags_vertical = 3
+autowrap_mode = 3
+
+[connection signal="pressed" from="EquipPanel/VBoxContainer/EquipButton" to="." method="_on_equip_button_pressed"]
+[connection signal="pressed" from="EquipPanel/VBoxContainer/UnequipButton" to="." method="_on_unequip_button_pressed"]
+[connection signal="pressed" from="EquipPanel/VBoxContainer/TriggerEffectButton" to="." method="_on_trigger_effect_button_pressed"]
+[connection signal="pressed" from="EquipPanel/VBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="EquipPanel/VBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

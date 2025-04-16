@@ -142,7 +142,7 @@ func _physics_process(delta):
 
 	# 自动回蓝
 	if current_state != ChessState.DEAD and current_mana < max_mana:
-		gain_mana(delta * 10.0)  # 每秒回复10点法力值
+		gain_mana(delta * 10.0, "passive")  # 每秒回复10点法力值
 
 # 初始化棋子
 func initialize(piece_data: Dictionary) -> void:
@@ -219,6 +219,8 @@ func upgrade() -> void:
 	if star_level >= 3:
 		return
 
+	# 保存旧星级
+	var old_star_level = star_level
 	star_level += 1
 
 	# 根据星级提升属性
@@ -228,6 +230,12 @@ func upgrade() -> void:
 	elif star_level == 3:
 		multiplier = 3.0
 
+	# 保存旧属性值用于显示提升效果
+	var old_max_health = max_health
+	var old_attack_damage = attack_damage
+	var old_ability_damage = ability_damage
+
+	# 提升属性
 	max_health *= multiplier
 	current_health = max_health
 	attack_damage *= multiplier
@@ -242,6 +250,13 @@ func upgrade() -> void:
 
 	# 更新视觉效果
 	_update_visuals()
+
+	# 播放升星特效
+	_play_upgrade_effect(old_star_level, star_level, {
+		"health": max_health - old_max_health,
+		"attack": attack_damage - old_attack_damage,
+		"ability": ability_damage - old_ability_damage
+	})
 
 	# 发送升级信号
 	EventBus.chess_piece_upgraded.emit(self)
@@ -281,7 +296,7 @@ func take_damage(amount: float, damage_type: String = "physical", source = null)
 	current_health -= actual_damage
 
 	# 增加法力值（受到伤害时获得法力值）
-	gain_mana(actual_damage * 0.1)
+	gain_mana(actual_damage * 0.1, "damage_taken")
 
 	# 发送伤害信号
 	EventBus.damage_dealt.emit(source, self, actual_damage, damage_type)
@@ -320,12 +335,37 @@ func heal(amount: float, source = null) -> float:
 	return current_health - old_health
 
 # 获得法力值
-func gain_mana(amount: float) -> float:
+func gain_mana(amount: float, source_type: String = "passive") -> float:
 	if current_state == ChessState.DEAD:
 		return 0
 
 	# 应用法力获取系数
 	var mana_gain_multiplier = 1.0
+	# 法力获取颜色
+	var mana_gain_color = Color(0.0, 0.5, 1.0, 0.7) # 默认蓝色
+
+	# 根据法力来源调整获取系数和颜色
+	match source_type:
+		"passive":
+			# 被动回蓝，基础系数
+			mana_gain_multiplier = 1.0
+			mana_gain_color = Color(0.0, 0.5, 1.0, 0.7) # 蓝色
+		"attack":
+			# 普通攻击获得法力
+			mana_gain_multiplier = 1.5
+			mana_gain_color = Color(0.8, 0.2, 0.8, 0.7) # 紫色
+		"damage_taken":
+			# 受伤获得法力，根据伤害比例
+			mana_gain_multiplier = 1.2
+			mana_gain_color = Color(1.0, 0.0, 0.0, 0.7) # 红色
+		"ability":
+			# 技能命中获得法力
+			mana_gain_multiplier = 2.0
+			mana_gain_color = Color(1.0, 0.8, 0.0, 0.7) # 金色
+		"item":
+			# 装备效果获得法力
+			mana_gain_multiplier = 1.0
+			mana_gain_color = Color(0.0, 0.8, 0.5, 0.7) # 青绿色
 
 	# 根据棋子星级提升法力获取
 	mana_gain_multiplier += 0.1 * star_level  # 每星级提升法力获取10%
@@ -350,9 +390,20 @@ func gain_mana(amount: float) -> float:
 	elif current_state == ChessState.STUNNED:
 		# 眩晕状态下获得更少法力
 		mana_gain_multiplier *= 0.5
+	elif current_state == ChessState.MOVING:
+		# 移动状态下获得法力略微提升
+		mana_gain_multiplier *= 1.1
+
+	# 检查是否被沉默，沉默时法力获取减少
+	if is_silenced:
+		mana_gain_multiplier *= 0.7
 
 	# 应用法力获取系数
+	var original_amount = amount
 	amount *= mana_gain_multiplier
+
+	# 确保法力获取至少为1
+	amount = max(1.0, amount)
 
 	var old_mana = current_mana
 	current_mana = min(current_mana + amount, max_mana)
@@ -361,11 +412,49 @@ func gain_mana(amount: float) -> float:
 	mana_changed.emit(old_mana, current_mana)
 	_update_mana_bar()
 
+	# 显示法力获取视觉效果
+	_show_mana_gain_effect(amount, mana_gain_color, source_type)
+
 	# 检查是否可以释放技能
 	if current_mana >= ability_mana_cost and current_cooldown <= 0 and not is_silenced:
 		activate_ability()
 
 	return current_mana - old_mana
+
+# 显示法力获取视觉效果
+func _show_mana_gain_effect(amount: float, color: Color, source_type: String) -> void:
+	# 如果法力获取量很小，不显示效果
+	if amount < 2.0 and source_type == "passive":
+		return
+
+	# 创建法力获取效果容器
+	var mana_effect_container = Node2D.new()
+	add_child(mana_effect_container)
+
+	# 创建法力获取视觉对象
+	var mana_visual = ColorRect.new()
+	mana_visual.color = color
+	mana_visual.size = Vector2(30, 30)
+	mana_visual.position = Vector2(-15, -15)
+	mana_effect_container.add_child(mana_visual)
+
+	# 创建法力获取数值文本
+	var mana_label = Label.new()
+	mana_label.text = "+" + str(int(amount))
+	mana_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mana_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	mana_label.size = Vector2(30, 30)
+	mana_label.position = Vector2(-15, -15)
+	mana_effect_container.add_child(mana_label)
+
+	# 设置初始位置（在法力条附近）
+	mana_effect_container.position = Vector2(0, -30)
+
+	# 创建浮动和消失动画
+	var tween = create_tween()
+	tween.tween_property(mana_effect_container, "position", Vector2(0, -60), 0.5)
+	tween.parallel().tween_property(mana_effect_container, "modulate", Color(1, 1, 1, 0), 0.5)
+	tween.tween_callback(mana_effect_container.queue_free)
 
 # 消耗法力值
 func spend_mana(amount: float) -> bool:
@@ -568,7 +657,7 @@ func _perform_attack() -> void:
 		_trigger_elemental_effect(target)
 
 	# 攻击后获得法力值
-	gain_mana(10.0)
+	gain_mana(10.0, "attack")
 
 # 添加装备
 func equip_item(equipment: Equipment) -> bool:
@@ -1467,4 +1556,74 @@ func _on_state_dead_exit() -> void:
 # 死亡状态处理
 func _on_state_dead_process(delta: float) -> void:
 	# 死亡状态下不能行动
+	pass
+
+# 检查是否嘲讽中
+func is_taunting() -> bool:
+	# 检查状态效果管理器
+	if status_effect_manager:
+		return status_effect_manager.has_effect(StatusEffectManager.StatusEffectType.TAUNT)
+	return false
+
+# 播放升星特效
+func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increases: Dictionary) -> void:
+	# 创建升星特效容器
+	var upgrade_effect = Node2D.new()
+	upgrade_effect.name = "UpgradeEffect"
+	add_child(upgrade_effect)
+
+	# 创建升星光环
+	var light_ring = ColorRect.new()
+	light_ring.color = Color(1.0, 0.8, 0.0, 0.5) # 金色
+	light_ring.size = Vector2(100, 100)
+	light_ring.position = Vector2(-50, -50)
+	upgrade_effect.add_child(light_ring)
+
+	# 创建星级文本
+	var star_text = Label.new()
+	star_text.text = str(old_star_level) + " → " + str(new_star_level) + " ★"
+	star_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	star_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	star_text.size = Vector2(100, 30)
+	star_text.position = Vector2(-50, -80)
+	upgrade_effect.add_child(star_text)
+
+	# 创建属性提升文本
+	var y_offset = -50
+	for stat_name in stat_increases:
+		var increase = stat_increases[stat_name]
+		if increase > 0:
+			var stat_label = Label.new()
+			var display_name = ""
+			match stat_name:
+				"health":
+					display_name = "生命值"
+				"attack":
+					display_name = "攻击力"
+				"ability":
+					display_name = "技能伤害"
+				_:
+					display_name = stat_name
+
+			stat_label.text = display_name + " +" + str(int(increase))
+			stat_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			stat_label.size = Vector2(100, 20)
+			stat_label.position = Vector2(-50, y_offset)
+			upgrade_effect.add_child(stat_label)
+			y_offset += 20
+
+	# 创建升星动画
+	var tween = create_tween()
+	tween.tween_property(light_ring, "scale", Vector2(1.5, 1.5), 0.3)
+	tween.tween_property(light_ring, "scale", Vector2(1.0, 1.0), 0.3)
+	tween.parallel().tween_property(star_text, "modulate", Color(1.0, 0.8, 0.0, 1.0), 0.3)
+	tween.tween_property(upgrade_effect, "modulate", Color(1, 1, 1, 0), 1.0)
+	tween.tween_callback(upgrade_effect.queue_free)
+
+	# 播放升星音效
+	EventBus.play_sound.emit("upgrade", global_position)
+
+# 更新装备视觉效果
+func _update_equipment_visuals() -> void:
+	# 更新装备视觉效果
 	pass

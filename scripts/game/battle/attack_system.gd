@@ -210,10 +210,10 @@ func apply_damage(attacker: ChessPiece, defender: ChessPiece, damage_result: Dic
 		defender.die()
 
 	# 攻击者获得法力值
-	attacker.gain_mana(10)
+	attacker.gain_mana(10, "attack")
 
 	# 防御者获得法力值 (基于受到的伤害)
-	defender.gain_mana(actual_damage * 0.1)
+	defender.gain_mana(actual_damage * 0.1, "damage_taken")
 
 	# 重置攻击计时器
 	attacker.attack_timer = 1.0 / attacker.attack_speed

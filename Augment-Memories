@@ -1,0 +1,23 @@
+# General Preferences
+- User prefers communication in Chinese.
+- User prefers breaking down complex implementations into multiple steps, first defining functions then implementing them separately.
+- 用户偏好先创建空文件完成编码，而不是主动创建PNG等媒体文件。
+
+# Project Goal
+- User wants to develop an auto chess game using Godot, based on Slay the Spire's branching map.
+- 用户希望开始进行基于杀戮尖塔分支树形地图的自走棋游戏的代码实现。
+- User wants to summarize designs and progress in a README file, marking module completion status for continuation in future conversations.
+- 用户希望将设计和进度总结到README文件中，并对模块完成状态进行标记，以便下次对话继续当前进度。
+
+# Game Architecture & Development Practices
+- The game architecture should be comprehensive and flexible/extensible.
+- The architecture includes the following systems: UI, sound, map, random events, board, level/gold, chess piece, attack, aura, equipment, and relic systems.
+- 用户同意在自走棋项目中添加数据持久化、网络多人模式和教程系统的优化建议。
+- User requests the use of an internationalization support system, considering the interactions between systems (e.g., multilingualism, skins, difficulty, values, achievements, relics, event influences).
+- 用户要求使用国际化支持系统，并要求考虑系统间互相影响（如多语言、皮肤、难度、数值、成就、遗物、事件影响等）。
+- User requests that the multilingual system initially only supports Simplified Chinese.
+- 用户要求多语言系统暂时只需支持简体中文。
+- User requires code implementation to consider performance, extensibility, decoupling, and modularity, and to anticipate interactions with other systems (difficulty, skins, localization, achievements, relics, events, plugins).
+- 用户要求代码实现需考虑性能、可扩展性/解耦和模块化，并预先考虑与其他系统（难度、皮肤、多语言、成就、遗物、事件、插件等）的交互。
+- When developing code: understand existing modules first, implement complex features step-by-step, reuse existing files where possible, ensure code has good performance/extensibility/decoupling/modularity, consider interactions with other systems (difficulty, skins, localization, achievements, relics, events, plugins), and use placeholders for media files.
+- 开发代码时需要先理解原有模块，分步实现复杂功能，优先使用已有文件，确保代码具有良好的性能/可扩展性/解耦/模块化，考虑与其他系统的交互（难度、皮肤、多语言、成就、遗物、事件、插件等），对媒体文件使用占位符。

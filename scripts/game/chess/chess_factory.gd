@@ -266,8 +266,17 @@ func merge_chess_pieces(pieces: Array) -> ChessPiece:
 		push_error("3星棋子无法再升级")
 		return null
 
+	# 获取棋子的位置
+	var position = first_piece.global_position
+
+	# 创建合并动画
+	_play_merge_animation(pieces, position)
+
 	# 创建升级后的棋子
 	var upgraded_piece = create_chess_piece(chess_id, star_level + 1, first_piece.is_player_piece)
+
+	# 设置升级后棋子的位置
+	upgraded_piece.global_position = position
 
 	# 继承装备
 	for i in range(min(pieces.size(), 3)):
@@ -280,7 +289,45 @@ func merge_chess_pieces(pieces: Array) -> ChessPiece:
 	for piece in pieces:
 		release_chess_piece(piece)
 
+	# 发送合并完成信号
+	EventBus.chess_pieces_merged.emit(pieces, upgraded_piece)
+
 	return upgraded_piece
+
+## 播放合并动画
+func _play_merge_animation(pieces: Array, target_position: Vector2) -> void:
+	# 创建合并动画容器
+	var merge_effect = Node2D.new()
+	merge_effect.name = "MergeEffect"
+	merge_effect.global_position = target_position
+	get_tree().root.add_child(merge_effect)
+
+	# 创建光环
+	var light_ring = ColorRect.new()
+	light_ring.color = Color(1.0, 0.8, 0.0, 0.5) # 金色
+	light_ring.size = Vector2(120, 120)
+	light_ring.position = Vector2(-60, -60)
+	merge_effect.add_child(light_ring)
+
+	# 创建合并文本
+	var merge_text = Label.new()
+	merge_text.text = "合并升星"
+	merge_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	merge_text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	merge_text.size = Vector2(120, 30)
+	merge_text.position = Vector2(-60, -90)
+	merge_effect.add_child(merge_text)
+
+	# 创建合并动画
+	var tween = merge_effect.create_tween()
+	tween.tween_property(light_ring, "scale", Vector2(1.5, 1.5), 0.3)
+	tween.tween_property(light_ring, "scale", Vector2(1.0, 1.0), 0.3)
+	tween.parallel().tween_property(merge_text, "modulate", Color(1.0, 0.8, 0.0, 1.0), 0.3)
+	tween.tween_property(merge_effect, "modulate", Color(1, 1, 1, 0), 1.0)
+	tween.tween_callback(merge_effect.queue_free)
+
+	# 播放合并音效
+	EventBus.play_sound.emit("merge", target_position)
 
 ## 获取棋子配置
 func get_chess_config(chess_id: String) -> Dictionary:

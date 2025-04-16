@@ -54,7 +54,9 @@ func _create_map_data(template) -> Dictionary:
 		"nodes": [],
 		"connections": [],
 		"difficulty": GameManager.get_current_difficulty(),
-		"special_nodes": {}
+		"special_nodes": {},
+		"generation_seed": randi(), # 记录生成种子
+		"generation_time": Time.get_unix_time_from_system() # 记录生成时间
 	}
 
 	# 创建节点
@@ -219,6 +221,25 @@ func _create_map_connections(nodes: Array, template) -> Array:
 				# 困难难度减少连接密度，减少选择
 				connection_density -= 0.05
 
+		# 添加随机性变化
+		var random_variation = randf_range(-0.05, 0.05)
+		connection_density += random_variation
+
+		# 确保连接密度在合理范围内
+		connection_density = clamp(connection_density, 0.2, 0.7)
+
+		# 确保每个节点至少有一个连接
+		var min_connections_per_node = 1
+
+		# 对于简单难度，增加最小连接数
+		if template.has("difficulty") and template.difficulty == "easy":
+			min_connections_per_node = 2
+
+		# 初始化下一层节点的连接计数
+		var node_connections_count = {}
+		for node in next_layer_nodes:
+			node_connections_count[node.id] = 0
+
 		for from_node in current_layer_nodes:
 			var connection = {
 				"from": from_node.id,
@@ -249,6 +270,8 @@ func _create_map_connections(nodes: Array, template) -> Array:
 
 				if distance <= current_density:
 					connection.to.append(to_node.id)
+					# 更新节点连接计数
+					node_connections_count[to_node.id] += 1
 
 			# 确保每个节点至少有一个连接
 			if connection.to.is_empty() and next_layer_nodes.size() > 0:
@@ -275,6 +298,41 @@ func _create_map_connections(nodes: Array, template) -> Array:
 					connection.to.pop_back()
 
 			layer_connections.append(connection)
+
+		# 确保下一层的每个节点都有足够的连接
+		for node_id in node_connections_count.keys():
+			if node_connections_count[node_id] < min_connections_per_node:
+				# 找到最近的节点来添加连接
+				var to_node = null
+				for n in next_layer_nodes:
+					if n.id == node_id:
+						to_node = n
+						break
+
+				if to_node:
+					var to_pos = to_node.position
+					var to_pos_normalized = float(to_pos) / (next_layer_nodes.size() - 1) if next_layer_nodes.size() > 1 else 0.5
+
+					# 找到最近的上层节点
+					var closest_from_node = null
+					var min_distance = 1.0
+
+					for from_node in current_layer_nodes:
+						var from_pos = from_node.position
+						var from_pos_normalized = float(from_pos) / (current_layer_nodes.size() - 1) if current_layer_nodes.size() > 1 else 0.5
+						var distance = abs(from_pos_normalized - to_pos_normalized)
+
+						if distance < min_distance:
+							min_distance = distance
+							closest_from_node = from_node
+
+					# 添加连接
+					if closest_from_node:
+						for connection in layer_connections:
+							if connection.from == closest_from_node.id and not connection.to.has(to_node.id):
+								connection.to.append(to_node.id)
+								node_connections_count[to_node.id] += 1
+								break
 
 		connections.append(layer_connections)
 

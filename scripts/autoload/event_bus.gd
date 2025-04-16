@@ -28,6 +28,7 @@ signal piece_removed_from_bench(piece)
 signal chess_piece_created(piece_data)
 signal chess_piece_upgraded(piece_data)
 signal chess_piece_sold(piece_data)
+signal chess_pieces_merged(source_pieces, result_piece)
 signal chess_piece_moved(piece_data, from_pos, to_pos)
 signal chess_piece_ability_activated(piece_data, target_data)
 signal synergy_activated(synergy_type, level)
@@ -50,7 +51,10 @@ signal battle_fighting_phase_started
 
 # 经济相关信号
 signal gold_changed(old_amount, new_amount)
-signal shop_refreshed
+signal shop_refreshed(shop_items)
+signal shop_opened(shop_items)
+signal shop_closed()
+signal shop_item_purchased(item)
 signal item_purchased(item_data)
 signal item_sold(item_data)
 signal income_granted(amount)
@@ -67,6 +71,12 @@ signal equipment_created(equipment_data)
 signal equipment_equipped(equipment_data, piece_data)
 signal equipment_unequipped(equipment_data, piece_data)
 signal equipment_combined(base_equipment, target_equipment, result_equipment)
+signal equipment_combine_animation_started(base_equipment, target_equipment, result_equipment)
+signal equipment_combine_animation_completed(base_equipment, target_equipment, result_equipment)
+signal equipment_effect_triggered(equipment, effect_data)
+signal equipment_preview_requested(equipment)
+signal equipment_combine_requested(equipment1, equipment2)
+signal shop_refresh_requested(player_level, shop_tier)
 
 # 遗物相关信号
 signal relic_acquired(relic_data)
@@ -121,6 +131,12 @@ signal rest_completed(heal_amount)
 signal achievement_progress(achievement_id, progress, total)
 signal achievement_unlocked(achievement_id)
 
+# 教程相关信号
+signal start_tutorial(tutorial_id)
+signal skip_tutorial(tutorial_id)
+signal complete_tutorial(tutorial_id)
+signal tutorial_step_changed(tutorial_id, step)
+
 # 存档相关信号
 signal game_saved(save_slot)
 signal game_loaded(save_slot)
@@ -132,7 +148,7 @@ signal language_changed(new_language)
 # 音频相关信号
 signal bgm_changed(track_name)
 signal sfx_played(sfx_name)
-signal play_sound(sound_name)
+signal play_sound(sound_name, position)
 
 # 皮肤相关信号
 signal skin_changed(skin_type, skin_id)

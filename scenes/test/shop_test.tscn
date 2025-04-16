@@ -1,0 +1,168 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1yvqnbx"]
+
+[ext_resource type="Script" path="res://scenes/test/shop_test.gd" id="1_yvnbx"]
+
+[node name="ShopTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvnbx")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "商店测试场景"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ShopPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -250.0
+offset_right = 500.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ShopTitle" type="Label" parent="ShopPanel"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 36.0
+grow_horizontal = 2
+text = "商店"
+horizontal_alignment = 1
+
+[node name="ItemsContainer" type="GridContainer" parent="ShopPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -450.0
+offset_top = -200.0
+offset_right = 450.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 3
+
+[node name="PlayerInfo" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 220.0
+offset_bottom = 180.0
+
+[node name="GoldLabel" type="Label" parent="PlayerInfo"]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -50.0
+offset_top = 10.0
+offset_right = 50.0
+offset_bottom = 36.0
+grow_horizontal = 2
+text = "金币: 100"
+horizontal_alignment = 1
+
+[node name="AddGoldButton" type="Button" parent="PlayerInfo"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -50.0
+offset_top = -40.0
+offset_right = 50.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+text = "增加金币"
+
+[node name="ButtonPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -100.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ButtonPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="RefreshButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "刷新商店"
+
+[node name="UpgradeTierButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "提升商店等级"
+
+[node name="DiscountButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "应用折扣"
+
+[node name="ResetButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "重置"
+
+[node name="BackButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "返回"
+
+[connection signal="pressed" from="PlayerInfo/AddGoldButton" to="." method="_on_add_gold_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/RefreshButton" to="." method="_on_refresh_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/UpgradeTierButton" to="." method="_on_upgrade_tier_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/DiscountButton" to="." method="_on_discount_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

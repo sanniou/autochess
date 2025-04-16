@@ -1,0 +1,298 @@
+{
+    "main_menu": {
+        "id": "main_menu",
+        "title": "欢迎来到自走棋",
+        "description": "主菜单教程",
+        "required": true,
+        "next_tutorial": "map",
+        "steps": [
+            {
+                "title": "欢迎",
+                "content": "欢迎来到自走棋游戏！这个教程将帮助你了解游戏的基本操作。",
+                "image_path": "res://assets/images/tutorials/welcome.png",
+                "actions": []
+            },
+            {
+                "title": "主菜单",
+                "content": "这是游戏的主菜单，你可以在这里开始新游戏、继续游戏、查看设置等。",
+                "image_path": "res://assets/images/tutorials/main_menu.png",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/MainMenu/ButtonContainer/StartButton",
+                        "duration": 3.0
+                    }
+                ]
+            },
+            {
+                "title": "开始游戏",
+                "content": "点击"开始游戏"按钮开始一场新的冒险！",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/MainMenu/ButtonContainer/StartButton",
+                        "duration": 3.0
+                    },
+                    {
+                        "type": "focus",
+                        "target": "/root/MainMenu/ButtonContainer/StartButton"
+                    }
+                ]
+            }
+        ]
+    },
+    "map": {
+        "id": "map",
+        "title": "地图教程",
+        "description": "学习如何在地图上移动",
+        "required": true,
+        "next_tutorial": "battle",
+        "steps": [
+            {
+                "title": "地图概述",
+                "content": "这是游戏的地图界面，你可以在这里选择前进的路径。",
+                "image_path": "res://assets/images/tutorials/map_overview.png",
+                "actions": []
+            },
+            {
+                "title": "节点类型",
+                "content": "地图上有不同类型的节点：战斗节点（红色）、商店节点（绿色）、事件节点（黄色）和休息节点（蓝色）。",
+                "image_path": "res://assets/images/tutorials/map_nodes.png",
+                "actions": []
+            },
+            {
+                "title": "选择路径",
+                "content": "点击可到达的节点来选择你的路径。每次只能选择与当前节点相连的节点。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/MapScene/MapContainer/Node1",
+                        "duration": 3.0
+                    }
+                ]
+            }
+        ]
+    },
+    "battle": {
+        "id": "battle",
+        "title": "战斗教程",
+        "description": "学习战斗系统的基础",
+        "required": true,
+        "next_tutorial": "shop",
+        "steps": [
+            {
+                "title": "战斗界面",
+                "content": "这是战斗界面，你可以在这里放置和管理你的棋子。",
+                "image_path": "res://assets/images/tutorials/battle_overview.png",
+                "actions": []
+            },
+            {
+                "title": "棋盘",
+                "content": "棋盘分为两部分：下方是你的准备区，上方是战斗区。在准备阶段，你可以将棋子从准备区拖动到战斗区。",
+                "image_path": "res://assets/images/tutorials/battle_board.png",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/BattleScene/BoardContainer",
+                        "duration": 3.0
+                    }
+                ]
+            },
+            {
+                "title": "放置棋子",
+                "content": "点击并拖动棋子到战斗区的格子上。棋子的位置会影响战斗策略。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/BattleScene/ChessPieceContainer/ChessPiece1",
+                        "duration": 3.0
+                    }
+                ]
+            },
+            {
+                "title": "开始战斗",
+                "content": "准备完成后，点击"开始战斗"按钮开始战斗。战斗过程中，棋子会自动行动。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/BattleScene/ControlPanel/StartButton",
+                        "duration": 3.0
+                    },
+                    {
+                        "type": "focus",
+                        "target": "/root/BattleScene/ControlPanel/StartButton"
+                    }
+                ]
+            }
+        ]
+    },
+    "shop": {
+        "id": "shop",
+        "title": "商店教程",
+        "description": "学习如何在商店购买物品",
+        "required": true,
+        "next_tutorial": "event",
+        "steps": [
+            {
+                "title": "商店界面",
+                "content": "这是商店界面，你可以在这里购买棋子、装备和其他物品。",
+                "image_path": "res://assets/images/tutorials/shop_overview.png",
+                "actions": []
+            },
+            {
+                "title": "购买物品",
+                "content": "点击物品查看详情，然后点击"购买"按钮购买物品。购买物品需要消耗金币。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/ShopScene/ItemContainer/Item1",
+                        "duration": 3.0
+                    }
+                ]
+            },
+            {
+                "title": "刷新商店",
+                "content": "点击"刷新"按钮可以刷新商店的物品，但需要消耗金币。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/ShopScene/ControlPanel/RefreshButton",
+                        "duration": 3.0
+                    }
+                ]
+            }
+        ]
+    },
+    "event": {
+        "id": "event",
+        "title": "事件教程",
+        "description": "学习如何处理随机事件",
+        "required": true,
+        "next_tutorial": "",
+        "steps": [
+            {
+                "title": "事件界面",
+                "content": "这是事件界面，你会遇到各种随机事件，需要做出选择。",
+                "image_path": "res://assets/images/tutorials/event_overview.png",
+                "actions": []
+            },
+            {
+                "title": "事件描述",
+                "content": "事件描述会告诉你发生了什么，以及你可能面临的选择。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/EventScene/EventPanel/DescriptionLabel",
+                        "duration": 3.0
+                    }
+                ]
+            },
+            {
+                "title": "做出选择",
+                "content": "点击选项按钮做出你的选择。不同的选择会有不同的结果。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/EventScene/EventPanel/ChoiceContainer/Choice1",
+                        "duration": 3.0
+                    }
+                ]
+            }
+        ]
+    },
+    "chess_piece": {
+        "id": "chess_piece",
+        "title": "棋子教程",
+        "description": "学习棋子的属性和升级",
+        "required": false,
+        "next_tutorial": "",
+        "steps": [
+            {
+                "title": "棋子属性",
+                "content": "每个棋子都有不同的属性，包括生命值、攻击力、防御力等。你可以点击棋子查看详细信息。",
+                "image_path": "res://assets/images/tutorials/chess_piece_stats.png",
+                "actions": []
+            },
+            {
+                "title": "棋子升级",
+                "content": "收集三个相同的棋子可以将它们合成为一个更高星级的棋子。高星级棋子拥有更强的属性。",
+                "image_path": "res://assets/images/tutorials/chess_piece_upgrade.png",
+                "actions": []
+            },
+            {
+                "title": "棋子羁绊",
+                "content": "棋子有不同的种族和职业，收集相同种族或职业的棋子可以激活羁绊效果，提供额外的加成。",
+                "image_path": "res://assets/images/tutorials/chess_piece_synergy.png",
+                "actions": []
+            }
+        ]
+    },
+    "equipment": {
+        "id": "equipment",
+        "title": "装备教程",
+        "description": "学习如何使用装备",
+        "required": false,
+        "next_tutorial": "",
+        "steps": [
+            {
+                "title": "装备概述",
+                "content": "装备可以提升棋子的属性和能力。每个棋子最多可以装备三件装备。",
+                "image_path": "res://assets/images/tutorials/equipment_overview.png",
+                "actions": []
+            },
+            {
+                "title": "装备棋子",
+                "content": "将装备拖动到棋子上即可装备。已装备的装备会显示在棋子的装备栏中。",
+                "image_path": "",
+                "actions": []
+            },
+            {
+                "title": "卸下装备",
+                "content": "点击棋子的装备栏中的装备，然后点击"卸下"按钮即可卸下装备。",
+                "image_path": "",
+                "actions": []
+            }
+        ]
+    },
+    "relic": {
+        "id": "relic",
+        "title": "遗物教程",
+        "description": "学习遗物系统",
+        "required": false,
+        "next_tutorial": "",
+        "steps": [
+            {
+                "title": "遗物概述",
+                "content": "遗物是提供持久效果的特殊物品。与装备不同，遗物一旦获得就会一直生效，不需要装备到棋子上。",
+                "image_path": "res://assets/images/tutorials/relic_overview.png",
+                "actions": []
+            },
+            {
+                "title": "获取遗物",
+                "content": "你可以通过战斗胜利、事件选择或商店购买获得遗物。",
+                "image_path": "",
+                "actions": []
+            },
+            {
+                "title": "查看遗物",
+                "content": "点击界面上的遗物图标可以查看你拥有的所有遗物及其效果。",
+                "image_path": "",
+                "actions": [
+                    {
+                        "type": "highlight",
+                        "target": "/root/GameScene/HUD/RelicButton",
+                        "duration": 3.0
+                    }
+                ]
+            }
+        ]
+    }
+}

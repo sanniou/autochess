@@ -48,9 +48,13 @@ var theme_manager = null
 var ui_animator = null
 var notification_system = null
 var tooltip_system = null
-var skin_system = null
+var skin_manager = null
 var ability_factory = null
 var relic_ui_manager = null
+var environment_effect_manager = null
+var damage_number_manager = null
+var achievement_manager = null
+var tutorial_manager = null
 
 func _ready():
 	# 连接必要的信号
@@ -252,11 +256,35 @@ func _initialize_systems() -> void:
 		add_child(tooltip_system)
 		tooltip_system.name = "TooltipSystem"
 
-	# 初始化皮肤系统
-	if skin_system == null:
-		skin_system = SkinSystem.new()
-		add_child(skin_system)
-		skin_system.name = "SkinSystem"
+	# 初始化皮肤管理器
+	if skin_manager == null:
+		skin_manager = SkinManager.new()
+		add_child(skin_manager)
+		skin_manager.name = "SkinManager"
+
+	# 初始化环境特效管理器
+	if environment_effect_manager == null:
+		environment_effect_manager = EnvironmentEffectManager.new()
+		add_child(environment_effect_manager)
+		environment_effect_manager.name = "EnvironmentEffectManager"
+
+	# 初始化伤害数字管理器
+	if damage_number_manager == null:
+		damage_number_manager = DamageNumberManager.new()
+		add_child(damage_number_manager)
+		damage_number_manager.name = "DamageNumberManager"
+
+	# 初始化成就管理器
+	if achievement_manager == null:
+		achievement_manager = AchievementManager.new()
+		add_child(achievement_manager)
+		achievement_manager.name = "AchievementManager"
+
+	# 初始化教程管理器
+	if tutorial_manager == null:
+		tutorial_manager = TutorialManager.new()
+		add_child(tutorial_manager)
+		tutorial_manager.name = "TutorialManager"
 
 	# 初始化技能工厂
 	if ability_factory == null:

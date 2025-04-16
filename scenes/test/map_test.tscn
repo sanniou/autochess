@@ -1,0 +1,212 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1yvqnbx"]
+
+[ext_resource type="Script" path="res://scenes/test/map_test.gd" id="1_yvnbx"]
+
+[node name="MapTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvnbx")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -100.0
+offset_top = 20.0
+offset_right = 100.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "地图测试场景"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MapContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -250.0
+offset_right = 500.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MapDisplay" type="Control" parent="MapContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="SettingsPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 80.0
+offset_right = 220.0
+offset_bottom = 280.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SettingsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SettingsTitle" type="Label" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+text = "地图设置"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="LayersLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+text = "层数:"
+
+[node name="LayersSlider" type="HSlider" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+min_value = 3.0
+max_value = 10.0
+value = 5.0
+rounded = true
+
+[node name="LayersValue" type="Label" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+text = "5"
+horizontal_alignment = 1
+
+[node name="DifficultyLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+text = "难度:"
+
+[node name="DifficultyOption" type="OptionButton" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+item_count = 4
+selected = 1
+popup/item_0/text = "简单"
+popup/item_0/id = 0
+popup/item_1/text = "普通"
+popup/item_1/id = 1
+popup/item_2/text = "困难"
+popup/item_2/id = 2
+popup/item_3/text = "专家"
+popup/item_3/id = 3
+
+[node name="SeedLabel" type="Label" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+text = "种子:"
+
+[node name="SeedEdit" type="LineEdit" parent="SettingsPanel/VBoxContainer"]
+layout_mode = 2
+placeholder_text = "随机"
+
+[node name="InfoPanel" type="Panel" parent="."]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 300.0
+offset_right = 220.0
+offset_bottom = 500.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="InfoTitle" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+text = "地图信息"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="InfoContent" type="RichTextLabel" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+text = "生成地图查看信息..."
+
+[node name="ButtonPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -100.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="ButtonPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 1
+
+[node name="GenerateButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "生成地图"
+
+[node name="ClearButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "清除地图"
+
+[node name="SaveButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "保存地图"
+
+[node name="LoadButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "加载地图"
+
+[node name="BackButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "返回"
+
+[connection signal="value_changed" from="SettingsPanel/VBoxContainer/LayersSlider" to="." method="_on_layers_slider_value_changed"]
+[connection signal="item_selected" from="SettingsPanel/VBoxContainer/DifficultyOption" to="." method="_on_difficulty_option_item_selected"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/GenerateButton" to="." method="_on_generate_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/ClearButton" to="." method="_on_clear_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/LoadButton" to="." method="_on_load_button_pressed"]
+[connection signal="pressed" from="ButtonPanel/HBoxContainer/BackButton" to="." method="_on_back_button_pressed"]

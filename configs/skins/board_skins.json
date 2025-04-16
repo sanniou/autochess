@@ -1,0 +1,48 @@
+{
+    "default": {
+        "id": "default",
+        "name": "默认棋盘皮肤",
+        "description": "基础棋盘外观，简洁大方。",
+        "rarity": "common",
+        "icon": "res://assets/images/skins/board/default_icon.png",
+        "preview": "res://assets/images/skins/board/default_preview.png",
+        "texture": "res://assets/images/board/default_board.png"
+    },
+    "wooden": {
+        "id": "wooden",
+        "name": "木质棋盘皮肤",
+        "description": "传统木质棋盘外观，古朴典雅。",
+        "rarity": "uncommon",
+        "icon": "res://assets/images/skins/board/wooden_icon.png",
+        "preview": "res://assets/images/skins/board/wooden_preview.png",
+        "texture": "res://assets/images/board/wooden_board.png",
+        "unlock_condition": {
+            "gold": 500
+        }
+    },
+    "crystal": {
+        "id": "crystal",
+        "name": "水晶棋盘皮肤",
+        "description": "透明水晶棋盘外观，华丽璀璨。",
+        "rarity": "rare",
+        "icon": "res://assets/images/skins/board/crystal_icon.png",
+        "preview": "res://assets/images/skins/board/crystal_preview.png",
+        "texture": "res://assets/images/board/crystal_board.png",
+        "unlock_condition": {
+            "gold": 1500
+        }
+    },
+    "space": {
+        "id": "space",
+        "name": "星空棋盘皮肤",
+        "description": "宇宙星空棋盘外观，神秘浩瀚。",
+        "rarity": "epic",
+        "icon": "res://assets/images/skins/board/space_icon.png",
+        "preview": "res://assets/images/skins/board/space_preview.png",
+        "texture": "res://assets/images/board/space_board.png",
+        "unlock_condition": {
+            "gold": 3000,
+            "achievement": "complete_all_maps"
+        }
+    }
+}

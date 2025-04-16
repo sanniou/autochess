@@ -277,14 +277,52 @@ func _apply_passive_effect(effect_data: Dictionary) -> void:
 	match effect_data.effect:
 		"health_regen":
 			_apply_health_regen_effect(effect_data)
+			# 添加视觉效果
+			if effect_data.has("percent"):
+				_add_health_regen_visual(effect_data.percent)
 		"summon_boost":
 			_apply_summon_boost_effect(effect_data)
+			# 添加视觉效果
+			if effect_data.has("health_boost") and effect_data.has("damage_boost"):
+				_add_summon_boost_visual(effect_data.health_boost, effect_data.damage_boost)
 		"damage_boost":
 			# 伤害提升效果在生命值百分比事件中处理
-			pass
+			if effect_data.has("boost"):
+				_add_damage_boost_visual(effect_data.boost)
 		"attack_speed_boost":
 			# 攻击速度提升效果在生命值百分比事件中处理
-			pass
+			if effect_data.has("boost"):
+				_add_attack_speed_boost_visual(effect_data.boost)
+		"damage_reduction":
+			# 伤害减免效果
+			if effect_data.has("reduction"):
+				current_owner.set_meta("damage_reduction_" + id, effect_data.reduction)
+				_add_damage_reduction_visual(effect_data.reduction)
+		"multi_attack":
+			# 连击效果
+			if effect_data.has("chance") and effect_data.has("attacks"):
+				current_owner.set_meta("multi_attack_chance_" + id, effect_data.chance)
+				current_owner.set_meta("multi_attack_count_" + id, effect_data.attacks)
+				_add_multi_attack_visual(effect_data.attacks)
+		"death_immunity":
+			# 死亡免疫效果
+			if effect_data.has("chance") and effect_data.has("cooldown") and effect_data.has("heal_percent"):
+				current_owner.set_meta("death_immunity_chance_" + id, effect_data.chance)
+				current_owner.set_meta("death_immunity_cooldown_" + id, effect_data.cooldown)
+				current_owner.set_meta("death_immunity_heal_" + id, effect_data.heal_percent)
+				current_owner.set_meta("death_immunity_ready_" + id, true)
+				_add_death_immunity_visual()
+		"periodic_buff":
+			# 周期性增益效果
+			if effect_data.has("interval") and effect_data.has("duration") and effect_data.has("stats"):
+				# 创建定时器
+				var timer = Timer.new()
+				timer.wait_time = effect_data.interval
+				timer.autostart = true
+				timer.timeout.connect(_on_periodic_buff_tick.bind(effect_data))
+				add_child(timer)
+				current_owner.set_meta("periodic_buff_timer_" + id, timer)
+				_add_periodic_buff_visual(effect_data.stats)
 
 # 应用生命值百分比效果
 func _apply_health_percent_effect(effect_data: Dictionary) -> void:
@@ -443,3 +481,366 @@ func _apply_summon_boost_effect(effect_data: Dictionary) -> void:
 	# 设置召唤物加成数据
 	current_owner.set_meta("summon_health_boost", effect_data.health_boost)
 	current_owner.set_meta("summon_damage_boost", effect_data.damage_boost)
+
+# 添加伤害提升视觉效果
+func _add_damage_boost_visual(boost_value: float) -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "DamageBoostEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(1.0, 0.0, 0.0, 0.5) # 红色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	effect_label.text = "+" + str(int(boost_value * 100)) + "%"
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(40, 20)
+	effect_label.position = Vector2(-20, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 添加攻击速度提升视觉效果
+func _add_attack_speed_boost_visual(boost_value: float) -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "AttackSpeedBoostEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(1.0, 1.0, 0.0, 0.5) # 黄色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	effect_label.text = "+" + str(int(boost_value * 100)) + "%"
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(40, 20)
+	effect_label.position = Vector2(-20, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 添加伤害减免视觉效果
+func _add_damage_reduction_visual(reduction_value: float) -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "DamageReductionEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(0.0, 0.0, 1.0, 0.5) # 蓝色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	effect_label.text = "-" + str(int(reduction_value * 100)) + "%"
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(40, 20)
+	effect_label.position = Vector2(-20, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 添加生命值恢复视觉效果
+func _add_health_regen_visual(percent_value: float) -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "HealthRegenEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(0.0, 1.0, 0.0, 0.5) # 绿色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	effect_label.text = "+" + str(int(percent_value * 100)) + "%"
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(40, 20)
+	effect_label.position = Vector2(-20, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 添加召唤物加成视觉效果
+func _add_summon_boost_visual(health_boost: float, damage_boost: float) -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "SummonBoostEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(0.8, 0.0, 0.8, 0.5) # 紫色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	effect_label.text = "H+" + str(int(health_boost * 100)) + "% D+" + str(int(damage_boost * 100)) + "%"
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(80, 20)
+	effect_label.position = Vector2(-40, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 添加连击视觉效果
+func _add_multi_attack_visual(attacks: int) -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "MultiAttackEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(1.0, 0.5, 0.0, 0.5) # 橙色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	effect_label.text = str(attacks) + "x"
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(40, 20)
+	effect_label.position = Vector2(-20, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 添加死亡免疫视觉效果
+func _add_death_immunity_visual() -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "DeathImmunityEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(1.0, 1.0, 1.0, 0.5) # 白色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	effect_label.text = "免死"
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(40, 20)
+	effect_label.position = Vector2(-20, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 添加周期性增益视觉效果
+func _add_periodic_buff_visual(stats: Dictionary) -> void:
+	if current_owner == null:
+		return
+
+	# 创建效果容器
+	var effect_container = Node2D.new()
+	effect_container.name = "PeriodicBuffEffect_" + id
+	current_owner.add_child(effect_container)
+
+	# 创建效果图标
+	var effect_icon = ColorRect.new()
+	effect_icon.color = Color(0.0, 1.0, 1.0, 0.5) # 青色
+	effect_icon.size = Vector2(20, 20)
+	effect_icon.position = Vector2(-10, -40)
+	effect_container.add_child(effect_icon)
+
+	# 创建效果文本
+	var effect_label = Label.new()
+	var text = "周期"
+	effect_label.text = text
+	effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	effect_label.size = Vector2(40, 20)
+	effect_label.position = Vector2(-20, -40)
+	effect_container.add_child(effect_label)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(effect_icon, "modulate", Color(1, 1, 1, 1.0), 0.5)
+	tween.set_loops() # 无限循环
+
+# 周期性增益计时器
+func _on_periodic_buff_tick(effect_data: Dictionary) -> void:
+	if current_owner == null or current_owner.current_state == ChessPiece.ChessState.DEAD:
+		return
+
+	# 检查是否已经有激活的增益
+	var buff_active = current_owner.has_meta("periodic_buff_active_" + id) and current_owner.get_meta("periodic_buff_active_" + id)
+
+	if buff_active:
+		# 如果增益已经激活，不做任何操作
+		return
+
+	# 激活增益
+	current_owner.set_meta("periodic_buff_active_" + id, true)
+
+	# 应用属性加成
+	var applied_stats = {}
+	for stat_name in effect_data.stats:
+		var value = effect_data.stats[stat_name]
+		applied_stats[stat_name] = value
+
+		match stat_name:
+			"attack_speed":
+				current_owner.attack_speed += value
+			"move_speed":
+				current_owner.move_speed += value
+			"attack_damage":
+				current_owner.attack_damage += value
+			"spell_power":
+				current_owner.spell_power += value
+
+	# 保存应用的属性以便移除
+	current_owner.set_meta("periodic_buff_stats_" + id, applied_stats)
+
+	# 显示激活效果
+	_show_periodic_buff_active()
+
+	# 创建定时器移除增益
+	var timer = get_tree().create_timer(effect_data.duration)
+	timer.timeout.connect(_on_periodic_buff_end)
+
+# 周期性增益结束
+func _on_periodic_buff_end() -> void:
+	if current_owner == null:
+		return
+
+	# 检查是否有激活的增益
+	if not current_owner.has_meta("periodic_buff_active_" + id) or not current_owner.get_meta("periodic_buff_active_" + id):
+		return
+
+	# 移除增益状态
+	current_owner.set_meta("periodic_buff_active_" + id, false)
+
+	# 获取应用的属性
+	var applied_stats = current_owner.get_meta("periodic_buff_stats_" + id)
+
+	# 移除属性加成
+	for stat_name in applied_stats:
+		var value = applied_stats[stat_name]
+
+		match stat_name:
+			"attack_speed":
+				current_owner.attack_speed -= value
+			"move_speed":
+				current_owner.move_speed -= value
+			"attack_damage":
+				current_owner.attack_damage -= value
+			"spell_power":
+				current_owner.spell_power -= value
+
+	# 显示结束效果
+	_show_periodic_buff_end()
+
+# 显示周期性增益激活效果
+func _show_periodic_buff_active() -> void:
+	if current_owner == null:
+		return
+
+	# 创建激活效果
+	var active_effect = ColorRect.new()
+	active_effect.name = "PeriodicBuffActiveEffect_" + id
+	active_effect.color = Color(0.0, 1.0, 1.0, 0.3) # 半透明青色
+	active_effect.size = Vector2(60, 60)
+	active_effect.position = Vector2(-30, -30)
+	current_owner.add_child(active_effect)
+
+	# 创建闪烁动画
+	var tween = create_tween()
+	tween.tween_property(active_effect, "modulate", Color(1, 1, 1, 0.3), 0.5)
+	tween.tween_property(active_effect, "modulate", Color(1, 1, 1, 0.7), 0.5)
+	tween.set_loops() # 无限循环
+
+# 显示周期性增益结束效果
+func _show_periodic_buff_end() -> void:
+	if current_owner == null:
+		return
+
+	# 移除激活效果
+	if current_owner.has_node("PeriodicBuffActiveEffect_" + id):
+		var active_effect = current_owner.get_node("PeriodicBuffActiveEffect_" + id)
+
+		# 创建消失动画
+		var tween = create_tween()
+		tween.tween_property(active_effect, "modulate", Color(1, 1, 1, 0), 0.5)
+		tween.tween_callback(active_effect.queue_free)

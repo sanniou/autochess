@@ -93,6 +93,15 @@ func make_decision(piece: ChessPiece) -> void:
 	if piece.current_state == ChessPiece.ChessState.STUNNED:
 		return  # 如果被眩晕，无法行动
 
+	# 检查棋子是否被嘲讽
+	if piece.taunted_by and is_instance_valid(piece.taunted_by):
+		# 如果被嘲讽，直接选择嘲讽源作为目标
+		piece.set_target(piece.taunted_by)
+
+		# 即使被嘲讽，仍然可以使用技能
+		_try_use_ability(piece)
+		return
+
 	# 根据行为类型选择决策方法
 	match behavior:
 		AIBehavior.RANDOM:
@@ -110,6 +119,28 @@ func make_decision(piece: ChessPiece) -> void:
 		AIBehavior.TACTICAL:
 			_make_tactical_decision(piece)
 
+# 尝试使用技能
+func _try_use_ability(piece: ChessPiece) -> void:
+	# 如果没有技能或法力值不足，不使用
+	if not piece.ability or piece.current_mana < piece.ability_cost or piece.is_silenced:
+		return
+
+	# 根据难度决定使用技能的概率
+	var use_chance = 0.5
+	match difficulty:
+		AIDifficulty.EASY:
+			use_chance = 0.3
+		AIDifficulty.NORMAL:
+			use_chance = 0.5
+		AIDifficulty.HARD:
+			use_chance = 0.7
+		AIDifficulty.EXPERT:
+			use_chance = 0.9
+
+	# 根据概率决定是否使用技能
+	if randf() < use_chance:
+		piece.use_ability()
+
 # 随机决策
 func _make_random_decision(piece: ChessPiece) -> void:
 	# 随机选择目标
@@ -118,9 +149,8 @@ func _make_random_decision(piece: ChessPiece) -> void:
 		var random_target = player_pieces[randi() % player_pieces.size()]
 		piece.set_target(random_target)
 
-	# 随机使用技能
-	if piece.ability and piece.current_mana >= piece.ability_cost and randf() < 0.3 and not piece.is_silenced:
-		piece.use_ability()
+	# 尝试使用技能
+	_try_use_ability(piece)
 
 # 激进决策
 func _make_aggressive_decision(piece: ChessPiece) -> void:
@@ -131,9 +161,11 @@ func _make_aggressive_decision(piece: ChessPiece) -> void:
 	if target:
 		piece.set_target(target)
 
-	# 积极使用技能
-	if piece.ability and piece.current_mana >= piece.ability_cost and not piece.is_silenced:
-		piece.use_ability()
+	# 尝试使用技能（激进模式下更容易使用技能）
+	var old_difficulty = difficulty
+	difficulty = AIDifficulty.EXPERT # 暂时提高难度以增加使用技能的概率
+	_try_use_ability(piece)
+	difficulty = old_difficulty # 恢复原始难度
 
 # 防御决策
 func _make_defensive_decision(piece: ChessPiece) -> void:
@@ -144,9 +176,15 @@ func _make_defensive_decision(piece: ChessPiece) -> void:
 	if target:
 		piece.set_target(target)
 
-	# 保守使用技能，优先保留法力值
-	if piece.ability and piece.current_mana >= piece.ability_cost * 1.5 and randf() < 0.5 and not piece.is_silenced:
-		piece.use_ability()
+	# 尝试使用技能（防御模式下更保守）
+	var old_difficulty = difficulty
+	difficulty = AIDifficulty.EASY # 暂时降低难度以减少使用技能的概率
+
+	# 只有当法力值足够多时才考虑使用技能
+	if piece.current_mana >= piece.ability_cost * 1.5:
+		_try_use_ability(piece)
+
+	difficulty = old_difficulty # 恢复原始难度
 
 # 平衡决策
 func _make_balanced_decision(piece: ChessPiece) -> void:
@@ -157,9 +195,8 @@ func _make_balanced_decision(piece: ChessPiece) -> void:
 	if target:
 		piece.set_target(target)
 
-	# 平衡使用技能
-	if piece.ability and piece.current_mana >= piece.ability_cost and randf() < 0.6 and not piece.is_silenced:
-		piece.use_ability()
+	# 尝试使用技能（保持当前难度）
+	_try_use_ability(piece)
 
 # 战术决策
 func _make_tactical_decision(piece: ChessPiece) -> void:
@@ -174,7 +211,11 @@ func _make_tactical_decision(piece: ChessPiece) -> void:
 	if piece.ability and piece.current_mana >= piece.ability_cost and not piece.is_silenced:
 		var should_use_ability = _evaluate_ability_usage(piece)
 		if should_use_ability:
+			# 如果战术评估表明应该使用技能，则强制使用
 			piece.use_ability()
+		else:
+			# 否则根据正常概率决定
+			_try_use_ability(piece)
 
 # 寻找生命值最低的目标
 func _find_lowest_health_target(targets: Array) -> ChessPiece:
@@ -199,6 +240,51 @@ func _find_nearest_target(piece: ChessPiece, targets: Array) -> ChessPiece:
 	if targets.size() == 0:
 		return null
 
+	# 检查是否有嘲讽目标
+	var taunting_targets = _find_taunting_targets(targets)
+	if taunting_targets.size() > 0:
+		# 如果有嘲讽目标，优先选择最近的嘲讽目标
+		return _find_nearest_from_list(piece, taunting_targets)
+
+	# 如果没有嘲讽目标，选择最近的目标
+	var nearest_target = targets[0]
+	var nearest_distance = piece.global_position.distance_to(nearest_target.global_position)
+
+	for target in targets:
+		if target.current_state == ChessPiece.ChessState.DEAD:
+			continue
+
+		var distance = piece.global_position.distance_to(target.global_position)
+		if distance < nearest_distance:
+			nearest_distance = distance
+			nearest_target = target
+
+	return nearest_target
+
+# 寻找嘲讽目标
+func _find_taunting_targets(targets: Array) -> Array:
+	var taunting_targets = []
+
+	for target in targets:
+		if target.current_state == ChessPiece.ChessState.DEAD:
+			continue
+
+		# 检查目标是否有嘲讽效果
+		if target.has_method("is_taunting") and target.is_taunting():
+			taunting_targets.append(target)
+		# 检查目标的状态效果管理器
+		elif target.has_node("StatusEffectManager"):
+			var status_manager = target.get_node("StatusEffectManager")
+			if status_manager.has_effect(StatusEffectManager.StatusEffectType.TAUNT):
+				taunting_targets.append(target)
+
+	return taunting_targets
+
+# 从列表中寻找最近的目标
+func _find_nearest_from_list(piece: ChessPiece, targets: Array) -> ChessPiece:
+	if targets.size() == 0:
+		return null
+
 	var nearest_target = targets[0]
 	var nearest_distance = piece.global_position.distance_to(nearest_target.global_position)
 
@@ -215,6 +301,20 @@ func _find_nearest_target(piece: ChessPiece, targets: Array) -> ChessPiece:
 
 # 寻找平衡目标（考虑距离和生命值）
 func _find_balanced_target(piece: ChessPiece, targets: Array) -> ChessPiece:
+	if targets.size() == 0:
+		return null
+
+	# 检查是否有嘲讽目标
+	var taunting_targets = _find_taunting_targets(targets)
+	if taunting_targets.size() > 0:
+		# 如果有嘲讽目标，优先选择嘲讽目标中的最佳目标
+		return _find_best_target_by_score(piece, taunting_targets)
+
+	# 如果没有嘲讽目标，选择最佳目标
+	return _find_best_target_by_score(piece, targets)
+
+# 根据评分选择最佳目标
+func _find_best_target_by_score(piece: ChessPiece, targets: Array) -> ChessPiece:
 	if targets.size() == 0:
 		return null
 
@@ -247,6 +347,20 @@ func _find_tactical_target(piece: ChessPiece, targets: Array) -> ChessPiece:
 	if targets.size() == 0:
 		return null
 
+	# 检查是否有嘲讽目标
+	var taunting_targets = _find_taunting_targets(targets)
+	if taunting_targets.size() > 0:
+		# 如果有嘲讽目标，优先选择嘲讽目标中的最佳目标
+		return _find_tactical_target_by_score(piece, taunting_targets)
+
+	# 如果没有嘲讽目标，选择最佳目标
+	return _find_tactical_target_by_score(piece, targets)
+
+# 根据战术评分选择最佳目标
+func _find_tactical_target_by_score(piece: ChessPiece, targets: Array) -> ChessPiece:
+	if targets.size() == 0:
+		return null
+
 	var best_target = targets[0]
 	var best_score = 0
 
@@ -269,6 +383,10 @@ func _find_tactical_target(piece: ChessPiece, targets: Array) -> ChessPiece:
 		var special_score = 0.0
 		if target.ability:
 			special_score += 0.2
+
+		# 检查目标是否有法力值
+		if target.current_mana > target.max_mana * 0.8:
+			special_score += 0.3  # 如果目标法力值快满，提高威胁分数
 
 		# 综合评分
 		var score = distance_score * 0.2 + health_score * 0.3 + threat_score * 0.3 + special_score * 0.2

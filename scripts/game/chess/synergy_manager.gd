@@ -117,6 +117,9 @@ func _activate_synergy(synergy: String, level: int) -> void:
 		if synergy in piece.synergies:
 			piece.add_effect(effect)
 
+	# 显示羁绊激活效果
+	_show_synergy_activation_effect(synergy, level)
+
 	# 发送羁绊激活信号
 	EventBus.synergy_activated.emit(synergy, level)
 
@@ -141,6 +144,9 @@ func _upgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
 		for piece in all_pieces:
 			if synergy in piece.synergies:
 				piece.add_effect(new_effect)
+
+	# 显示羁绊升级效果
+	_show_synergy_upgrade_effect(synergy, old_level, new_level)
 
 	# 发送羁绊升级信号
 	EventBus.synergy_activated.emit(synergy, new_level)
@@ -183,6 +189,9 @@ func _deactivate_synergy(synergy: String, level: int) -> void:
 		for piece in all_pieces:
 			if synergy in piece.synergies:
 				piece.remove_effect(effect.id)
+
+	# 显示羁绊失效效果
+	_show_synergy_deactivation_effect(synergy, level)
 
 	# 发送羁绊失效信号
 	EventBus.synergy_deactivated.emit(synergy)
@@ -360,3 +369,191 @@ func reset() -> void:
 		_deactivate_synergy(synergy, _active_synergies[synergy])
 
 	_active_synergies = {}
+
+## 显示羁结激活效果
+func _show_synergy_activation_effect(synergy: String, level: int) -> void:
+	# 获取羁结配置
+	var config = _synergy_configs[synergy]
+	if not config:
+		return
+
+	# 获取所有符合条件的棋子
+	var affected_pieces = []
+	var all_pieces = _get_all_chess_pieces()
+	for piece in all_pieces:
+		if synergy in piece.synergies:
+			affected_pieces.append(piece)
+
+	# 如果没有受影响的棋子，返回
+	if affected_pieces.size() == 0:
+		return
+
+	# 获取羁结颜色
+	var synergy_color = _get_synergy_color(synergy)
+
+	# 为每个受影响的棋子创建效果
+	for piece in affected_pieces:
+		# 创建羁结效果容器
+		var effect_container = Node2D.new()
+		effect_container.name = "SynergyEffect_" + synergy
+		piece.add_child(effect_container)
+
+		# 创建羁结图标
+		var effect_icon = ColorRect.new()
+		effect_icon.color = synergy_color
+		effect_icon.size = Vector2(30, 30)
+		effect_icon.position = Vector2(-15, -50)
+		effect_container.add_child(effect_icon)
+
+		# 创建羁结文本
+		var effect_label = Label.new()
+		effect_label.text = config.name + " " + str(level)
+		effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		effect_label.size = Vector2(60, 20)
+		effect_label.position = Vector2(-30, -80)
+		effect_container.add_child(effect_label)
+
+		# 创建效果动画
+		var tween = piece.create_tween()
+		tween.tween_property(effect_icon, "scale", Vector2(1.5, 1.5), 0.3)
+		tween.tween_property(effect_icon, "scale", Vector2(1.0, 1.0), 0.3)
+		tween.parallel().tween_property(effect_label, "modulate", synergy_color, 0.3)
+		tween.tween_property(effect_container, "modulate", Color(1, 1, 1, 0), 1.0)
+		tween.tween_callback(effect_container.queue_free)
+
+	# 播放羁结激活音效
+	EventBus.play_sound.emit("synergy_activate", affected_pieces[0].global_position)
+
+## 显示羁结升级效果
+func _show_synergy_upgrade_effect(synergy: String, old_level: int, new_level: int) -> void:
+	# 获取羁结配置
+	var config = _synergy_configs[synergy]
+	if not config:
+		return
+
+	# 获取所有符合条件的棋子
+	var affected_pieces = []
+	var all_pieces = _get_all_chess_pieces()
+	for piece in all_pieces:
+		if synergy in piece.synergies:
+			affected_pieces.append(piece)
+
+	# 如果没有受影响的棋子，返回
+	if affected_pieces.size() == 0:
+		return
+
+	# 获取羁结颜色
+	var synergy_color = _get_synergy_color(synergy)
+
+	# 为每个受影响的棋子创建效果
+	for piece in affected_pieces:
+		# 创建羁结效果容器
+		var effect_container = Node2D.new()
+		effect_container.name = "SynergyUpgradeEffect_" + synergy
+		piece.add_child(effect_container)
+
+		# 创建羁结图标
+		var effect_icon = ColorRect.new()
+		effect_icon.color = synergy_color
+		effect_icon.size = Vector2(30, 30)
+		effect_icon.position = Vector2(-15, -50)
+		effect_container.add_child(effect_icon)
+
+		# 创建羁结文本
+		var effect_label = Label.new()
+		effect_label.text = config.name + " " + str(old_level) + " → " + str(new_level)
+		effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		effect_label.size = Vector2(80, 20)
+		effect_label.position = Vector2(-40, -80)
+		effect_container.add_child(effect_label)
+
+		# 创建效果动画
+		var tween = piece.create_tween()
+		tween.tween_property(effect_icon, "scale", Vector2(1.5, 1.5), 0.3)
+		tween.tween_property(effect_icon, "scale", Vector2(1.0, 1.0), 0.3)
+		tween.parallel().tween_property(effect_label, "modulate", synergy_color, 0.3)
+		tween.tween_property(effect_container, "modulate", Color(1, 1, 1, 0), 1.0)
+		tween.tween_callback(effect_container.queue_free)
+
+	# 播放羁结升级音效
+	EventBus.play_sound.emit("synergy_upgrade", affected_pieces[0].global_position)
+
+## 显示羁结失效效果
+func _show_synergy_deactivation_effect(synergy: String, level: int) -> void:
+	# 获取羁结配置
+	var config = _synergy_configs[synergy]
+	if not config:
+		return
+
+	# 获取所有符合条件的棋子
+	var affected_pieces = []
+	var all_pieces = _get_all_chess_pieces()
+	for piece in all_pieces:
+		if synergy in piece.synergies:
+			affected_pieces.append(piece)
+
+	# 如果没有受影响的棋子，返回
+	if affected_pieces.size() == 0:
+		return
+
+	# 获取羁结颜色
+	var synergy_color = _get_synergy_color(synergy)
+
+	# 为每个受影响的棋子创建效果
+	for piece in affected_pieces:
+		# 创建羁结效果容器
+		var effect_container = Node2D.new()
+		effect_container.name = "SynergyDeactivateEffect_" + synergy
+		piece.add_child(effect_container)
+
+		# 创建羁结图标
+		var effect_icon = ColorRect.new()
+		effect_icon.color = Color(0.5, 0.5, 0.5, 0.5) # 灰色
+		effect_icon.size = Vector2(30, 30)
+		effect_icon.position = Vector2(-15, -50)
+		effect_container.add_child(effect_icon)
+
+		# 创建羁结文本
+		var effect_label = Label.new()
+		effect_label.text = config.name + " 失效"
+		effect_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		effect_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		effect_label.size = Vector2(60, 20)
+		effect_label.position = Vector2(-30, -80)
+		effect_container.add_child(effect_label)
+
+		# 创建效果动画
+		var tween = piece.create_tween()
+		tween.tween_property(effect_icon, "modulate", Color(0.5, 0.5, 0.5, 0.3), 0.5)
+		tween.tween_property(effect_container, "modulate", Color(1, 1, 1, 0), 0.5)
+		tween.tween_callback(effect_container.queue_free)
+
+	# 播放羁结失效音效
+	EventBus.play_sound.emit("synergy_deactivate", affected_pieces[0].global_position)
+
+## 获取羁结颜色
+func _get_synergy_color(synergy: String) -> Color:
+	# 根据羁结类型返回不同的颜色
+	match synergy:
+		"warrior":
+			return Color(0.8, 0.0, 0.0, 0.7) # 红色
+		"mage":
+			return Color(0.0, 0.0, 0.8, 0.7) # 蓝色
+		"assassin":
+			return Color(0.5, 0.0, 0.5, 0.7) # 紫色
+		"ranger":
+			return Color(0.0, 0.8, 0.0, 0.7) # 绿色
+		"support":
+			return Color(1.0, 1.0, 0.0, 0.7) # 黄色
+		"summoner":
+			return Color(0.0, 0.8, 0.8, 0.7) # 青色
+		"elemental":
+			return Color(1.0, 0.5, 0.0, 0.7) # 橙色
+		"human":
+			return Color(0.8, 0.8, 0.8, 0.7) # 白色
+		"elf":
+			return Color(0.0, 0.5, 0.0, 0.7) # 深绿色
+		_:
+			return Color(0.5, 0.5, 0.5, 0.7) # 灰色
