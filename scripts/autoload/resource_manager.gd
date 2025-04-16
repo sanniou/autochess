@@ -452,8 +452,8 @@ func _process_completed_loads() -> void:
 			resource_stats.loaded_count += 1
 			resource_stats.load_time += item.load_time
 
-			# 发送信号
-			resource_loaded.emit(item.path)
+			# 在主线程中发送信号
+			call_deferred("_emit_resource_loaded", item.path)
 		else:
 			push_error("无法加载资源: " + item.path)
 
@@ -686,3 +686,7 @@ func _update_stats_after_clear(type: int) -> void:
 
 	for path in paths_to_remove:
 		resource_usage.erase(path)
+
+## 在主线程中发送资源加载信号
+func _emit_resource_loaded(path: String) -> void:
+	resource_loaded.emit(path)

@@ -265,7 +265,13 @@ func _load_font(language: int) -> void:
 	var font_name = LANGUAGE_FONTS[language]
 
 	# 通过EventBus请求字体
-	EventBus.font_loaded.connect(_on_font_loaded.bind(font_name), CONNECT_ONE_SHOT)
+	# 使用call_deferred避免在同一帧内连接和断开信号
+	call_deferred("_request_font", font_name)
+
+## 请求字体
+func _request_font(font_name: String) -> void:
+	# 通过EventBus请求字体
+	EventBus.font_loaded.connect(_on_font_loaded, CONNECT_ONE_SHOT)
 	EventBus.request_font.emit(font_name)
 	EventBus.debug_message.emit("请求字体: " + font_name, 0)
 
@@ -277,7 +283,6 @@ func _on_font_loaded(font_name: String, font_data) -> void:
 
 		# 发送字体变化信号
 		font_changed.emit(font_name)
-		EventBus.font_changed.emit(font_name)
 		EventBus.debug_message.emit("字体加载完成: " + font_name, 0)
 	else:
 		# 如果字体管理器无法加载字体，尝试使用传统方式加载
@@ -303,7 +308,6 @@ func _load_font_traditional(font_name: String) -> void:
 
 	# 发送字体变化信号
 	font_changed.emit(font_name)
-	EventBus.font_changed.emit(font_name)
 	EventBus.debug_message.emit("使用传统方式加载字体: " + font_name, 0)
 
 ## 创建空的语言文件（仅在调试模式下）
@@ -414,7 +418,8 @@ func _preload_language(language: int) -> void:
 			# 将翻译数据存储到缓存
 			var cache_key = "translation_" + language_code
 			config_manager.set_cache(cache_key, translation_data)
-			EventBus.debug_message.emit("预加载语言完成: " + language_code, 0)
+			# 使用call_deferred在主线程中发送信号
+			call_deferred("_emit_preload_complete", language_code)
 	)
 
 	# 在下一帧等待线程完成
@@ -464,3 +469,7 @@ func is_initialized() -> bool:
 func ensure_initialized() -> void:
 	if not _initialized:
 		_deferred_init()
+
+## 在主线程中发送预加载完成信号
+func _emit_preload_complete(language_code: String) -> void:
+	EventBus.debug_message.emit("预加载语言完成: " + language_code, 0)

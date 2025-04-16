@@ -1,7 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://c8yvxr1yvqnbx"]
+[gd_scene load_steps=7 format=3 uid="uid://dry63vlcqkral"]
+
+[ext_resource type="Script" uid="uid://caq8sj4rsjcj" path="res://scenes/main_menu.gd" id="1_yvnbx"]
+[ext_resource type="PackedScene" uid="uid://c8y6vxe5xgj8r" path="res://scenes/ui/debug/performance_hotkeys.tscn" id="2_yjnvq"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
-background_color = Color(0.1, 0.1, 0.1, 0.8)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
@@ -12,20 +14,7 @@ corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
-background_color = Color(0.2, 0.2, 0.2, 0.8)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.8, 0.8, 0.8, 0.2)
-corner_radius_top_left = 5
-corner_radius_top_right = 5
-corner_radius_bottom_right = 5
-corner_radius_bottom_left = 5
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
-background_color = Color(0.3, 0.3, 0.3, 0.8)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -37,7 +26,6 @@ corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4"]
-background_color = Color(0.4, 0.4, 0.4, 0.8)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
@@ -48,8 +36,16 @@ corner_radius_top_right = 5
 corner_radius_bottom_right = 5
 corner_radius_bottom_left = 5
 
-[ext_resource type="Script" path="res://scenes/main_menu.gd" id="1_yvnbx"]
-[ext_resource type="PackedScene" uid="uid://c8y6vxe5xgj8r" path="res://scenes/ui/debug/performance_hotkeys.tscn" id="2_yjnvq"]
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -146,20 +142,20 @@ theme_override_constants/separation = 15
 alignment = 1
 
 [node name="ButtonBackground" type="Panel" parent="ButtonContainer"]
+show_behind_parent = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
-show_behind_parent = true
 
 [node name="StartGameButton" type="Button" parent="ButtonContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_hover_color = Color(1, 0.8, 0.2, 1)
+theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_font_sizes/font_size = 28
-theme_override_styles/normal = SubResource("StyleBoxFlat_2")
 theme_override_styles/hover = SubResource("StyleBoxFlat_3")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_4")
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
 text = "开始游戏"
 
 [node name="BattleTestButton" type="Button" parent="ButtonContainer"]

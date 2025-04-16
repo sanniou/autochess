@@ -1,10 +1,9 @@
 extends Node
-# 不使用 class_name 以避免与自动加载单例冲突
 ## 字体管理器
 ## 负责管理游戏中的字体资源和文本样式
 
 # 信号
-signal font_loaded(font_name: String)
+signal font_loaded(font_name: String, font: Font)
 signal default_font_changed(font_name: String)
 
 # 字体类型
@@ -73,7 +72,6 @@ func _deferred_init() -> void:
 
 	# 连接信号
 	EventBus.language_changed.connect(_on_language_changed)
-	EventBus.font_changed.connect(_on_font_changed)
 	EventBus.request_font.connect(_on_request_font)
 	EventBus.debug_message.emit("字体管理器已连接到EventBus", 0)
 
@@ -111,12 +109,9 @@ func _load_default_fonts() -> void:
 	if current_language_fonts.has(FontType.BOLD_ITALIC):
 		default_font_bold_italic = current_language_fonts[FontType.BOLD_ITALIC]
 
-	# 发送默认字体变更信号
-	default_font_changed.emit("default")
-
 ## 加载语言字体
 func _load_language_fonts(language_code: String) -> void:
-	# 清空当前语言字体
+	# 清除当前语言字体
 	current_language_fonts.clear()
 
 	# 根据语言代码加载对应字体
@@ -134,13 +129,18 @@ func _load_language_fonts(language_code: String) -> void:
 		"ja_JP":
 			current_language_fonts[FontType.REGULAR] = load_font("NotoSansJP-Regular.ttf")
 			current_language_fonts[FontType.BOLD] = load_font("NotoSansJP-Bold.ttf")
-			current_language_fonts[FontType.ITALIC] = load_font("NotoSansJP-Regular.ttf") # 日文没有斜体，使用常规字体
-			current_language_fonts[FontType.BOLD_ITALIC] = load_font("NotoSansJP-Bold.ttf") # 日文没有粗斜体，使用粗体
+			current_language_fonts[FontType.ITALIC] = load_font("NotoSansJP-Regular.ttf") # 日语没有斜体，使用常规字体
+			current_language_fonts[FontType.BOLD_ITALIC] = load_font("NotoSansJP-Bold.ttf") # 日语没有粗斜体，使用粗体
 		"ko_KR":
 			current_language_fonts[FontType.REGULAR] = load_font("NotoSansKR-Regular.ttf")
 			current_language_fonts[FontType.BOLD] = load_font("NotoSansKR-Bold.ttf")
-			current_language_fonts[FontType.ITALIC] = load_font("NotoSansKR-Regular.ttf") # 韩文没有斜体，使用常规字体
-			current_language_fonts[FontType.BOLD_ITALIC] = load_font("NotoSansKR-Bold.ttf") # 韩文没有粗斜体，使用粗体
+			current_language_fonts[FontType.ITALIC] = load_font("NotoSansKR-Regular.ttf") # 韩语没有斜体，使用常规字体
+			current_language_fonts[FontType.BOLD_ITALIC] = load_font("NotoSansKR-Bold.ttf") # 韩语没有粗斜体，使用粗体
+		"ru_RU":
+			current_language_fonts[FontType.REGULAR] = load_font("NotoSans-Regular.ttf")
+			current_language_fonts[FontType.BOLD] = load_font("NotoSans-Bold.ttf")
+			current_language_fonts[FontType.ITALIC] = load_font("NotoSans-Italic.ttf")
+			current_language_fonts[FontType.BOLD_ITALIC] = load_font("NotoSans-BoldItalic.ttf")
 		"zh_TW":
 			current_language_fonts[FontType.REGULAR] = load_font("NotoSansTC-Regular.ttf")
 			current_language_fonts[FontType.BOLD] = load_font("NotoSansTC-Bold.ttf")
@@ -178,7 +178,7 @@ func load_font(font_name: String) -> Font:
 	font_cache[font_name] = font
 
 	# 发送字体加载信号
-	font_loaded.emit(font_name)
+	font_loaded.emit(font_name, font)
 
 	return font
 
@@ -261,7 +261,7 @@ func create_rich_text_label(bbcode_text: String, font_type: int = FontType.REGUL
 
 	return rich_text
 
-## 语言变更处理
+## 处理语言变更
 func _on_language_changed(language_code: String) -> void:
 	# 加载新语言的字体
 	_load_language_fonts(language_code)
@@ -269,23 +269,19 @@ func _on_language_changed(language_code: String) -> void:
 	# 更新默认字体
 	if current_language_fonts.has(FontType.REGULAR):
 		default_font_regular = current_language_fonts[FontType.REGULAR]
+		default_font_changed.emit("regular")
 
 	if current_language_fonts.has(FontType.BOLD):
 		default_font_bold = current_language_fonts[FontType.BOLD]
+		default_font_changed.emit("bold")
 
 	if current_language_fonts.has(FontType.ITALIC):
 		default_font_italic = current_language_fonts[FontType.ITALIC]
+		default_font_changed.emit("italic")
 
 	if current_language_fonts.has(FontType.BOLD_ITALIC):
 		default_font_bold_italic = current_language_fonts[FontType.BOLD_ITALIC]
-
-	# 发送默认字体变更信号
-	default_font_changed.emit(language_code)
-
-## 字体变更处理
-func _on_font_changed(font_name: String) -> void:
-	# 这里可以处理字体变更事件
-	pass
+		default_font_changed.emit("bold_italic")
 
 ## 处理字体请求
 func _on_request_font(font_name: String) -> void:

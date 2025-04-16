@@ -321,8 +321,7 @@ func start_drag_piece(cell: BoardCell) -> void:
     drag_offset = get_viewport().get_mouse_position() - dragging_piece.global_position
 
     # 将棋子移到顶层显示
-    remove_child(dragging_piece)
-    add_child(dragging_piece)
+    call_deferred("_reparent_piece", dragging_piece)
 
     # 添加视觉反馈
     # 创建拖拽动画
@@ -654,8 +653,7 @@ func try_combine_pieces(piece: ChessPiece) -> bool:
                 pieces_to_animate.append(animated_piece)
 
                 # 将棋子移到顶层
-                remove_child(animated_piece)
-                add_child(animated_piece)
+                call_deferred("_reparent_piece", animated_piece)
 
                 # 创建移动动画
                 if i > 0:  # 第一个棋子不需要移动
@@ -708,3 +706,9 @@ func try_combine_pieces(piece: ChessPiece) -> bool:
         return true
 
     return false
+
+# 重新父级化棋子（安全地移动到顶层）
+func _reparent_piece(piece: Node) -> void:
+    if piece.is_inside_tree() and piece.get_parent() == self:
+        remove_child(piece)
+    add_child(piece)
