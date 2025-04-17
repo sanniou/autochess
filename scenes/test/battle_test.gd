@@ -188,7 +188,7 @@ func _on_reset_board_button_pressed():
 
 # 开始战斗按钮处理
 func _on_start_battle_button_pressed():
-	EventBus.battle.battle_started.emit()
+	EventBus.battle.emit_event("battle_started", [])
 	print("战斗开始")
 
 	# 更新状态标签
@@ -196,7 +196,9 @@ func _on_start_battle_button_pressed():
 
 # 结束战斗按钮处理
 func _on_end_battle_button_pressed():
-	EventBus.battle.battle_ended.emit(true)  # 假设玩家获胜
+	# 创建标准化的战斗结果
+	var result = BattleResult.create_simple(true)  # 假设玩家获胜
+	EventBus.battle.emit_event("battle_ended", [result.to_dict()])
 	print("战斗结束")
 
 	# 更新状态标签

@@ -120,7 +120,7 @@ func _start_prepare_phase() -> void:
 	$BottomPanel/ButtonContainer/SkipButton.disabled = false
 
 	# 发送战斗准备信号
-	EventBus.battle.battle_round_started.emit(current_round)
+	EventBus.battle.emit_event("battle_round_started", [current_round])
 
 ## 开始战斗阶段
 func _start_fighting_phase() -> void:
@@ -158,7 +158,7 @@ func _initialize_battle() -> void:
 	battle_manager = get_node_or_null("/root/GameManager/BattleManager")
 	if battle_manager == null:
 		# 如果全局战斗管理器不可用，创建一个临时的
-		EventBus.debug.debug_message.emit("全局战斗管理器不可用，创建临时实例", 1)
+		EventBus.debug.emit_event("debug_message", ["全局战斗管理器不可用，创建临时实例", 1])
 		battle_manager = BattleManager.new()
 		add_child(battle_manager)
 
@@ -177,13 +177,23 @@ func _on_battle_ended(victory: bool) -> void:
 	else:
 		$TopPanel/PhaseLabel.text = LocalizationManager.tr("ui.battle.defeat")
 
+	# 创建标准化的战斗结果
+	var result = BattleResult.create_simple(victory)
+
 	# 发送战斗结束信号
-	EventBus.battle.battle_ended.emit(battle_result)
-	EventBus.battle.battle_round_ended.emit(current_round)
+	EventBus.battle.emit_event("battle_ended", [result.to_dict()])
+	EventBus.battle.emit_event("battle_round_ended", [current_round])
 
 	# 延迟返回地图
-	var timer = get_tree().create_timer(2.0)
-	timer.timeout.connect(_return_to_map)
+	var timer = Timer.new()
+	timer.wait_time = 2.0
+	timer.one_shot = true
+	add_child(timer)
+	timer.timeout.connect(func():
+		_return_to_map()
+		timer.queue_free()
+	)
+	timer.start()
 
 ## 返回地图
 func _return_to_map() -> void:
@@ -203,7 +213,7 @@ func _on_skip_button_pressed() -> void:
 	if current_state == BattleState.PREPARE or current_state == BattleState.FIGHTING:
 		# 直接结束战斗
 		if current_state == BattleState.PREPARE:
-			EventBus.battle.battle_started.emit()
+			EventBus.battle.emit_event("battle_started", [])
 
 		_on_battle_ended(randf() > 0.5)  # 跳过时随机结果
 

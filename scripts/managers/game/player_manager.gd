@@ -3,15 +3,6 @@ class_name PlayerManager
 ## 玩家管理器
 ## 管理玩家实例和相关操作
 
-# 当前玩家
-var current_player: Player = null
-
-# AI对手列表
-var ai_opponents: Array = []
-
-# 当前对手
-var current_opponent: Player = null
-
 # 玩家状态
 enum PlayerState {
 	IDLE,       # 空闲状态
@@ -22,239 +13,424 @@ enum PlayerState {
 	EVENT       # 事件阶段
 }
 
+# 当前玩家
+var current_player: Player = null
+
+# AI对手列表
+var ai_opponents: Array[Player] = []
+
+# 当前对手
+var current_opponent: Player = null
+
 # 当前玩家状态
 var current_state: PlayerState = PlayerState.IDLE
 
 # 引用
-@onready var config_manager = get_node("/root/ConfigManager")
+@onready var config_manager: ConfigManager = get_node("/root/ConfigManager")
 @onready var chess_factory = get_node("/root/GameManager/ChessFactory")
 @onready var equipment_manager = get_node("/root/GameManager/EquipmentManager")
 @onready var relic_manager = get_node("/root/GameManager/RelicManager")
 
-# 重写初始化方法
+## 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "PlayerManager"
+
 	# 添加依赖
 	add_dependency("ConfigManager")
-	
-	# 原 _ready 函数的内容
+
 	# 连接信号
-		EventBus.game.game_started.connect(_on_game_started)
-		EventBus.battle.battle_ended.connect(_on_battle_ended)
-		EventBus.chess.chess_piece_created.connect(_on_chess_piece_created)
-		EventBus.economy.item_purchased.connect(_on_item_purchased)
-		EventBus.equipment.equipment_created.connect(_on_equipment_created)
-		EventBus.relic.relic_acquired.connect(_on_relic_acquired)
-		EventBus.game.game_state_changed.connect(_on_game_state_changed)
-		EventBus.map.map_node_selected.connect(_on_map_node_selected)
-		EventBus.map.rest_completed.connect(_on_rest_completed)
-	
-	# 初始化玩家
+	_connect_event_signals()
+
+	_log_info("玩家管理器初始化完成")
+
+## 连接事件信号
+func _connect_event_signals() -> void:
+	# 游戏事件
+	EventBus.game.connect_event("game_started", _on_game_started)
+	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+
+	# 战斗事件
+	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+
+	# 棋子事件
+	EventBus.chess.connect_event("chess_piece_created", _on_chess_piece_created)
+
+	# 经济事件
+	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
+
+	# 装备事件
+	EventBus.equipment.connect_event("equipment_created", _on_equipment_created)
+
+	# 遗物事件
+	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
+
+	# 地图事件
+	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
+	EventBus.map.connect_event("rest_completed", _on_rest_completed)
+
+	## 初始化玩家
+## @param player_name 玩家名称
+## @return void
 func initialize_player(player_name: String = "玩家") -> void:
 	current_player = Player.new(player_name)
+	_log_info("玩家 '%s' 初始化完成" % player_name)
+	EventBus.game.emit_event("player_initialized", [current_player])
 
-	# 发送玩家初始化信号
-	EventBus.debug.debug_message.emit("玩家初始化完成", 0)
-
-# 初始化AI对手
+## 初始化AI对手
+## @param count 创建AI对手的数量
+## @return void
 func initialize_ai_opponents(count: int = 7) -> void:
 	ai_opponents.clear()
 
 	# 创建AI对手
 	for i in range(count):
-		var ai_player = Player.new("AI对手 " + str(i+1))
+		var ai_name = "AI对手 %d" % (i + 1)
+		var ai_player = Player.new(ai_name)
 		ai_opponents.append(ai_player)
 
-	# 发送AI初始化信号
-	EventBus.debug.debug_message.emit("AI对手初始化完成", 0)
+	_log_info("AI对手初始化完成，共 %d 个" % count)
+	EventBus.game.emit_event("ai_opponents_initialized", [ai_opponents])
 
-# 选择当前对手
+## 选择当前对手
+## @return 选中的对手，如果没有对手则返回 null
 func select_opponent() -> Player:
-	if ai_opponents.size() == 0:
+	if ai_opponents.is_empty():
+		_log_warning("没有可用的AI对手")
 		return null
 
 	# 随机选择一个对手
 	var index = randi() % ai_opponents.size()
 	current_opponent = ai_opponents[index]
 
+	_log_info("选择对手: %s" % current_opponent.player_name)
+	EventBus.battle.emit_event("opponent_selected", [current_opponent])
 	return current_opponent
 
-# 获取当前玩家
+## 获取当前玩家
+## @return 当前玩家实例
 func get_current_player() -> Player:
+	if current_player == null:
+		_log_warning("当前玩家未初始化")
 	return current_player
 
-# 获取当前对手
+## 获取当前对手
+## @return 当前对手实例
 func get_current_opponent() -> Player:
+	if current_opponent == null:
+		_log_warning("当前对手未选择")
 	return current_opponent
 
-# 购买棋子
+## 添加经验值给玩家
+## @param amount 要添加的经验值数量
+## @return bool 是否添加成功
+func add_exp(amount: int) -> bool:
+	if current_player == null:
+		_log_warning("无法添加经验：当前玩家未初始化")
+		return false
+
+	if amount <= 0:
+		_log_warning("无法添加经验：数量必须大于0")
+		return false
+
+	# 调用玩家的add_exp方法
+	current_player.add_exp(amount)
+	_log_info("玩家获得经验: %d" % amount)
+	return true
+
+## 购买棋子
+## @param piece_id 棋子ID
+## @return 购买的棋子实例，如果购买失败则返回 null
 func purchase_chess_piece(piece_id: String) -> ChessPiece:
 	if current_player == null:
+		_log_warning("无法购买棋子：当前玩家未初始化")
 		return null
 
 	# 获取棋子配置
 	var piece_config = config_manager.get_chess_piece(piece_id)
 	if piece_config == null:
+		_log_warning("无法购买棋子：未找到棋子配置 %s" % piece_id)
 		return null
 
 	# 检查金币是否足够
 	if current_player.gold < piece_config.cost:
+		_log_warning("无法购买棋子：金币不足 (需要 %d, 当前 %d)" % [piece_config.cost, current_player.gold])
 		return null
 
 	# 创建棋子实例
 	var piece = chess_factory.create_chess_piece(piece_id)
 	if piece == null:
+		_log_warning("无法购买棋子：创建棋子实例失败 %s" % piece_id)
 		return null
 
 	# 扣除金币
 	if current_player.spend_gold(piece_config.cost):
 		# 添加到玩家棋子列表
 		if current_player.add_chess_piece(piece):
+			_log_info("玩家购买棋子: %s, 花费: %d 金币" % [piece_id, piece_config.cost])
 			# 发送棋子购买信号
-			EventBus.chess.chess_piece_created.emit(piece)
+			EventBus.chess.emit_event("chess_piece_purchased", [piece, piece_config.cost])
 			return piece
+		else:
+			_log_warning("无法购买棋子：添加棋子到玩家失败")
+			# 退还金币
+			current_player.add_gold(piece_config.cost)
 
 	return null
 
-# 出售棋子
+## 出售棋子
+## @param piece 要出售的棋子
+## @return 是否出售成功
 func sell_chess_piece(piece: ChessPiece) -> bool:
-	if current_player == null or piece == null:
+	if current_player == null:
+		_log_warning("无法出售棋子：当前玩家未初始化")
 		return false
 
-	return current_player.sell_chess_piece(piece)
+	if piece == null:
+		_log_warning("无法出售棋子：棋子为空")
+		return false
 
-# 购买装备
+	var result = current_player.sell_chess_piece(piece)
+	if result:
+		_log_info("玩家出售棋子: %s, 获得: %d 金币" % [piece.id, piece.cost * piece.star_level])
+
+	return result
+
+## 购买装备
+## @param equipment_id 装备ID
+## @return 购买的装备实例，如果购买失败则返回 null
 func purchase_equipment(equipment_id: String) -> Equipment:
 	if current_player == null:
+		_log_warning("无法购买装备：当前玩家未初始化")
 		return null
 
 	# 获取装备配置
 	var equipment_config = config_manager.get_equipment(equipment_id)
 	if equipment_config == null:
+		_log_warning("无法购买装备：未找到装备配置 %s" % equipment_id)
 		return null
 
 	# 检查金币是否足够
-	var cost = 3  # 装备固定价格为3金币
+	var cost = equipment_config.get("cost", 3)  # 使用配置中的价格，默认为3金币
 	if current_player.gold < cost:
+		_log_warning("无法购买装备：金币不足 (需要 %d, 当前 %d)" % [cost, current_player.gold])
 		return null
 
 	# 获取装备实例
 	var equipment = equipment_manager.get_equipment(equipment_id)
 	if equipment == null:
+		_log_warning("无法购买装备：获取装备实例失败 %s" % equipment_id)
 		return null
 
 	# 扣除金币
 	if current_player.spend_gold(cost):
 		# 添加到玩家装备列表
 		if current_player.add_equipment(equipment):
+			_log_info("玩家购买装备: %s, 花费: %d 金币" % [equipment_id, cost])
+			# 发送装备购买信号
+			EventBus.economy.emit_event("equipment_purchased", [equipment, cost])
 			return equipment
+		else:
+			_log_warning("无法购买装备：添加装备到玩家失败")
+			# 退还金币
+			current_player.add_gold(cost)
 
 	return null
 
-# 购买经验
+## 购买经验
+## @param amount 要购买的经验值数量
+## @param cost 购买经验的金币成本
+## @return 是否购买成功
 func purchase_exp(amount: int = 4, cost: int = 4) -> bool:
 	if current_player == null:
+		_log_warning("无法购买经验：当前玩家未初始化")
 		return false
 
-	return current_player.buy_exp(amount, cost)
+	var result = current_player.buy_exp(amount, cost)
+	if result:
+		_log_info("玩家购买经验: %d, 花费: %d 金币" % [amount, cost])
+		EventBus.economy.emit_event("exp_purchased", [amount, cost])
+	else:
+		_log_warning("购买经验失败: 金币不足 (需要 %d, 当前 %d)" % [cost, current_player.gold])
 
-# 刷新商店
+	return result
+
+## 刷新商店
+## @param cost 刷新商店的金币成本
+## @return 是否刷新成功
 func refresh_shop(cost: int = 2) -> bool:
 	if current_player == null:
+		_log_warning("无法刷新商店：当前玩家未初始化")
 		return false
 
 	# 检查金币是否足够
 	if current_player.gold < cost:
+		_log_warning("无法刷新商店：金币不足 (需要 %d, 当前 %d)" % [cost, current_player.gold])
 		return false
 
 	# 扣除金币
 	if current_player.spend_gold(cost):
+		_log_info("玩家刷新商店, 花费: %d 金币" % cost)
 		# 发送商店刷新请求信号
-		EventBus.economy.shop_refresh_requested.emit(current_player.level)
+		EventBus.economy.emit_event("shop_refresh_requested", [current_player.level])
 		return true
 
 	return false
 
-# 回合开始处理
+## 回合开始处理
+## @return void
 func on_round_start() -> void:
 	if current_player == null:
+		_log_warning("无法处理回合开始：当前玩家未初始化")
 		return
 
+	# 处理玩家回合开始逻辑
 	current_player.on_round_start()
+	_log_info("玩家回合开始，自动获得基础收入和经验")
 
 	# 自动刷新商店
-	EventBus.economy.shop_refresh_requested.emit(current_player.level)
+	EventBus.economy.emit_event("shop_refresh_requested", [current_player.level])
+	_log_info("商店自动刷新，玩家等级: %d" % current_player.level)
 
 	# 更新玩家状态
 	current_state = PlayerState.PREPARING
+	EventBus.game.emit_event("player_state_changed", [PlayerState.PREPARING])
 
-# 战斗结束处理
+## 战斗结束处理
+## @param result 战斗结果字典
+## @return void
 func _on_battle_ended(result: Dictionary) -> void:
 	if current_player == null:
+		_log_warning("无法处理战斗结束：当前玩家未初始化")
 		return
 
-	if result.win:
+	# 处理战斗结果
+	var is_victory = result.get("is_victory", false)
+	if is_victory:
 		# 玩家胜利
 		current_player.on_battle_win()
+		_log_info("玩家战斗胜利，连胜数: %d" % current_player.win_streak)
 	else:
 		# 玩家失败
-		var damage = result.damage if result.has("damage") else 10
+		var player_impact = result.get("player_impact", {})
+		var damage = player_impact.get("health_change", -10) * -1  # 转换为正数
 		current_player.on_battle_loss(damage)
+		_log_info("玩家战斗失败，损失生命值: %d, 当前生命值: %d" % [damage, current_player.current_health])
 
-# 游戏开始事件处理
+## 游戏开始事件处理
+## @return void
 func _on_game_started() -> void:
+	_log_info("游戏开始，初始化玩家和AI对手")
+
 	# 初始化玩家
 	initialize_player()
 
 	# 初始化AI对手
 	initialize_ai_opponents()
 
-# 棋子创建事件处理
+## 棋子创建事件处理
+## @param piece 创建的棋子
+## @return void
 func _on_chess_piece_created(piece: ChessPiece) -> void:
-	# 这里可以处理棋子创建后的逻辑
-	pass
+	if piece == null:
+		return
 
-# 物品购买事件处理
+	_log_info("棋子创建: %s, 类型: %s, 星级: %d" % [piece.id, piece.type, piece.star_level])
+
+	# 检查棋子是否属于当前玩家
+	if current_player != null:
+		if current_player.chess_pieces.has(piece) or current_player.bench_pieces.has(piece):
+			# 更新玩家棋子统计
+			EventBus.game.emit_event("player_chess_updated", [current_player.chess_pieces.size(), current_player.bench_pieces.size()])
+
+## 物品购买事件处理
+## @param item_data 购买的物品数据
+## @return void
 func _on_item_purchased(item_data: Dictionary) -> void:
-	# 这里可以处理物品购买后的逻辑
-	pass
+	if item_data.is_empty():
+		return
 
-# 装备创建事件处理
+	_log_info("物品购买: %s, 花费: %d 金币" % [item_data.get("id", "unknown"), item_data.get("cost", 0)])
+
+	# 更新玩家物品统计
+	if current_player != null:
+		EventBus.game.emit_event("player_inventory_updated", [current_player.gold])
+
+## 装备创建事件处理
+## @param equipment 创建的装备
+## @return void
 func _on_equipment_created(equipment: Equipment) -> void:
-	# 这里可以处理装备创建后的逻辑
-	pass
+	if equipment == null:
+		return
 
-# 遗物获取事件处理
+	_log_info("装备创建: %s, 类型: %s" % [equipment.id, equipment.type])
+
+	# 更新玩家装备统计
+	if current_player != null:
+		EventBus.game.emit_event("player_equipment_updated", [current_player.equipments.size()])
+
+## 遗物获取事件处理
+## @param relic 获取的遗物
+## @return void
 func _on_relic_acquired(relic) -> void:
-	# 这里可以处理遗物获取后的逻辑
-	pass
+	if relic == null:
+		return
 
-# 获取玩家存档数据
+	_log_info("遗物获取: %s" % relic.id)
+
+	# 更新玩家遗物统计
+	if current_player != null:
+		EventBus.game.emit_event("player_relic_updated", [current_player.relics.size()])
+
+## 获取玩家存档数据
+## @return 玩家存档数据字典
 func get_save_data() -> Dictionary:
 	if current_player == null:
+		_log_warning("无法获取存档数据：当前玩家未初始化")
 		return {}
 
-	return current_player.get_save_data()
+	var save_data = current_player.get_save_data()
+	_log_info("玩家存档数据生成完成")
+	return save_data
 
-# 从存档数据加载
+## 从存档数据加载
+## @param data 存档数据字典
+## @return void
 func load_from_save_data(data: Dictionary) -> void:
+	if data.is_empty():
+		_log_warning("无法加载存档数据：数据为空")
+		return
+
 	if current_player == null:
+		_log_info("初始化玩家以加载存档数据")
 		initialize_player()
 
 	current_player.load_from_save_data(data)
+	_log_info("玩家存档数据加载完成")
 
-# 重置管理器
-func reset() -> void:
+## 重置管理器
+## @return 是否重置成功
+func reset() -> bool:
+	_log_info("重置玩家管理器")
+
 	if current_player != null:
 		current_player.reset()
+		_log_info("玩家数据已重置")
 
 	ai_opponents.clear()
 	current_opponent = null
 	current_state = PlayerState.IDLE
 
-# 游戏状态变化处理
+	_log_info("玩家管理器重置完成")
+	return true
+
+## 游戏状态变化处理
+## @param old_state 旧游戏状态
+## @param new_state 新游戏状态
+## @return void
 func _on_game_state_changed(old_state: int, new_state: int) -> void:
+	var old_player_state = current_state
+
 	# 根据游戏状态更新玩家状态
 	match new_state:
 		GameManager.GameState.MAIN_MENU:
@@ -268,44 +444,111 @@ func _on_game_state_changed(old_state: int, new_state: int) -> void:
 		GameManager.GameState.EVENT:
 			current_state = PlayerState.EVENT
 
-# 地图节点选择处理
+	# 如果状态发生变化，发送信号
+	if old_player_state != current_state:
+		_log_info("玩家状态变化: %s -> %s" % [_get_state_name(old_player_state), _get_state_name(current_state)])
+		EventBus.game.emit_event("player_state_changed", [old_player_state, current_state])
+
+## 地图节点选择处理
+## @param node_data 选择的地图节点数据
+## @return void
 func _on_map_node_selected(node_data: Dictionary) -> void:
+	if node_data.is_empty():
+		_log_warning("无法处理地图节点选择：节点数据为空")
+		return
+
+	_log_info("选择地图节点: %s" % node_data.get("type", "unknown"))
+
 	# 处理地图节点选择后的玩家状态变化
-	if node_data.type == "rest":
+	if node_data.get("type", "") == "rest":
 		# 如果是休息节点，恢复生命值
 		if node_data.has("heal_amount") and current_player != null:
-			current_player.heal(node_data.heal_amount)
+			var heal_amount = node_data.get("heal_amount", 0)
+			current_player.heal(heal_amount)
+			_log_info("休息节点恢复生命值: %d, 当前生命值: %d" % [heal_amount, current_player.current_health])
 
-# 休息完成处理
+## 休息完成处理
+## @param heal_amount 恢复的生命值数量
+## @return void
 func _on_rest_completed(heal_amount: int) -> void:
+	if current_player == null:
+		_log_warning("无法处理休息完成：当前玩家未初始化")
+		return
+
 	# 恢复玩家生命值
-	if current_player != null:
-		current_player.heal(heal_amount)
+	var old_health = current_player.current_health
+	current_player.heal(heal_amount)
+	_log_info("休息完成，恢复生命值: %d, 生命值变化: %d -> %d" % [heal_amount, old_health, current_player.current_health])
 
-# 添加金币
-func add_gold(amount: int) -> void:
-	if current_player != null:
-		current_player.add_gold(amount)
+## 添加金币
+## @param amount 要添加的金币数量
+## @return void
+func add_gold(amount: int) -> bool:
+	if current_player == null:
+		_log_warning("无法添加金币：当前玩家未初始化")
+		return false
 
-# 恢复生命值
-func heal_player(amount: int) -> void:
-	if current_player != null:
-		current_player.heal(amount)
+	if amount <= 0:
+		_log_warning("无法添加金币：数量必须大于0")
+		return false
 
-# 获取玩家状态
+	var old_gold = current_player.gold
+	current_player.add_gold(amount)
+	_log_info("玩家获得金币: %d, 金币变化: %d -> %d" % [amount, old_gold, current_player.gold])
+	return true
+
+## 恢复玩家生命值
+## @param amount 要恢复的生命值数量
+## @return void
+func heal_player(amount: int) -> bool:
+	if current_player == null:
+		_log_warning("无法恢复生命值：当前玩家未初始化")
+		return false
+
+	if amount <= 0:
+		_log_warning("无法恢复生命值：数量必须大于0")
+		return false
+
+	var old_health = current_player.current_health
+	current_player.heal(amount)
+	_log_info("玩家恢复生命值: %d, 生命值变化: %d -> %d" % [amount, old_health, current_player.current_health])
+	return true
+
+## 获取玩家状态
+## @return 当前玩家状态
 func get_player_state() -> PlayerState:
 	return current_state
+
+## 获取状态名称
+## @param state 状态枚举值
+## @return 状态名称字符串
+func _get_state_name(state: PlayerState) -> String:
+	match state:
+		PlayerState.IDLE:
+			return "IDLE"
+		PlayerState.PREPARING:
+			return "PREPARING"
+		PlayerState.BATTLING:
+			return "BATTLING"
+		PlayerState.SHOPPING:
+			return "SHOPPING"
+		PlayerState.MAP:
+			return "MAP"
+		PlayerState.EVENT:
+			return "EVENT"
+		_:
+			return "UNKNOWN"
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])
