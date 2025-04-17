@@ -32,8 +32,8 @@ func _register_chess_types() -> void:
 	var chess_configs = ConfigManager.get_all_chess_pieces()
 
 	for chess_id in chess_configs:
-		var chess_data = chess_configs[chess_id]
-		_chess_piece_types[chess_id] = chess_data
+		var chess_model = chess_configs[chess_id] as ChessPieceConfig
+		_chess_piece_types[chess_id] = chess_model.get_data()
 
 ## 初始化对象池
 func _initialize_pool() -> void:
@@ -189,7 +189,7 @@ func _calculate_enemy_count(round_number: int) -> int:
 	return base_count + additional_count
 
 ## 计算敌方棋子强度
-func _calculate_enemy_strength(round_number: int, difficulty_config: Dictionary) -> float:
+func _calculate_enemy_strength(round_number: int, difficulty_config: DifficultyConfig) -> float:
 	# 基础强度
 	var base_strength = 1.0
 
@@ -197,7 +197,7 @@ func _calculate_enemy_strength(round_number: int, difficulty_config: Dictionary)
 	var round_bonus = round_number * 0.1
 
 	# 难度加成
-	var difficulty_multiplier = difficulty_config.enemy_stats_multiplier
+	var difficulty_multiplier = difficulty_config.get_enemy_damage_multiplier()
 
 	return base_strength + round_bonus * difficulty_multiplier
 

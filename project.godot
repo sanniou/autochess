@@ -17,10 +17,11 @@ config/icon="res://assets/images/icons/app_icon.png"
 
 [autoload]
 
-EventBus="*res://scripts/autoload/event_bus.gd"
+EventBus="*res://scripts/events/event_bus.gd"
 TextUtils="*res://scripts/ui/text_utils.gd"
 UIUtils="*res://scripts/ui/ui_utils.gd"
-ConfigManager="*res://scripts/autoload/config_manager.gd"
+ConfigManager="*res://scripts/managers/system/config_manager.gd"
+StateManager="*res://scripts/managers/system/state_manager.gd"
 ResourceManager="*res://scripts/autoload/resource_manager.gd"
 LocalizationManager="*res://scripts/autoload/localization_manager.gd"
 FontManager="*res://scripts/autoload/font_manager.gd"

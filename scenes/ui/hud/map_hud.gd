@@ -15,7 +15,7 @@ func _ready():
 	EventBus.game.player_health_changed.connect(_on_player_health_changed)
 	EventBus.economy.gold_changed.connect(_on_gold_changed)
 	EventBus.game.player_level_changed.connect(_on_player_level_changed)
-	EventBus.exp_changed.connect(_on_exp_changed)
+	EventBus.game.player_exp_changed.connect(_on_exp_changed)
 
 # 更新玩家信息
 func _update_player_info():

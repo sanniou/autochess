@@ -21,14 +21,14 @@ func _do_initialize() -> void:
 	manager_name = "EventManager"
 	# 添加依赖
 	add_dependency("ConfigManager")
-	
+
 	# 原 _ready 函数的内容
 	# 初始化事件工厂
 		_initialize_event_factory()
-	
+
 		# 连接信号
 		EventBus.map.map_node_selected.connect(_on_map_node_selected)
-	
+
 	# 初始化事件工厂
 func _initialize_event_factory() -> void:
 	# 加载所有事件配置
@@ -36,8 +36,8 @@ func _initialize_event_factory() -> void:
 
 	# 创建事件工厂
 	for event_id in events_config:
-		var event_data = events_config[event_id]
-		event_factory[event_id] = event_data
+		var event_model = events_config[event_id] as EventConfig
+		event_factory[event_id] = event_model.get_data()
 
 # 触发事件
 func trigger_event(event_id: String) -> bool:
@@ -199,6 +199,11 @@ func _handle_event_node(node_data: Dictionary) -> void:
 func get_event_data(event_id: String) -> Dictionary:
 	if event_factory.has(event_id):
 		return event_factory[event_id].duplicate()
+	else:
+		# 尝试从配置管理器获取
+		var event_model = config_manager.get_event_config(event_id)
+		if event_model:
+			return event_model.get_data()
 	return {}
 
 # 获取已完成事件列表

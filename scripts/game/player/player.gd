@@ -145,7 +145,7 @@ func add_exp(amount: int) -> void:
 
 	# 发送经验变化信号
 	exp_changed.emit(old_exp, exp)
-	EventBus.exp_changed.emit(old_exp, exp)
+	EventBus.game.player_exp_changed.emit(old_exp, exp)
 
 	# 如果等级变化，发送等级变化信号
 	if level != old_level:

@@ -346,6 +346,105 @@
 
 可以参考 `scripts/examples/config_manager_example.gd` 了解如何正确使用 ConfigManager。
 
+## 新增的配置模型系统
+
+项目现在使用新的配置模型系统，提供了更强大、更类型安全的配置数据访问和验证机制。
+
+### 配置模型基类
+
+所有配置模型都继承自 `ConfigModel` 基类，提供以下功能：
+
+- 类型安全的数据访问
+- 数据验证
+- 架构定义
+- 错误报告
+
+使用示例：
+
+```gdscript
+# 获取棋子配置模型
+var piece_model = ConfigManager.get_config_model("chess_pieces", "knight")
+
+# 获取棋子数据
+var piece_data = piece_model.get_data()
+
+# 验证棋子数据
+if piece_model.validate(piece_data):
+    print("棋子数据有效")
+else:
+    for error in piece_model.get_validation_errors():
+        print(error)
+```
+
+### 配置模型类
+
+项目为每种配置类型提供了专门的配置模型类：
+
+- `ChessPieceConfig` - 棋子配置模型
+- `EquipmentConfig` - 装备配置模型
+- `MapNodeConfig` - 地图节点配置模型
+- `RelicConfig` - 遗物配置模型
+- `SynergyConfig` - 羁绑配置模型
+- `EventConfig` - 事件配置模型
+- `DifficultyConfig` - 难度配置模型
+- `AchievementConfig` - 成就配置模型
+- `SkinConfig` - 皮肤配置模型
+- `TutorialConfig` - 教程配置模型
+
+每个模型类都提供了特定于该配置类型的方法和属性。
+
+## 新的事件系统
+
+项目现在使用新的事件系统，提供了更统一、更强大的事件处理机制。
+
+### 事件定义
+
+所有事件都集中定义在 `scripts/events/event_definitions.gd` 文件中，按照功能分类组织：
+
+- `GameEvents` - 游戏核心事件
+- `MapEvents` - 地图事件
+- `BoardEvents` - 棋盘事件
+- `ChessEvents` - 棋子事件
+- `BattleEvents` - 战斗事件
+- `EconomyEvents` - 经济事件
+- `EquipmentEvents` - 装备事件
+- `RelicEvents` - 遗物事件
+- `EventSystemEvents` - 事件系统事件
+- `StoryEvents` - 剧情事件
+- `CurseEvents` - 诅咒事件
+- `UIEvents` - UI事件
+- `AchievementEvents` - 成就事件
+- `TutorialEvents` - 教程事件
+- `SaveEvents` - 存档事件
+- `LocalizationEvents` - 本地化事件
+- `AudioEvents` - 音频事件
+- `SkinEvents` - 皮肤事件
+- `StatusEffectEvents` - 状态效果事件
+- `DebugEvents` - 调试事件
+
+### 事件总线
+
+事件总线 (`EventBus`) 提供了统一的事件分发和处理机制，支持以下功能：
+
+- 事件分组管理
+- 事件处理器注册和注销
+- 事件触发和分发
+- 事件历史记录
+- 事件统计
+
+使用示例：
+
+```gdscript
+# 触发事件
+EventBus.game.game_started.emit()
+
+# 连接事件
+EventBus.battle.battle_started.connect(self._on_battle_started)
+
+# 断开事件连接
+EventBus.battle.battle_started.disconnect(self._on_battle_started)
+```
+
 ## 配置管理待办事项
 
 以下是配置管理系统的待办事项，已按优先级排序，将在后期进行优化：

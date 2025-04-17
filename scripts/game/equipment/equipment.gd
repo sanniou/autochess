@@ -264,8 +264,8 @@ func can_combine_with(other_equipment: Equipment) -> bool:
 func get_combine_result(other_equipment: Equipment) -> String:
 	if can_combine_with(other_equipment):
 		for recipe_id in combine_recipes:
-			var recipe_data = ConfigManager.get_equipment(recipe_id)
-			if recipe_data and other_equipment.id in recipe_data.recipe:
+			var recipe_model = ConfigManager.get_equipment_config(recipe_id)
+			if recipe_model and other_equipment.id in recipe_model.get_components():
 				return recipe_id
 	return ""
 

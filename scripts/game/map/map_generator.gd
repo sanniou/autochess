@@ -19,10 +19,21 @@ func _ready():
 
 ## 加载地图配置
 func _load_map_config() -> void:
-	var map_config = config_manager.map_nodes_config
-	if map_config:
-		map_templates = map_config.map_templates
-		node_types = map_config.node_types
+	var map_nodes = config_manager.get_all_map_nodes()
+	if map_nodes:
+		# 处理地图模板
+		map_templates = {}
+		for node_id in map_nodes:
+			var node_model = map_nodes[node_id] as MapNodeConfig
+			if node_model.get_node_type() == "template":
+				map_templates[node_id] = node_model.get_data()
+
+		# 处理节点类型
+		node_types = {}
+		for node_id in map_nodes:
+			var node_model = map_nodes[node_id] as MapNodeConfig
+			if node_model.get_node_type() != "template":
+				node_types[node_id] = node_model.get_data()
 
 ## 生成地图
 func generate_map(template_id: String = "standard", seed_value: int = -1) -> Dictionary:

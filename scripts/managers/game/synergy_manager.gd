@@ -14,19 +14,24 @@ var _synergy_configs = {}
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "SynergyManager"
-	
+
 	# 原 _ready 函数的内容
 	# 加载羁绊配置
 		_load_synergy_configs()
-	
+
 		# 连接信号
 		EventBus.chess.chess_piece_created.connect(_on_chess_piece_created)
 		EventBus.chess.chess_piece_sold.connect(_on_chess_piece_sold)
 		EventBus.chess.chess_piece_upgraded.connect(_on_chess_piece_upgraded)
-	
+
 	## 加载羁绊配置
 func _load_synergy_configs() -> void:
-	_synergy_configs = ConfigManager.get_all_synergies()
+	var synergy_models = ConfigManager.get_all_synergies()
+	_synergy_configs = {}
+
+	for synergy_id in synergy_models:
+		var synergy_model = synergy_models[synergy_id] as SynergyConfig
+		_synergy_configs[synergy_id] = synergy_model.get_data()
 
 ## 棋子创建事件处理
 func _on_chess_piece_created(piece: ChessPiece) -> void:
@@ -290,6 +295,11 @@ func get_synergy_level(synergy: String) -> int:
 func get_synergy_config(synergy: String) -> Dictionary:
 	if _synergy_configs.has(synergy):
 		return _synergy_configs[synergy]
+	else:
+		# 尝试从配置管理器获取
+		var synergy_model = ConfigManager.get_synergy_config(synergy)
+		if synergy_model:
+			return synergy_model.get_data()
 	return {}
 
 ## 获取所有羁绊配置

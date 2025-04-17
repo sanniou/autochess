@@ -21,33 +21,33 @@ func _do_initialize() -> void:
 	manager_name = "RelicManager"
 	# 添加依赖
 	add_dependency("ConfigManager")
-	
+
 	# 原 _ready 函数的内容
 	# 初始化遗物工厂
 		_initialize_relic_factory()
-		
+
 		# 初始化可获取的遗物池
 		_initialize_available_relics()
-		
+
 		# 连接信号
 		EventBus.battle.battle_ended.connect(_on_battle_ended)
 		EventBus.event.event_completed.connect(_on_event_completed)
 		EventBus.map.map_node_selected.connect(_on_map_node_selected)
-	
+
 	# 初始化遗物工厂
 func _initialize_relic_factory() -> void:
 	# 加载所有遗物配置
 	var relics_config = config_manager.get_all_relics()
-	
+
 	# 创建遗物工厂
 	for relic_id in relics_config:
-		var relic_data = relics_config[relic_id]
-		relic_factory[relic_id] = relic_data
+		var relic_model = relics_config[relic_id] as RelicConfig
+		relic_factory[relic_id] = relic_model.get_data()
 
 # 初始化可获取的遗物池
 func _initialize_available_relics() -> void:
 	available_relics.clear()
-	
+
 	# 添加所有遗物到可获取池
 	for relic_id in relic_factory:
 		available_relics.append(relic_id)
@@ -58,30 +58,30 @@ func acquire_relic(relic_id: String, player = null) -> Relic:
 	if player_relics.size() >= MAX_RELICS:
 		EventBus.debug.debug_message.emit("已达到最大遗物数量", 1)
 		return null
-	
+
 	# 检查遗物是否存在
 	if not relic_factory.has(relic_id):
 		EventBus.debug.debug_message.emit("遗物不存在: " + relic_id, 2)
 		return null
-	
+
 	# 创建遗物实例
 	var relic = _create_relic(relic_id)
 	if not relic:
 		return null
-	
+
 	# 设置遗物拥有者
 	relic.owner_player = player
-	
+
 	# 添加到玩家遗物列表
 	player_relics.append(relic)
-	
+
 	# 如果是被动遗物，立即激活
 	if relic.is_passive:
 		relic.activate()
-	
+
 	# 发送遗物获取信号
 	EventBus.relic.relic_acquired.emit(relic)
-	
+
 	return relic
 
 # 创建遗物实例
@@ -89,17 +89,17 @@ func _create_relic(relic_id: String) -> Relic:
 	# 检查遗物是否存在
 	if not relic_factory.has(relic_id):
 		return null
-	
+
 	# 获取遗物数据
 	var relic_data = relic_factory[relic_id]
-	
+
 	# 创建遗物实例
 	var relic_instance = RELIC_SCENE.instantiate()
 	add_child(relic_instance)
-	
+
 	# 初始化遗物
 	relic_instance.initialize(relic_data)
-	
+
 	return relic_instance
 
 # 激活遗物
@@ -108,7 +108,7 @@ func activate_relic(relic_id: String) -> bool:
 	var relic = _find_relic(relic_id)
 	if not relic:
 		return false
-	
+
 	# 激活遗物
 	return relic.activate()
 
@@ -131,16 +131,16 @@ func remove_relic(relic_id: String) -> bool:
 	var relic = _find_relic(relic_id)
 	if not relic:
 		return false
-	
+
 	# 停用遗物
 	relic.deactivate()
-	
+
 	# 从列表中移除
 	player_relics.erase(relic)
-	
+
 	# 销毁遗物
 	relic.queue_free()
-	
+
 	return true
 
 # 查找遗物
@@ -153,25 +153,25 @@ func _find_relic(relic_id: String) -> Relic:
 # 获取随机遗物
 func get_random_relic(rarity_filter: int = -1, exclude_ids: Array = []) -> String:
 	var filtered_relics = []
-	
+
 	# 过滤遗物
 	for relic_id in available_relics:
 		# 排除已有遗物
 		if exclude_ids.has(relic_id):
 			continue
-		
+
 		# 应用稀有度过滤
 		if rarity_filter >= 0:
 			var relic_data = relic_factory[relic_id]
 			if relic_data.rarity != rarity_filter:
 				continue
-		
+
 		filtered_relics.append(relic_id)
-	
+
 	# 如果没有符合条件的遗物，返回空
 	if filtered_relics.is_empty():
 		return ""
-	
+
 	# 随机选择一个遗物
 	return filtered_relics[randi() % filtered_relics.size()]
 
@@ -179,11 +179,11 @@ func get_random_relic(rarity_filter: int = -1, exclude_ids: Array = []) -> Strin
 func get_random_relics(count: int, rarity_filter: int = -1, exclude_ids: Array = []) -> Array:
 	var result = []
 	var remaining_relics = available_relics.duplicate()
-	
+
 	# 移除排除的遗物
 	for exclude_id in exclude_ids:
 		remaining_relics.erase(exclude_id)
-	
+
 	# 应用稀有度过滤
 	if rarity_filter >= 0:
 		for i in range(remaining_relics.size() - 1, -1, -1):
@@ -191,16 +191,16 @@ func get_random_relics(count: int, rarity_filter: int = -1, exclude_ids: Array =
 			var relic_data = relic_factory[relic_id]
 			if relic_data.rarity != rarity_filter:
 				remaining_relics.remove_at(i)
-	
+
 	# 随机选择指定数量的遗物
 	for _i in range(count):
 		if remaining_relics.is_empty():
 			break
-		
+
 		var index = randi() % remaining_relics.size()
 		result.append(remaining_relics[index])
 		remaining_relics.remove_at(index)
-	
+
 	return result
 
 # 获取玩家所有遗物
@@ -211,6 +211,11 @@ func get_player_relics() -> Array:
 func get_relic_data(relic_id: String) -> Dictionary:
 	if relic_factory.has(relic_id):
 		return relic_factory[relic_id].duplicate()
+	else:
+		# 尝试从配置管理器获取
+		var relic_model = config_manager.get_relic_config(relic_id)
+		if relic_model:
+			return relic_model.get_data()
 	return {}
 
 # 战斗结束事件处理
@@ -220,7 +225,7 @@ func _on_battle_ended(result: Dictionary) -> void:
 		trigger_relic_effect("on_battle_victory", result)
 	else:
 		trigger_relic_effect("on_battle_defeat", result)
-	
+
 	# 触发战斗结束效果
 	trigger_relic_effect("on_battle_end", result)
 
@@ -238,7 +243,7 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 	# 如果是宝藏节点，可能会获得遗物
 	if node_data.type == "treasure":
 		_handle_treasure_node(node_data)
-	
+
 	# 触发地图节点选择效果
 	trigger_relic_effect("on_map_node_selected", {"node": node_data})
 
@@ -247,7 +252,7 @@ func _handle_treasure_node(node_data: Dictionary) -> void:
 	# 检查是否包含遗物奖励
 	if node_data.has("rewards") and node_data.rewards.has("relic"):
 		var relic_data = node_data.rewards.relic
-		
+
 		# 如果指定了具体遗物ID
 		if relic_data.has("id"):
 			acquire_relic(relic_data.id)
@@ -268,13 +273,13 @@ func clear_all_relics() -> void:
 	for relic in player_relics:
 		relic.deactivate()
 		relic.queue_free()
-	
+
 	player_relics.clear()
 
 # 保存遗物状态
 func save_relics_state() -> Array:
 	var save_data = []
-	
+
 	for relic in player_relics:
 		save_data.append({
 			"id": relic.id,
@@ -282,14 +287,14 @@ func save_relics_state() -> Array:
 			"charges": relic.charges,
 			"current_cooldown": relic.current_cooldown
 		})
-	
+
 	return save_data
 
 # 加载遗物状态
 func load_relics_state(save_data: Array, player = null) -> void:
 	# 清理现有遗物
 	clear_all_relics()
-	
+
 	# 加载遗物
 	for relic_data in save_data:
 		var relic = acquire_relic(relic_data.id, player)

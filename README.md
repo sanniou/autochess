@@ -340,6 +340,7 @@
 - [x] **游戏管理器 (GameManager)**: 负责游戏状态管理和系统协调
 - [x] **事件总线 (EventBus)**: 实现系统间的松耦合通信
 - [x] **配置管理器 (ConfigManager)**: 负责加载和管理游戏配置数据
+- [x] **状态管理器 (StateManager)**: 集中管理应用状态，实现单向数据流
 - [x] **存档管理器 (SaveManager)**: 负责游戏数据的持久化和加载
 - [x] **本地化管理器 (LocalizationManager)**: 提供多语言支持
 - [x] **音频管理器 (AudioManager)**: 负责游戏音频的播放和管理
@@ -394,6 +395,7 @@
    - 事件总线系统 (EventBus)
    - 游戏管理器 (GameManager)
    - 配置管理器 (ConfigManager)
+   - 状态管理器 (StateManager)
    - 存档管理器 (SaveManager)
    - 本地化管理器 (LocalizationManager)
    - 音频管理器 (AudioManager)
@@ -458,6 +460,7 @@
 ### 具体实施计划
 
 1. **第一阶段：核心系统完善**
+   - 完善状态管理系统，将分散的状态管理集中到StateManager
    - 进一步完善皮肤系统，实现皮肤实时预览和切换动画
    - 完善技能系统的目标选择和效果应用逻辑
    - 完善战斗系统的战斗逻辑和AI
