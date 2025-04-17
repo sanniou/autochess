@@ -1,4 +1,5 @@
 extends "res://scripts/managers/core/base_manager.gd"
+class_name RelicUiManager
 ## 遗物UI管理器
 ## 负责管理遗物UI的显示和交互
 
@@ -28,13 +29,13 @@ func _do_initialize() -> void:
 	
 	# 原 _ready 函数的内容
 	# 获取遗物管理器引用
-		relic_manager = get_node_or_null("/root/GameManager/RelicManager")
+	relic_manager = get_node_or_null("/root/GameManager/RelicManager")
 		
-		# 连接信号
-		EventBus.relic.relic_acquired.connect(_on_relic_acquired)
-		EventBus.relic.show_relic_info.connect(_on_show_relic_info)
-		EventBus.relic.hide_relic_info.connect(_on_hide_relic_info)
-		EventBus.game.game_state_changed.connect(_on_game_state_changed)
+	# 连接信号
+	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
+	EventBus.relic.connect_event("show_relic_info", _on_show_relic_info)
+	EventBus.relic.connect_event("hide_relic_info", _on_hide_relic_info)
+	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
 	
 	## 显示遗物面板
 func show_relic_panel() -> void:
@@ -132,13 +133,13 @@ func _on_game_state_changed(old_state, new_state) -> void:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

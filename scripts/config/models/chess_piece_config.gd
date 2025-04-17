@@ -143,7 +143,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 				validation_errors.append("羁绊必须是有效的字符串")
 
 # 获取棋子名称
-func get_name() -> String:
+func get_chess_name() -> String:
 	return data.get("name", "")
 
 # 获取棋子描述

@@ -12,10 +12,10 @@ func _ready():
 	_update_player_info()
 	
 	# 连接信号
-	EventBus.game.player_health_changed.connect(_on_player_health_changed)
-	EventBus.economy.gold_changed.connect(_on_gold_changed)
-	EventBus.game.player_level_changed.connect(_on_player_level_changed)
-	EventBus.game.player_exp_changed.connect(_on_exp_changed)
+	EventBus.game.connect_event("player_health_changed", _on_player_health_changed)
+	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
+	EventBus.game.connect_event("player_level_changed", _on_player_level_changed)
+	EventBus.game.connect_event("player_exp_changed", _on_exp_changed)
 
 # 更新玩家信息
 func _update_player_info():

@@ -97,6 +97,11 @@ enum TextDirection {
 # 引用
 var config_manager = null
 
+# 初始化
+func _ready() -> void:
+	# 初始化管理器
+	initialize()
+
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
@@ -108,18 +113,18 @@ func _do_initialize() -> void:
 	call_deferred("_deferred_init")
 
 	# 调试信息
-	EventBus.debug.debug_message.emit("本地化管理器已创建", 0)
+	EventBus.debug.emit_event("debug_message", ["本地化管理器已创建", 0])
 
 ## 延迟初始化
 func _deferred_init() -> void:
 	# 获取引用
 	config_manager = get_node_or_null("/root/ConfigManager")
 	if not config_manager:
-		EventBus.debug.debug_message.emit("无法获取配置管理器引用", 1)
+		EventBus.debug.emit_event("debug_message", ["无法获取配置管理器引用", 1])
 		return
 
 	# 连接信号
-	EventBus.localization.request_language_code.connect(_on_request_language_code)
+	EventBus.localization.connect_event("request_language_code", _on_request_language_code)
 
 	# 检测系统语言
 	if localization_settings.auto_detect_language and localization_settings.use_system_language:
@@ -136,13 +141,13 @@ func _deferred_init() -> void:
 		_load_font(current_language)
 
 	# 连接信号
-	EventBus.localization.language_changed.connect(_on_language_changed)
+	EventBus.localization.connect_event("language_changed", _on_language_changed)
 
 	# 标记初始化完成
-	EventBus.debug.debug_message.emit("本地化管理器初始化完成", 0)
+	EventBus.debug.emit_event("debug_message", ["本地化管理器初始化完成", 0])
 
 	# 通知其他系统当前语言
-	EventBus.localization.language_changed.emit(get_current_language_code())
+	EventBus.localization.emit_event("language_changed", [get_current_language_code()])
 
 ## 检测系统语言
 func _detect_system_language() -> void:
@@ -161,23 +166,23 @@ func _detect_system_language() -> void:
 
 	# 设置当前语言
 	current_language = detected_language
-	EventBus.debug.debug_message.emit("检测到系统语言: " + LANGUAGE_NAMES[current_language], 0)
+	EventBus.debug.emit_event("debug_message", ["检测到系统语言: " + LANGUAGE_NAMES[current_language], 0])
 
 ## 加载指定语言
 func load_language(language: int) -> void:
 	if not LANGUAGE_CODES.has(language):
-		EventBus.debug.debug_message.emit("不支持的语言: " + str(language), 2)
+		EventBus.debug.emit_event("debug_message", ["不支持的语言: " + str(language), 2])
 		return
 
 	var language_code = LANGUAGE_CODES[language]
 	var file_path = TRANSLATION_PATH + language_code + ".json"
 
 	if not FileAccess.file_exists(file_path):
-		EventBus.debug.debug_message.emit("语言文件不存在: " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["语言文件不存在: " + file_path, 2])
 
 		# 尝试加载后备语言
 		if language != localization_settings.fallback_language:
-			EventBus.debug.debug_message.emit("尝试加载后备语言", 1)
+			EventBus.debug.emit_event("debug_message", ["尝试加载后备语言", 1])
 			load_language(localization_settings.fallback_language)
 			return
 
@@ -190,11 +195,11 @@ func load_language(language: int) -> void:
 	# 使用 ConfigManager 加载语言文件
 	var translation_data = config_manager.load_json(file_path)
 	if translation_data.is_empty():
-		EventBus.debug.debug_message.emit("无法加载语言文件: " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法加载语言文件: " + file_path, 2])
 
 		# 尝试加载后备语言
 		if language != localization_settings.fallback_language:
-			EventBus.debug.debug_message.emit("尝试加载后备语言", 1)
+			EventBus.debug.emit_event("debug_message", ["尝试加载后备语言", 1])
 			load_language(localization_settings.fallback_language)
 		return
 
@@ -205,7 +210,7 @@ func load_language(language: int) -> void:
 	if localization_settings.use_custom_fonts:
 		_load_font(language)
 
-	EventBus.debug.debug_message.emit("已加载语言: " + language_code, 0)
+	EventBus.debug.emit_event("debug_message", ["已加载语言: " + language_code, 0])
 
 	# 发送翻译加载信号
 	translations_loaded.emit(language_code)
@@ -223,7 +228,7 @@ func change_language(language: int) -> void:
 ## 获取翻译文本
 func translate(key: String, params: Array = []) -> String:
 	if not translations.has(key):
-		EventBus.debug.debug_message.emit("翻译键不存在: " + key, 1)
+		EventBus.debug.emit_event("debug_message", ["翻译键不存在: " + key, 1])
 		return key
 
 	var text = translations[key]
@@ -273,9 +278,9 @@ func _load_font(language: int) -> void:
 ## 请求字体
 func _request_font(font_name: String) -> void:
 	# 通过EventBus请求字体
-	EventBus.localization.font_loaded.connect(_on_font_loaded, CONNECT_ONE_SHOT)
-	EventBus.localization.request_font.emit(font_name)
-	EventBus.debug.debug_message.emit("请求字体: " + font_name, 0)
+	EventBus.localization.connect_event("font_loaded", _on_font_loaded, CONNECT_ONE_SHOT)
+	EventBus.localization.emit_event("request_font", [font_name])
+	EventBus.debug.emit_event("debug_message", ["请求字体: " + font_name, 0])
 
 ## 处理字体加载完成
 func _on_font_loaded(font_name: String, font_data) -> void:
@@ -285,7 +290,7 @@ func _on_font_loaded(font_name: String, font_data) -> void:
 
 		# 发送字体变化信号
 		font_changed.emit(font_name)
-		EventBus.debug.debug_message.emit("字体加载完成: " + font_name, 0)
+		EventBus.debug.emit_event("debug_message", ["字体加载完成: " + font_name, 0])
 	else:
 		# 如果字体管理器无法加载字体，尝试使用传统方式加载
 		_load_font_traditional(font_name)
@@ -295,14 +300,14 @@ func _load_font_traditional(font_name: String) -> void:
 	# 如果没有字体管理器或加载失败，使用传统方式加载
 	var font_path = "res://assets/fonts/" + font_name
 	if not FileAccess.file_exists(font_path):
-		EventBus.debug.debug_message.emit("字体文件不存在: " + font_path, 1)
+		EventBus.debug.emit_event("debug_message", ["字体文件不存在: " + font_path, 1])
 		return
 
 	# 加载字体
 	var font = FontFile.new()
 	var err = font.load_dynamic_font(font_path)
 	if err != OK:
-		EventBus.debug.debug_message.emit("无法加载字体: " + font_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法加载字体: " + font_path, 2])
 		return
 
 	# 设置当前字体
@@ -310,7 +315,7 @@ func _load_font_traditional(font_name: String) -> void:
 
 	# 发送字体变化信号
 	font_changed.emit(font_name)
-	EventBus.debug.debug_message.emit("使用传统方式加载字体: " + font_name, 0)
+	EventBus.debug.emit_event("debug_message", ["使用传统方式加载字体: " + font_name, 0])
 
 ## 创建空的语言文件（仅在调试模式下）
 func _create_empty_language_file(language_code: String) -> void:
@@ -382,9 +387,9 @@ func _create_empty_language_file(language_code: String) -> void:
 	# 使用 ConfigManager 保存语言文件
 	var result = config_manager.save_json(file_path, basic_translations)
 	if result:
-		EventBus.debug.debug_message.emit("创建了基本语言文件: " + file_path, 1)
+		EventBus.debug.emit_event("debug_message", ["创建了基本语言文件: " + file_path, 1])
 	else:
-		EventBus.debug.debug_message.emit("无法创建语言文件: " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法创建语言文件: " + file_path, 2])
 
 ## 预加载语言
 func _preload_languages() -> void:
@@ -413,19 +418,22 @@ func _preload_language(language: int) -> void:
 
 	# 使用线程异步加载
 	var thread = Thread.new()
-	thread.start(func():
-		# 使用 ConfigManager 加载语言文件
-		var translation_data = config_manager.load_json(file_path)
-		if not translation_data.is_empty():
-			# 将翻译数据存储到缓存
-			var cache_key = "translation_" + language_code
-			config_manager.set_cache(cache_key, translation_data)
-			# 使用call_deferred在主线程中发送信号
-			call_deferred("_emit_preload_complete", language_code)
-	)
+	thread.start(Callable(self, "_load_language_thread").bind(file_path, language_code))
 
 	# 在下一帧等待线程完成
 	call_deferred("_wait_for_thread", thread)
+
+## 线程加载语言文件
+func _load_language_thread(file_path: String, language_code: String) -> void:
+	# 使用 ConfigManager 加载语言文件
+	var translation_data = config_manager.load_json(file_path)
+	if not translation_data.is_empty():
+		# 将翻译数据存储到缓存
+		var cache_key = "translation_" + language_code
+		# 使用call_deferred在主线程中发送信号
+		call_deferred("_emit_preload_complete", language_code)
+
+
 
 ## 语言变更处理
 func _on_language_changed(new_language: String) -> void:
@@ -436,7 +444,7 @@ func _on_language_changed(new_language: String) -> void:
 func _on_request_language_code() -> void:
 	# 发送当前语言代码
 	if _initialized:
-		EventBus.localization.language_changed.emit(get_current_language_code())
+		EventBus.localization.emit_event("language_changed", [get_current_language_code()])
 
 ## 等待线程完成
 func _wait_for_thread(thread: Thread) -> void:
@@ -448,7 +456,7 @@ func _wait_for_thread(thread: Thread) -> void:
 func set_language(language_code: String) -> void:
 	# 确保初始化完成
 	if not _initialized:
-		EventBus.debug.debug_message.emit("本地化管理器尚未初始化完成，将在初始化后设置语言", 1)
+		EventBus.debug.emit_event("debug_message", ["本地化管理器尚未初始化完成，将在初始化后设置语言", 1])
 		call_deferred("set_language", language_code)
 		return
 
@@ -460,7 +468,7 @@ func set_language(language_code: String) -> void:
 			return
 
 	# 如果找不到对应的语言，使用默认语言
-	EventBus.debug.debug_message.emit("不支持的语言代码: " + language_code, 1)
+	EventBus.debug.emit_event("debug_message", ["不支持的语言代码: " + language_code, 1])
 	change_language(localization_settings.fallback_language)
 
 
@@ -472,18 +480,18 @@ func ensure_initialized() -> void:
 
 ## 在主线程中发送预加载完成信号
 func _emit_preload_complete(language_code: String) -> void:
-	EventBus.debug.debug_message.emit("预加载语言完成: " + language_code, 0)
+	EventBus.debug.emit_event("debug_message", ["预加载语言完成: " + language_code, 0])
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

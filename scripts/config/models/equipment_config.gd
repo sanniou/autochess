@@ -118,7 +118,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 				validation_errors.append("限制职业必须是有效的字符串")
 
 # 获取装备名称
-func get_name() -> String:
+func get_equipment_name() -> String:
 	return data.get("name", "")
 
 # 获取装备描述
@@ -176,11 +176,11 @@ func get_effects_by_type(effect_type: String) -> Array:
 	return result
 
 # 检查是否可以被特定职业使用
-func can_be_used_by_class(class_name: String) -> bool:
+func can_be_used_by_class(class_names: String) -> bool:
 	var restricted_classes = get_restricted_classes()
 	
 	# 如果没有限制职业，所有职业都可以使用
 	if restricted_classes.is_empty():
 		return true
 	
-	return restricted_classes.has(class_name)
+	return restricted_classes.has(class_names)

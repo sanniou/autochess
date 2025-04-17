@@ -22,21 +22,20 @@ func _execute_effect(target = null) -> void:
 	if target == null:
 		return
 
-	# 创建伤害效果
-	var damage_effect = DamageEffect.new(
-		AbilityEffect.EffectType.DAMAGE,
-		damage,
-		0.0,
-		0.0,
-		owner,
-		target
-	)
+	# 获取特效管理器
+	var game_manager = owner.get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.effect_manager:
+		# 创建伤害特效
+		var params = {
+			"damage_type": damage_type,
+			"damage_amount": damage
+		}
 
-	# 设置伤害类型
-	damage_effect.damage_type = damage_type
+		# 使用特效管理器创建特效
+		game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
 
-	# 应用效果
-	damage_effect.apply()
+	# 直接造成伤害
+	target.take_damage(damage, damage_type, owner)
 
 	# 播放技能特效
 	_play_ability_effect([target])

@@ -12,7 +12,7 @@ func _initialize() -> void:
 	player = game_manager.player_manager.get_current_player()
 	
 	if player == null:
-		EventBus.debug.debug_message.emit("无法获取当前玩家", 1)
+		EventBus.debug.emit_event("debug_message", ["无法获取当前玩家", 1])
 		return
 	
 	# 连接玩家信号

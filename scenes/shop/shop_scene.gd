@@ -134,7 +134,7 @@ func _on_buy_item_pressed(item_data: Dictionary, item_type: String, price: int) 
 	# 检查金币是否足够
 	if current_player.gold < price:
 		# 显示金币不足提示
-		EventBus.debug.debug_message.emit("金币不足", 1)
+		EventBus.debug.emit_event("debug_message", ["金币不足", 1])
 		return
 
 	# 购买物品
@@ -178,7 +178,7 @@ func _on_refresh_button_pressed() -> void:
 		_refresh_shop()
 	else:
 		# 显示金币不足提示
-		EventBus.debug.debug_message.emit("金币不足", 1)
+		EventBus.debug.emit_event("debug_message", ["金币不足", 1])
 
 ## 锁定按钮处理
 func _on_lock_button_pressed() -> void:

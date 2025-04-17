@@ -150,8 +150,8 @@ func _execute_effect(target = null) -> void:
 		targets = [owner]
 
 	# 应用效果
-	for target in targets:
-		_apply_effects(target)
+	for targetn in targets:
+		_apply_effects(targetn)
 
 	# 播放技能特效
 	_play_ability_effect(targets)
@@ -160,18 +160,23 @@ func _execute_effect(target = null) -> void:
 func _apply_effects(target: ChessPiece) -> void:
 	# 如果没有自定义效果，使用默认效果
 	if effects.size() == 0:
-		# 创建默认伤害效果
-		var damage_effect = DamageEffect.new(
-			AbilityEffect.EffectType.DAMAGE,
-			damage,
-			0.0,
-			0.0,
-			owner,
-			target
-		)
+		# 获取特效管理器
+		var game_manager = owner.get_node_or_null("/root/GameManager")
+		if game_manager and game_manager.effect_manager:
+			# 创建伤害特效
+			var params = {
+				"damage_type": "magical",
+				"damage_amount": damage
+			}
 
-		# 应用效果
-		damage_effect.apply()
+			# 使用特效管理器创建特效
+			game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
+
+			# 直接造成伤害
+			target.take_damage(damage, "magical", owner)
+		else:
+			# 直接造成伤害
+			target.take_damage(damage, "magical", owner)
 	else:
 		# 应用自定义效果
 		for effect in effects:
@@ -209,35 +214,36 @@ func _play_target_effect(target: ChessPiece) -> void:
 	if not target or not is_instance_valid(target):
 		return
 
-	# 创建特效
-	var effect = ColorRect.new()
-	effect.color = Color(0.8, 0.2, 0.8, 0.5)  # 紫色
-	effect.size = Vector2(40, 40)
-	effect.position = Vector2(-20, -20)
+	# 获取特效管理器
+	var game_manager = owner.get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
 
-	# 添加到目标
-	target.add_child(effect)
+	# 创建伤害特效
+	var params = {
+		"damage_type": "magical",  # 默认使用魔法伤害
+		"damage_amount": damage
+	}
 
-	# 创建消失动画
-	var tween = target.create_tween()
-	tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
-	tween.tween_callback(effect.queue_free)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
+
+
 
 # 播放施法者效果
 func _play_caster_effect() -> void:
 	if not owner or not is_instance_valid(owner):
 		return
 
-	# 创建特效
-	var effect = ColorRect.new()
-	effect.color = Color(0.2, 0.8, 0.8, 0.5)  # 青色
-	effect.size = Vector2(60, 60)
-	effect.position = Vector2(-30, -30)
+	# 获取特效管理器
+	var game_manager = owner.get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
 
-	# 添加到施法者
-	owner.add_child(effect)
+	# 创建施法特效
+	var params = {
+		"buff_type": "buff",  # 默认使用增益类型
+	}
 
-	# 创建消失动画
-	var tween = owner.create_tween()
-	tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
-	tween.tween_callback(effect.queue_free)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.BUFF, owner, params)

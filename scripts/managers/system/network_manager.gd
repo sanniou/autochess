@@ -68,14 +68,14 @@ func _do_initialize() -> void:
 
 	# 原 _ready 函数的内容
 	# 设置进程模式
-		process_mode = Node.PROCESS_MODE_ALWAYS
+	process_mode = Node.PROCESS_MODE_ALWAYS
 
-		# 连接信号
-		multiplayer.peer_connected.connect(_on_peer_connected)
-		multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-		multiplayer.connected_to_server.connect(_on_connected_to_server)
-		multiplayer.connection_failed.connect(_on_connection_failed)
-		multiplayer.server_disconnected.connect(_on_server_disconnected)
+	# 连接信号
+	multiplayer.peer_connected.connect(_on_peer_connected)
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+	multiplayer.connected_to_server.connect(_on_connected_to_server)
+	multiplayer.connection_failed.connect(_on_connection_failed)
+	multiplayer.server_disconnected.connect(_on_server_disconnected)
 
 	# 进程
 func _process(delta: float) -> void:
@@ -136,7 +136,7 @@ func create_server() -> bool:
 	# 发送服务器创建信号
 	server_created.emit()
 
-	EventBus.debug.debug_message.emit("服务器已创建，端口: " + str(network_config.server_port), 0)
+	EventBus.debug.emit_event("debug_message", ["服务器已创建，端口: " + str(network_config.server_port), 0])
 	return true
 
 ## 连接到服务器
@@ -171,7 +171,7 @@ func connect_to_server(address: String, port: int = -1) -> bool:
 	# 重置重连尝试
 	_reconnect_attempts = 0
 
-	EventBus.debug.debug_message.emit("正在连接到服务器: " + address + ":" + str(port), 0)
+	EventBus.debug.emit_event("debug_message", ["正在连接到服务器: " + address + ":" + str(port), 0])
 	return true
 
 ## 关闭连接
@@ -200,7 +200,7 @@ func close_connection() -> void:
 	# 发送连接关闭信号
 	connection_closed.emit()
 
-	EventBus.debug.debug_message.emit("网络连接已关闭", 0)
+	EventBus.debug.emit_event("debug_message", ["网络连接已关闭", 0])
 
 ## 发送数据
 func send_data(data: Variant, target_peer: int = 0) -> bool:
@@ -254,7 +254,7 @@ func is_client() -> bool:
 	return current_state == NetworkState.CONNECTED
 
 ## 是否已连接
-func is_connected() -> bool:
+func is_network_connected() -> bool:
 	return current_state == NetworkState.CONNECTED or current_state == NetworkState.HOSTING
 
 ## 获取本地玩家ID
@@ -268,7 +268,7 @@ func set_network_config(config: Dictionary) -> void:
 		if network_config.has(key):
 			network_config[key] = config[key]
 
-	EventBus.debug.debug_message.emit("网络配置已更新", 0)
+	EventBus.debug.emit_event("debug_message", ["网络配置已更新", 0])
 
 ## 接收数据（RPC方法）
 @rpc("any_peer", "reliable")
@@ -359,7 +359,7 @@ func _reconnect() -> void:
 	# 设置重连计时器
 	_reconnect_timer = network_config.reconnect_delay
 
-	EventBus.debug.debug_message.emit("尝试重连 (" + str(_reconnect_attempts) + "/" + str(network_config.reconnect_attempts) + ")", 0)
+	EventBus.debug.emit_event("debug_message", ["尝试重连 (" + str(_reconnect_attempts) + "/" + str(network_config.reconnect_attempts) + ")", 0])
 
 ## 设置UPNP
 func _setup_upnp() -> void:
@@ -369,22 +369,22 @@ func _setup_upnp() -> void:
 	# 发现UPNP设备
 	var discover_result = upnp.discover()
 	if discover_result != UPNP.UPNP_RESULT_SUCCESS:
-		EventBus.debug.debug_message.emit("UPNP发现失败: " + str(discover_result), 1)
+		EventBus.debug.emit_event("debug_message", ["UPNP发现失败: " + str(discover_result), 1])
 		return
 
 	# 获取网关
 	var gateway = upnp.get_gateway()
 	if gateway == null:
-		EventBus.debug.debug_message.emit("无法获取UPNP网关", 1)
+		EventBus.debug.emit_event("debug_message", ["无法获取UPNP网关", 1])
 		return
 
 	# 映射端口
 	var map_result = gateway.add_port_mapping(network_config.server_port, network_config.server_port, "GodotServer", "UDP")
 	if map_result != UPNP.UPNP_RESULT_SUCCESS:
-		EventBus.debug.debug_message.emit("UPNP端口映射失败: " + str(map_result), 1)
+		EventBus.debug.emit_event("debug_message", ["UPNP端口映射失败: " + str(map_result), 1])
 		return
 
-	EventBus.debug.debug_message.emit("UPNP端口映射成功: " + str(network_config.server_port), 0)
+	EventBus.debug.emit_event("debug_message", ["UPNP端口映射成功: " + str(network_config.server_port), 0])
 
 ## 关闭UPNP
 func _close_upnp() -> void:
@@ -404,7 +404,7 @@ func _close_upnp() -> void:
 	# 删除端口映射
 	gateway.delete_port_mapping(network_config.server_port, "UDP")
 
-	EventBus.debug.debug_message.emit("UPNP端口映射已删除", 0)
+	EventBus.debug.emit_event("debug_message", ["UPNP端口映射已删除", 0])
 
 ## 更改网络状态
 func _change_state(new_state: int) -> void:
@@ -431,7 +431,7 @@ func _on_peer_connected(id: int) -> void:
 	# 发送玩家连接信号
 	peer_connected.emit(id)
 
-	EventBus.debug.debug_message.emit("玩家已连接: " + str(id), 0)
+	EventBus.debug.emit_event("debug_message", ["玩家已连接: " + str(id), 0])
 
 ## 对等体断开事件处理
 func _on_peer_disconnected(id: int) -> void:
@@ -446,7 +446,7 @@ func _on_peer_disconnected(id: int) -> void:
 	# 发送玩家断开信号
 	peer_disconnected.emit(id)
 
-	EventBus.debug.debug_message.emit("玩家已断开: " + str(id), 0)
+	EventBus.debug.emit_event("debug_message", ["玩家已断开: " + str(id), 0])
 
 ## 连接到服务器事件处理
 func _on_connected_to_server() -> void:
@@ -470,7 +470,7 @@ func _on_connected_to_server() -> void:
 	# 发送连接建立信号
 	connection_established.emit(local_player_id)
 
-	EventBus.debug.debug_message.emit("已连接到服务器，玩家ID: " + str(local_player_id), 0)
+	EventBus.debug.emit_event("debug_message", ["已连接到服务器，玩家ID: " + str(local_player_id), 0])
 
 ## 连接失败事件处理
 func _on_connection_failed() -> void:
@@ -490,7 +490,7 @@ func _on_connection_failed() -> void:
 		# 发送连接失败信号
 		connection_failed.emit("连接失败")
 
-	EventBus.debug.debug_message.emit("连接到服务器失败", 1)
+	EventBus.debug.emit_event("debug_message", ["连接到服务器失败", 1])
 
 ## 服务器断开事件处理
 func _on_server_disconnected() -> void:
@@ -510,18 +510,18 @@ func _on_server_disconnected() -> void:
 	# 发送连接关闭信号
 	connection_closed.emit()
 
-	EventBus.debug.debug_message.emit("服务器已断开连接", 1)
+	EventBus.debug.emit_event("debug_message", ["服务器已断开连接", 1])
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

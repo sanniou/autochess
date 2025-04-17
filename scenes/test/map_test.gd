@@ -1,10 +1,6 @@
 extends Control
 ## 地图测试场景
 ## 用于测试地图生成和节点连接
-
-# 地图生成器
-var map_generator: MapGenerator
-
 # 配置管理器
 var config_manager: ConfigManager
 
@@ -27,8 +23,6 @@ var map_seed = 0
 
 # 初始化
 func _ready():
-	# 获取管理器
-	map_generator = get_node("/root/GameManager/MapGenerator")
 	config_manager = get_node("/root/GameManager/ConfigManager")
 	
 	# 连接信号
@@ -84,7 +78,9 @@ func _generate_map() -> void:
 	}
 	
 	# 生成地图数据
-	current_map_data = map_generator.generate_map(template)
+	var map_manager = GameManager.map_manager
+	var a = map_manager.map_generator
+	current_map_data = map_manager.map_generator.generate_map(template)
 	
 	# 显示地图
 	_display_map(current_map_data)
@@ -367,7 +363,7 @@ func _on_node_button_pressed(node_data: Dictionary) -> void:
 	selected_node = node_data
 	
 	# 发送节点选择信号
-	EventBus.map.map_node_selected.emit(node_data)
+	EventBus.map.emit_event("map_node_selected", [node_data])
 
 # 地图节点选择事件处理
 func _on_map_node_selected(node_data: Dictionary) -> void:

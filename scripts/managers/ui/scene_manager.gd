@@ -1,5 +1,4 @@
 extends "res://scripts/managers/core/base_manager.gd"
-class_name SceneManager
 ## 场景管理器
 ## 负责管理场景的加载、切换和过渡效果
 
@@ -42,33 +41,31 @@ var loading_thread: Thread = null
 # 引用
 var ui_manager = null
 
+# 初始化
+func _ready() -> void:
+	# 初始化管理器
+	initialize()
+
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "SceneManager"
-	# 添加依赖
-	add_dependency("GameManager")
-
-	# 添加依赖
-	add_dependency("UIManager")
-
-	# 获取UI管理器引用
-	var game_manager = get_node_or_null("/root/GameManager")
-	if game_manager:
-		ui_manager = game_manager.get_manager("UIManager")
 
 	# 连接信号
-	EventBus.ui.transition_midpoint.connect(_on_transition_midpoint)
+	EventBus.ui.connect_event("transition_midpoint", _on_transition_midpoint)
 
 	# 获取当前场景
 	var root = get_tree().get_root()
 	current_scene = root.get_child(root.get_child_count() - 1).name
 
+	# 输出初始化完成信息
+	EventBus.debug.emit_event("debug_message", ["SceneManager 初始化完成", 0])
+
 # 加载场景
 func load_scene(scene_name: String, use_transition: bool = true, cache_scene: bool = false) -> void:
 	# 检查当前状态
 	if current_state != SceneManagerState.IDLE:
-		EventBus.debug.debug_message.emit("场景管理器正忙，无法加载场景: " + scene_name, 1)
+		EventBus.debug.emit_event("debug_message", ["场景管理器正忙，无法加载场景: " + scene_name, 1])
 		return
 
 	# 更新状态
@@ -120,7 +117,7 @@ func _load_scene_thread(scene_path: String, scene_name: String, use_transition: 
 	# 使用ResourceLoader加载场景
 	var err = ResourceLoader.load_threaded_request(scene_path)
 	if err != OK:
-		EventBus.debug.debug_message.emit("无法加载场景: " + scene_path + ", 错误: " + str(err), 2)
+		EventBus.debug.emit_event("debug_message", ["无法加载场景: " + scene_path + ", 错误: " + str(err), 2])
 		current_state = SceneManagerState.IDLE
 		return
 
@@ -141,12 +138,12 @@ func _load_scene_thread(scene_path: String, scene_name: String, use_transition: 
 				break
 			ResourceLoader.THREAD_LOAD_FAILED:
 				# 加载失败
-				EventBus.debug.debug_message.emit("加载场景失败: " + scene_path, 2)
+				EventBus.debug.emit_event("debug_message", ["加载场景失败: " + scene_path, 2])
 				current_state = SceneManagerState.IDLE
 				return
 			ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 				# 无效资源
-				EventBus.debug.debug_message.emit("无效的场景资源: " + scene_path, 2)
+				EventBus.debug.emit_event("debug_message", ["无效的场景资源: " + scene_path, 2])
 				current_state = SceneManagerState.IDLE
 				return
 
@@ -180,7 +177,7 @@ func _on_scene_loaded(scene_name: String, scene: PackedScene, use_transition: bo
 	# 使用过渡效果
 	if use_transition:
 		current_state = SceneManagerState.TRANSITION
-		EventBus.ui.start_transition.emit("fade", TRANSITION_DURATION)
+		EventBus.ui.emit_event("start_transition", ["fade", TRANSITION_DURATION])
 	else:
 		_change_scene(scene)
 
@@ -242,7 +239,7 @@ func _change_scene(scene: PackedScene) -> void:
 func go_back(use_transition: bool = true) -> void:
 	# 检查历史记录
 	if scene_history.size() == 0:
-		EventBus.debug.debug_message.emit("没有上一个场景可返回", 1)
+		EventBus.debug.emit_event("debug_message", ["没有上一个场景可返回", 1])
 		return
 
 	# 获取上一个场景
@@ -299,7 +296,7 @@ func preload_scene(scene_name: String) -> void:
 	# 开始加载场景
 	var err = ResourceLoader.load_threaded_request(scene_path)
 	if err != OK:
-		EventBus.debug.debug_message.emit("无法预加载场景: " + scene_path + ", 错误: " + str(err), 1)
+		EventBus.debug.emit_event("debug_message", ["无法预加载场景: " + scene_path + ", 错误: " + str(err), 1])
 		return
 
 	# 创建线程监控加载进度
@@ -319,15 +316,15 @@ func _monitor_preload(scene_path: String, scene_name: String) -> void:
 				# 加载完成
 				var scene = ResourceLoader.load_threaded_get(scene_path)
 				scene_cache[scene_name] = scene
-				EventBus.debug.debug_message.emit("场景预加载完成: " + scene_name, 0)
+				EventBus.debug.emit_event("debug_message", ["场景预加载完成: " + scene_name, 0])
 				break
 			ResourceLoader.THREAD_LOAD_FAILED:
 				# 加载失败
-				EventBus.debug.debug_message.emit("预加载场景失败: " + scene_path, 1)
+				EventBus.debug.emit_event("debug_message", ["预加载场景失败: " + scene_path, 1])
 				break
 			ResourceLoader.THREAD_LOAD_INVALID_RESOURCE:
 				# 无效资源
-				EventBus.debug.debug_message.emit("无效的预加载场景资源: " + scene_path, 1)
+				EventBus.debug.emit_event("debug_message", ["无效的预加载场景资源: " + scene_path, 1])
 				break
 
 		# 等待一帧
@@ -336,13 +333,13 @@ func _monitor_preload(scene_path: String, scene_name: String) -> void:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

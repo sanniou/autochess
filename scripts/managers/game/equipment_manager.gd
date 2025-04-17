@@ -21,16 +21,16 @@ func _do_initialize() -> void:
 	
 	# 原 _ready 函数的内容
 	# 添加装备拉格管理器
-		add_child(tier_manager)
+	add_child(tier_manager)
 	
-		# 添加装备合成系统
-		add_child(combine_system)
+	# 添加装备合成系统
+	add_child(combine_system)
 	
-		# 连接信号
-		EventBus.economy.shop_refresh_requested.connect(_on_shop_refresh_requested)
-		EventBus.equipment.equipment_combine_requested.connect(_on_equipment_combine_requested)
+	# 连接信号
+	EventBus.economy.connect_event("shop_refresh_requested", _on_shop_refresh_requested)
+	EventBus.equipment.connect_event("equipment_combine_requested", _on_equipment_combine_requested)
 	
-	# 获取装备实例
+# 获取装备实例
 func get_equipment(equipment_id: String) -> Equipment:
 	# 先从缓存查找
 	if _equipment_cache.has(equipment_id):
@@ -112,7 +112,7 @@ func refresh_shop_inventory(count: int = 5, player_level: int = 1, shop_tier: in
 			_shop_inventory.append(equipment.id)
 
 	# 发送商店刷新信号
-	EventBus.economy.shop_inventory_updated.emit(_shop_inventory)
+	EventBus.economy.emit_event("shop_inventory_updated", [_shop_inventory])
 
 # 获取当前商店库存
 func get_shop_inventory() -> Array:
@@ -136,7 +136,7 @@ func combine_equipments(equipment1: Equipment, equipment2: Equipment) -> Equipme
 
 	if result_equipment:
 		# 发送合成成功信号
-		EventBus.equipment.equipment_combined.emit(equipment1, equipment2, result_equipment)
+		EventBus.equipment.emit_event("equipment_combined", [equipment1, equipment2, result_equipment])
 
 	return result_equipment
 
@@ -197,13 +197,13 @@ func reset():
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

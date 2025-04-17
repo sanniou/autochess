@@ -15,13 +15,13 @@ func _initialize() -> void:
 	event_manager = game_manager.event_manager
 	
 	if event_manager == null:
-		EventBus.debug.debug_message.emit("无法获取事件管理器", 1)
+		EventBus.debug.emit_event("debug_message", ["无法获取事件管理器", 1])
 		return
 	
 	# 连接事件信号
-	EventBus.event.event_started.connect(_on_event_started)
-	EventBus.event.event_option_selected.connect(_on_event_option_selected)
-	EventBus.event.event_completed.connect(_on_event_completed)
+	EventBus.event.connect_event("event_started", _on_event_started)
+	EventBus.event.connect_event("event_option_selected", _on_event_option_selected)
+	EventBus.event.connect_event("event_completed", _on_event_completed)
 	
 	# 更新显示
 	update_hud()

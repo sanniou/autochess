@@ -92,7 +92,7 @@ func _on_show_toast_button_pressed():
         message = "这是一条测试提示消息"
     
     # 显示提示
-    EventBus.ui.show_toast.emit(message)
+    EventBus.ui.emit_event("show_toast", [message])
 
 # 开始过渡按钮处理
 func _on_start_transition_button_pressed():
@@ -100,7 +100,7 @@ func _on_start_transition_button_pressed():
     var transition_type = transition_types[transition_option.selected]
     
     # 开始过渡
-    EventBus.ui.start_transition.emit(transition_type, 1.0)
+    EventBus.ui.emit_event("start_transition", [transition_type, 1.0])
 
 # 应用主题按钮处理
 func _on_apply_theme_button_pressed():
@@ -108,7 +108,7 @@ func _on_apply_theme_button_pressed():
     var theme_name = themes[theme_option.selected]
     
     # 应用主题
-    EventBus.ui.theme_changed.emit(theme_name)
+    EventBus.ui.emit_event("theme_changed", [theme_name])
 
 # 测试UI组件按钮处理
 func _on_test_components_button_pressed():
@@ -126,7 +126,7 @@ func _on_achievement_button_pressed():
     }
     
     # 显示成就通知
-    EventBus.achievement.achievement_unlocked.emit(achievement_data)
+    EventBus.achievement.emit_event("achievement_unlocked", [achievement_data])
 
 # 显示奖励弹窗按钮处理
 func _on_reward_button_pressed():

@@ -42,31 +42,41 @@ var blacksmith_params: Dictionary = {}
 var manager_registry = null
 
 # 系统管理器引用
-var map_manager = null
-var battle_manager = null
-var board_manager = null
-var player_manager = null
-var economy_manager = null
-var shop_manager = null
-var chess_manager = null
-var equipment_manager = null
-var relic_manager = null
-var event_manager = null
-var curse_manager = null
-var story_manager = null
-var ui_manager = null
-var scene_manager = null
-var theme_manager = null
-var ui_animator = null
-var notification_system = null
-var tooltip_system = null
-var skin_manager = null
-var ability_factory = null
-var relic_ui_manager = null
-var environment_effect_manager = null
-var damage_number_manager = null
-var achievement_manager = null
-var tutorial_manager = null
+var map_manager: MapManager = null
+var player_manager: PlayerManager = null
+var board_manager: BoardManager = null
+var battle_manager: BattleManager = null
+var economy_manager: EconomyManager = null
+var shop_manager: ShopManager = null
+# var chess_manager: ChessManager = null
+var equipment_manager: EquipmentManager = null
+var relic_manager: RelicManager = null
+var event_manager: EventManager = null
+var curse_manager: CurseManager = null
+var story_manager: StoryManager = null
+var synergy_manager: SynergyManager = null
+
+var ui_manager: UIManager = null
+# scene_manager 现在是 Autoload 节点
+var theme_manager: ThemeManager = null
+var hud_manager: HUDManager = null
+
+var ui_animator: UIAnimator = null
+var notification_system: NotificationSystem = null
+var tooltip_system: TooltipSystem = null
+var skin_manager: SkinManager = null
+var environment_effect_manager: EnvironmentEffectManager = null
+var damage_number_manager: DamageNumberManager = null
+var achievement_manager: AchievementManager = null
+var tutorial_manager: TutorialManager = null
+var ability_factory: AbilityFactory = null
+var relic_ui_manager: RelicUiManager = null
+var effect_manager: EffectManager = null
+
+# 初始化
+func _ready() -> void:
+	# 初始化管理器
+	initialize()
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -81,10 +91,10 @@ func _do_initialize() -> void:
 	add_child(manager_registry)
 
 	# 连接必要的信号
-	EventBus.game.game_started.connect(_on_game_started)
-	EventBus.game.game_ended.connect(_on_game_ended)
-	EventBus.game.player_died.connect(_on_player_died)
-	EventBus.map.map_completed.connect(_on_map_completed)
+	EventBus.game.connect_event("game_started", _on_game_started)
+	EventBus.game.connect_event("game_ended", _on_game_ended)
+	EventBus.game.connect_event("player_died", _on_player_died)
+	EventBus.map.connect_event("map_completed", _on_map_completed)
 
 	# 注册所有管理器
 	_register_all_managers()
@@ -110,22 +120,18 @@ func has_manager(manager_name: String) -> bool:
 ## 注册所有管理器
 func _register_all_managers() -> void:
 	# 注册工具类
-	var ui_utils = get_node_or_null("/root/UIUtils")
-	if ui_utils:
-		register_manager("UIUtils", ui_utils)
-
-	var text_utils = get_node_or_null("/root/TextUtils")
-	if text_utils:
-		register_manager("TextUtils", text_utils)
+	var utils = get_node_or_null("/root/Utils")
+	if utils:
+		register_manager("Utils", utils)
 
 	# 注册核心管理器
-	_register_manager("SceneManager", "res://scripts/managers/ui/scene_manager.gd", [])
-	_register_manager("UIManager", "res://scripts/managers/ui/ui_manager.gd", ["SceneManager"])
+	# SceneManager 现在是 Autoload 节点
+	_register_manager("UIManager", "res://scripts/managers/ui/ui_manager.gd", [])
 	_register_manager("ThemeManager", "res://scripts/managers/ui/theme_manager.gd", ["UIManager"])
 	_register_manager("HUDManager", "res://scripts/managers/ui/hud_manager.gd", ["UIManager"])
 
 	# 注册游戏系统管理器
-	_register_manager("MapManager", "res://scripts/managers/game/map_manager.gd", ["SceneManager"])
+	_register_manager("MapManager", "res://scripts/managers/game/map_manager.gd", [])
 	_register_manager("PlayerManager", "res://scripts/managers/game/player_manager.gd", [])
 	_register_manager("BoardManager", "res://scripts/managers/game/board_manager.gd", [])
 	_register_manager("BattleManager", "res://scripts/managers/game/battle_manager.gd", ["BoardManager"])
@@ -133,7 +139,7 @@ func _register_all_managers() -> void:
 	_register_manager("ShopManager", "res://scripts/managers/game/shop_manager.gd", ["EconomyManager"])
 	_register_manager("EquipmentManager", "res://scripts/managers/game/equipment_manager.gd", ["PlayerManager"])
 	_register_manager("RelicManager", "res://scripts/managers/game/relic_manager.gd", ["PlayerManager"])
-	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd", ["SceneManager"])
+	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd", [])
 	_register_manager("CurseManager", "res://scripts/managers/game/curse_manager.gd", ["PlayerManager"])
 	_register_manager("StoryManager", "res://scripts/managers/game/story_manager.gd", ["EventManager"])
 	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager.gd", [])
@@ -149,11 +155,12 @@ func _register_all_managers() -> void:
 	_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd", ["UIManager"])
 	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd", [])
 	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd", ["RelicManager", "UIManager"])
+	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd", [])
 
 ## 注册单个管理器
 func _register_manager(manager_name: String, script_path: String, dependencies: Array) -> void:
 	if not FileAccess.file_exists(script_path):
-		EventBus.debug.debug_message.emit("管理器脚本不存在: " + script_path, 1)
+		EventBus.debug.emit_event("debug_message", ["管理器脚本不存在: " + script_path, 1])
 		return
 
 	var manager_script = load(script_path)
@@ -166,16 +173,16 @@ func _register_manager(manager_name: String, script_path: String, dependencies: 
 		# 更新管理器引用
 		_update_manager_reference(manager_name, manager_instance)
 	else:
-		EventBus.debug.debug_message.emit("无法加载管理器脚本: " + script_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法加载管理器脚本: " + script_path, 2])
 
 ## 更新管理器引用
 func _update_manager_reference(manager_name: String, manager_instance) -> void:
 	# 根据管理器名称更新对应的引用变量
 	match manager_name:
 		"MapManager": map_manager = manager_instance
-		"BattleManager": battle_manager = manager_instance
-		"BoardManager": board_manager = manager_instance
 		"PlayerManager": player_manager = manager_instance
+		"BoardManager": board_manager = manager_instance
+		"BattleManager": battle_manager = manager_instance
 		"EconomyManager": economy_manager = manager_instance
 		"ShopManager": shop_manager = manager_instance
 		"EquipmentManager": equipment_manager = manager_instance
@@ -183,9 +190,13 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"EventManager": event_manager = manager_instance
 		"CurseManager": curse_manager = manager_instance
 		"StoryManager": story_manager = manager_instance
+		"SynergyManager": synergy_manager = manager_instance
+
 		"UIManager": ui_manager = manager_instance
-		"SceneManager": scene_manager = manager_instance
+		# "SceneManager": 现在是 Autoload 节点
 		"ThemeManager": theme_manager = manager_instance
+		"HUDManager": hud_manager = manager_instance
+
 		"UIAnimator": ui_animator = manager_instance
 		"NotificationSystem": notification_system = manager_instance
 		"TooltipSystem": tooltip_system = manager_instance
@@ -196,6 +207,7 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"TutorialManager": tutorial_manager = manager_instance
 		"AbilityFactory": ability_factory = manager_instance
 		"RelicUIManager": relic_ui_manager = manager_instance
+		"EffectManager": effect_manager = manager_instance
 
 ## 改变游戏状态
 func change_state(new_state: int) -> void:
@@ -240,7 +252,7 @@ func change_state(new_state: int) -> void:
 			_enter_victory_state()
 
 	# 发送状态变更信号
-	EventBus.game.game_state_changed.emit(old_state, new_state)
+	EventBus.game.emit_event("game_state_changed", [old_state, new_state])
 
 ## 开始新游戏
 func start_new_game(difficulty: int = 1) -> void:
@@ -258,17 +270,17 @@ func start_new_game(difficulty: int = 1) -> void:
 	change_state(GameState.MAP)
 
 	# 发送游戏开始信号
-	EventBus.game.game_started.emit()
+	EventBus.game.emit_event("game_started", [])
 
 	# 触发自动存档
-	EventBus.save.autosave_triggered.emit()
+	EventBus.save.emit_event("autosave_triggered", [])
 
 ## 加载存档
 func load_game(save_slot: String) -> bool:
 	# 获取存档管理器
 	var save_manager = get_node_or_null("/root/SaveManager")
 	if save_manager == null:
-		EventBus.debug.debug_message.emit("无法获取存档管理器", 2)
+		EventBus.debug.emit_event("debug_message", ["无法获取存档管理器", 2])
 		return false
 
 	# 加载存档
@@ -278,11 +290,11 @@ func load_game(save_slot: String) -> bool:
 		change_state(GameState.MAP)
 
 		# 发送游戏开始信号
-		EventBus.game.game_started.emit()
+		EventBus.game.emit_event("game_started", [])
 
 		return true
 	else:
-		EventBus.debug.debug_message.emit("加载存档失败", 2)
+		EventBus.debug.emit_event("debug_message", ["加载存档失败", 2])
 		return false
 
 ## 保存游戏
@@ -290,16 +302,16 @@ func save_game(save_slot: String = "") -> bool:
 	# 获取存档管理器
 	var save_manager = get_node_or_null("/root/SaveManager")
 	if save_manager == null:
-		EventBus.debug.debug_message.emit("无法获取存档管理器", 2)
+		EventBus.debug.emit_event("debug_message", ["无法获取存档管理器", 2])
 		return false
 
 	# 保存游戏
 	var success = save_manager.save_game(save_slot)
 	if success:
-		EventBus.debug.debug_message.emit("游戏已成功保存", 0)
+		EventBus.debug.emit_event("debug_message", ["游戏已成功保存", 0])
 		return true
 	else:
-		EventBus.debug.debug_message.emit("保存游戏失败", 2)
+		EventBus.debug.emit_event("debug_message", ["保存游戏失败", 2])
 		return false
 
 ## 暂停游戏
@@ -309,7 +321,7 @@ func pause_game() -> void:
 
 	is_paused = true
 	get_tree().paused = true
-	EventBus.game.game_paused.emit(true)
+	EventBus.game.emit_event("game_paused", [true])
 
 ## 恢复游戏
 func resume_game() -> void:
@@ -318,7 +330,7 @@ func resume_game() -> void:
 
 	is_paused = false
 	get_tree().paused = false
-	EventBus.game.game_paused.emit(false)
+	EventBus.game.emit_event("game_paused", [false])
 
 ## 退出游戏
 func quit_game() -> void:
@@ -329,7 +341,7 @@ func quit_game() -> void:
 		save_manager.trigger_autosave()
 	else:
 		# 如果无法获取存档管理器，使用信号
-		EventBus.save.autosave_triggered.emit()
+		EventBus.save.emit_event("autosave_triggered", [])
 
 	# 退出游戏
 	get_tree().quit()
@@ -340,60 +352,18 @@ func quit_game() -> void:
 
 ## 进入主菜单状态
 func _enter_main_menu_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入主菜单状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
-	# 加载主菜单场景
-	scene_manager.load_scene("main_menu", true)
+	# 使用 Autoload 的 SceneManager
+	SceneManager.load_scene("main_menu", true)
 
 ## 进入地图状态
 func _enter_map_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入地图状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
-	# 加载地图场景
-	scene_manager.load_scene("map", true)
+	# 使用 Autoload 的 SceneManager
+	SceneManager.load_scene("map", true)
 
 ## 进入战斗状态
 func _enter_battle_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入战斗状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
-	# 加载战斗场景
-	scene_manager.load_scene("battle", true)
+	# 使用 Autoload 的 SceneManager
+	SceneManager.load_scene("battle", true)
 
 	# 通知战斗系统开始战斗
 	if battle_manager:
@@ -407,22 +377,8 @@ func _exit_battle_state() -> void:
 
 ## 进入商店状态
 func _enter_shop_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入商店状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
-	# 加载商店场景
-	scene_manager.load_scene("shop", true)
+	# 使用 Autoload 的 SceneManager
+	SceneManager.load_scene("shop", true)
 
 ## 退出商店状态
 func _exit_shop_state() -> void:
@@ -432,22 +388,8 @@ func _exit_shop_state() -> void:
 
 ## 进入事件状态
 func _enter_event_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入事件状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
-	# 加载事件场景
-	scene_manager.load_scene("event", true)
+	# 使用 Autoload 的 SceneManager
+	SceneManager.load_scene("event", true)
 
 ## 退出事件状态
 func _exit_event_state() -> void:
@@ -457,47 +399,19 @@ func _exit_event_state() -> void:
 
 ## 进入游戏结束状态
 func _enter_game_over_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入游戏结束状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
-	# 加载游戏结束场景
-	scene_manager.load_scene("game_over", true)
+	# 使用 Autoload 的 SceneManager
+	SceneManager.load_scene("game_over", true)
 
 	# 发送游戏结束信号
-	EventBus.game.game_ended.emit(false)
+	EventBus.game.emit_event("game_ended", [false])
 
 ## 进入胜利状态
 func _enter_victory_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入胜利状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
-	# 加载胜利场景
-	scene_manager.load_scene("victory", true)
+	# 使用 Autoload 的 SceneManager
+	SceneManager.load_scene("victory", true)
 
 	# 发送游戏结束信号
-	EventBus.game.game_ended.emit(true)
+	EventBus.game.emit_event("game_ended", [true])
 
 ## 游戏开始事件处理
 func _on_game_started() -> void:
@@ -520,22 +434,8 @@ func _on_map_completed() -> void:
 
 ## 进入祭坛状态
 func _enter_altar_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入祭坛状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
 	# 加载祭坛场景
-	scene_manager.load_scene("altar", true)
+	SceneManager.load_scene("altar", true)
 
 ## 退出祭坛状态
 func _exit_altar_state() -> void:
@@ -544,22 +444,8 @@ func _exit_altar_state() -> void:
 
 ## 进入铁匠铺状态
 func _enter_blacksmith_state() -> void:
-	# 获取场景管理器
-	var scene_manager = get_manager("SceneManager")
-	if not scene_manager:
-		EventBus.debug.debug_message.emit("场景管理器不可用，无法进入铁匠铺状态", 3)
-
-		# 尝试重新初始化管理器
-		if manager_registry:
-			EventBus.debug.debug_message.emit("尝试重新初始化场景管理器", 1)
-			manager_registry.initialize("SceneManager")
-			scene_manager = get_manager("SceneManager")
-			if not scene_manager:
-				EventBus.debug.debug_message.emit("重新初始化场景管理器失败", 3)
-				return
-
 	# 加载铁匠铺场景
-	scene_manager.load_scene("blacksmith", true)
+	SceneManager.load_scene("blacksmith", true)
 
 ## 退出铁匠铺状态
 func _exit_blacksmith_state() -> void:
@@ -569,13 +455,13 @@ func _exit_blacksmith_state() -> void:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

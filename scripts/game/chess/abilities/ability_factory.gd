@@ -52,7 +52,7 @@ func create_ability_from_config(ability_id: String, owner_piece: ChessPiece) -> 
 	return create_ability(ability_config, owner_piece)
 
 # 注册自定义技能类型
-func register_ability_type(type_name: String, ability_class) -> void:
+func register_ability_type(type_name: String, ability_class) -> bool:
 	if not _ability_types.has(type_name):
 		_ability_types[type_name] = ability_class
 		return true

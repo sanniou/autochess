@@ -18,15 +18,15 @@ func _initialize() -> void:
 	economy_manager = game_manager.economy_manager
 	
 	if shop_manager == null:
-		EventBus.debug.debug_message.emit("无法获取商店管理器", 1)
+		EventBus.debug.emit_event("debug_message", ["无法获取商店管理器", 1])
 		return
 	
 	# 连接商店信号
-	EventBus.economy.shop_refreshed.connect(_on_shop_refreshed)
-	EventBus.economy.shop_manually_refreshed.connect(_on_shop_manually_refreshed)
-	EventBus.economy.item_purchased.connect(_on_item_purchased)
-	EventBus.economy.item_sold.connect(_on_item_sold)
-	EventBus.economy.shop_discount_applied.connect(_on_shop_discount_applied)
+	EventBus.economy.connect_event("shop_refreshed", _on_shop_refreshed)
+	EventBus.economy.connect_event("shop_manually_refreshed", _on_shop_manually_refreshed)
+	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
+	EventBus.economy.connect_event("item_sold", _on_item_sold)
+	EventBus.economy.connect_event("shop_discount_applied", _on_shop_discount_applied)
 	
 	# 更新显示
 	update_hud()
@@ -229,7 +229,7 @@ func _on_chess_item_clicked(event: InputEvent, index: int) -> void:
 		
 		if chess_piece == null:
 			# 购买失败，显示提示
-			EventBus.ui.show_toast.emit(tr("ui.shop.purchase_failed"))
+			EventBus.ui.emit_event("show_toast", [tr("ui.shop.purchase_failed"]))
 		else:
 			# 购买成功，播放音效
 			AudioManager.play_sfx("purchase_success.ogg")
@@ -242,7 +242,7 @@ func _on_equipment_item_clicked(event: InputEvent, index: int) -> void:
 		
 		if equipment == null:
 			# 购买失败，显示提示
-			EventBus.ui.show_toast.emit(tr("ui.shop.purchase_failed"))
+			EventBus.ui.emit_event("show_toast", [tr("ui.shop.purchase_failed"]))
 		else:
 			# 购买成功，播放音效
 			AudioManager.play_sfx("purchase_success.ogg")
@@ -281,6 +281,6 @@ func _on_shop_discount_applied(discount_rate: float) -> void:
 	# 显示折扣提示
 	var discount_percent = int((1.0 - discount_rate) * 100)
 	if discount_percent > 0:
-		EventBus.ui.show_toast.emit(tr("ui.shop.discount_applied", [str(discount_percent)]))
+		EventBus.ui.emit_event("show_toast", [tr("ui.shop.discount_applied", [str(discount_percent])]))
 	else:
-		EventBus.ui.show_toast.emit(tr("ui.shop.discount_removed"))
+		EventBus.ui.emit_event("show_toast", [tr("ui.shop.discount_removed"]))

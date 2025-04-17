@@ -27,21 +27,40 @@ func _execute_effect(target = null) -> void:
 	if target == null:
 		return
 
-	# 创建增益效果
-	var buff_effect = BuffEffect.new(
-		AbilityEffect.EffectType.BUFF,
-		buff_value,
-		duration,
-		0.0,
-		owner,
-		target
-	)
+	# 获取特效管理器
+	var game_manager = owner.get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.effect_manager:
+		# 创建增益特效
+		var params = {
+			"buff_type": buff_type,
+			"buff_value": buff_value,
+			"duration": duration
+		}
 
-	# 设置增益类型
-	buff_effect.buff_type = buff_type
+		# 使用特效管理器创建特效
+		game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.BUFF, target, params)
+
+	# 直接应用增益效果
+	# 创建效果数据
+	var effect_data = {
+		"id": id + "_buff",
+		"duration": duration,
+		"stats": {}
+	}
+
+	# 根据增益类型设置效果
+	match buff_type:
+		"attack":
+			effect_data.stats["attack_damage"] = buff_value
+		"defense":
+			effect_data.stats["armor"] = buff_value
+		"speed":
+			effect_data.stats["attack_speed"] = buff_value
+		"health":
+			effect_data.stats["health"] = buff_value
 
 	# 应用效果
-	buff_effect.apply()
+	target.add_effect(effect_data)
 
 	# 播放技能特效
 	_play_ability_effect([target])

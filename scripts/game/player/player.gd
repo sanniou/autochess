@@ -84,11 +84,11 @@ func take_damage(amount: int) -> void:
 
 	# 发送生命值变化信号
 	health_changed.emit(old_health, current_health)
-	EventBus.game.player_health_changed.emit(old_health, current_health)
+	EventBus.game.emit_event("player_health_changed", [old_health, current_health])
 
 	# 检查是否死亡
 	if current_health <= 0:
-		EventBus.game.player_died.emit()
+		EventBus.game.emit_event("player_died", [])
 
 # 恢复生命值
 func heal(amount: int) -> void:
@@ -97,7 +97,7 @@ func heal(amount: int) -> void:
 
 	# 发送生命值变化信号
 	health_changed.emit(old_health, current_health)
-	EventBus.game.player_health_changed.emit(old_health, current_health)
+	EventBus.game.emit_event("player_health_changed", [old_health, current_health])
 
 # 增加金币
 func add_gold(amount: int) -> void:
@@ -106,7 +106,7 @@ func add_gold(amount: int) -> void:
 
 	# 发送金币变化信号
 	gold_changed.emit(old_gold, gold)
-	EventBus.economy.gold_changed.emit(old_gold, gold)
+	EventBus.economy.emit_event("gold_changed", [old_gold, gold])
 
 # 扣除金币
 func spend_gold(amount: int) -> bool:
@@ -118,7 +118,7 @@ func spend_gold(amount: int) -> bool:
 
 	# 发送金币变化信号
 	gold_changed.emit(old_gold, gold)
-	EventBus.economy.gold_changed.emit(old_gold, gold)
+	EventBus.economy.emit_event("gold_changed", [old_gold, gold])
 
 	return true
 
@@ -141,16 +141,16 @@ func add_exp(amount: int) -> void:
 
 		# 发送生命值变化信号
 		health_changed.emit(current_health - 10, current_health)
-		EventBus.game.player_health_changed.emit(current_health - 10, current_health)
+		EventBus.game.emit_event("player_health_changed", [current_health - 10, current_health])
 
 	# 发送经验变化信号
 	exp_changed.emit(old_exp, exp)
-	EventBus.game.player_exp_changed.emit(old_exp, exp)
+	EventBus.game.emit_event("player_exp_changed", [old_exp, exp])
 
 	# 如果等级变化，发送等级变化信号
 	if level != old_level:
 		level_changed.emit(old_level, level)
-		EventBus.game.player_level_changed.emit(old_level, level)
+		EventBus.game.emit_event("player_level_changed", [old_level, level])
 
 # 购买经验
 func buy_exp(amount: int = 4, cost: int = 4) -> bool:
@@ -270,7 +270,7 @@ func sell_chess_piece(piece: ChessPiece) -> bool:
 		add_gold(piece.cost * piece.star_level)
 
 		# 发送棋子出售信号
-		EventBus.chess.chess_piece_sold.emit(piece)
+		EventBus.chess.emit_event("chess_piece_sold", [piece])
 
 		return true
 
@@ -281,7 +281,7 @@ func add_equipment(equipment: Equipment) -> bool:
 	equipments.append(equipment)
 
 	# 发送装备获取信号
-	EventBus.equipment.equipment_created.emit(equipment)
+	EventBus.equipment.emit_event("equipment_created", [equipment])
 
 	return true
 
@@ -298,7 +298,7 @@ func add_relic(relic) -> bool:
 	relics.append(relic)
 
 	# 发送遗物获取信号
-	EventBus.relic.relic_acquired.emit(relic)
+	EventBus.relic.emit_event("relic_acquired", [relic])
 
 	return true
 

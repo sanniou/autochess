@@ -184,7 +184,7 @@ func _perform_save(save_name: String) -> void:
 	
 	if success:
 		# 显示成功提示
-		EventBus.ui.show_toast.emit(tr("ui.save.save_success"), 2.0)
+		EventBus.ui.emit_event("show_toast", [tr("ui.save.save_success"), 2.0])
 		
 		# 发送保存完成信号
 		save_completed.emit(save_name)
@@ -193,7 +193,7 @@ func _perform_save(save_name: String) -> void:
 		close_popup()
 	else:
 		# 显示失败提示
-		EventBus.ui.show_toast.emit(tr("ui.save.save_failed"), 2.0)
+		EventBus.ui.emit_event("show_toast", [tr("ui.save.save_failed"), 2.0])
 
 # 取消按钮点击处理
 func _on_cancel_button_pressed() -> void:

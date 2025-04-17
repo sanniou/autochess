@@ -119,7 +119,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 				validation_errors.append("节点连接必须是有效的字符串")
 
 # 获取节点名称
-func get_name() -> String:
+func get_map_name() -> String:
 	return data.get("name", "")
 
 # 获取节点描述

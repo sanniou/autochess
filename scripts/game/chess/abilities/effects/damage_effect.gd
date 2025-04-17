@@ -2,7 +2,6 @@ extends AbilityEffect
 class_name DamageEffect
 ## 伤害效果
 ## 对目标造成伤害
-
 # 伤害类型
 var damage_type: String = "magical"  # 伤害类型(physical/magical/true)
 
@@ -22,7 +21,7 @@ func apply() -> void:
 	var final_damage = target.take_damage(actual_damage, damage_type, source)
 
 	# 发送效果应用信号
-	EventBus.battle.ability_effect_applied.emit(source, target, "damage", final_damage)
+	EventBus.battle.emit_event("ability_effect_applied", [source, target, "damage", final_damage])
 
 	# 播放伤害特效
 	_play_damage_effect()

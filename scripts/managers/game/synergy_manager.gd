@@ -17,14 +17,14 @@ func _do_initialize() -> void:
 
 	# 原 _ready 函数的内容
 	# 加载羁绊配置
-		_load_synergy_configs()
+	_load_synergy_configs()
 
-		# 连接信号
-		EventBus.chess.chess_piece_created.connect(_on_chess_piece_created)
-		EventBus.chess.chess_piece_sold.connect(_on_chess_piece_sold)
-		EventBus.chess.chess_piece_upgraded.connect(_on_chess_piece_upgraded)
+	# 连接信号
+	EventBus.chess.connect_event("chess_piece_created", _on_chess_piece_created)
+	EventBus.chess.connect_event("chess_piece_sold", _on_chess_piece_sold)
+	EventBus.chess.connect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
 
-	## 加载羁绊配置
+## 加载羁绊配置
 func _load_synergy_configs() -> void:
 	var synergy_models = ConfigManager.get_all_synergies()
 	_synergy_configs = {}
@@ -131,7 +131,7 @@ func _activate_synergy(synergy: String, level: int) -> void:
 	_show_synergy_activation_effect(synergy, level)
 
 	# 发送羁绊激活信号
-	EventBus.chess.synergy_activated.emit(synergy, level)
+	EventBus.chess.emit_event("synergy_activated", [synergy, level])
 
 ## 升级羁绊
 func _upgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
@@ -159,7 +159,7 @@ func _upgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
 	_show_synergy_upgrade_effect(synergy, old_level, new_level)
 
 	# 发送羁绊升级信号
-	EventBus.chess.synergy_activated.emit(synergy, new_level)
+	EventBus.chess.emit_event("synergy_activated", [synergy, new_level])
 
 ## 降级羁绊
 func _downgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
@@ -184,7 +184,7 @@ func _downgrade_synergy(synergy: String, old_level: int, new_level: int) -> void
 				piece.add_effect(new_effect)
 
 	# 发送羁绊降级信号
-	EventBus.chess.synergy_activated.emit(synergy, new_level)
+	EventBus.chess.emit_event("synergy_activated", [synergy, new_level])
 
 ## 取消激活羁绊
 func _deactivate_synergy(synergy: String, level: int) -> void:
@@ -204,7 +204,7 @@ func _deactivate_synergy(synergy: String, level: int) -> void:
 	_show_synergy_deactivation_effect(synergy, level)
 
 	# 发送羁绊失效信号
-	EventBus.chess.synergy_deactivated.emit(synergy)
+	EventBus.chess.emit_event("synergy_deactivated", [synergy])
 
 ## 获取羁绊效果
 func _get_synergy_effect(synergy: String, level: int) -> Dictionary:
@@ -378,12 +378,13 @@ func deactivate_forced_synergy(synergy_id: String) -> void:
 	_update_synergies()
 
 ## 重置羁绊管理器
-func reset() -> void:
+func reset() -> bool:
 	# 取消所有激活的羁绊
 	for synergy in _active_synergies:
 		_deactivate_synergy(synergy, _active_synergies[synergy])
 
 	_active_synergies = {}
+	return true
 
 ## 显示羁结激活效果
 func _show_synergy_activation_effect(synergy: String, level: int) -> void:
@@ -438,7 +439,7 @@ func _show_synergy_activation_effect(synergy: String, level: int) -> void:
 		tween.tween_callback(effect_container.queue_free)
 
 	# 播放羁结激活音效
-	EventBus.audio.play_sound.emit("synergy_activate", affected_pieces[0].global_position)
+	EventBus.audio.emit_event("play_sound", ["synergy_activate", affected_pieces[0].global_position])
 
 ## 显示羁结升级效果
 func _show_synergy_upgrade_effect(synergy: String, old_level: int, new_level: int) -> void:
@@ -493,7 +494,7 @@ func _show_synergy_upgrade_effect(synergy: String, old_level: int, new_level: in
 		tween.tween_callback(effect_container.queue_free)
 
 	# 播放羁结升级音效
-	EventBus.audio.play_sound.emit("synergy_upgrade", affected_pieces[0].global_position)
+	EventBus.audio.emit_event("play_sound", ["synergy_upgrade", affected_pieces[0].global_position])
 
 ## 显示羁结失效效果
 func _show_synergy_deactivation_effect(synergy: String, level: int) -> void:
@@ -546,7 +547,7 @@ func _show_synergy_deactivation_effect(synergy: String, level: int) -> void:
 		tween.tween_callback(effect_container.queue_free)
 
 	# 播放羁结失效音效
-	EventBus.audio.play_sound.emit("synergy_deactivate", affected_pieces[0].global_position)
+	EventBus.audio.emit_event("play_sound", ["synergy_deactivate", affected_pieces[0].global_position])
 
 ## 获取羁结颜色
 func _get_synergy_color(synergy: String) -> Color:
@@ -576,13 +577,13 @@ func _get_synergy_color(synergy: String) -> Color:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

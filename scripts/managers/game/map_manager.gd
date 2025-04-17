@@ -34,18 +34,17 @@ func _do_initialize() -> void:
 	add_dependency("ConfigManager")
 	# 添加依赖
 	add_dependency("GameManager")
-	
+
 	# 原 _ready 函数的内容
 	# 创建地图生成器
-		map_generator = MapGenerator.new()
-		add_child(map_generator)
-	
-		# 连接信号
-		map_generator.map_generated.connect(_on_map_generated)
-		EventBus.battle.battle_ended.connect(_on_battle_ended)
-		EventBus.event.event_completed.connect(_on_event_completed)
-		EventBus.shop_exited.connect(_on_shop_exited)
-	
+	map_generator = MapGenerator.new()
+	add_child(map_generator)
+	# 连接信号
+	map_generator.map_generated.connect(_on_map_generated)
+	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	EventBus.event.connect_event("event_completed", _on_event_completed)
+	EventBus.economy.connect_event("shop_closed", _on_shop_exited)
+
 	## 初始化地图
 func initialize_map(template: String = "standard", difficulty: int = 1, seed_value: int = -1) -> void:
 	# 设置难度和模板
@@ -73,7 +72,7 @@ func initialize_map(template: String = "standard", difficulty: int = 1, seed_val
 	_update_selectable_nodes()
 
 	# 发送地图初始化信号
-	map_initialized.emit(map_data)
+	#map_initialized.emit(map_data)
 
 ## 初始化节点
 func _initialize_nodes() -> void:
@@ -126,7 +125,7 @@ func select_node(node_id: String) -> bool:
 
 	# 发送节点选择信号
 	node_selected.emit(selected_node.get_data())
-	EventBus.map.map_node_selected.emit(selected_node.get_data())
+	EventBus.map.emit_event("map_node_selected", [selected_node.get_data()])
 
 	# 触发节点事件
 	_trigger_node_event(selected_node)
@@ -264,7 +263,7 @@ func _open_treasure(node: MapNode) -> void:
 	# 显示宝藏获取UI
 	# 这里应该显示一个UI，展示获得的奖励
 	# 暂时直接返回地图
-	EventBus.map.treasure_collected.emit(node.rewards)
+	EventBus.map.emit_event("treasure_collected", [node.rewards])
 
 ## 在节点休息
 func _rest_at_node(node: MapNode) -> void:
@@ -276,7 +275,7 @@ func _rest_at_node(node: MapNode) -> void:
 	# 显示休息UI
 	# 这里应该显示一个UI，展示休息效果
 	# 暂时直接返回地图
-	EventBus.map.rest_completed.emit(node.heal_amount)
+	EventBus.map.emit_event("rest_completed", [node.heal_amount])
 
 ## 处理奖励
 func _process_rewards(rewards: Dictionary) -> void:
@@ -478,7 +477,7 @@ func _trigger_mystery_node(node: MapNode) -> void:
 			mystery_node.heal_amount = 30 + node.layer * 5  # 神秘休息点治疗量更高
 
 	# 显示提示
-	EventBus.ui.show_toast.emit(LocalizationManager.tr("ui.map.mystery_revealed").format({"type": LocalizationManager.tr("ui.map.node_" + random_type)}))
+	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.mystery_revealed").format({"type": LocalizationManager.tr("ui.map.node_" + random_type)})])
 
 	# 触发对应类型的节点事件
 	_trigger_node_event(mystery_node)
@@ -581,13 +580,13 @@ func _generate_better_rewards(layer: int) -> Dictionary:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

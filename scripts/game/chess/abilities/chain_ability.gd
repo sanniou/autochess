@@ -39,21 +39,20 @@ func _execute_effect(target = null) -> void:
 	# 当前伤害
 	var current_damage = damage
 
-	# 对主目标造成伤害
-	var damage_effect = DamageEffect.new(
-		AbilityEffect.EffectType.DAMAGE,
-		current_damage,
-		0.0,
-		0.0,
-		owner,
-		target
-	)
+	# 获取特效管理器
 
-	# 设置伤害类型
-	damage_effect.damage_type = damage_type
+	if GameManager.effect_manager:
+		# 创建伤害特效
+		var params = {
+			"damage_type": damage_type,
+			"damage_amount": current_damage
+		}
 
-	# 应用效果
-	damage_effect.apply()
+		# 使用特效管理器创建特效
+		GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
+
+	# 直接造成伤害
+	target.take_damage(current_damage, damage_type, owner)
 
 	# 播放技能特效
 	_play_ability_effect([target])
@@ -72,21 +71,19 @@ func _execute_effect(target = null) -> void:
 		# 添加到已命中列表
 		hit_targets.append(next_target)
 
-		# 造成伤害
-		var chain_damage_effect = DamageEffect.new(
-			AbilityEffect.EffectType.DAMAGE,
-			current_damage,
-			0.0,
-			0.0,
-			owner,
-			next_target
-		)
+		# 获取特效管理器
+		if GameManager.effect_manager:
+			# 创建伤害特效
+			var params = {
+				"damage_type": damage_type,
+				"damage_amount": current_damage
+			}
 
-		# 设置伤害类型
-		chain_damage_effect.damage_type = damage_type
+			# 使用特效管理器创建特效
+			GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, next_target, params)
 
-		# 应用效果
-		chain_damage_effect.apply()
+		# 直接造成伤害
+		next_target.take_damage(current_damage, damage_type, owner)
 
 		# 播放技能特效
 		_play_ability_effect([next_target])
@@ -98,7 +95,13 @@ func _execute_effect(target = null) -> void:
 		current_target = next_target
 
 		# 添加短暂延迟，使连锁效果更明显
-		await owner.get_tree().create_timer(0.2).timeout
+		var delay_timer = Timer.new()
+		delay_timer.wait_time = 0.2
+		delay_timer.one_shot = true
+		owner.add_child(delay_timer)
+		delay_timer.start()
+		await delay_timer.timeout
+		delay_timer.queue_free()
 
 # 查找下一个连锁目标
 func _find_next_chain_target(current_target: ChessPiece, hit_targets: Array) -> ChessPiece:
@@ -130,21 +133,34 @@ func _find_next_chain_target(current_target: ChessPiece, hit_targets: Array) -> 
 
 # 播放连锁特效
 func _play_chain_visual_effect(from_target: ChessPiece, to_target: ChessPiece) -> void:
-	# 创建连线特效
-	var line = Line2D.new()
-	line.width = 3.0
-	line.default_color = Color(0.8, 0.2, 0.8, 0.8)  # 紫色
+	# 获取特效管理器
+	var game_manager = owner.get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
 
-	# 设置线的点
-	line.add_point(from_target.position)
-	line.add_point(to_target.position)
+	# 创建一个临时节点来放置特效
+	var effect_node = Node2D.new()
+	effect_node.position = from_target.position
+	owner.get_parent().add_child(effect_node)
 
-	# 添加到场景
-	owner.get_parent().add_child(line)
+	# 创建连锁特效
+	var params = {
+		"damage_type": damage_type,
+		"from_position": from_target.position,
+		"to_position": to_target.position
+	}
 
-	# 创建消失动画
-	var tween = create_tween()
-	tween.tween_property(line, "modulate", Color(1, 1, 1, 0), 0.5)
-	tween.tween_callback(line.queue_free)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.CHAIN, effect_node, params)
 
+	# 设置定时器删除节点
+	var timer = Timer.new()
+	timer.wait_time = 0.5
+	timer.one_shot = true
+	owner.add_child(timer)
+	timer.start()
+	await timer.timeout
+	timer.queue_free()
 
+	if is_instance_valid(effect_node) and not effect_node.is_queued_for_deletion():
+		effect_node.queue_free()

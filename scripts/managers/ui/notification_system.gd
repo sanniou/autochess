@@ -31,6 +31,7 @@ var notification_queue: Array = []
 
 # 引用
 @onready var ui_animator = get_node("/root/GameManager").ui_animator
+@onready var EventBus = get_node("/root/EventBus")
 
 # 初始化
 func _ready() -> void:
@@ -38,9 +39,9 @@ func _ready() -> void:
 	_create_notification_container()
 	
 	# 连接信号
-	EventBus.ui.show_notification.connect(show_notification)
-	EventBus.ui.hide_notification.connect(hide_notification)
-	EventBus.ui.clear_notifications.connect(clear_notifications)
+	EventBus.ui.connect_event("show_notification", show_notification)
+	EventBus.ui.connect_event("hide_notification", hide_notification)
+	EventBus.ui.connect_event("clear_notifications", clear_notifications)
 
 # 创建通知容器
 func _create_notification_container() -> void:

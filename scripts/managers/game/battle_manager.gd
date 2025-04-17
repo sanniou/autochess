@@ -54,23 +54,22 @@ var battle_stats = {
 	"abilities_used": 0
 }
 
-# 引用
-@onready var board_manager: BoardManager = get_node("/root/GameManager/BoardManager")
-@onready var synergy_manager: SynergyManager = get_node("/root/GameManager/SynergyManager")
-
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "BattleManager"
-	
-	# 原 _ready 函数的内容
-	# 连接信号
-		EventBus.battle.battle_started.connect(_on_battle_started)
-		EventBus.battle.battle_ended.connect(_on_battle_ended)
-		EventBus.chess_piece_died.connect(_on_chess_piece_died)
-		EventBus.battle.damage_dealt.connect(_on_damage_dealt)
-		EventBus.healing_done.connect(_on_healing_done)
-		EventBus.battle.ability_used.connect(_on_ability_used)
+
+	# 加载事件定义
+	var event_definitions = load("res://scripts/events/event_definitions.gd")
+	var BattleEvents = event_definitions.BattleEvents
+
+	# 连接信号 - 使用规范的事件连接方式和常量
+	EventBus.battle.connect_event(BattleEvents.BATTLE_STARTED, _on_battle_started)
+	EventBus.battle.connect_event(BattleEvents.BATTLE_ENDED, _on_battle_ended)
+	EventBus.battle.connect_event(BattleEvents.UNIT_DIED, _on_unit_died)  # 使用规范的 unit_died 事件
+	EventBus.battle.connect_event(BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
+	EventBus.battle.connect_event(BattleEvents.HEAL_RECEIVED, _on_heal_received)  # 使用规范的 heal_received 事件
+	EventBus.battle.connect_event(BattleEvents.ABILITY_USED, _on_ability_used)
 
 func _process(delta):
 	match current_state:
@@ -101,16 +100,17 @@ func start_battle(player_team: Array = [], enemy_team: Array = []):
 		piece.add_to_group("enemy_chess_pieces")
 
 	# 重置棋盘
-	board_manager.reset_board()
+	GameManager.board_manager.reset_board()
 
 	# 初始化AI控制器
-	ai_controller = AIController.new(self, board_manager, difficulty)
+	ai_controller = AIController.new(self, GameManager.board_manager, difficulty)
 
 	# 重置战斗统计
 	_reset_battle_stats()
 
 	# 发送战斗开始信号
-	EventBus.battle.battle_started.emit()
+	var event_definitions = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(event_definitions.BattleEvents.BATTLE_STARTED, [])
 
 # 结束战斗
 func end_battle(victory: bool = false):
@@ -121,7 +121,8 @@ func end_battle(victory: bool = false):
 	_calculate_battle_result(victory)
 
 	# 发送战斗结束信号
-	EventBus.battle.battle_ended.emit(battle_result)
+	var event_definitions = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(event_definitions.BattleEvents.BATTLE_ENDED, [battle_result])
 
 	# 清理战场
 	_cleanup_battle()
@@ -173,10 +174,10 @@ func _update_result_phase(delta):
 # 开始战斗阶段
 func _start_battle_phase():
 	# 激活所有羁绊效果
-	synergy_manager._update_synergies()
+	GameManager.synergy_manager._update_synergies()
 
 	# 设置所有棋子为战斗状态
-	var pieces = board_manager.pieces
+	var pieces = GameManager.board_manager.pieces
 	for piece in pieces:
 		# 重置棋子的控制效果状态
 		piece.is_silenced = false
@@ -193,7 +194,7 @@ func _start_battle_phase():
 
 # 更新棋子状态
 func _update_chess_pieces(delta):
-	var pieces = board_manager.pieces
+	var pieces = GameManager.board_manager.pieces
 
 	for piece in pieces:
 		if piece.current_state == ChessPiece.ChessState.DEAD:
@@ -244,7 +245,7 @@ func _process_movement(piece, delta):
 
 	# 检查是否到达攻击范围
 	var distance = piece.position.distance_to(piece.target.position)
-	if distance <= piece.attack_range * board_manager.cell_size.x:
+	if distance <= piece.attack_range * GameManager.board_manager.cell_size.x:
 		piece.change_state(ChessPiece.ChessState.ATTACKING)
 
 # 处理攻击逻辑
@@ -273,8 +274,8 @@ func _process_attack(piece, delta):
 
 # 检查战斗是否结束
 func _check_battle_end() -> bool:
-	var player_pieces = board_manager.get_ally_pieces(is_player_turn)
-	var enemy_pieces = board_manager.get_enemy_pieces(is_player_turn)
+	var player_pieces = GameManager.board_manager.get_ally_pieces(is_player_turn)
+	var enemy_pieces = GameManager.board_manager.get_enemy_pieces(is_player_turn)
 
 	return player_pieces.is_empty() or enemy_pieces.is_empty()
 
@@ -293,12 +294,52 @@ func _reset_battle_stats():
 
 # 计算战斗结果
 func _calculate_battle_result(victory: bool):
+	# 创建战斗结果对象
+	var result = BattleResult.new(victory)
+
+	# 设置棋子统计
+	var initial_player_pieces = player_pieces.size() + battle_stats.enemy_kills
+	var initial_enemy_pieces = enemy_pieces.size() + battle_stats.player_kills
+	result.set_pieces_stats(
+		initial_player_pieces,
+		player_pieces.size(),
+		initial_enemy_pieces,
+		enemy_pieces.size()
+	)
+
+	# 设置战斗信息
+	var map_node_id = ""
+	if GameManager.map_manager and GameManager.map_manager.current_node:
+		map_node_id = GameManager.map_manager.current_node.id
+
+	result.set_battle_info(
+		current_round,
+		difficulty,
+		battle_stats.battle_duration,
+		map_node_id
+	)
+
+	# 设置战斗统计
+	result.set_stats(
+		battle_stats.player_damage_dealt,
+		battle_stats.enemy_damage_dealt,
+		battle_stats.player_healing,
+		battle_stats.abilities_used,
+		battle_stats.player_kills,
+		0  # 初始金币为0，后面计算
+	)
+
 	# 计算奖励
-	var rewards = {}
+	var gold_reward = 0
+	var exp_reward = 0
+	var items = []
+	var chess_pieces = []
+	var relics = []
+
 	if victory:
 		# 根据难度和回合计算奖励
-		var gold_reward = 5 + current_round + difficulty
-		var exp_reward = 2 + current_round / 2
+		gold_reward = 5 + current_round + difficulty
+		exp_reward = 2 + current_round / 2
 
 		# 根据战斗统计调整奖励
 		var performance_bonus = 0
@@ -318,47 +359,67 @@ func _calculate_battle_result(victory: bool):
 		gold_reward += performance_bonus
 		exp_reward += performance_bonus / 2
 
-		# 添加到奖励中
-		rewards["gold"] = gold_reward
-		rewards["exp"] = exp_reward
+		# 更新战斗统计中的金币奖励
+		result.stats.gold_earned = gold_reward
 
 		# 根据难度和回合随机生成装备或棋子
 		var equipment_chance = 0.3 + difficulty * 0.1 + performance_bonus * 0.02
-		if randf() < equipment_chance:  # 装备概率
-			rewards["equipment"] = true
-
+		var rng = RandomNumberGenerator.new()
+		if rng.randf() < equipment_chance:  # 装备概率
 			# 根据难度和表现决定装备稀有度
-			var rarity_roll = randf()
+			var rarity = "common"
+			var rarity_roll = rng.randf()
 			if rarity_roll < 0.1 + difficulty * 0.05 + performance_bonus * 0.02:
-				rewards["equipment_rarity"] = "epic"
+				rarity = "epic"
 			elif rarity_roll < 0.3 + difficulty * 0.1 + performance_bonus * 0.03:
-				rewards["equipment_rarity"] = "rare"
-			else:
-				rewards["equipment_rarity"] = "common"
+				rarity = "rare"
+
+			# 添加装备奖励
+			items.append({
+				"type": "equipment",
+				"rarity": rarity
+			})
 
 		var chess_piece_chance = 0.2 + current_round * 0.02 + performance_bonus * 0.03
-		if randf() < chess_piece_chance:  # 棋子概率
-			rewards["chess_piece"] = true
-
+		if rng.randf() < chess_piece_chance:  # 棋子概率
 			# 根据难度和表现决定棋子稀有度
-			var rarity_roll = randf()
+			var rarity = "common"
+			var rarity_roll = rng.randf()
 			if rarity_roll < 0.05 + difficulty * 0.03 + performance_bonus * 0.01:
-				rewards["chess_piece_rarity"] = "epic"
+				rarity = "epic"
 			elif rarity_roll < 0.2 + difficulty * 0.05 + performance_bonus * 0.02:
-				rewards["chess_piece_rarity"] = "rare"
-			else:
-				rewards["chess_piece_rarity"] = "common"
+				rarity = "rare"
 
-	# 设置战斗结果
-	battle_result = {
-		"is_victory": victory,
-		"player_pieces_left": player_pieces.size(),
-		"enemy_pieces_left": enemy_pieces.size(),
-		"round": current_round,
-		"difficulty": difficulty,
-		"rewards": rewards,
-		"stats": battle_stats
-	}
+			# 添加棋子奖励
+			chess_pieces.append({
+				"rarity": rarity
+			})
+
+	# 设置奖励
+	result.set_rewards(gold_reward, exp_reward, items, chess_pieces, relics)
+
+	# 设置玩家影响
+	var health_change = 0
+	var streak_change = 0
+
+	if GameManager.player_manager and GameManager.player_manager.get_current_player():
+		var player = GameManager.player_manager.get_current_player()
+
+		# 计算生命值变化
+		if not victory:
+			# 失败时损失生命值，基于敌方剩余棋子数量
+			health_change = -enemy_pieces.size() - difficulty
+
+		# 计算连胜/连败变化
+		if victory:
+			streak_change = 1
+		else:
+			streak_change = -1
+
+	result.set_player_impact(health_change, streak_change)
+
+	# 将结果转换为字典并保存
+	battle_result = result.to_dict()
 
 # 战斗开始事件处理
 func _on_battle_started():
@@ -389,10 +450,11 @@ func set_battle_speed(speed: float) -> void:
 			piece.set_animation_speed(battle_speed)
 
 	# 发送战斗速度变化信号
-	EventBus.battle.battle_speed_changed.emit(battle_speed)
+	var event_definitions = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(event_definitions.BattleEvents.BATTLE_SPEED_CHANGED, [battle_speed])
 
 # 棋子死亡事件处理
-func _on_chess_piece_died(piece):
+func _on_unit_died(piece):
 	# 从对应数组中移除
 	if piece.is_player_piece:
 		player_pieces.erase(piece)
@@ -459,19 +521,21 @@ func _on_damage_dealt(source, target, amount: float, damage_type: String) -> voi
 	if source and source.is_player_piece:
 		# 玩家造成伤害
 		battle_stats.player_damage_dealt += amount
-	elif source:
-		# 敌方造成伤害
-		battle_stats.enemy_damage_dealt += amount
+	else:
+		if source:
+			# 敌方造成伤害
+			battle_stats.enemy_damage_dealt += amount
 
 # 治疗事件处理
-func _on_healing_done(target, amount: float, source = null) -> void:
+func _on_heal_received(target, amount: float, source = null) -> void:
 	# 更新战斗统计
 	if target and target.is_player_piece:
 		# 玩家治疗
 		battle_stats.player_healing += amount
-	elif target:
-		# 敌方治疗
-		battle_stats.enemy_healing += amount
+	else:
+		if target:
+			# 敌方治疗
+			battle_stats.enemy_healing += amount
 
 # 技能使用事件处理
 func _on_ability_used(piece, ability_data: Dictionary) -> void:
@@ -488,22 +552,22 @@ func _process_battle_rewards(result: Dictionary):
 	# 处理金币奖励
 	if rewards.has("gold"):
 		var gold = rewards["gold"]
-		EventBus.economy.gold_changed.emit(gold)
+		EventBus.economy.emit_event("gold_changed", [gold])
 
 	# 处理经验奖励
 	if rewards.has("exp"):
 		var exp = rewards["exp"]
-		EventBus.economy.exp_gained.emit(exp)
+		EventBus.economy.emit_event("exp_gained", [exp])
 
 	# 处理装备奖励
 	if rewards.has("equipment") and rewards["equipment"]:
 		# 生成随机装备
-		EventBus.equipment.equipment_obtained.emit(null)  # 暂时使用null，应该由装备系统生成
+		EventBus.equipment.emit_event("equipment_obtained", [null])  # 暂时使用null，应该由装备系统生成
 
 	# 处理棋子奖励
 	if rewards.has("chess_piece") and rewards["chess_piece"]:
 		# 生成随机棋子
-		EventBus.chess.chess_piece_obtained.emit(null)  # 暂时使用null，应该由棋子系统生成
+		EventBus.chess.emit_event("chess_piece_obtained", [null])  # 暂时使用null，应该由棋子系统生成
 
 # 寻找最近的敌人棋子
 func _find_nearest_enemy(piece) -> Object:
@@ -539,13 +603,13 @@ func _find_nearest_enemy(piece) -> Object:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

@@ -15,13 +15,13 @@ func _initialize() -> void:
 	map_manager = game_manager.map_manager
 	
 	if map_manager == null:
-		EventBus.debug.debug_message.emit("无法获取地图管理器", 1)
+		EventBus.debug.emit_event("debug_message", ["无法获取地图管理器", 1])
 		return
 	
 	# 连接地图信号
-	EventBus.map.map_node_selected.connect(_on_map_node_selected)
-	EventBus.map.map_node_hovered.connect(_on_map_node_hovered)
-	EventBus.map.map_completed.connect(_on_map_completed)
+	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
+	EventBus.map.connect_event("map_node_hovered", _on_map_node_hovered)
+	EventBus.map.connect_event("map_completed", _on_map_completed)
 	
 	# 更新显示
 	update_hud()
@@ -91,7 +91,7 @@ func _on_map_node_hovered(node_data: Dictionary) -> void:
 # 地图完成处理
 func _on_map_completed() -> void:
 	# 显示地图完成提示
-	EventBus.ui.show_toast.emit(tr("ui.map.completed"))
+	EventBus.ui.emit_event("show_toast", [tr("ui.map.completed"]))
 	
 	# 播放完成音效
 	AudioManager.play_sfx("map_completed.ogg")

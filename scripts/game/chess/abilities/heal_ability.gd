@@ -19,18 +19,19 @@ func _execute_effect(target = null) -> void:
 	if target == null:
 		return
 
-	# 创建治疗效果
-	var heal_effect = HealEffect.new(
-		AbilityEffect.EffectType.HEAL,
-		damage,  # 使用damage字段作为基础治疗量
-		0.0,
-		0.0,
-		owner,
-		target
-	)
+	# 获取特效管理器
+	var game_manager = owner.get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.effect_manager:
+		# 创建治疗特效
+		var params = {
+			"heal_amount": damage  # 使用damage字段作为基础治疗量
+		}
 
-	# 应用效果
-	heal_effect.apply()
+		# 使用特效管理器创建特效
+		game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.HEAL, target, params)
+
+	# 直接治疗目标
+	target.heal(damage)
 
 	# 播放技能特效
 	_play_ability_effect([target])

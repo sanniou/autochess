@@ -20,9 +20,9 @@ func _ready():
 
 	# 连接信号
 	battle_speed_slider.value_changed.connect(_on_speed_slider_changed)
-	EventBus.battle.battle_started.connect(_on_battle_started)
-	EventBus.battle.battle_ended.connect(_on_battle_ended)
-	EventBus.battle.battle_round_started.connect(_on_battle_round_started)
+	EventBus.battle.connect_event("battle_started", _on_battle_started)
+	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
 
 	# 获取战斗管理器引用
 	battle_manager = get_node_or_null("/root/GameManager/BattleManager")

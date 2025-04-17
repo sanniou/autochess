@@ -58,7 +58,7 @@ func equip_to(character: ChessPiece) -> bool:
 
 	# 发送装备信号
 	equipped.emit(character)
-	EventBus.equipment.equipment_equipped.emit(self, character)
+	EventBus.equipment.emit_event("equipment_equipped", [self, character])
 
 	return true
 
@@ -75,7 +75,7 @@ func unequip_from() -> bool:
 
 	# 发送卸下信号
 	unequipped.emit(current_owner)
-	EventBus.equipment.equipment_unequipped.emit(self, current_owner)
+	EventBus.equipment.emit_event("equipment_unequipped", [self, current_owner])
 
 	current_owner = null
 	return true
@@ -188,26 +188,26 @@ func _remove_effects():
 func _on_owner_attack(_target, effect_data):
 	if randf() <= effect_data.chance:
 		effect_triggered.emit(effect_data)
-		EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+		EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 
 # 受伤事件处理
 func _on_owner_take_damage(_old_value, _new_value, effect_data):
 	if randf() <= effect_data.chance:
 		effect_triggered.emit(effect_data)
-		EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+		EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 
 # 技能释放事件处理
 func _on_owner_ability(_target, effect_data):
 	if randf() <= effect_data.chance:
 		effect_triggered.emit(effect_data)
-		EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+		EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 
 # 生命值变化事件处理
 func _on_owner_health_changed(_old_value, new_value, effect_data):
 	var max_health = current_owner.max_health
 	if effect_data.has("threshold") and new_value <= max_health * effect_data.threshold:
 		effect_triggered.emit(effect_data)
-		EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+		EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 
 # 生命值百分比事件处理
 func _on_owner_health_percent(_old_value, new_value, effect_data):
@@ -220,7 +220,7 @@ func _on_owner_health_percent(_old_value, new_value, effect_data):
 			effect_data.active = true
 			_apply_health_percent_effect(effect_data)
 			effect_triggered.emit(effect_data)
-			EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+			EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 	else:
 		# 如果生命值百分比高于阈值，移除效果
 		if effect_data.has("active") and effect_data.active:
@@ -231,7 +231,7 @@ func _on_owner_health_percent(_old_value, new_value, effect_data):
 func _on_owner_dodge(_attacker, effect_data):
 	if randf() <= effect_data.chance:
 		effect_triggered.emit(effect_data)
-		EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+		EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 
 		# 如果是隐身效果，应用隐身
 		if effect_data.effect == "stealth":
@@ -241,7 +241,7 @@ func _on_owner_dodge(_attacker, effect_data):
 func _on_owner_crit(target, _damage, effect_data):
 	if randf() <= effect_data.chance:
 		effect_triggered.emit(effect_data)
-		EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+		EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 
 		# 如果是出血效果，应用出血
 		if effect_data.effect == "bleed" and target:
@@ -250,7 +250,7 @@ func _on_owner_crit(target, _damage, effect_data):
 # 元素效果事件处理
 func _on_owner_elemental_effect(target, element_type, effect_data):
 	effect_triggered.emit(effect_data)
-	EventBus.equipment.equipment_effect_triggered.emit(self, effect_data)
+	EventBus.equipment.emit_event("equipment_effect_triggered", [self, effect_data])
 
 	# 如果是持续时间增加效果
 	if effect_data.effect == "duration_increase" and target:

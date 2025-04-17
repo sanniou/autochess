@@ -96,7 +96,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 						validation_errors.append("is_percentage必须是布尔值")
 
 # 获取羁绊名称
-func get_name() -> String:
+func get_synergy_name() -> String:
 	return data.get("name", "")
 
 # 获取羁绊描述

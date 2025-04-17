@@ -8,7 +8,7 @@ var test_results = {}
 # 初始化
 func _ready() -> void:
 	# 连接信号
-	EventBus.debug.debug_message.connect(_on_debug_message)
+	EventBus.debug.connect_event("debug_message", _on_debug_message)
 	
 	# 运行测试
 	run_tests()

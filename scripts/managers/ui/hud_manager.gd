@@ -51,7 +51,7 @@ func _do_initialize() -> void:
 			add_child(hud_container)
 
 	# 连接信号
-	EventBus.game.game_state_changed.connect(_on_game_state_changed)
+	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
 
 # 加载HUD
 func load_hud(hud_name: String, show_immediately: bool = true, data: Dictionary = {}) -> BaseHUD:
@@ -70,7 +70,7 @@ func load_hud(hud_name: String, show_immediately: bool = true, data: Dictionary 
 		# 如果场景不存在，尝试加载脚本并创建实例
 		var hud_script = load(HUD_SCRIPT_PATH + hud_name + ".gd")
 		if not hud_script:
-			EventBus.debug.debug_message.emit("无法加载HUD: " + hud_name, 2)
+			EventBus.debug.emit_event("debug_message", ["无法加载HUD: " + hud_name, 2])
 			return null
 
 		# 创建HUD实例

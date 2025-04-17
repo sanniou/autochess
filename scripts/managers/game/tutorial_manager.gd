@@ -54,27 +54,27 @@ func _do_initialize() -> void:
 	
 	# 原 _ready 函数的内容
 	# 加载教程配置
-		_load_tutorial_configs()
+	_load_tutorial_configs()
 	
-		# 连接信号
-		_connect_signals()
+	# 连接信号
+	_connect_signals()
 	
-		# 加载教程数据
-		_load_tutorial_data()
+	# 加载教程数据
+	_load_tutorial_data()
 	
-	# 加载教程配置
+# 加载教程配置
 func _load_tutorial_configs() -> void:
 	tutorial_configs = config_manager.get_all_tutorials()
 
 # 连接信号
 func _connect_signals() -> void:
 	# 连接游戏状态变化信号
-	EventBus.game.game_state_changed.connect(_on_game_state_changed)
+	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
 
 	# 连接教程相关信号
-	EventBus.tutorial.start_tutorial.connect(start_tutorial)
-	EventBus.tutorial.skip_tutorial.connect(skip_tutorial)
-	EventBus.tutorial.complete_tutorial.connect(complete_tutorial)
+	EventBus.tutorial.connect_event("start_tutorial", start_tutorial)
+	EventBus.tutorial.connect_event("skip_tutorial", skip_tutorial)
+	EventBus.tutorial.connect_event("complete_tutorial", complete_tutorial)
 
 # 加载教程数据
 func _load_tutorial_data() -> void:
@@ -104,7 +104,7 @@ func _save_tutorial_data() -> void:
 func start_tutorial(tutorial_id: String) -> bool:
 	# 检查教程是否存在
 	if not tutorial_configs.has(tutorial_id):
-		EventBus.debug.debug_message.emit("教程不存在: " + tutorial_id, 1)
+		EventBus.debug.emit_event("debug_message", ["教程不存在: " + tutorial_id, 1])
 		return false
 
 	# 检查教程是否已完成或已跳过
@@ -583,13 +583,13 @@ func _on_game_state_changed(old_state: int, new_state: int) -> void:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

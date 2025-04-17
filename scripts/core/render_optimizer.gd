@@ -135,7 +135,7 @@ func set_optimization_level(level: int) -> void:
 	# 发送信号
 	optimization_level_changed.emit(old_level, current_optimization_level)
 	
-	EventBus.debug.debug_message.emit("渲染优化级别已设置为: " + _get_level_name(level), 0)
+	EventBus.debug.emit_event("debug_message", ["渲染优化级别已设置为: " + _get_level_name(level), 0])
 
 ## 应用优化设置
 func apply_optimization_settings() -> void:
@@ -321,7 +321,7 @@ func set_culling_settings(settings: Dictionary) -> void:
 	if settings.has("max_objects_per_frame"):
 		culling_settings.max_objects_per_frame = max(10, settings.max_objects_per_frame)
 	
-	EventBus.debug.debug_message.emit("视口剔除设置已更新", 0)
+	EventBus.debug.emit_event("debug_message", ["视口剔除设置已更新", 0])
 
 ## 获取当前优化设置
 func get_current_settings() -> Dictionary:
@@ -356,4 +356,4 @@ func auto_detect_optimization_level() -> void:
 	# 设置检测到的优化级别
 	set_optimization_level(level)
 	
-	EventBus.debug.debug_message.emit("自动检测优化级别: " + _get_level_name(level), 0)
+	EventBus.debug.emit_event("debug_message", ["自动检测优化级别: " + _get_level_name(level), 0])

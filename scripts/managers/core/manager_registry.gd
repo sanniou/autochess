@@ -26,7 +26,7 @@ func register(manager_name: String, manager_instance, dependencies: Array = []) 
 	# 检查管理器是否已存在
 	if _managers.has(manager_name):
 		var error_message = "管理器已存在: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 1)
+		EventBus.debug.emit_event("debug_message", [error_message, 1])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return
@@ -34,7 +34,7 @@ func register(manager_name: String, manager_instance, dependencies: Array = []) 
 	# 检查管理器实例是否有效
 	if manager_instance == null:
 		var error_message = "管理器实例为空: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return
@@ -46,7 +46,7 @@ func register(manager_name: String, manager_instance, dependencies: Array = []) 
 	_errors[manager_name] = ""
 
 	# 输出调试信息
-	EventBus.debug.debug_message.emit("管理器注册成功: " + manager_name, 0)
+	EventBus.debug.emit_event("debug_message", ["管理器注册成功: " + manager_name, 0])
 
 	# 发送信号
 	manager_registered.emit(manager_name)
@@ -60,7 +60,7 @@ func initialize(manager_name: String) -> bool:
 	# 如果管理器不存在，返回失败
 	if not _managers.has(manager_name):
 		var error_message = "管理器不存在: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return false
@@ -70,28 +70,21 @@ func initialize(manager_name: String) -> bool:
 	for dep in dependencies:
 		if not initialize(dep):
 			var error_message = "初始化依赖失败: " + dep + " (被 " + manager_name + " 依赖)"
-			EventBus.debug.debug_message.emit(error_message, 2)
+			EventBus.debug.emit_event("debug_message", [error_message, 2])
 			_errors[manager_name] = error_message
 			manager_error.emit(manager_name, error_message)
 			return false
 
 	# 初始化管理器
 	var manager = _managers[manager_name]
-	try:
-		if manager.has_method("initialize"):
-			manager.initialize()
+	if manager.has_method("initialize"):
+		manager.initialize()
 
-		_initialized[manager_name] = true
-		_errors[manager_name] = ""
-		EventBus.debug.debug_message.emit("管理器初始化成功: " + manager_name, 0)
-		manager_initialized.emit(manager_name)
-		return true
-	except:
-		var error_message = "初始化管理器异常: " + manager_name + ", " + str(error_string())
-		EventBus.debug.debug_message.emit(error_message, 3)
-		_errors[manager_name] = error_message
-		manager_error.emit(manager_name, error_message)
-		return false
+	_initialized[manager_name] = true
+	_errors[manager_name] = ""
+	EventBus.debug.emit_event("debug_message", ["管理器初始化成功: " + manager_name, 0])
+	manager_initialized.emit(manager_name)
+	return true
 
 # 初始化所有管理器
 func initialize_all() -> Dictionary:
@@ -112,7 +105,7 @@ func initialize_all() -> Dictionary:
 		else:
 			failure_count += 1
 
-	EventBus.debug.debug_message.emit("管理器初始化统计: 成功=" + str(success_count) + ", 失败=" + str(failure_count), 0)
+	EventBus.debug.emit_event("debug_message", ["管理器初始化统计: 成功=" + str(success_count) + ", 失败=" + str(failure_count), 0])
 
 	# 返回结果
 	return results
@@ -122,17 +115,17 @@ func get_manager(manager_name: String):
 	# 检查管理器是否存在
 	if not _managers.has(manager_name):
 		var error_message = "管理器不存在: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return null
 
 	# 确保管理器已初始化
 	if not _initialized.get(manager_name, false):
-		EventBus.debug.debug_message.emit("尝试自动初始化管理器: " + manager_name, 0)
+		EventBus.debug.emit_event("debug_message", ["尝试自动初始化管理器: " + manager_name, 0])
 		if not initialize(manager_name):
 			var error_message = "无法初始化管理器: " + manager_name
-			EventBus.debug.debug_message.emit(error_message, 2)
+			EventBus.debug.emit_event("debug_message", [error_message, 2])
 			_errors[manager_name] = error_message
 			manager_error.emit(manager_name, error_message)
 			return null
@@ -169,29 +162,22 @@ func reset_manager(manager_name: String) -> bool:
 	# 检查管理器是否存在
 	if not _managers.has(manager_name):
 		var error_message = "管理器不存在: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return false
 
 	# 重置管理器
 	var manager = _managers[manager_name]
-	try:
-		if manager.has_method("reset"):
-			manager.reset()
-			EventBus.debug.debug_message.emit("管理器重置成功: " + manager_name, 0)
-			manager_reset.emit(manager_name)
-			return true
-		else:
-			var error_message = "管理器没有reset方法: " + manager_name
-			EventBus.debug.debug_message.emit(error_message, 1)
-			_errors[manager_name] = error_message
-			return false
-	except:
-		var error_message = "重置管理器异常: " + manager_name + ", " + str(error_string())
-		EventBus.debug.debug_message.emit(error_message, 3)
+	if manager.has_method("reset"):
+		manager.reset()
+		EventBus.debug.emit_event("debug_message", ["管理器重置成功: " + manager_name, 0])
+		manager_reset.emit(manager_name)
+		return true
+	else:
+		var error_message = "管理器没有reset方法: " + manager_name
+		EventBus.debug.emit_event("debug_message", [error_message, 1])
 		_errors[manager_name] = error_message
-		manager_error.emit(manager_name, error_message)
 		return false
 
 # 重置所有管理器
@@ -213,7 +199,7 @@ func reset_all() -> Dictionary:
 		else:
 			failure_count += 1
 
-	EventBus.debug.debug_message.emit("管理器重置统计: 成功=" + str(success_count) + ", 失败=" + str(failure_count), 0)
+	EventBus.debug.emit_event("debug_message", ["管理器重置统计: 成功=" + str(success_count) + ", 失败=" + str(failure_count), 0])
 
 	# 返回结果
 	return results
@@ -223,28 +209,21 @@ func cleanup_manager(manager_name: String) -> bool:
 	# 检查管理器是否存在
 	if not _managers.has(manager_name):
 		var error_message = "管理器不存在: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return false
 
 	# 清理管理器
 	var manager = _managers[manager_name]
-	try:
-		if manager.has_method("cleanup"):
-			manager.cleanup()
-			EventBus.debug.debug_message.emit("管理器清理成功: " + manager_name, 0)
-			return true
-		else:
-			var error_message = "管理器没有cleanup方法: " + manager_name
-			EventBus.debug.debug_message.emit(error_message, 1)
-			_errors[manager_name] = error_message
-			return false
-	except:
-		var error_message = "清理管理器异常: " + manager_name + ", " + str(error_string())
-		EventBus.debug.debug_message.emit(error_message, 3)
+	if manager.has_method("cleanup"):
+		manager.cleanup()
+		EventBus.debug.emit_event("debug_message", ["管理器清理成功: " + manager_name, 0])
+		return true
+	else:
+		var error_message = "管理器没有cleanup方法: " + manager_name
+		EventBus.debug.emit_event("debug_message", [error_message, 1])
 		_errors[manager_name] = error_message
-		manager_error.emit(manager_name, error_message)
 		return false
 
 # 清理所有管理器
@@ -266,7 +245,7 @@ func cleanup_all() -> Dictionary:
 		else:
 			failure_count += 1
 
-	EventBus.debug.debug_message.emit("管理器清理统计: 成功=" + str(success_count) + ", 失败=" + str(failure_count), 0)
+	EventBus.debug.emit_event("debug_message", ["管理器清理统计: 成功=" + str(success_count) + ", 失败=" + str(failure_count), 0])
 
 	# 返回结果
 	return results
@@ -292,7 +271,7 @@ func add_dependency(manager_name: String, dependency: String) -> bool:
 	# 检查管理器是否存在
 	if not _managers.has(manager_name):
 		var error_message = "管理器不存在: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return false
@@ -300,7 +279,7 @@ func add_dependency(manager_name: String, dependency: String) -> bool:
 	# 检查依赖是否存在
 	if not _managers.has(dependency):
 		var error_message = "依赖管理器不存在: " + dependency
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return false
@@ -311,7 +290,7 @@ func add_dependency(manager_name: String, dependency: String) -> bool:
 
 	# 添加依赖
 	_dependencies[manager_name].append(dependency)
-	EventBus.debug.debug_message.emit("添加依赖成功: " + manager_name + " -> " + dependency, 0)
+	EventBus.debug.emit_event("debug_message", ["添加依赖成功: " + manager_name + " -> " + dependency, 0])
 	return true
 
 # 移除管理器依赖
@@ -319,7 +298,7 @@ func remove_dependency(manager_name: String, dependency: String) -> bool:
 	# 检查管理器是否存在
 	if not _managers.has(manager_name):
 		var error_message = "管理器不存在: " + manager_name
-		EventBus.debug.debug_message.emit(error_message, 2)
+		EventBus.debug.emit_event("debug_message", [error_message, 2])
 		_errors[manager_name] = error_message
 		manager_error.emit(manager_name, error_message)
 		return false
@@ -330,5 +309,5 @@ func remove_dependency(manager_name: String, dependency: String) -> bool:
 
 	# 移除依赖
 	_dependencies[manager_name].erase(dependency)
-	EventBus.debug.debug_message.emit("移除依赖成功: " + manager_name + " -> " + dependency, 0)
+	EventBus.debug.emit_event("debug_message", ["移除依赖成功: " + manager_name + " -> " + dependency, 0])
 	return true

@@ -33,7 +33,7 @@ func _do_initialize() -> void:
 	# 连接事件总线
 	_connect_event_bus()
 	
-	EventBus.debug.debug_message.emit("状态管理器初始化完成", 0)
+	EventBus.debug.emit_event("debug_message", ["状态管理器初始化完成", 0])
 
 ## 初始化状态
 func _initialize_state() -> void:
@@ -49,43 +49,43 @@ func _initialize_state() -> void:
 ## 连接事件总线
 func _connect_event_bus() -> void:
 	# 连接游戏事件
-	EventBus.game.game_started.connect(_on_game_started)
-	EventBus.game.game_ended.connect(_on_game_ended)
-	EventBus.game.game_paused.connect(_on_game_paused)
+	EventBus.game.connect_event("game_started", _on_game_started)
+	EventBus.game.connect_event("game_ended", _on_game_ended)
+	EventBus.game.connect_event("game_paused", _on_game_paused)
 	
 	# 连接玩家事件
-	EventBus.game.player_health_changed.connect(_on_player_health_changed)
-	EventBus.game.player_level_changed.connect(_on_player_level_changed)
-	EventBus.game.player_died.connect(_on_player_died)
+	EventBus.game.connect_event("player_health_changed", _on_player_health_changed)
+	EventBus.game.connect_event("player_level_changed", _on_player_level_changed)
+	EventBus.game.connect_event("player_died", _on_player_died)
 	
 	# 连接棋盘事件
-	EventBus.board.board_initialized.connect(_on_board_initialized)
-	EventBus.board.piece_placed.connect(_on_piece_placed)
-	EventBus.board.piece_removed.connect(_on_piece_removed)
-	EventBus.board.piece_moved.connect(_on_piece_moved)
-	EventBus.board.board_locked.connect(_on_board_locked)
+	EventBus.board.connect_event("board_initialized", _on_board_initialized)
+	EventBus.board.connect_event("piece_placed", _on_piece_placed)
+	EventBus.board.connect_event("piece_removed", _on_piece_removed)
+	EventBus.board.connect_event("piece_moved", _on_piece_moved)
+	EventBus.board.connect_event("board_locked", _on_board_locked)
 	
 	# 连接战斗事件
-	EventBus.battle.battle_started.connect(_on_battle_started)
-	EventBus.battle.battle_ended.connect(_on_battle_ended)
+	EventBus.battle.connect_event("battle_started", _on_battle_started)
+	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
 	
 	# 连接经济事件
-	EventBus.economy.gold_changed.connect(_on_gold_changed)
+	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
 	
 	# 连接地图事件
-	EventBus.map.map_generated.connect(_on_map_generated)
-	EventBus.map.map_node_selected.connect(_on_map_node_selected)
+	EventBus.map.connect_event("map_generated", _on_map_generated)
+	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
 	
 	# 连接UI事件
-	EventBus.ui.ui_screen_changed.connect(_on_ui_screen_changed)
-	EventBus.ui.show_notification.connect(_on_show_notification)
+	EventBus.ui.connect_event("ui_screen_changed", _on_ui_screen_changed)
+	EventBus.ui.connect_event("show_notification", _on_show_notification)
 	
 	# 连接设置事件
-	EventBus.ui.language_changed.connect(_on_language_changed)
+	EventBus.ui.connect_event("language_changed", _on_language_changed)
 	
 	# 连接成就事件
-	EventBus.achievement.achievement_unlocked.connect(_on_achievement_unlocked)
-	EventBus.achievement.achievement_progress_updated.connect(_on_achievement_progress_updated)
+	EventBus.achievement.connect_event("achievement_unlocked", _on_achievement_unlocked)
+	EventBus.achievement.connect_event("achievement_progress_updated", _on_achievement_progress_updated)
 
 ## 获取状态
 func get_state() -> Dictionary:
@@ -401,13 +401,13 @@ func _on_achievement_progress_updated(achievement_id: String, old_progress: int,
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

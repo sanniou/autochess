@@ -19,8 +19,8 @@ func _ready():
 	visible = false
 	
 	# 连接信号
-	EventBus.chess.show_chess_info.connect(_on_show_chess_info)
-	EventBus.chess.hide_chess_info.connect(_on_hide_chess_info)
+	EventBus.chess.connect_event("show_chess_info", _on_show_chess_info)
+	EventBus.chess.connect_event("hide_chess_info", _on_hide_chess_info)
 
 ## 显示棋子信息
 func _on_show_chess_info(piece: ChessPiece) -> void:
@@ -90,7 +90,7 @@ func _update_star_display(star_level: int) -> void:
 	# 添加星星
 	for i in range(star_level):
 		var star = TextureRect.new()
-		star.texture = preload("res://assets/ui/icons/star.png")
+		star.texture = preload("res://assets/textures/effects/fire.png")
 		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		star.custom_minimum_size = Vector2(20, 20)
 		star_container.add_child(star)

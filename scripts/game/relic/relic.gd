@@ -88,7 +88,7 @@ func activate() -> bool:
 
 	# 发送激活信号
 	activated.emit()
-	EventBus.relic.relic_activated.emit(self)
+	EventBus.relic.emit_event("relic_activated", [self])
 
 	return true
 
@@ -125,7 +125,7 @@ func trigger_effect(trigger_type: String, context: Dictionary = {}) -> bool:
 
 		# 发送效果触发信号
 		effect_triggered.emit(effect)
-		EventBus.relic.relic_effect_triggered.emit(self, effect)
+		EventBus.relic.emit_event("relic_effect_triggered", [self, effect])
 
 	return true
 

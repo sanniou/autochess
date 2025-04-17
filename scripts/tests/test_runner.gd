@@ -58,7 +58,7 @@ func run_test_scene(scene_path: String) -> void:
 	# 加载测试场景
 	var scene = load(scene_path)
 	if scene == null:
-		EventBus.debug.debug_message.emit("无法加载测试场景: " + scene_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法加载测试场景: " + scene_path, 2])
 		return
 	
 	# 实例化测试场景
@@ -116,18 +116,18 @@ func _collect_tests(node: Node) -> void:
 
 ## 测试开始事件处理
 func _on_test_started(test_name: String) -> void:
-	EventBus.debug.debug_message.emit("开始测试: " + test_name, 0)
+	EventBus.debug.emit_event("debug_message", ["开始测试: " + test_name, 0])
 
 ## 测试完成事件处理
 func _on_test_completed(test_name: String, success: bool) -> void:
 	if success:
-		EventBus.debug.debug_message.emit("测试通过: " + test_name, 0)
+		EventBus.debug.emit_event("debug_message", ["测试通过: " + test_name, 0])
 	else:
-		EventBus.debug.debug_message.emit("测试失败: " + test_name, 2)
+		EventBus.debug.emit_event("debug_message", ["测试失败: " + test_name, 2])
 
 ## 测试失败事件处理
 func _on_test_failed(test_name: String, error_message: String) -> void:
-	EventBus.debug.debug_message.emit("测试失败: " + test_name + " - " + error_message, 2)
+	EventBus.debug.emit_event("debug_message", ["测试失败: " + test_name + " - " + error_message, 2])
 
 ## 所有测试完成事件处理
 func _on_all_tests_completed(results: Dictionary) -> void:

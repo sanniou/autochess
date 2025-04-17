@@ -1,4 +1,5 @@
 extends Node
+
 class_name BaseManager
 ## 管理器基类
 ## 所有管理器应继承此类，提供统一的接口和生命周期管理
@@ -28,21 +29,19 @@ func initialize() -> bool:
 	# 如果已经初始化，直接返回成功
 	if _initialized:
 		return true
-
 	# 清空错误信息
 	_error = ""
 
 	# 检查依赖
 	if not _check_dependencies():
 		_error = "管理器初始化失败，依赖未满足: " + manager_name
-		EventBus.debug.debug_message.emit(_error, 2)
+		EventBus.debug.emit_event("debug_message", [_error, 2])
 		error_occurred.emit(_error)
 		return false
-
 	# 执行初始化
 	_do_initialize()
 	_initialized = true
-	EventBus.debug.debug_message.emit(manager_name + " 初始化完成", 0)
+	EventBus.debug.emit_event("debug_message", [manager_name + " 初始化完成", 0])
 	initialized.emit()
 	return true
 
@@ -62,7 +61,7 @@ func cleanup() -> bool:
 	# 执行清理
 	_do_cleanup()
 	_initialized = false
-	EventBus.debug.debug_message.emit(manager_name + " 清理完成", 0)
+	EventBus.debug.emit_event("debug_message", [manager_name + " 清理完成", 0])
 	cleaned_up.emit()
 	return true
 
@@ -77,7 +76,7 @@ func reset() -> bool:
 
 	# 执行重置
 	_do_reset()
-	EventBus.debug.debug_message.emit(manager_name + " 重置完成", 0)
+	EventBus.debug.emit_event("debug_message", [manager_name + " 重置完成", 0])
 	reset_completed.emit()
 	return true
 
@@ -101,7 +100,7 @@ func add_dependency(dependency_name: String) -> bool:
 
 	# 添加依赖
 	_dependencies.append(dependency_name)
-	EventBus.debug.debug_message.emit("添加依赖: " + manager_name + " -> " + dependency_name, 0)
+	EventBus.debug.emit_event("debug_message", ["添加依赖: " + manager_name + " -> " + dependency_name, 0])
 	dependency_added.emit(dependency_name)
 	return true
 
@@ -113,7 +112,7 @@ func remove_dependency(dependency_name: String) -> bool:
 
 	# 移除依赖
 	_dependencies.erase(dependency_name)
-	EventBus.debug.debug_message.emit("移除依赖: " + manager_name + " -> " + dependency_name, 0)
+	EventBus.debug.emit_event("debug_message", ["移除依赖: " + manager_name + " -> " + dependency_name, 0])
 	dependency_removed.emit(dependency_name)
 	return true
 
@@ -127,7 +126,7 @@ func _check_dependencies() -> bool:
 	var game_manager = get_node_or_null("/root/GameManager")
 	if not game_manager:
 		_error = "无法获取GameManager"
-		EventBus.debug.debug_message.emit(_error, 2)
+		EventBus.debug.emit_event("debug_message", [_error, 2])
 		return false
 
 	# 检查每个依赖
@@ -135,14 +134,14 @@ func _check_dependencies() -> bool:
 		# 检查依赖的管理器是否存在
 		if not game_manager.has_manager(dependency):
 			_error = "依赖的管理器不存在: " + dependency
-			EventBus.debug.debug_message.emit(_error, 2)
+			EventBus.debug.emit_event("debug_message", [_error, 2])
 			return false
 
 		# 检查依赖的管理器是否已初始化
 		var dependency_manager = game_manager.get_manager(dependency)
 		if not dependency_manager or not dependency_manager.is_initialized():
 			_error = "依赖的管理器未初始化: " + dependency
-			EventBus.debug.debug_message.emit(_error, 2)
+			EventBus.debug.emit_event("debug_message", [_error, 2])
 			return false
 
 	# 所有依赖都满足

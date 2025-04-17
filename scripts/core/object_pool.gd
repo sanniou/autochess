@@ -1,7 +1,7 @@
 extends Node
 ## 对象池
 ## 用于管理和重用游戏对象，提高性能
-
+@onready var EventBus: Node = get_node("/root/EventBus")
 # 信号
 signal pool_created(pool_name, initial_size)
 signal pool_cleared(pool_name)
@@ -230,7 +230,7 @@ func _check_pool_for_shrink(pool_name: String) -> void:
 		# 缩小池
 		if target_size < current_size:
 			set_pool_size(pool_name, target_size)
-			EventBus.debug.debug_message.emit("对象池 " + pool_name + " 自动缩小，使用率: " + str(stats.usage_rate * 100) + "%", 0)
+			EventBus.debug.emit_event("debug_message", ["对象池 " + pool_name + " 自动缩小，使用率: " + str(stats.usage_rate * 100) + "%", 0])
 
 ## 检查并调整单个对象池
 func _check_pool_for_resize(pool_name: String) -> void:
@@ -258,7 +258,7 @@ func _check_pool_for_resize(pool_name: String) -> void:
 			# 更新自动调整计数
 			stats.auto_resizes += 1
 
-			EventBus.debug.debug_message.emit("对象池 " + pool_name + " 自动增长，使用率: " + str(stats.usage_rate * 100) + "%", 0)
+			EventBus.debug.emit_event("debug_message", ["对象池 " + pool_name + " 自动增长，使用率: " + str(stats.usage_rate * 100) + "%", 0])
 
 	# 检查是否需要缩小池
 	elif stats.usage_rate <= auto_resize_settings.shrink_threshold and current_size > auto_resize_settings.min_pool_size:
@@ -273,7 +273,7 @@ func _check_pool_for_resize(pool_name: String) -> void:
 			# 缩小池
 			if target_size < current_size:
 				set_pool_size(pool_name, target_size)
-				EventBus.debug.debug_message.emit("对象池 " + pool_name + " 自动缩小，使用率: " + str(stats.usage_rate * 100) + "%", 0)
+				EventBus.debug.emit_event("debug_message", ["对象池 " + pool_name + " 自动缩小，使用率: " + str(stats.usage_rate * 100) + "%", 0])
 
 ## 设置池大小
 func set_pool_size(pool_name: String, new_size: int) -> bool:
@@ -316,7 +316,7 @@ func set_pool_size(pool_name: String, new_size: int) -> bool:
 		# 发送信号
 		pool_resized.emit(pool_name, old_size, new_size)
 
-		EventBus.debug.debug_message.emit("对象池 " + pool_name + " 缩小了 " + str(old_size - new_size) + " 个对象", 0)
+		EventBus.debug.emit_event("debug_message", ["对象池 " + pool_name + " 缩小了 " + str(old_size - new_size) + " 个对象", 0])
 		return true
 
 	# 大小相同，无需调整
@@ -340,18 +340,18 @@ func set_pool_max_size(pool_name: String, max_size: int) -> bool:
 	if _pools[pool_name].size() > max_size:
 		set_pool_size(pool_name, max_size)
 
-	EventBus.debug.debug_message.emit("对象池 " + pool_name + " 最大大小已设置为 " + str(max_size), 0)
+	EventBus.debug.emit_event("debug_message", ["对象池 " + pool_name + " 最大大小已设置为 " + str(max_size), 0])
 	return true
 
 ## 启用自动调整
 func enable_auto_resize() -> void:
 	auto_resize_settings.enabled = true
-	EventBus.debug.debug_message.emit("对象池自动调整已启用", 0)
+	EventBus.debug.emit_event("debug_message", ["对象池自动调整已启用", 0])
 
 ## 禁用自动调整
 func disable_auto_resize() -> void:
 	auto_resize_settings.enabled = false
-	EventBus.debug.debug_message.emit("对象池自动调整已禁用", 0)
+	EventBus.debug.emit_event("debug_message", ["对象池自动调整已禁用", 0])
 
 ## 设置自动调整参数
 func set_auto_resize_settings(settings: Dictionary) -> void:
@@ -371,7 +371,7 @@ func set_auto_resize_settings(settings: Dictionary) -> void:
 	if settings.has("max_grow_size"):
 		auto_resize_settings.max_grow_size = max(auto_resize_settings.min_grow_size, settings.max_grow_size)
 
-	EventBus.debug.debug_message.emit("对象池自动调整设置已更新", 0)
+	EventBus.debug.emit_event("debug_message", ["对象池自动调整设置已更新", 0])
 
 ## 增长对象池
 func _grow_pool(pool_name: String, count: int) -> void:
@@ -402,7 +402,7 @@ func _grow_pool(pool_name: String, count: int) -> void:
 	# 更新使用率
 	_update_usage_rate(pool_name)
 
-	EventBus.debug.debug_message.emit("对象池 " + pool_name + " 增长了 " + str(new_size - old_size) + " 个对象", 0)
+	EventBus.debug.emit_event("debug_message", ["对象池 " + pool_name + " 增长了 " + str(new_size - old_size) + " 个对象", 0])
 
 	# 发送信号
 	pool_resized.emit(pool_name, old_size, new_size)

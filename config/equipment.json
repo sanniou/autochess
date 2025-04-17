@@ -8,7 +8,7 @@
     "icon_path": "res://assets/images/equipment/amulet.png",
     "id": "amulet",
     "name": "护身符",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "dodge_chance": 0.05
     },
@@ -29,7 +29,7 @@
     "icon_path": "res://assets/images/equipment/arcane_staff.png",
     "id": "arcane_staff",
     "name": "奥术法杖",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "staff",
       "staff"
@@ -48,7 +48,7 @@
     "icon_path": "res://assets/images/equipment/armor.png",
     "id": "armor",
     "name": "铁甲",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "armor": 10.0
     },
@@ -70,7 +70,7 @@
     "icon_path": "res://assets/images/equipment/assassin_gloves.png",
     "id": "assassin_gloves",
     "name": "刺客手套",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "gloves",
       "sword"
@@ -90,7 +90,7 @@
     "icon_path": "res://assets/images/equipment/belt.png",
     "id": "belt",
     "name": "生命腰带",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "health": 100.0
     },
@@ -119,7 +119,7 @@
     "icon_path": "res://assets/images/equipment/berserker_axe.png",
     "id": "berserker_axe",
     "name": "狂战士之斧",
-    "rarity": "epic",
+    "rarity": 3,
     "recipe": [
       "sword",
       "giant_sword"
@@ -139,7 +139,7 @@
     "icon_path": "res://assets/images/equipment/bow.png",
     "id": "bow",
     "name": "短弓",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "attack_speed": 0.1
     },
@@ -154,7 +154,7 @@
     "icon_path": "res://assets/images/equipment/cloak.png",
     "id": "cloak",
     "name": "魔法斗篷",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "magic_resist": 10.0
     },
@@ -175,7 +175,7 @@
     "icon_path": "res://assets/images/equipment/dragon_cloak.png",
     "id": "dragon_cloak",
     "name": "龙鳞斗篷",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "cloak",
       "cloak"
@@ -199,7 +199,7 @@
     "icon_path": "res://assets/images/equipment/elemental_focus.png",
     "id": "elemental_focus",
     "name": "元素聚焦",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "elemental_orb",
       "staff"
@@ -219,7 +219,7 @@
     "icon_path": "res://assets/images/equipment/elemental_orb.png",
     "id": "elemental_orb",
     "name": "元素宝珠",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "elemental_effect_chance": 0.1
     },
@@ -239,7 +239,7 @@
     "icon_path": "res://assets/images/equipment/giant_sword.png",
     "id": "giant_sword",
     "name": "巨人之剑",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "sword",
       "sword"
@@ -264,7 +264,7 @@
     "icon_path": "res://assets/images/equipment/giants_belt.png",
     "id": "giants_belt",
     "name": "巨人腰带",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "belt",
       "belt"
@@ -283,7 +283,7 @@
     "icon_path": "res://assets/images/equipment/gloves.png",
     "id": "gloves",
     "name": "战斗手套",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "crit_chance": 0.05
     },
@@ -312,7 +312,7 @@
     "icon_path": "res://assets/images/equipment/guardian_shield.png",
     "id": "guardian_shield",
     "name": "守护者之盾",
-    "rarity": "epic",
+    "rarity": 3,
     "recipe": [
       "armor",
       "plate_armor"
@@ -339,7 +339,7 @@
     "icon_path": "res://assets/images/equipment/plate_armor.png",
     "id": "plate_armor",
     "name": "板甲",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "armor",
       "armor"
@@ -364,7 +364,7 @@
     "icon_path": "res://assets/images/equipment/rapid_bow.png",
     "id": "rapid_bow",
     "name": "疾速之弓",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "bow",
       "bow"
@@ -389,7 +389,7 @@
     "icon_path": "res://assets/images/equipment/shadow_amulet.png",
     "id": "shadow_amulet",
     "name": "暗影护符",
-    "rarity": "rare",
+    "rarity": 2,
     "recipe": [
       "amulet",
       "cloak"
@@ -408,7 +408,7 @@
     "icon_path": "res://assets/images/equipment/staff.png",
     "id": "staff",
     "name": "法杖",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "spell_power": 10.0
     },
@@ -436,7 +436,7 @@
     "icon_path": "res://assets/images/equipment/summoner_staff.png",
     "id": "summoner_staff",
     "name": "召唤法杖",
-    "rarity": "epic",
+    "rarity": 3,
     "recipe": [
       "staff",
       "arcane_staff"
@@ -455,7 +455,7 @@
     "icon_path": "res://assets/images/equipment/sword.png",
     "id": "sword",
     "name": "铁剑",
-    "rarity": "common",
+    "rarity": 1,
     "stats": {
       "attack_damage": 10.0
     },

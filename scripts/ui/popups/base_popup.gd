@@ -77,7 +77,7 @@ func _on_close_requested() -> void:
 	close_popup()
 
 # 获取本地化文本
-func tr(key: String, params: Array = []) -> String:
+func tr2(key: String, params: Array = []) -> String:
 	return localization_manager.tr(key, params)
 
 # 播放UI音效

@@ -8,9 +8,6 @@ var chess_factory: ChessFactory
 # 羁绊管理器
 var synergy_manager: SynergyManager
 
-# 配置管理器
-var config_manager: ConfigManager
-
 # 选中的棋子
 var selected_chess: ChessPiece = null
 
@@ -25,7 +22,6 @@ func _ready():
 	# 获取管理器
 	chess_factory = get_node("/root/GameManager/ChessFactory")
 	synergy_manager = get_node("/root/GameManager/SynergyManager")
-	config_manager = get_node("/root/GameManager/ConfigManager")
 	
 	# 连接信号
 	EventBus.connect("chess_piece_upgraded", _on_chess_piece_upgraded)
@@ -53,7 +49,7 @@ func _load_chess_list() -> void:
 			child.queue_free()
 	
 	# 获取所有棋子配置
-	var chess_configs = config_manager.get_all_chess_pieces()
+	var chess_configs = ConfigManager.get_all_chess_pieces()
 	
 	# 添加棋子到列表
 	for id in chess_configs:

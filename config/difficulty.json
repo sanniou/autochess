@@ -1,50 +1,78 @@
 {
   "1": {
-    "description": "适合新手玩家，敌人较弱，奖励较少。",
-    "enemy_gold_multiplier": 0.8,
-    "enemy_stats_multiplier": 0.8,
     "id": "1",
-    "item_drop_chance_multiplier": 1.2,
     "name": "简单",
+    "description": "适合新手玩家，敌人较弱，奖励较多。",
+    "enemy_health_multiplier": 0.8,
+    "enemy_damage_multiplier": 0.8,
+    "gold_reward_multiplier": 1.2,
+    "exp_reward_multiplier": 1.2,
+    "starting_gold": 5,
+    "starting_health": 120,
+    "shop_refresh_cost": 2,
+    "max_health": 120,
     "player_gold_multiplier": 1.2,
-    "player_health_multiplier": 1.2,
-    "starting_gold": 5.0,
-    "starting_health": 120.0
+    "enemy_scaling": {
+      "5": { "health": 1.1, "damage": 1.1 },
+      "10": { "health": 1.2, "damage": 1.2 },
+      "15": { "health": 1.3, "damage": 1.3 }
+    }
   },
   "2": {
-    "description": "标准难度，平衡的挑战和奖励。",
-    "enemy_gold_multiplier": 1.0,
-    "enemy_stats_multiplier": 1.0,
     "id": "2",
-    "item_drop_chance_multiplier": 1.0,
     "name": "普通",
+    "description": "标准难度，平衡的挑战和奖励。",
+    "enemy_health_multiplier": 1.0,
+    "enemy_damage_multiplier": 1.0,
+    "gold_reward_multiplier": 1.0,
+    "exp_reward_multiplier": 1.0,
+    "starting_gold": 3,
+    "starting_health": 100,
+    "shop_refresh_cost": 2,
+    "max_health": 100,
     "player_gold_multiplier": 1.0,
-    "player_health_multiplier": 1.0,
-    "starting_gold": 3.0,
-    "starting_health": 100.0
+    "enemy_scaling": {
+      "5": { "health": 1.2, "damage": 1.2 },
+      "10": { "health": 1.4, "damage": 1.4 },
+      "15": { "health": 1.6, "damage": 1.6 }
+    }
   },
   "3": {
-    "description": "适合有经验的玩家，敌人更强，奖励更丰厚。",
-    "enemy_gold_multiplier": 1.2,
-    "enemy_stats_multiplier": 1.2,
     "id": "3",
-    "item_drop_chance_multiplier": 1.1,
     "name": "困难",
+    "description": "适合有经验的玩家，敌人更强，奖励更少。",
+    "enemy_health_multiplier": 1.2,
+    "enemy_damage_multiplier": 1.2,
+    "gold_reward_multiplier": 0.9,
+    "exp_reward_multiplier": 0.9,
+    "starting_gold": 2,
+    "starting_health": 80,
+    "shop_refresh_cost": 3,
+    "max_health": 80,
     "player_gold_multiplier": 0.9,
-    "player_health_multiplier": 0.9,
-    "starting_gold": 2.0,
-    "starting_health": 80.0
+    "enemy_scaling": {
+      "5": { "health": 1.3, "damage": 1.3 },
+      "10": { "health": 1.6, "damage": 1.6 },
+      "15": { "health": 1.9, "damage": 1.9 }
+    }
   },
   "4": {
-    "description": "极具挑战性，敌人非常强大，但奖励丰厚。",
-    "enemy_gold_multiplier": 1.5,
-    "enemy_stats_multiplier": 1.5,
     "id": "4",
-    "item_drop_chance_multiplier": 1.3,
     "name": "专家",
+    "description": "极具挑战性，敌人非常强大，奖励更少。",
+    "enemy_health_multiplier": 1.5,
+    "enemy_damage_multiplier": 1.5,
+    "gold_reward_multiplier": 0.8,
+    "exp_reward_multiplier": 0.8,
+    "starting_gold": 1,
+    "starting_health": 60,
+    "shop_refresh_cost": 3,
+    "max_health": 60,
     "player_gold_multiplier": 0.8,
-    "player_health_multiplier": 0.8,
-    "starting_gold": 1.0,
-    "starting_health": 60.0
+    "enemy_scaling": {
+      "5": { "health": 1.4, "damage": 1.4 },
+      "10": { "health": 1.8, "damage": 1.8 },
+      "15": { "health": 2.2, "damage": 2.2 }
+    }
   }
 }

@@ -22,14 +22,14 @@ func _do_initialize() -> void:
 	
 	# 原 _ready 函数的内容
 	# 连接信号
-		EventBus.event.event_completed.connect(_on_event_completed)
+	EventBus.event.connect_event("event_completed", _on_event_completed)
 	
-	# 设置剧情标记
+# 设置剧情标记
 func set_flag(flag_name: String, value = true) -> void:
 	story_flags[flag_name] = value
 	
 	# 发送剧情标记设置信号
-	EventBus.debug.debug_message.emit("设置剧情标记: " + flag_name + " = " + str(value), 0)
+	EventBus.debug.emit_event("debug_message", ["设置剧情标记: " + flag_name + " = " + str(value), 0])
 	
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -45,7 +45,7 @@ func set_branch(branch_name: String, path: String) -> void:
 	story_branches[branch_name] = path
 	
 	# 发送剧情分支设置信号
-	EventBus.debug.debug_message.emit("设置剧情分支: " + branch_name + " = " + path, 0)
+	EventBus.debug.emit_event("debug_message", ["设置剧情分支: " + branch_name + " = " + path, 0])
 	
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -61,7 +61,7 @@ func advance_story(amount: int = 1) -> void:
 	story_progress += amount
 	
 	# 发送剧情进度更新信号
-	EventBus.debug.debug_message.emit("剧情进度更新: " + str(story_progress), 0)
+	EventBus.debug.emit_event("debug_message", ["剧情进度更新: " + str(story_progress), 0])
 	
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -172,22 +172,23 @@ func load_story_state(save_data: Dictionary) -> void:
 		triggered_story_events = save_data.triggered_story_events.duplicate()
 
 # 重置管理器
-func reset() -> void:
+func reset() -> bool:
 	story_flags.clear()
 	story_branches.clear()
 	story_progress = 0
 	triggered_story_events.clear()
+	return true
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

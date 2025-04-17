@@ -3,7 +3,7 @@ class_name ChessPiece
 ## 棋子基类
 ## 定义棋子的基本属性和行为
 
-
+@onready var EventBus = get_node("/root/EventBus")
 
 # 信号
 signal health_changed(old_value, new_value)
@@ -240,7 +240,7 @@ func upgrade() -> void:
 	})
 
 	# 发送升级信号
-	EventBus.chess.chess_piece_upgraded.emit(self)
+	EventBus.chess.emit_event("chess_piece_upgraded", [self])
 
 # 受到伤害
 func take_damage(amount: float, damage_type: String = "physical", source = null) -> float:
@@ -280,7 +280,7 @@ func take_damage(amount: float, damage_type: String = "physical", source = null)
 	gain_mana(actual_damage * 0.1, "damage_taken")
 
 	# 发送伤害信号
-	EventBus.battle.damage_dealt.emit(source, self, actual_damage, damage_type)
+	EventBus.battle.emit_event("damage_dealt", [source, self, actual_damage, damage_type])
 
 	# 更新生命值显示
 	health_changed.emit(old_health, current_health)
@@ -307,8 +307,9 @@ func heal(amount: float, source = null) -> float:
 	health_changed.emit(old_health, current_health)
 	_update_health_bar()
 
-	# 发送治疗信号
-	EventBus.healing_done.emit(self, amount, source)
+	# 发送治疗信号 - 使用常量而非字符串字面量
+	var event_definitions = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(event_definitions.BattleEvents.HEAL_RECEIVED, [self, amount, source])
 
 	# 触发治疗效果
 	_on_healed(amount, source)
@@ -483,10 +484,10 @@ func activate_ability() -> bool:
 
 	# 发送技能激活信号
 	ability_activated.emit(target)
-	EventBus.chess.chess_piece_ability_activated.emit(self, target)
+	EventBus.chess.emit_event("chess_piece_ability_activated", [self, target])
 
 	# 发送技能使用信号
-	EventBus.battle.ability_used.emit(self, ability_data)
+	EventBus.battle.emit_event("ability_used", [self, ability_data])
 
 	return true
 
@@ -530,7 +531,8 @@ func die() -> void:
 
 	# 发送死亡信号
 	died.emit()
-	EventBus.battle.unit_died.emit(self)
+	var event_definitions = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(event_definitions.BattleEvents.UNIT_DIED, [self])
 
 	# 触发死亡效果
 	_on_death()
@@ -1607,6 +1609,4 @@ func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increas
 	tween.tween_callback(upgrade_effect.queue_free)
 
 	# 播放升星音效
-	EventBus.audio.play_sound.emit("upgrade", global_position)
-
-
+	EventBus.audio.emit_event("play_sound", ["upgrade", global_position])

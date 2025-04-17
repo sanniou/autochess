@@ -1,4 +1,4 @@
-extends "res://scripts/managers/core/base_manager.gd"2D
+extends "res://scripts/managers/core/base_manager.gd"
 class_name DamageNumberManager
 ## 伤害数字管理器
 ## 负责显示战斗中的伤害数字、治疗数字和状态文本
@@ -99,28 +99,28 @@ func _do_initialize() -> void:
 	
 	# 原 _ready 函数的内容
 	# 加载默认字体
-		_font = ThemeDB.fallback_font
-	
-		# 连接信号
-		_connect_signals()
+	_font = ThemeDB.fallback_font
 	
 	# 连接信号
+	_connect_signals()
+	
+# 连接信号
 func _connect_signals() -> void:
 	# 连接伤害信号
-	EventBus.battle.damage_dealt.connect(_on_damage_dealt)
+	EventBus.battle.connect_event("damage_dealt", _on_damage_dealt)
 
 	# 连接治疗信号
-	EventBus.battle.heal_received.connect(_on_heal_received)
+	EventBus.battle.connect_event("heal_received", _on_heal_received)
 
 	# 连接状态效果信号
-	EventBus.status_effect.status_effect_added.connect(_on_status_effect_added)
-	EventBus.status_effect.status_effect_resisted.connect(_on_status_effect_resisted)
+	EventBus.status_effect.connect_event("status_effect_added", _on_status_effect_added)
+	EventBus.status_effect.connect_event("status_effect_resisted", _on_status_effect_resisted)
 
 	# 连接法力值信号
-	EventBus.battle.mana_changed.connect(_on_mana_changed)
+	EventBus.battle.connect_event("mana_changed", _on_mana_changed)
 
 	# 连接升级信号
-	EventBus.chess.chess_piece_upgraded.connect(_on_chess_piece_upgraded)
+	EventBus.chess.connect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
 
 # 显示伤害数字
 func show_damage(position: Vector2, amount: float, damage_type: String = "physical", is_critical: bool = false) -> void:
@@ -206,7 +206,7 @@ func _on_damage_dealt(source: ChessPiece, target: ChessPiece, amount: float, dam
 	if is_crit:
 		create_floating_text(target.global_position, str(int(amount)), TextType.CRITICAL)
 		# 发送暴击信号
-		EventBus.battle.critical_hit.emit(source, target, amount)
+		EventBus.battle.emit_event("critical_hit", [source, target, amount])
 	else:
 		show_damage(target.global_position, amount, damage_type, false)
 
@@ -256,13 +256,13 @@ func get_damage_color(damage_type: String) -> Color:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

@@ -101,7 +101,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 						validation_errors.append("皮肤奖励必须是有效的字符串")
 
 # 获取成就名称
-func get_name() -> String:
+func get_achievement_name() -> String:
 	return data.get("name", "")
 
 # 获取成就描述

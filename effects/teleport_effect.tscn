@@ -1,0 +1,88 @@
+[gd_scene load_steps=7 format=3 uid="uid://c8j6y8r4e3q5v"]
+
+[ext_resource type="Script" path="res://scripts/effects/teleport_effect.gd" id="1_yjr2t"]
+
+[sub_resource type="Gradient" id="Gradient_lfxnq"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.8, 0.2, 0.8, 1, 0.8, 0.2, 0.8, 0.8, 0.8, 0.2, 0.8, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ixvs3"]
+gradient = SubResource("Gradient_lfxnq")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_uxdnj"]
+emission_shape = 1
+emission_sphere_radius = 20.0
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 30.0
+initial_velocity_max = 50.0
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 3.0
+scale_max = 3.0
+scale_curve = null
+color = Color(0.8, 0.2, 0.8, 0.8)
+color_ramp = SubResource("GradientTexture1D_ixvs3")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_qjnxr"]
+emission_shape = 1
+emission_sphere_radius = 5.0
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 30.0
+initial_velocity_max = 50.0
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 0.1
+scale_max = 0.1
+scale_curve = null
+color = Color(0.8, 0.2, 0.8, 0.8)
+color_ramp = SubResource("GradientTexture1D_ixvs3")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_yvhgr"]
+emission_shape = 1
+emission_sphere_radius = 30.0
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 180.0
+gravity = Vector3(0, 98, 0)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 2.0
+scale_max = 2.0
+scale_curve = null
+color = Color(0.8, 0.2, 0.8, 0.8)
+color_ramp = SubResource("GradientTexture1D_ixvs3")
+
+[node name="TeleportEffect" type="Node2D"]
+script = ExtResource("1_yjr2t")
+
+[node name="DisappearParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 30
+process_material = SubResource("ParticleProcessMaterial_uxdnj")
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.8
+
+[node name="AppearParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 30
+process_material = SubResource("ParticleProcessMaterial_qjnxr")
+lifetime = 0.5
+one_shot = true
+explosiveness = 0.8
+
+[node name="DamageParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 20
+process_material = SubResource("ParticleProcessMaterial_yvhgr")
+lifetime = 0.7
+one_shot = true
+explosiveness = 0.6

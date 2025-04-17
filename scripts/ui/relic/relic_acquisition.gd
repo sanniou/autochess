@@ -3,6 +3,7 @@ extends Control
 ## 显示获取遗物的动画效果
 
 # 引用
+@onready var EventBus = get_node("/root/EventBus")
 @onready var animation_player = $AnimationPlayer
 @onready var title_label = $Panel/VBoxContainer/TitleLabel
 @onready var texture_rect = $Panel/VBoxContainer/TextureRect
@@ -54,10 +55,10 @@ func play_animation() -> void:
 	# 播放音效
 	match relic.rarity:
 		0: # 普通
-			EventBus.audio.play_sound.emit("relic_common")
+			EventBus.audio.emit_event("play_sound", ["relic_common"])
 		1: # 稀有
-			EventBus.audio.play_sound.emit("relic_rare")
+			EventBus.audio.emit_event("play_sound", ["relic_rare"])
 		2: # 史诗
-			EventBus.audio.play_sound.emit("relic_epic")
+			EventBus.audio.emit_event("play_sound", ["relic_epic"])
 		3: # 传说
-			EventBus.audio.play_sound.emit("relic_legendary")
+			EventBus.audio.emit_event("play_sound", ["relic_legendary"])

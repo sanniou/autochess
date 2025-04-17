@@ -1,0 +1,97 @@
+[gd_scene load_steps=9 format=3 uid="uid://l4pl5tn6f7x6"]
+
+[ext_resource type="Script" path="res://scripts/effects/summon_effect.gd" id="1_yjr2t"]
+
+[sub_resource type="Gradient" id="Gradient_lfxnq"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.2, 0.8, 0.2, 1, 0.2, 0.8, 0.2, 0.8, 0.2, 0.8, 0.2, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ixvs3"]
+gradient = SubResource("Gradient_lfxnq")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_uxdnj"]
+emission_shape = 1
+emission_sphere_radius = 20.0
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 30.0
+gravity = Vector3(0, -50, 0)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 2.0
+scale_max = 3.0
+scale_curve = null
+color = Color(0.2, 0.8, 0.2, 0.8)
+color_ramp = SubResource("GradientTexture1D_ixvs3")
+
+[sub_resource type="Gradient" id="Gradient_glow"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0.4, 1, 0.4, 0.3, 0.4, 1, 0.4, 0.2, 0.4, 1, 0.4, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_glow"]
+gradient = SubResource("Gradient_glow")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_glow"]
+emission_shape = 1
+emission_sphere_radius = 30.0
+particle_flag_disable_z = true
+direction = Vector3(0, 0, 0)
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.0
+initial_velocity_max = 0.0
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 5.0
+scale_max = 8.0
+scale_curve = null
+color = Color(0.4, 1, 0.4, 0.3)
+color_ramp = SubResource("GradientTexture1D_glow")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_circle"]
+emission_shape = 6
+emission_ring_axis = Vector3(0, 0, 1)
+emission_ring_height = 1.0
+emission_ring_radius = 40.0
+emission_ring_inner_radius = 35.0
+particle_flag_disable_z = true
+direction = Vector3(0, 0, 0)
+spread = 0.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.0
+initial_velocity_max = 0.0
+orbit_velocity_min = 0.5
+orbit_velocity_max = 1.0
+scale_min = 2.0
+scale_max = 3.0
+scale_curve = null
+color = Color(0.1, 0.6, 0.1, 0.8)
+color_ramp = SubResource("GradientTexture1D_ixvs3")
+
+[node name="SummonEffect" type="Node2D"]
+script = ExtResource("1_yjr2t")
+
+[node name="SummonParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 30
+process_material = SubResource("ParticleProcessMaterial_uxdnj")
+lifetime = 1.0
+one_shot = true
+explosiveness = 0.5
+
+[node name="GlowParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 5
+process_material = SubResource("ParticleProcessMaterial_glow")
+lifetime = 1.0
+one_shot = true
+explosiveness = 0.3
+
+[node name="CircleParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 20
+process_material = SubResource("ParticleProcessMaterial_circle")
+lifetime = 1.2
+one_shot = true

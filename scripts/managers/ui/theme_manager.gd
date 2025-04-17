@@ -30,7 +30,7 @@ func _do_initialize() -> void:
 	load_theme(DEFAULT_THEME)
 
 	# 连接信号
-	EventBus.ui.theme_changed.connect(_on_theme_changed)
+	EventBus.ui.connect_event("theme_changed", _on_theme_changed)
 
 # 加载主题
 func load_theme(theme_name: String) -> void:
@@ -46,13 +46,13 @@ func load_theme(theme_name: String) -> void:
 
 	# 检查主题是否存在
 	if not ResourceLoader.exists(theme_path):
-		EventBus.debug.debug_message.emit("主题不存在: " + theme_path, 1)
+		EventBus.debug.emit_event("debug_message", ["主题不存在: " + theme_path, 1])
 		return
 
 	# 加载主题
 	var theme = ResourceLoader.load(theme_path)
 	if theme == null:
-		EventBus.debug.debug_message.emit("无法加载主题: " + theme_path, 1)
+		EventBus.debug.emit_event("debug_message", ["无法加载主题: " + theme_path, 1])
 		return
 
 	# 缓存主题
@@ -139,7 +139,7 @@ func save_theme(theme_name: String, theme: Theme) -> void:
 	# 保存主题
 	var err = ResourceSaver.save(theme, theme_path)
 	if err != OK:
-		EventBus.debug.debug_message.emit("无法保存主题: " + theme_path + ", 错误: " + str(err), 1)
+		EventBus.debug.emit_event("debug_message", ["无法保存主题: " + theme_path + ", 错误: " + str(err), 1])
 		return
 
 	# 缓存主题
@@ -148,13 +148,13 @@ func save_theme(theme_name: String, theme: Theme) -> void:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

@@ -102,7 +102,7 @@ func start_analysis() -> void:
 	# 发送分析开始信号
 	analysis_started.emit()
 	
-	EventBus.debug.debug_message.emit("开始性能分析", 0)
+	EventBus.debug.emit_event("debug_message", ["开始性能分析", 0])
 
 ## 停止性能分析并生成报告
 func stop_analysis() -> Dictionary:
@@ -115,7 +115,7 @@ func stop_analysis() -> Dictionary:
 	# 生成性能报告
 	var report = analyze_performance()
 	
-	EventBus.debug.debug_message.emit("停止性能分析", 0)
+	EventBus.debug.emit_event("debug_message", ["停止性能分析", 0])
 	
 	return report
 
@@ -155,22 +155,22 @@ func set_analysis_settings(settings: Dictionary) -> void:
 ## 启用性能分析
 func enable_analysis() -> void:
 	analysis_settings.enabled = true
-	EventBus.debug.debug_message.emit("性能分析已启用", 0)
+	EventBus.debug.emit_event("debug_message", ["性能分析已启用", 0])
 
 ## 禁用性能分析
 func disable_analysis() -> void:
 	analysis_settings.enabled = false
-	EventBus.debug.debug_message.emit("性能分析已禁用", 0)
+	EventBus.debug.emit_event("debug_message", ["性能分析已禁用", 0])
 
 ## 启用自动分析
 func enable_auto_analyze() -> void:
 	analysis_settings.auto_analyze = true
-	EventBus.debug.debug_message.emit("自动性能分析已启用", 0)
+	EventBus.debug.emit_event("debug_message", ["自动性能分析已启用", 0])
 
 ## 禁用自动分析
 func disable_auto_analyze() -> void:
 	analysis_settings.auto_analyze = false
-	EventBus.debug.debug_message.emit("自动性能分析已禁用", 0)
+	EventBus.debug.emit_event("debug_message", ["自动性能分析已禁用", 0])
 
 ## 获取性能报告
 func get_performance_report() -> Dictionary:
@@ -600,4 +600,4 @@ func _log_performance_report(report: Dictionary) -> void:
 		for recommendation in report.recommendations:
 			log_message += "- %s: %s\n" % [recommendation.title, recommendation.description]
 	
-	EventBus.debug.debug_message.emit(log_message, 0)
+	EventBus.debug.emit_event("debug_message", [log_message, 0])

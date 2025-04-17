@@ -26,6 +26,7 @@ var use_animations: bool = true
 var current_animation: String = ""
 
 # 引用
+@onready var EventBus = get_node_or_null("/root/EventBus")
 @onready var game_manager = get_node_or_null("/root/GameManager")
 @onready var config_manager = get_node_or_null("/root/ConfigManager")
 @onready var localization_manager = get_node_or_null("/root/LocalizationManager")
@@ -34,8 +35,7 @@ var current_animation: String = ""
 @onready var ui_manager = get_node_or_null("/root/GameManager/UIManager") if game_manager else null
 
 # 工具类
-@onready var text_utils = load("res://scripts/ui/text_utils.gd")
-@onready var ui_utils = load("res://scripts/ui/ui_utils.gd")
+@onready var utils = get_node_or_null("/root/Utils")
 
 # 初始化
 func _ready() -> void:
@@ -44,10 +44,10 @@ func _ready() -> void:
 		hud_name = get_script().resource_path.get_file().get_basename()
 
 	# 连接信号
-	EventBus.game.game_paused.connect(_on_game_paused)
-	EventBus.ui.theme_changed.connect(_on_theme_changed)
-	EventBus.ui.language_changed.connect(_on_language_changed)
-	EventBus.ui.scale_changed.connect(_on_scale_changed)
+	EventBus.game.connect_event("game_paused", _on_game_paused)
+	EventBus.ui.connect_event("theme_changed", _on_theme_changed)
+	EventBus.ui.connect_event("language_changed", _on_language_changed)
+	EventBus.ui.connect_event("scale_changed", _on_scale_changed)
 
 	# 初始化HUD
 	_initialize()
@@ -172,17 +172,14 @@ func _on_scale_changed(scale_factor: float) -> void:
 	pass
 
 # 获取本地化文本
-func tr(key: String, params: Array = []) -> String:
-	if text_utils:
-		return text_utils.tr(key, params)
-	return localization_manager.tr(key, params)
+func chess_tr(key: String, params: Array = []) -> String:
+	if utils:
+		return utils.translate(key, params)
+	return localization_manager.translate(key, params)
 
 # 播放UI音效
 func play_ui_sound(sound_name: String) -> void:
-	if audio_manager:
-		audio_manager.play_ui_sound(sound_name)
-	else:
-		AudioManager.play_ui_sound(sound_name)
+	audio_manager.play_ui_sound(sound_name)
 
 # 创建标签
 func create_label(text: String, font_size: int = 16, color: Color = Color.WHITE) -> Label:

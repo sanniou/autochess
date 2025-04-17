@@ -1,5 +1,4 @@
 extends "res://scripts/managers/core/base_manager.gd"
-class_name ConfigManager
 ## 配置管理器
 ## 负责加载和管理游戏配置数据
 ##
@@ -59,6 +58,11 @@ const CONFIG_MODEL_CLASSES = {
 # 是否处于调试模式
 var debug_mode = false
 
+# 初始化
+func _ready() -> void:
+	# 初始化管理器
+	initialize()
+
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
@@ -72,7 +76,10 @@ func _do_initialize() -> void:
 
 	# 连接调试相关信号
 	if debug_mode:
-		EventBus.debug.debug_command_executed.connect(_on_debug_command_executed)
+		EventBus.debug.connect_event("debug_command_executed", _on_debug_command_executed)
+
+	# 输出初始化完成信息
+	EventBus.debug.emit_event("debug_message", ["ConfigManager 初始化完成", 0])
 
 ## 加载所有配置文件
 func load_all_configs() -> void:
@@ -87,7 +94,7 @@ func load_all_configs() -> void:
 	if debug_mode:
 		validate_all_configs()
 
-	EventBus.debug.debug_message.emit("所有配置加载完成", 0)
+	EventBus.debug.emit_event("debug_message", ["所有配置加载完成", 0])
 
 ## 加载配置模型类
 func _load_config_model_classes() -> void:
@@ -107,7 +114,7 @@ func _load_config_model_classes() -> void:
 			config_models[config_type] = base_model
 
 			if debug_mode:
-				EventBus.debug.debug_message.emit("配置模型类不存在: " + model_path + "，使用基础模型类", 1)
+				EventBus.debug.emit_event("debug_message", ["配置模型类不存在: " + model_path + "，使用基础模型类", 1])
 
 ## 验证所有配置文件
 func validate_all_configs() -> bool:
@@ -122,7 +129,7 @@ func validate_all_configs() -> bool:
 ## 验证配置文件
 func validate_config(config_type: String) -> bool:
 	if not config_cache.has(config_type):
-		EventBus.debug.debug_message.emit("验证配置失败: 配置类型不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["验证配置失败: 配置类型不存在 - " + config_type, 2])
 		return false
 
 	var config_data = config_cache[config_type]
@@ -131,7 +138,7 @@ func validate_config(config_type: String) -> bool:
 	# 获取配置模型类
 	var model_class = config_models.get(config_type)
 	if not model_class:
-		EventBus.debug.debug_message.emit("验证配置失败: 配置模型类不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["验证配置失败: 配置模型类不存在 - " + config_type, 2])
 		return false
 
 	# 验证每个配置项
@@ -139,16 +146,16 @@ func validate_config(config_type: String) -> bool:
 		var model = model_class.new(config_id, config_data[config_id])
 
 		if not model.validate(config_data[config_id]):
-			EventBus.debug.debug_message.emit("配置验证失败: " + config_type + "." + config_id, 2)
+			EventBus.debug.emit_event("debug_message", ["配置验证失败: " + config_type + "." + config_id, 2])
 
 			# 输出验证错误
 			for error in model.get_validation_errors():
-				EventBus.debug.debug_message.emit("  - " + error, 2)
+				EventBus.debug.emit_event("debug_message", ["  - " + error, 2])
 
 			all_valid = false
 
 	if all_valid:
-		EventBus.debug.debug_message.emit("配置验证成功: " + config_type, 0)
+		EventBus.debug.emit_event("debug_message", ["配置验证成功: " + config_type, 0])
 
 	return all_valid
 
@@ -156,7 +163,7 @@ func validate_config(config_type: String) -> bool:
 func load_config(config_type: String) -> bool:
 	# 检查配置类型是否有效
 	if not CONFIG_PATH.has(config_type):
-		EventBus.debug.debug_message.emit("加载配置失败: 无效的配置类型 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["加载配置失败: 无效的配置类型 - " + config_type, 2])
 		return false
 
 	# 获取配置文件路径
@@ -165,20 +172,20 @@ func load_config(config_type: String) -> bool:
 	# 加载配置文件
 	var config_data = _load_json_file(file_path)
 	if config_data.is_empty():
-		EventBus.debug.debug_message.emit("加载配置失败: 配置文件为空 - " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["加载配置失败: 配置文件为空 - " + file_path, 2])
 		return false
 
 	# 缓存配置数据
 	config_cache[config_type] = config_data
 
-	EventBus.debug.debug_message.emit(config_type + " 配置加载完成", 0)
+	EventBus.debug.emit_event("debug_message", [config_type + " 配置加载完成", 0])
 	return true
 
 ## 获取配置项
 func get_config_item(config_type: String, config_id: String) -> Dictionary:
 	# 检查配置类型是否有效
 	if not config_cache.has(config_type):
-		EventBus.debug.debug_message.emit("获取配置项失败: 配置类型不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["获取配置项失败: 配置类型不存在 - " + config_type, 2])
 		return {}
 
 	# 获取配置数据
@@ -186,7 +193,7 @@ func get_config_item(config_type: String, config_id: String) -> Dictionary:
 
 	# 检查配置ID是否存在
 	if not config_data.has(config_id):
-		EventBus.debug.debug_message.emit("获取配置项失败: 配置ID不存在 - " + config_type + "." + config_id, 2)
+		EventBus.debug.emit_event("debug_message", ["获取配置项失败: 配置ID不存在 - " + config_type + "." + config_id, 2])
 		return {}
 
 	return config_data[config_id].duplicate(true)
@@ -195,7 +202,7 @@ func get_config_item(config_type: String, config_id: String) -> Dictionary:
 func get_config_model(config_type: String, config_id: String) -> ConfigModel:
 	# 检查配置类型是否有效
 	if not config_cache.has(config_type):
-		EventBus.debug.debug_message.emit("获取配置模型失败: 配置类型不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["获取配置模型失败: 配置类型不存在 - " + config_type, 2])
 		return null
 
 	# 获取配置数据
@@ -203,13 +210,13 @@ func get_config_model(config_type: String, config_id: String) -> ConfigModel:
 
 	# 检查配置ID是否存在
 	if not config_data.has(config_id):
-		EventBus.debug.debug_message.emit("获取配置模型失败: 配置ID不存在 - " + config_type + "." + config_id, 2)
+		EventBus.debug.emit_event("debug_message", ["获取配置模型失败: 配置ID不存在 - " + config_type + "." + config_id, 2])
 		return null
 
 	# 获取配置模型类
 	var model_class = config_models.get(config_type)
 	if not model_class:
-		EventBus.debug.debug_message.emit("获取配置模型失败: 配置模型类不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["获取配置模型失败: 配置模型类不存在 - " + config_type, 2])
 		return null
 
 	# 创建配置模型
@@ -219,7 +226,7 @@ func get_config_model(config_type: String, config_id: String) -> ConfigModel:
 func get_all_config_items(config_type: String) -> Dictionary:
 	# 检查配置类型是否有效
 	if not config_cache.has(config_type):
-		EventBus.debug.debug_message.emit("获取所有配置项失败: 配置类型不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["获取所有配置项失败: 配置类型不存在 - " + config_type, 2])
 		return {}
 
 	return config_cache[config_type].duplicate(true)
@@ -228,7 +235,7 @@ func get_all_config_items(config_type: String) -> Dictionary:
 func get_all_config_models(config_type: String) -> Dictionary:
 	# 检查配置类型是否有效
 	if not config_cache.has(config_type):
-		EventBus.debug.debug_message.emit("获取所有配置模型失败: 配置类型不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["获取所有配置模型失败: 配置类型不存在 - " + config_type, 2])
 		return {}
 
 	# 获取配置数据
@@ -237,7 +244,7 @@ func get_all_config_models(config_type: String) -> Dictionary:
 	# 获取配置模型类
 	var model_class = config_models.get(config_type)
 	if not model_class:
-		EventBus.debug.debug_message.emit("获取所有配置模型失败: 配置模型类不存在 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["获取所有配置模型失败: 配置模型类不存在 - " + config_type, 2])
 		return {}
 
 	# 创建配置模型
@@ -259,7 +266,7 @@ func get_all_config_files() -> Dictionary:
 func reload_config(config_type: String) -> bool:
 	# 检查配置类型是否有效
 	if not CONFIG_PATH.has(config_type):
-		EventBus.debug.debug_message.emit("重新加载配置失败: 无效的配置类型 - " + config_type, 2)
+		EventBus.debug.emit_event("debug_message", ["重新加载配置失败: 无效的配置类型 - " + config_type, 2])
 		return false
 
 	# 清除缓存
@@ -277,7 +284,7 @@ func reload_all_configs() -> void:
 	# 加载所有配置
 	load_all_configs()
 
-	EventBus.debug.debug_message.emit("所有配置已重新加载", 0)
+	EventBus.debug.emit_event("debug_message", ["所有配置已重新加载", 0])
 
 ## 从JSON文件加载配置
 func _load_json_file(file_path: String) -> Variant:
@@ -285,12 +292,12 @@ func _load_json_file(file_path: String) -> Variant:
 		# 如果文件不存在，创建一个空的配置文件
 		if debug_mode:
 			_create_empty_config_file(file_path)
-		EventBus.debug.debug_message.emit("配置文件不存在: " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["配置文件不存在: " + file_path, 2])
 		return {}
 
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if file == null:
-		EventBus.debug.debug_message.emit("无法打开配置文件: " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法打开配置文件: " + file_path, 2])
 		return {}
 
 	var json_text = file.get_as_text()
@@ -299,7 +306,7 @@ func _load_json_file(file_path: String) -> Variant:
 	var json = JSON.new()
 	var error = json.parse(json_text)
 	if error != OK:
-		EventBus.debug.debug_message.emit("解析配置文件失败: " + file_path + ", 行 " + str(json.get_error_line()) + ": " + json.get_error_message(), 2)
+		EventBus.debug.emit_event("debug_message", ["解析配置文件失败: " + file_path + ", 行 " + str(json.get_error_line()) + ": " + json.get_error_message(), 2])
 		return {}
 
 	return json.get_data()
@@ -313,12 +320,12 @@ func _create_empty_config_file(file_path: String) -> bool:
 
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	if file == null:
-		EventBus.debug.debug_message.emit("无法创建配置文件: " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法创建配置文件: " + file_path, 2])
 		return false
 
 	file.store_string("{}")
 	file.close()
-	EventBus.debug.debug_message.emit("创建空配置文件: " + file_path, 0)
+	EventBus.debug.emit_event("debug_message", ["创建空配置文件: " + file_path, 0])
 	return true
 
 ## 保存JSON文件
@@ -330,13 +337,13 @@ func save_json(file_path: String, data: Variant) -> bool:
 
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	if file == null:
-		EventBus.debug.debug_message.emit("无法打开配置文件进行写入: " + file_path, 2)
+		EventBus.debug.emit_event("debug_message", ["无法打开配置文件进行写入: " + file_path, 2])
 		return false
 
 	var json_text = JSON.stringify(data, "\t")
 	file.store_string(json_text)
 	file.close()
-	EventBus.debug.debug_message.emit("配置文件已保存: " + file_path, 0)
+	EventBus.debug.emit_event("debug_message", ["配置文件已保存: " + file_path, 0])
 	return true
 
 ## 加载指定配置
@@ -479,13 +486,30 @@ func get_equipments_by_rarity(rarities: Array) -> Array[EquipmentConfig]:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+## 获取装备合成配方
+func get_equipment_recipes() -> Array:
+	var recipes = []
+	var all_equipment = get_all_config_items("equipment")
+
+	for equipment_id in all_equipment:
+		var equipment_data = all_equipment[equipment_id]
+
+		# 检查是否有合成配方
+		if equipment_data.has("recipe") and equipment_data.recipe.size() >= 2:
+			recipes.append({
+				"ingredients": equipment_data.recipe,
+				"result": equipment_id
+			})
+
+	return recipes

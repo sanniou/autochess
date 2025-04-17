@@ -115,7 +115,7 @@ func _display_event(event: Event) -> void:
 # 选项按钮处理
 func _on_option_button_pressed(option: Dictionary) -> void:
 	# 触发选项选择信号
-	EventBus.event.event_option_selected.emit(selected_event, option)
+	EventBus.event.emit_event("event_option_selected", [selected_event, option])
 
 # 事件选项选择处理
 func _on_event_option_selected(event: Event, option: Dictionary) -> void:

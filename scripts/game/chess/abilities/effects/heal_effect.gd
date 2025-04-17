@@ -19,10 +19,10 @@ func apply() -> void:
 	var final_heal = target.heal(heal_amount, source)
 
 	# 发送效果应用信号
-	EventBus.battle.ability_effect_applied.emit(source, target, "heal", final_heal)
+	EventBus.battle.emit_event("ability_effect_applied", [source, target, "heal", final_heal])
 
-	# 发送治疗信号
-	EventBus.battle.heal_received.emit(target, final_heal, source)
+	# 注意：治疗信号已经在 ChessPiece.heal() 方法中发送
+	# 这里不需要重复发送 heal_received 事件
 
 	# 播放治疗特效
 	_play_heal_effect()

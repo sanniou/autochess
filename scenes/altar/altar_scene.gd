@@ -8,6 +8,7 @@ var altar_type: String = ""
 
 # 引用
 @onready var game_manager = get_node("/root/GameManager")
+@onready var EventBus = get_node("/root/EventBus")
 @onready var ui_manager = game_manager.ui_manager
 
 # 初始化
@@ -18,7 +19,7 @@ func _ready() -> void:
 		altar_type = altar_params.get("altar_type", "")
 
 	# 连接信号
-	EventBus.map.altar_sacrifice_made.connect(_on_altar_sacrifice_made)
+	EventBus.map.connect_event("altar_sacrifice_made", _on_altar_sacrifice_made)
 
 	# 播放背景音乐
 	AudioManager.play_music("altar_theme.ogg")

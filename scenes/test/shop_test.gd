@@ -115,7 +115,7 @@ func _on_buy_button_pressed(item: Dictionary) -> void:
 	_update_player_info()
 	
 	# 发送购买信号
-	EventBus.economy.shop_item_purchased.emit(item)
+	EventBus.economy.emit_event("shop_item_purchased", [item])
 	
 	# 显示购买成功提示
 	var dialog = AcceptDialog.new()

@@ -1,224 +1,131 @@
 {
-  "dark_theme": {
-    "board": {
-      "background": "board/dark_board.png",
-      "cell_hover": "board/dark_cell_hover.png",
-      "cell_invalid": "board/dark_cell_invalid.png",
-      "cell_normal": "board/dark_cell_normal.png",
-      "cell_selected": "board/dark_cell_selected.png",
-      "cell_valid": "board/dark_cell_valid.png"
-    },
-    "chess_pieces": {
-      "archer_1": "chess/dark/archer_1.png",
-      "assassin_1": "chess/dark/assassin_1.png",
-      "mage_1": "chess/dark/mage_1.png",
-      "support_1": "chess/dark/support_1.png",
-      "warrior_1": "chess/dark/warrior_1.png"
-    },
-    "description": "暗色调的游戏皮肤。",
-    "effects": {
-      "attack": "effects/dark_attack.png",
-      "buff": "effects/dark_buff.png",
-      "debuff": "effects/dark_debuff.png",
-      "heal": "effects/dark_heal.png",
-      "level_up": "effects/dark_level_up.png"
-    },
-    "id": "dark_theme",
-    "map": {
-      "background": "map/dark_map_bg.png",
-      "node_battle": "map/dark_node_battle.png",
-      "node_boss": "map/dark_node_boss.png",
-      "node_elite_battle": "map/dark_node_elite_battle.png",
-      "node_event": "map/dark_node_event.png",
-      "node_rest": "map/dark_node_rest.png",
-      "node_shop": "map/dark_node_shop.png",
-      "node_treasure": "map/dark_node_treasure.png",
-      "path_normal": "map/dark_path_normal.png",
-      "path_selected": "map/dark_path_selected.png"
-    },
-    "music": {
-      "battle": "bgm/dark_battle.ogg",
-      "game_over": "bgm/dark_game_over.ogg",
-      "main_menu": "bgm/dark_main_menu.ogg",
-      "map": "bgm/dark_map.ogg",
-      "shop": "bgm/dark_shop.ogg",
-      "victory": "bgm/dark_victory.ogg"
-    },
-    "name": "暗黑主题",
-    "price": 1000.0,
-    "sounds": {
-      "battle_start": "battle/dark_battle_start.ogg",
-      "button_click": "ui/dark_button_click.ogg",
-      "chess_ability": "chess/dark_chess_ability.ogg",
-      "chess_attack": "chess/dark_chess_attack.ogg",
-      "chess_place": "chess/dark_chess_place.ogg",
-      "defeat": "battle/dark_defeat.ogg",
-      "item_pickup": "item/dark_item_pickup.ogg",
-      "level_up": "player/dark_level_up.ogg",
-      "victory": "battle/dark_victory.ogg"
-    },
-    "type": "normal",
-    "ui": {
-      "button_hover": "ui/dark_button_hover.png",
-      "button_normal": "ui/dark_button_normal.png",
-      "button_pressed": "ui/dark_button_pressed.png",
-      "dialog_background": "ui/dark_dialog_background.png",
-      "experience_icon": "ui/dark_experience_icon.png",
-      "gold_icon": "ui/dark_gold_icon.png",
-      "health_bar": "ui/dark_health_bar.png",
-      "main_menu_background": "backgrounds/dark_menu_bg.png",
-      "mana_bar": "ui/dark_mana_bar.png",
-      "panel_background": "ui/dark_panel_background.png",
-      "tooltip_background": "ui/dark_tooltip_background.png"
-    },
-    "unlocked": false
-  },
   "default": {
-    "board": {
-      "background": "board/default_board.png",
-      "cell_hover": "board/cell_hover.png",
-      "cell_invalid": "board/cell_invalid.png",
-      "cell_normal": "board/cell_normal.png",
-      "cell_selected": "board/cell_selected.png",
-      "cell_valid": "board/cell_valid.png"
-    },
-    "chess_pieces": {
-      "archer_1": "chess/default/archer_1.png",
-      "assassin_1": "chess/default/assassin_1.png",
-      "mage_1": "chess/default/mage_1.png",
-      "support_1": "chess/default/support_1.png",
-      "warrior_1": "chess/default/warrior_1.png"
-    },
-    "description": "默认游戏皮肤。",
-    "effects": {
-      "attack": "effects/default_attack.png",
-      "buff": "effects/default_buff.png",
-      "debuff": "effects/default_debuff.png",
-      "heal": "effects/default_heal.png",
-      "level_up": "effects/default_level_up.png"
-    },
     "id": "default",
-    "map": {
-      "background": "map/default_map_bg.png",
-      "node_battle": "map/node_battle.png",
-      "node_boss": "map/node_boss.png",
-      "node_elite_battle": "map/node_elite_battle.png",
-      "node_event": "map/node_event.png",
-      "node_rest": "map/node_rest.png",
-      "node_shop": "map/node_shop.png",
-      "node_treasure": "map/node_treasure.png",
-      "path_normal": "map/path_normal.png",
-      "path_selected": "map/path_selected.png"
+    "name": "默认主题",
+    "description": "默认的游戏主题，包含基础的棋子、棋盘和UI外观。",
+    "type": "theme",
+    "rarity": 0,
+    "price": 0,
+    "assets": {
+      "chess": {
+        "warrior_1": "res://assets/skins/default/chess/warrior_1.png",
+        "warrior_2": "res://assets/skins/default/chess/warrior_2.png",
+        "mage_1": "res://assets/skins/default/chess/mage_1.png",
+        "mage_2": "res://assets/skins/default/chess/mage_2.png",
+        "archer_1": "res://assets/skins/default/chess/archer_1.png",
+        "archer_2": "res://assets/skins/default/chess/archer_2.png"
+      },
+      "board": {
+        "background": "res://assets/skins/default/board/background.png",
+        "cell_normal": "res://assets/skins/default/board/cell_normal.png",
+        "cell_highlighted": "res://assets/skins/default/board/cell_highlighted.png",
+        "cell_selected": "res://assets/skins/default/board/cell_selected.png"
+      },
+      "ui": {
+        "button_normal": "res://assets/skins/default/ui/button_normal.png",
+        "button_pressed": "res://assets/skins/default/ui/button_pressed.png",
+        "panel_background": "res://assets/skins/default/ui/panel_background.png",
+        "health_bar": "res://assets/skins/default/ui/health_bar.png",
+        "mana_bar": "res://assets/skins/default/ui/mana_bar.png"
+      }
+    }
+  },
+  "dark": {
+    "id": "dark",
+    "name": "暗黑主题",
+    "description": "暗黑风格的游戏主题，包含暗色调的棋子、棋盘和UI外观。",
+    "type": "theme",
+    "rarity": 2,
+    "price": 1000,
+    "unlock_condition": {
+      "type": "gold",
+      "value": 1000
     },
-    "music": {
-      "battle": "bgm/battle.ogg",
-      "game_over": "bgm/game_over.ogg",
-      "main_menu": "bgm/main_menu.ogg",
-      "map": "bgm/map.ogg",
-      "shop": "bgm/shop.ogg",
-      "victory": "bgm/victory.ogg"
-    },
-    "name": "默认皮肤",
-    "price": 0.0,
-    "sounds": {
-      "battle_start": "battle/battle_start.ogg",
-      "button_click": "ui/button_click.ogg",
-      "chess_ability": "chess/chess_ability.ogg",
-      "chess_attack": "chess/chess_attack.ogg",
-      "chess_place": "chess/chess_place.ogg",
-      "defeat": "battle/defeat.ogg",
-      "item_pickup": "item/item_pickup.ogg",
-      "level_up": "player/level_up.ogg",
-      "victory": "battle/victory.ogg"
-    },
-    "type": "normal",
-    "ui": {
-      "button_hover": "ui/button_hover.png",
-      "button_normal": "ui/button_normal.png",
-      "button_pressed": "ui/button_pressed.png",
-      "dialog_background": "ui/dialog_background.png",
-      "experience_icon": "ui/experience_icon.png",
-      "gold_icon": "ui/gold_icon.png",
-      "health_bar": "ui/health_bar.png",
-      "main_menu_background": "backgrounds/main_menu_bg.png",
-      "mana_bar": "ui/mana_bar.png",
-      "panel_background": "ui/panel_background.png",
-      "tooltip_background": "ui/tooltip_background.png"
-    },
-    "unlocked": true
+    "assets": {
+      "chess": {
+        "warrior_1": "res://assets/skins/dark/chess/warrior_1.png",
+        "warrior_2": "res://assets/skins/dark/chess/warrior_2.png",
+        "mage_1": "res://assets/skins/dark/chess/mage_1.png",
+        "mage_2": "res://assets/skins/dark/chess/mage_2.png",
+        "archer_1": "res://assets/skins/dark/chess/archer_1.png",
+        "archer_2": "res://assets/skins/dark/chess/archer_2.png"
+      },
+      "board": {
+        "background": "res://assets/skins/dark/board/background.png",
+        "cell_normal": "res://assets/skins/dark/board/cell_normal.png",
+        "cell_highlighted": "res://assets/skins/dark/board/cell_highlighted.png",
+        "cell_selected": "res://assets/skins/dark/board/cell_selected.png"
+      },
+      "ui": {
+        "button_normal": "res://assets/skins/dark/ui/button_normal.png",
+        "button_pressed": "res://assets/skins/dark/ui/button_pressed.png",
+        "panel_background": "res://assets/skins/dark/ui/panel_background.png",
+        "health_bar": "res://assets/skins/dark/ui/health_bar.png",
+        "mana_bar": "res://assets/skins/dark/ui/mana_bar.png"
+      }
+    }
   },
   "fantasy": {
-    "board": {
-      "background": "board/fantasy_board.png",
-      "cell_hover": "board/fantasy_cell_hover.png",
-      "cell_invalid": "board/fantasy_cell_invalid.png",
-      "cell_normal": "board/fantasy_cell_normal.png",
-      "cell_selected": "board/fantasy_cell_selected.png",
-      "cell_valid": "board/fantasy_cell_valid.png"
-    },
-    "chess_pieces": {
-      "archer_1": "chess/fantasy/archer_1.png",
-      "assassin_1": "chess/fantasy/assassin_1.png",
-      "mage_1": "chess/fantasy/mage_1.png",
-      "support_1": "chess/fantasy/support_1.png",
-      "warrior_1": "chess/fantasy/warrior_1.png"
-    },
-    "description": "充满魔法元素的游戏皮肤。",
-    "effects": {
-      "attack": "effects/fantasy_attack.png",
-      "buff": "effects/fantasy_buff.png",
-      "debuff": "effects/fantasy_debuff.png",
-      "heal": "effects/fantasy_heal.png",
-      "level_up": "effects/fantasy_level_up.png"
-    },
     "id": "fantasy",
-    "map": {
-      "background": "map/fantasy_map_bg.png",
-      "node_battle": "map/fantasy_node_battle.png",
-      "node_boss": "map/fantasy_node_boss.png",
-      "node_elite_battle": "map/fantasy_node_elite_battle.png",
-      "node_event": "map/fantasy_node_event.png",
-      "node_rest": "map/fantasy_node_rest.png",
-      "node_shop": "map/fantasy_node_shop.png",
-      "node_treasure": "map/fantasy_node_treasure.png",
-      "path_normal": "map/fantasy_path_normal.png",
-      "path_selected": "map/fantasy_path_selected.png"
+    "name": "奇幻棋子",
+    "description": "奇幻风格的棋子皮肤，为棋子增添魔幻色彩。",
+    "type": "chess",
+    "rarity": 3,
+    "price": 1500,
+    "unlock_condition": {
+      "type": "win_count",
+      "value": 10
     },
-    "music": {
-      "battle": "bgm/fantasy_battle.ogg",
-      "game_over": "bgm/fantasy_game_over.ogg",
-      "main_menu": "bgm/fantasy_main_menu.ogg",
-      "map": "bgm/fantasy_map.ogg",
-      "shop": "bgm/fantasy_shop.ogg",
-      "victory": "bgm/fantasy_victory.ogg"
+    "assets": {
+      "chess": {
+        "warrior_1": "res://assets/skins/fantasy/chess/warrior_1.png",
+        "warrior_2": "res://assets/skins/fantasy/chess/warrior_2.png",
+        "mage_1": "res://assets/skins/fantasy/chess/mage_1.png",
+        "mage_2": "res://assets/skins/fantasy/chess/mage_2.png",
+        "archer_1": "res://assets/skins/fantasy/chess/archer_1.png",
+        "archer_2": "res://assets/skins/fantasy/chess/archer_2.png"
+      }
+    }
+  },
+  "crystal": {
+    "id": "crystal",
+    "name": "水晶棋盘",
+    "description": "晶莹剔透的水晶棋盘，闪烁着神秘的光芒。",
+    "type": "board",
+    "rarity": 4,
+    "price": 2000,
+    "unlock_condition": {
+      "type": "level",
+      "value": 20
     },
-    "name": "奇幻主题",
-    "price": 1500.0,
-    "sounds": {
-      "battle_start": "battle/fantasy_battle_start.ogg",
-      "button_click": "ui/fantasy_button_click.ogg",
-      "chess_ability": "chess/fantasy_chess_ability.ogg",
-      "chess_attack": "chess/fantasy_chess_attack.ogg",
-      "chess_place": "chess/fantasy_chess_place.ogg",
-      "defeat": "battle/fantasy_defeat.ogg",
-      "item_pickup": "item/fantasy_item_pickup.ogg",
-      "level_up": "player/fantasy_level_up.ogg",
-      "victory": "battle/fantasy_victory.ogg"
+    "assets": {
+      "board": {
+        "background": "res://assets/skins/crystal/board/background.png",
+        "cell_normal": "res://assets/skins/crystal/board/cell_normal.png",
+        "cell_highlighted": "res://assets/skins/crystal/board/cell_highlighted.png",
+        "cell_selected": "res://assets/skins/crystal/board/cell_selected.png"
+      }
+    }
+  },
+  "neon": {
+    "id": "neon",
+    "name": "霓虹界面",
+    "description": "充满未来感的霓虹界面，让游戏更加炫酷。",
+    "type": "ui",
+    "rarity": 3,
+    "price": 1200,
+    "unlock_condition": {
+      "type": "achievement",
+      "value": "complete_tutorial"
     },
-    "type": "normal",
-    "ui": {
-      "button_hover": "ui/fantasy_button_hover.png",
-      "button_normal": "ui/fantasy_button_normal.png",
-      "button_pressed": "ui/fantasy_button_pressed.png",
-      "dialog_background": "ui/fantasy_dialog_background.png",
-      "experience_icon": "ui/fantasy_experience_icon.png",
-      "gold_icon": "ui/fantasy_gold_icon.png",
-      "health_bar": "ui/fantasy_health_bar.png",
-      "main_menu_background": "backgrounds/fantasy_menu_bg.png",
-      "mana_bar": "ui/fantasy_mana_bar.png",
-      "panel_background": "ui/fantasy_panel_background.png",
-      "tooltip_background": "ui/fantasy_tooltip_background.png"
-    },
-    "unlocked": false
+    "assets": {
+      "ui": {
+        "button_normal": "res://assets/skins/neon/ui/button_normal.png",
+        "button_pressed": "res://assets/skins/neon/ui/button_pressed.png",
+        "panel_background": "res://assets/skins/neon/ui/panel_background.png",
+        "health_bar": "res://assets/skins/neon/ui/health_bar.png",
+        "mana_bar": "res://assets/skins/neon/ui/mana_bar.png"
+      }
+    }
   }
 }

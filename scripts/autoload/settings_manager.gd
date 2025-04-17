@@ -74,7 +74,7 @@ func load_settings() -> void:
 			# 合并设置
 			_merge_settings(current_settings, data)
 		else:
-			EventBus.debug.debug_message.emit("无法解析设置文件: " + json.get_error_message(), 1)
+			EventBus.debug.emit_event("debug_message", ["无法解析设置文件: " + json.get_error_message(), 1])
 
 	# 发送设置变化信号
 	settings_changed.emit(current_settings)
@@ -105,7 +105,7 @@ func apply_settings() -> void:
 		audio_manager.set_music_volume(current_settings.audio.music_volume)
 		audio_manager.set_sfx_volume(current_settings.audio.sfx_volume)
 	else:
-		EventBus.debug.debug_message.emit("无法获取AudioManager引用", 1)
+		EventBus.debug.emit_event("debug_message", ["无法获取AudioManager引用", 1])
 
 	# 应用显示设置
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if current_settings.display.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
@@ -124,8 +124,8 @@ func apply_settings() -> void:
 	var language_codes = ["zh_CN"]
 	if current_settings.game.language < language_codes.size():
 		var language_code = language_codes[current_settings.game.language]
-		EventBus.localization.language_changed.emit(language_code)
-		EventBus.debug.debug_message.emit("通过EventBus设置语言: " + language_code, 0)
+		EventBus.localization.emit_event("language_changed", [language_code])
+		EventBus.debug.emit_event("debug_message", ["通过EventBus设置语言: " + language_code, 0])
 
 # 获取设置
 func get_settings() -> Dictionary:
@@ -174,13 +174,13 @@ func _merge_settings(target: Dictionary, source: Dictionary) -> void:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

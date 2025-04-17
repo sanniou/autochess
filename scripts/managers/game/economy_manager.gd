@@ -39,7 +39,6 @@ var economy_params = {
 
 # 引用
 @onready var player_manager = get_node("/root/GameManager/PlayerManager")
-@onready var config_manager = get_node("/root/ConfigManager")
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -49,19 +48,22 @@ func _do_initialize() -> void:
 	add_dependency("ConfigManager")
 	# 添加依赖
 	add_dependency("GameManager")
-	
+
 	# 原 _ready 函数的内容
-	# 连接信号
-		EventBus.battle.battle_round_started.connect(_on_battle_round_started)
-		EventBus.economy.shop_refreshed.connect(_on_shop_refreshed)
-		EventBus.economy.item_purchased.connect(_on_item_purchased)
-		EventBus.economy.item_sold.connect(_on_item_sold)
-		EventBus.difficulty_changed.connect(_on_difficulty_changed)
-	
-		# 加载难度设置
-		_load_difficulty_settings()
-	
-	# 计算回合收入
+	# 加载事件定义
+	var event_definitions = load("res://scripts/events/event_definitions.gd")
+
+	# 连接信号 - 使用规范的事件连接方式
+	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
+	EventBus.economy.connect_event("shop_refreshed", _on_shop_refreshed)
+	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
+	EventBus.economy.connect_event("item_sold", _on_item_sold)
+	EventBus.game.connect_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, _on_difficulty_changed)
+
+	# 加载难度设置
+	_load_difficulty_settings()
+
+# 计算回合收入
 func calculate_round_income(player: Player) -> int:
 	var income = economy_params.base_income
 
@@ -145,7 +147,7 @@ func _on_battle_round_started(round_number: int) -> void:
 		player.add_gold(income)
 
 		# 发送收入发放信号
-		EventBus.economy.income_granted.emit(income)
+		EventBus.economy.emit_event("income_granted", [income])
 
 		# 添加自动经验
 		player.add_exp(2)
@@ -220,31 +222,39 @@ func _load_difficulty_settings() -> void:
 	# 获取当前难度级别
 	var game_manager = get_node("/root/GameManager")
 	if game_manager == null:
+		_log_warning("GameManager 不存在，使用默认难度设置")
 		return
 
 	var difficulty_level = game_manager.difficulty_level
+	_log_info("当前难度级别: " + str(difficulty_level))
 
-	# 加载难度配置
-	var difficulty_config = config_manager.difficulty_config
-	if difficulty_config == null or not difficulty_config.has("economy"):
+	# 获取难度配置
+	var config_manager = get_node("/root/ConfigManager")
+	if config_manager == null:
+		_log_warning("ConfigManager 不存在，使用默认难度设置")
 		return
 
-	var economy_config = difficulty_config.economy
+	# 从配置管理器获取难度配置
+	var difficulty_data = config_manager.get_config_item("difficulty", str(difficulty_level))
+	if difficulty_data.is_empty():
+		_log_warning("难度配置不存在: " + str(difficulty_level) + "，使用默认难度设置")
+		return
 
-	# 根据难度级别调整经济参数
+	# 直接使用配置中的 player_gold_multiplier 作为难度修正器
+	economy_params.difficulty_modifier = difficulty_data.get("player_gold_multiplier", 1.0)
+
+	# 根据难度级别设置破产保护
 	match difficulty_level:
-		1: # 简单
-			economy_params.difficulty_modifier = economy_config.get("easy_modifier", 1.2)
+		1, 2: # 简单和正常难度开启破产保护
 			economy_params.bankruptcy_protection = true
-		2: # 正常
-			economy_params.difficulty_modifier = economy_config.get("normal_modifier", 1.0)
-			economy_params.bankruptcy_protection = true
-		3: # 困难
-			economy_params.difficulty_modifier = economy_config.get("hard_modifier", 0.8)
+		3, 4: # 困难和专家难度关闭破产保护
 			economy_params.bankruptcy_protection = false
-		_: # 默认
-			economy_params.difficulty_modifier = 1.0
+		_: # 默认开启破产保护
 			economy_params.bankruptcy_protection = true
+
+	_log_info("已设置难度级别 " + str(difficulty_level) + " 的经济参数:")
+	_log_info("- 难度修正器: " + str(economy_params.difficulty_modifier))
+	_log_info("- 破产保护: " + str(economy_params.bankruptcy_protection))
 
 # 难度变化事件处理
 func _on_difficulty_changed(old_level: int, new_level: int) -> void:
@@ -252,7 +262,7 @@ func _on_difficulty_changed(old_level: int, new_level: int) -> void:
 	_load_difficulty_settings()
 
 # 重置管理器
-func reset() -> void:
+func reset() -> bool:
 	# 重置经济参数
 	economy_params = {
 		"base_income": BASE_INCOME,
@@ -267,17 +277,18 @@ func reset() -> void:
 
 	# 重新加载难度设置
 	_load_difficulty_settings()
+	return true
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	_error = error_message
-	EventBus.debug.debug_message.emit(error_message, 2)
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
 	error_occurred.emit(error_message)
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
-	EventBus.debug.debug_message.emit(warning_message, 1)
+	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
 # 记录信息
 func _log_info(info_message: String) -> void:
-	EventBus.debug.debug_message.emit(info_message, 0)
+	EventBus.debug.emit_event("debug_message", [info_message, 0])

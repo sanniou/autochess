@@ -98,7 +98,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 					validation_errors.append("效果值必须是数字")
 
 # 获取遗物名称
-func get_name() -> String:
+func get_relic_name() -> String:
 	return data.get("name", "")
 
 # 获取遗物描述

@@ -41,4 +41,4 @@ func _on_gui_input(event: InputEvent) -> void:
 		relic_clicked.emit(relic)
 		
 		# 发送显示遗物信息信号
-		EventBus.relic.show_relic_info.emit(relic)
+		EventBus.relic.emit_event("show_relic_info", [relic])

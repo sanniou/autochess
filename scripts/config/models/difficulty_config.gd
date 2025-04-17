@@ -69,57 +69,62 @@ func _get_default_schema() -> Dictionary:
 			"type": "dictionary",
 			"required": false,
 			"description": "敌人缩放"
+		},
+		"player_gold_multiplier": {
+			"type": "float",
+			"required": true,
+			"description": "玩家金币乘数"
 		}
 	}
 
 # 验证自定义规则
 func _validate_custom_rules(config_data: Dictionary) -> void:
 	# 验证乘数范围
-	for multiplier_field in ["enemy_health_multiplier", "enemy_damage_multiplier", "gold_reward_multiplier", "exp_reward_multiplier"]:
+	for multiplier_field in ["enemy_health_multiplier", "enemy_damage_multiplier", "gold_reward_multiplier", "exp_reward_multiplier", "player_gold_multiplier"]:
 		if config_data.has(multiplier_field):
 			var value = config_data[multiplier_field]
 			if value <= 0:
 				validation_errors.append(multiplier_field + "必须大于0")
-	
+
 	# 验证初始金币
 	if config_data.has("starting_gold") and config_data.starting_gold < 0:
 		validation_errors.append("初始金币必须大于等于0")
-	
+
 	# 验证初始生命值
 	if config_data.has("starting_health") and config_data.starting_health <= 0:
 		validation_errors.append("初始生命值必须大于0")
-	
+
 	# 验证商店刷新费用
 	if config_data.has("shop_refresh_cost") and config_data.shop_refresh_cost < 0:
 		validation_errors.append("商店刷新费用必须大于等于0")
-	
+
 	# 验证最大生命值
 	if config_data.has("max_health") and config_data.max_health <= 0:
 		validation_errors.append("最大生命值必须大于0")
-	
+
 	# 验证敌人缩放
 	if config_data.has("enemy_scaling") and config_data.enemy_scaling is Dictionary:
 		for round_key in config_data.enemy_scaling:
 			if not round_key.is_valid_int():
 				validation_errors.append("敌人缩放的回合键必须是整数")
 				continue
-			
+
 			var round_value = config_data.enemy_scaling[round_key]
 			if not round_value is Dictionary:
 				validation_errors.append("敌人缩放的回合值必须是字典")
 				continue
-			
+
 			for stat in round_value:
 				if not ["health", "damage"].has(stat):
 					validation_errors.append("敌人缩放的统计类型必须是health或damage")
 					continue
-				
+
 				var stat_value = round_value[stat]
 				if not (stat_value is int or stat_value is float) or stat_value <= 0:
 					validation_errors.append("敌人缩放的统计值必须是大于0的数字")
 
 # 获取难度名称
-func get_name() -> String:
+func get_difficulty_name() -> String:
 	return data.get("name", "")
 
 # 获取难度描述
@@ -162,11 +167,15 @@ func get_max_health() -> int:
 func get_enemy_scaling() -> Dictionary:
 	return data.get("enemy_scaling", {})
 
+# 获取玩家金币乘数
+func get_player_gold_multiplier() -> float:
+	return data.get("player_gold_multiplier", 1.0)
+
 # 获取特定回合的敌人缩放
 func get_enemy_scaling_for_round(round_number: int) -> Dictionary:
 	var scaling = get_enemy_scaling()
 	var result = {"health": 1.0, "damage": 1.0}
-	
+
 	for round_key in scaling:
 		var round_value = int(round_key)
 		if round_number >= round_value:
@@ -174,19 +183,19 @@ func get_enemy_scaling_for_round(round_number: int) -> Dictionary:
 				result.health = scaling[round_key].health
 			if scaling[round_key].has("damage"):
 				result.damage = scaling[round_key].damage
-	
+
 	return result
 
 # 计算特定回合的敌人生命值乘数
 func calculate_enemy_health_multiplier(round_number: int) -> float:
 	var base_multiplier = get_enemy_health_multiplier()
 	var scaling = get_enemy_scaling_for_round(round_number)
-	
+
 	return base_multiplier * scaling.health
 
 # 计算特定回合的敌人伤害乘数
 func calculate_enemy_damage_multiplier(round_number: int) -> float:
 	var base_multiplier = get_enemy_damage_multiplier()
 	var scaling = get_enemy_scaling_for_round(round_number)
-	
+
 	return base_multiplier * scaling.damage

@@ -50,8 +50,8 @@ class StatusEffect:
 # 初始化
 func _ready():
 	# 连接信号
-	EventBus.battle.battle_started.connect(_on_battle_started)
-	EventBus.battle.battle_ended.connect(_on_battle_ended)
+	EventBus.battle.connect_event("battle_started", _on_battle_started)
+	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
 
 # 处理攻击
 func process_attack(attacker: ChessPiece, defender: ChessPiece) -> Dictionary:
@@ -219,7 +219,7 @@ func apply_damage(attacker: ChessPiece, defender: ChessPiece, damage_result: Dic
 	attacker.attack_timer = 1.0 / attacker.attack_speed
 
 	# 发送伤害事件
-	EventBus.battle.damage_dealt.emit(attacker, defender, actual_damage, damage_type_str)
+	EventBus.battle.emit_event("damage_dealt", [attacker, defender, actual_damage, damage_type_str])
 
 # 触发攻击效果
 func _trigger_attack_effects(attacker: ChessPiece, defender: ChessPiece, damage_result: Dictionary) -> void:
