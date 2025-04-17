@@ -70,7 +70,7 @@ func _on_map_initialized(map_data: Dictionary) -> void:
 	_create_map_connections(map_data)
 
 	# 连接节点悬停信号
-	EventBus.map_node_hovered.connect(_on_map_node_hovered)
+	EventBus.map.map_node_hovered.connect(_on_map_node_hovered)
 
 	# 创建自定义信号用于节点离开
 	if not EventBus.has_signal("map_node_unhovered"):
@@ -231,12 +231,12 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 
 	# 显示节点信息提示
 	var node_type_name = LocalizationManager.tr("ui.map.node_" + node_data.type)
-	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name}))
+	EventBus.ui.show_toast.emit(LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name}))
 
 ## 地图完成处理
 func _on_map_completed() -> void:
 	# 地图完成后的处理
-	EventBus.show_toast.emit(LocalizationManager.tr("ui.map.completed"))
+	EventBus.ui.show_toast.emit(LocalizationManager.tr("ui.map.completed"))
 	# 播放完成音效
 	AudioManager.play_sfx("victory.ogg")
 
@@ -441,7 +441,7 @@ func _show_best_path_to_boss() -> void:
 					break
 
 		# 显示提示
-		EventBus.show_toast.emit("已显示到Boss的最佳路径", 2.0)
+		EventBus.ui.show_toast.emit("已显示到Boss的最佳路径", 2.0)
 
 ## 更新连接线状态
 func _update_connection_states(current_node) -> void:

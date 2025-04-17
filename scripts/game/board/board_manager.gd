@@ -1,4 +1,4 @@
-extends Node2D
+extends "res://scripts/core/base_manager.gd"2D
 class_name BoardManager
 ## 棋盘管理器
 ## 管理整个棋盘和格子的交互逻辑
@@ -38,17 +38,22 @@ const SPECIAL_EFFECTS = {
     "speed_buff": {"weight": 20, "min_value": 0.1, "max_value": 0.3}
 }
 
-func _ready():
-    # 初始化对象池
-    piece_pool = ObjectPool.new()
-    add_child(piece_pool)
-
-    # 初始化棋盘
-    initialize_board()
-
-    # 连接信号
-    EventBus.battle_started.connect(_on_battle_started)
-    EventBus.battle_ended.connect(_on_battle_ended)
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "BoardManager"
+	
+	# 原 _ready 函数的内容
+	# 初始化对象池
+	    piece_pool = ObjectPool.new()
+	    add_child(piece_pool)
+	
+	    # 初始化棋盘
+	    initialize_board()
+	
+	    # 连接信号
+	    EventBus.battle.battle_started.connect(_on_battle_started)
+	    EventBus.battle.battle_ended.connect(_on_battle_ended)
 
 func _process(_delta):
     # 处理拖拽逻辑
@@ -119,7 +124,6 @@ func initialize_board():
         _generate_special_cells()
 
     # 发送棋盘初始化信号
-    EventBus.board_initialized.emit()
 
 # 放置棋子
 func place_piece(piece: ChessPiece, cell_pos: Vector2i) -> bool:
@@ -201,7 +205,7 @@ func _on_cell_clicked(cell: BoardCell):
         # 结束拖拽
         end_drag_piece(cell)
 
-    EventBus.cell_clicked.emit(cell)
+    EventBus.board.cell_clicked.emit(cell)
 
 # 格子悬停处理
 func _on_cell_hovered(cell: BoardCell):
@@ -219,10 +223,10 @@ func _on_cell_hovered(cell: BoardCell):
 
     # 如果格子有棋子且不在拖拽状态，显示棋子信息
     if cell.current_piece and not dragging_piece:
-        EventBus.show_chess_info.emit(cell.current_piece)
+        EventBus.chess.show_chess_info.emit(cell.current_piece)
 
     # 发送格子悬停信号
-    EventBus.cell_hovered.emit(cell)
+    EventBus.board.cell_hovered.emit(cell)
 
 # 格子离开处理
 func _on_cell_exited(cell: BoardCell):
@@ -232,7 +236,7 @@ func _on_cell_exited(cell: BoardCell):
 
     # 如果格子有棋子，隐藏棋子信息
     if cell.current_piece:
-        EventBus.hide_chess_info.emit()
+        EventBus.chess.hide_chess_info.emit()
 
     # 发送格子离开信号
     EventBus.cell_exited.emit(cell)
@@ -241,23 +245,23 @@ func _on_cell_exited(cell: BoardCell):
 func _on_piece_placed(piece: ChessPiece):
     if not pieces.has(piece):
         pieces.append(piece)
-    EventBus.piece_placed_on_board.emit(piece)
+    EventBus.board.piece_placed_on_board.emit(piece)
 
 # 棋子移除处理
 func _on_piece_removed(piece: ChessPiece):
     pieces.erase(piece)
-    EventBus.piece_removed_from_board.emit(piece)
+    EventBus.board.piece_removed_from_board.emit(piece)
 
 # 备战区棋子放置处理
 func _on_bench_piece_placed(piece: ChessPiece):
     if not bench_pieces.has(piece):
         bench_pieces.append(piece)
-    EventBus.piece_placed_on_bench.emit(piece)
+    EventBus.board.piece_placed_on_bench.emit(piece)
 
 # 备战区棋子移除处理
 func _on_bench_piece_removed(piece: ChessPiece):
     bench_pieces.erase(piece)
-    EventBus.piece_removed_from_bench.emit(piece)
+    EventBus.board.piece_removed_from_bench.emit(piece)
 
 # 获取移动范围
 func get_movement_range(start_pos: Vector2i, move_range: int) -> Array:
@@ -309,7 +313,7 @@ func reset_board():
         _generate_special_cells()
 
     # 发送棋盘重置信号
-    EventBus.board_reset.emit()
+    EventBus.board.board_reset.emit()
 
 # 开始拖拽棋子
 func start_drag_piece(cell: BoardCell) -> void:
@@ -338,7 +342,7 @@ func start_drag_piece(cell: BoardCell) -> void:
     dragging_piece.add_child(shadow)
 
     # 播放拖拽音效
-    EventBus.play_sound.emit("drag_start")
+    EventBus.audio.play_sound.emit("drag_start")
 
     # 高亮可放置的格子
     _highlight_valid_cells()
@@ -383,10 +387,10 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
         effect_tween.tween_callback(effect.queue_free)
 
         # 播放放置音效
-        EventBus.play_sound.emit("piece_placed")
+        EventBus.audio.play_sound.emit("piece_placed")
 
         # 发送移动信号
-        EventBus.chess_piece_moved.emit(dragging_piece, drag_start_cell.grid_position, target_cell.grid_position)
+        EventBus.chess.chess_piece_moved.emit(dragging_piece, drag_start_cell.grid_position, target_cell.grid_position)
     else:
         # 创建返回动画
         var tween = create_tween()
@@ -398,7 +402,7 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
         drag_start_cell.place_piece(dragging_piece)
 
         # 播放取消音效
-        EventBus.play_sound.emit("piece_return")
+        EventBus.audio.play_sound.emit("piece_return")
 
     dragging_piece = null
     drag_start_cell = null
@@ -542,7 +546,7 @@ func upgrade_piece(piece_id: String) -> ChessPiece:
         first_cell.place_piece(upgraded_piece)
 
     # 发送升级信号
-    EventBus.chess_piece_upgraded.emit(upgraded_piece)
+    EventBus.chess.chess_piece_upgraded.emit(upgraded_piece)
 
     return upgraded_piece
 
@@ -638,7 +642,7 @@ func try_combine_pieces(piece: ChessPiece) -> bool:
                 cell.highlight(true, Color(1.0, 0.8, 0.2, 0.5), "valid")
 
         # 播放合成音效
-        EventBus.play_sound.emit("combine_start")
+        EventBus.audio.play_sound.emit("combine_start")
 
         # 创建合成动画
         var animation_duration = 0.5
@@ -692,7 +696,7 @@ func try_combine_pieces(piece: ChessPiece) -> bool:
             upgrade_tween.tween_property(upgraded_piece, "scale", Vector2(1.0, 1.0), 0.2)
 
             # 播放合成完成音效
-            EventBus.play_sound.emit("combine_complete")
+            EventBus.audio.play_sound.emit("combine_complete")
 
         # 取消高亮
         for row in cells:
@@ -712,3 +716,17 @@ func _reparent_piece(piece: Node) -> void:
     if piece.is_inside_tree() and piece.get_parent() == self:
         remove_child(piece)
     add_child(piece)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

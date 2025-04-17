@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name TutorialManager
 ## 教程管理器
 ## 负责管理游戏教程的显示和进度
@@ -41,29 +41,40 @@ var tutorial_panel = null
 @onready var save_manager = get_node("/root/SaveManager")
 
 # 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "TutorialManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	# 添加依赖
+	add_dependency("GameManager")
+	# 添加依赖
+	add_dependency("SaveManager")
+	
+	# 原 _ready 函数的内容
 	# 加载教程配置
-	_load_tutorial_configs()
-
-	# 连接信号
-	_connect_signals()
-
-	# 加载教程数据
-	_load_tutorial_data()
-
-# 加载教程配置
+		_load_tutorial_configs()
+	
+		# 连接信号
+		_connect_signals()
+	
+		# 加载教程数据
+		_load_tutorial_data()
+	
+	# 加载教程配置
 func _load_tutorial_configs() -> void:
 	tutorial_configs = config_manager.get_all_tutorials()
 
 # 连接信号
 func _connect_signals() -> void:
 	# 连接游戏状态变化信号
-	EventBus.game_state_changed.connect(_on_game_state_changed)
+	EventBus.game.game_state_changed.connect(_on_game_state_changed)
 
 	# 连接教程相关信号
-	EventBus.start_tutorial.connect(start_tutorial)
-	EventBus.skip_tutorial.connect(skip_tutorial)
-	EventBus.complete_tutorial.connect(complete_tutorial)
+	EventBus.tutorial.start_tutorial.connect(start_tutorial)
+	EventBus.tutorial.skip_tutorial.connect(skip_tutorial)
+	EventBus.tutorial.complete_tutorial.connect(complete_tutorial)
 
 # 加载教程数据
 func _load_tutorial_data() -> void:
@@ -93,7 +104,7 @@ func _save_tutorial_data() -> void:
 func start_tutorial(tutorial_id: String) -> bool:
 	# 检查教程是否存在
 	if not tutorial_configs.has(tutorial_id):
-		EventBus.debug_message.emit("教程不存在: " + tutorial_id, 1)
+		EventBus.debug.debug_message.emit("教程不存在: " + tutorial_id, 1)
 		return false
 
 	# 检查教程是否已完成或已跳过
@@ -568,3 +579,17 @@ func _on_game_state_changed(old_state: int, new_state: int) -> void:
 			# 检查是否需要显示事件教程
 			if not completed_tutorials.has("event") and not skipped_tutorials.has("event"):
 				start_tutorial("event")
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

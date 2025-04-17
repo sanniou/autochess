@@ -65,7 +65,7 @@ func initialize(event_data: Dictionary) -> void:
 # 开始事件
 func start() -> void:
 	# 发送事件触发信号
-	EventBus.event_triggered.emit(self)
+	EventBus.event.event_triggered.emit(self)
 
 	# 显示事件界面
 	_show_event_ui()
@@ -82,7 +82,7 @@ func make_choice(choice_index: int) -> void:
 
 	# 发送选择信号
 	choice_made.emit(choice)
-	EventBus.event_choice_made.emit(self, choice)
+	EventBus.event.event_choice_made.emit(self, choice)
 
 	# 完成事件
 	complete(choice)
@@ -100,7 +100,7 @@ func complete(choice_data: Dictionary = {}) -> void:
 
 	# 发送事件完成信号
 	event_completed.emit(result)
-	EventBus.event_completed.emit(self, result)
+	EventBus.event.event_completed.emit(self, result)
 
 	# 隐藏事件界面
 	_hide_event_ui()
@@ -416,15 +416,15 @@ func _apply_curse_effect(curse_type: String, duration: int) -> void:
 	var curse_manager = get_node("/root/GameManager/CurseManager")
 	if curse_manager:
 		curse_manager.apply_curse(curse_type, duration)
-		EventBus.debug_message.emit("应用诅咒效果: " + curse_type + ", 持续" + str(duration) + "回合", 0)
-		EventBus.show_toast.emit(tr("ui.event.curse_applied", [tr("curse." + curse_type)]))
+		EventBus.debug.debug_message.emit("应用诅咒效果: " + curse_type + ", 持续" + str(duration) + "回合", 0)
+		EventBus.ui.show_toast.emit(tr("ui.event.curse_applied", [tr("curse." + curse_type)]))
 
 # 设置剧情标记
 func _set_story_flag(flag: String) -> void:
 	var story_manager = get_node("/root/GameManager/StoryManager")
 	if story_manager:
 		story_manager.set_flag(flag, true)
-		EventBus.debug_message.emit("设置剧情标记: " + flag, 0)
+		EventBus.debug.debug_message.emit("设置剧情标记: " + flag, 0)
 
 # 触发连锁事件
 func _trigger_chain_event(event_id: String) -> void:
@@ -435,21 +435,21 @@ func _trigger_chain_event(event_id: String) -> void:
 
 		# 触发连锁事件
 		event_manager.trigger_event(event_id)
-		EventBus.debug_message.emit("触发连锁事件: " + event_id, 0)
+		EventBus.debug.debug_message.emit("触发连锁事件: " + event_id, 0)
 
 # 修改事件权重
 func _modify_event_weight(event_id: String, weight_modifier: float) -> void:
 	var event_manager = get_node("/root/GameManager/EventManager")
 	if event_manager:
 		event_manager.modify_event_weight(event_id, weight_modifier)
-		EventBus.debug_message.emit("修改事件权重: " + event_id + ", 修改值: " + str(weight_modifier), 0)
+		EventBus.debug.debug_message.emit("修改事件权重: " + event_id + ", 修改值: " + str(weight_modifier), 0)
 
 # 解锁成就
 func _unlock_achievement(achievement_id: String) -> void:
 	var achievement_manager = get_node("/root/GameManager/AchievementManager")
 	if achievement_manager:
 		achievement_manager.unlock_achievement(achievement_id)
-		EventBus.debug_message.emit("解锁成就: " + achievement_id, 0)
+		EventBus.debug.debug_message.emit("解锁成就: " + achievement_id, 0)
 
 # 修改游戏难度
 func _modify_difficulty(difficulty_modifier: float) -> void:
@@ -458,7 +458,7 @@ func _modify_difficulty(difficulty_modifier: float) -> void:
 		var current_difficulty = game_manager.difficulty_level
 		var new_difficulty = clamp(current_difficulty + difficulty_modifier, 1, 3)
 		game_manager.set_difficulty(new_difficulty)
-		EventBus.debug_message.emit("修改游戏难度: " + str(current_difficulty) + " -> " + str(new_difficulty), 0)
+		EventBus.debug.debug_message.emit("修改游戏难度: " + str(current_difficulty) + " -> " + str(new_difficulty), 0)
 
 # 应用增益效果给所有棋子
 func _apply_buff_to_all_pieces(buff_type: String, value: float, duration: int = -1) -> void:
@@ -468,5 +468,5 @@ func _apply_buff_to_all_pieces(buff_type: String, value: float, duration: int = 
 		for piece in pieces:
 			piece.add_buff(buff_type, value, duration)
 
-		EventBus.debug_message.emit("应用增益效果给所有棋子: " + buff_type + ", 值: " + str(value), 0)
-		EventBus.show_toast.emit(tr("ui.event.buff_applied", [tr("buff." + buff_type), str(value)]))
+		EventBus.debug.debug_message.emit("应用增益效果给所有棋子: " + buff_type + ", 值: " + str(value), 0)
+		EventBus.ui.show_toast.emit(tr("ui.event.buff_applied", [tr("buff." + buff_type), str(value)]))

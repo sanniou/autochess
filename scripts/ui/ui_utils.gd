@@ -1,25 +1,34 @@
 extends Node
-class_name UIUtils
 ## UI工具类
 ## 提供一些常用的UI操作函数
+## 使用单例模式实现，避免静态方法和全局变量
 
 # 引用
-static var font_manager = null
-static var text_utils = null
+var font_manager = null
+var text_utils = null
+
+# 初始化状态
+var _initialized: bool = false
 
 # 初始化
-static func initialize() -> void:
+func initialize() -> void:
+	if _initialized:
+		return
+
 	# 尝试获取FontManager单例
-	font_manager = Engine.get_singleton("FontManager")
+	font_manager = get_node_or_null("/root/FontManager")
 	if not font_manager:
-		EventBus.debug_message.emit("无法获取FontManager单例", 1)
+		EventBus.debug.debug_message.emit("无法获取FontManager单例", 1)
 
 	# 初始化文本工具
+	text_utils = get_node_or_null("/root/TextUtils")
 	if not text_utils:
-		text_utils = load("res://scripts/ui/text_utils.gd")
+		EventBus.debug.debug_message.emit("无法获取TextUtils单例", 1)
+
+	_initialized = true
 
 # 创建标签
-static func create_label(text: String, font_size: int = 16, color: Color = Color.WHITE, alignment: int = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+func create_label(text: String, font_size: int = 16, color: Color = Color.WHITE, alignment: int = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var label = Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
@@ -33,7 +42,7 @@ static func create_label(text: String, font_size: int = 16, color: Color = Color
 	return label
 
 # 创建按钮
-static func create_button(text: String, font_size: int = 16, color: Color = Color.WHITE, size: Vector2 = Vector2(120, 40)) -> Button:
+func create_button(text: String, font_size: int = 16, color: Color = Color.WHITE, size: Vector2 = Vector2(120, 40)) -> Button:
 	var button = Button.new()
 	button.text = text
 	button.add_theme_font_size_override("font_size", font_size)
@@ -47,7 +56,7 @@ static func create_button(text: String, font_size: int = 16, color: Color = Colo
 	return button
 
 # 创建图标按钮
-static func create_icon_button(icon_path: String, size: Vector2 = Vector2(40, 40)) -> Button:
+func create_icon_button(icon_path: String, size: Vector2 = Vector2(40, 40)) -> Button:
 	var button = Button.new()
 	button.custom_minimum_size = size
 
@@ -58,7 +67,7 @@ static func create_icon_button(icon_path: String, size: Vector2 = Vector2(40, 40
 	return button
 
 # 创建面板
-static func create_panel(size: Vector2 = Vector2(200, 200), color: Color = Color(0.2, 0.2, 0.2, 0.8)) -> Panel:
+func create_panel(size: Vector2 = Vector2(200, 200), color: Color = Color(0.2, 0.2, 0.2, 0.8)) -> Panel:
 	var panel = Panel.new()
 	panel.custom_minimum_size = size
 
@@ -74,7 +83,7 @@ static func create_panel(size: Vector2 = Vector2(200, 200), color: Color = Color
 	return panel
 
 # 创建分隔线
-static func create_separator(horizontal: bool = true, color: Color = Color(0.5, 0.5, 0.5, 1.0), thickness: int = 1) -> Control:
+func create_separator(horizontal: bool = true, color: Color = Color(0.5, 0.5, 0.5, 1.0), thickness: int = 1) -> Control:
 	var separator = Control.new()
 
 	if horizontal:
@@ -90,7 +99,7 @@ static func create_separator(horizontal: bool = true, color: Color = Color(0.5, 
 	return separator
 
 # 创建滚动容器
-static func create_scroll_container(size: Vector2 = Vector2(200, 200)) -> ScrollContainer:
+func create_scroll_container(size: Vector2 = Vector2(200, 200)) -> ScrollContainer:
 	var scroll = ScrollContainer.new()
 	scroll.custom_minimum_size = size
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
@@ -99,7 +108,7 @@ static func create_scroll_container(size: Vector2 = Vector2(200, 200)) -> Scroll
 	return scroll
 
 # 创建网格容器
-static func create_grid_container(columns: int = 3, h_separation: int = 10, v_separation: int = 10) -> GridContainer:
+func create_grid_container(columns: int = 3, h_separation: int = 10, v_separation: int = 10) -> GridContainer:
 	var grid = GridContainer.new()
 	grid.columns = columns
 	grid.add_theme_constant_override("h_separation", h_separation)
@@ -108,21 +117,21 @@ static func create_grid_container(columns: int = 3, h_separation: int = 10, v_se
 	return grid
 
 # 创建水平容器
-static func create_hbox_container(separation: int = 10) -> HBoxContainer:
+func create_hbox_container(separation: int = 10) -> HBoxContainer:
 	var hbox = HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", separation)
 
 	return hbox
 
 # 创建垂直容器
-static func create_vbox_container(separation: int = 10) -> VBoxContainer:
+func create_vbox_container(separation: int = 10) -> VBoxContainer:
 	var vbox = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", separation)
 
 	return vbox
 
 # 创建进度条
-static func create_progress_bar(value: float = 0.0, max_value: float = 100.0, size: Vector2 = Vector2(200, 20), color: Color = Color(0.2, 0.6, 0.2, 1.0)) -> ProgressBar:
+func create_progress_bar(value: float = 0.0, max_value: float = 100.0, size: Vector2 = Vector2(200, 20), color: Color = Color(0.2, 0.6, 0.2, 1.0)) -> ProgressBar:
 	var progress = ProgressBar.new()
 	progress.value = value
 	progress.max_value = max_value
@@ -140,7 +149,7 @@ static func create_progress_bar(value: float = 0.0, max_value: float = 100.0, si
 	return progress
 
 # 创建纹理矩形
-static func create_texture_rect(texture_path: String, size: Vector2 = Vector2(100, 100), expand_mode: int = TextureRect.EXPAND_IGNORE_SIZE) -> TextureRect:
+func create_texture_rect(texture_path: String, size: Vector2 = Vector2(100, 100), expand_mode: int = TextureRect.EXPAND_IGNORE_SIZE) -> TextureRect:
 	var texture_rect = TextureRect.new()
 	texture_rect.custom_minimum_size = size
 	texture_rect.expand_mode = expand_mode
@@ -153,7 +162,7 @@ static func create_texture_rect(texture_path: String, size: Vector2 = Vector2(10
 	return texture_rect
 
 # 创建富文本标签
-static func create_rich_text_label(bbcode_text: String, size: Vector2 = Vector2(200, 100)) -> RichTextLabel:
+func create_rich_text_label(bbcode_text: String, size: Vector2 = Vector2(200, 100)) -> RichTextLabel:
 	var rich_text = RichTextLabel.new()
 	rich_text.custom_minimum_size = size
 	rich_text.bbcode_enabled = true
@@ -166,7 +175,7 @@ static func create_rich_text_label(bbcode_text: String, size: Vector2 = Vector2(
 	return rich_text
 
 # 创建行编辑
-static func create_line_edit(placeholder_text: String = "", size: Vector2 = Vector2(200, 30)) -> LineEdit:
+func create_line_edit(placeholder_text: String = "", size: Vector2 = Vector2(200, 30)) -> LineEdit:
 	var line_edit = LineEdit.new()
 	line_edit.custom_minimum_size = size
 	line_edit.placeholder_text = placeholder_text
@@ -174,7 +183,7 @@ static func create_line_edit(placeholder_text: String = "", size: Vector2 = Vect
 	return line_edit
 
 # 创建复选框
-static func create_check_box(text: String, checked: bool = false) -> CheckBox:
+func create_check_box(text: String, checked: bool = false) -> CheckBox:
 	var check_box = CheckBox.new()
 	check_box.text = text
 	check_box.button_pressed = checked
@@ -182,7 +191,7 @@ static func create_check_box(text: String, checked: bool = false) -> CheckBox:
 	return check_box
 
 # 创建选项按钮
-static func create_option_button(options: Array, selected_index: int = 0) -> OptionButton:
+func create_option_button(options: Array, selected_index: int = 0) -> OptionButton:
 	var option_button = OptionButton.new()
 
 	for i in range(options.size()):
@@ -195,7 +204,7 @@ static func create_option_button(options: Array, selected_index: int = 0) -> Opt
 	return option_button
 
 # 创建滑块
-static func create_slider(value: float = 0.0, min_value: float = 0.0, max_value: float = 100.0, size: Vector2 = Vector2(200, 20), horizontal: bool = true) -> Slider:
+func create_slider(value: float = 0.0, min_value: float = 0.0, max_value: float = 100.0, size: Vector2 = Vector2(200, 20), horizontal: bool = true) -> Slider:
 	var slider
 
 	if horizontal:
@@ -211,7 +220,7 @@ static func create_slider(value: float = 0.0, min_value: float = 0.0, max_value:
 	return slider
 
 # 创建旋转器
-static func create_spin_box(value: float = 0.0, min_value: float = 0.0, max_value: float = 100.0, step: float = 1.0) -> SpinBox:
+func create_spin_box(value: float = 0.0, min_value: float = 0.0, max_value: float = 100.0, step: float = 1.0) -> SpinBox:
 	var spin_box = SpinBox.new()
 	spin_box.min_value = min_value
 	spin_box.max_value = max_value
@@ -221,13 +230,13 @@ static func create_spin_box(value: float = 0.0, min_value: float = 0.0, max_valu
 	return spin_box
 
 # 创建标签容器
-static func create_tab_container() -> TabContainer:
+func create_tab_container() -> TabContainer:
 	var tab_container = TabContainer.new()
 
 	return tab_container
 
 # 创建颜色矩形
-static func create_color_rect(color: Color = Color.WHITE, size: Vector2 = Vector2(100, 100)) -> ColorRect:
+func create_color_rect(color: Color = Color.WHITE, size: Vector2 = Vector2(100, 100)) -> ColorRect:
 	var color_rect = ColorRect.new()
 	color_rect.custom_minimum_size = size
 	color_rect.color = color
@@ -235,7 +244,7 @@ static func create_color_rect(color: Color = Color.WHITE, size: Vector2 = Vector
 	return color_rect
 
 # 设置控件锚点和边距
-static func set_anchors_and_margins(control: Control, preset: int, margins: Vector4 = Vector4(0, 0, 0, 0)) -> void:
+func set_anchors_and_margins(control: Control, preset: int, margins: Vector4 = Vector4(0, 0, 0, 0)) -> void:
 	control.set_anchors_preset(preset)
 
 	if preset == Control.PRESET_FULL_RECT:
@@ -245,22 +254,22 @@ static func set_anchors_and_margins(control: Control, preset: int, margins: Vect
 		control.set_margin(SIDE_BOTTOM, margins.w)
 
 # 设置控件提示
-static func set_tooltip(control: Control, tooltip_text: String) -> void:
+func set_tooltip(control: Control, tooltip_text: String) -> void:
 	control.tooltip_text = tooltip_text
 
 # 设置控件焦点模式
-static func set_focus_mode(control: Control, focus_mode: int) -> void:
+func set_focus_mode(control: Control, focus_mode: int) -> void:
 	control.focus_mode = focus_mode
 
 # 设置控件鼠标过滤模式
-static func set_mouse_filter(control: Control, mouse_filter: int) -> void:
+func set_mouse_filter(control: Control, mouse_filter: int) -> void:
 	control.mouse_filter = mouse_filter
 
 # 设置控件大小标志
-static func set_size_flags(control: Control, horizontal: int, vertical: int) -> void:
+func set_size_flags(control: Control, horizontal: int, vertical: int) -> void:
 	control.size_flags_horizontal = horizontal
 	control.size_flags_vertical = vertical
 
 # 设置控件自定义最小大小
-static func set_custom_minimum_size(control: Control, size: Vector2) -> void:
+func set_custom_minimum_size(control: Control, size: Vector2) -> void:
 	control.custom_minimum_size = size

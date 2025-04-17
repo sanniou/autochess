@@ -123,7 +123,7 @@ func _on_quit_button_pressed() -> void:
 # 保存完成处理
 func _on_save_completed(save_name: String) -> void:
 	# 显示提示
-	EventBus.show_toast.emit(tr("ui.save.save_success"), 2.0)
+	EventBus.ui.show_toast.emit(tr("ui.save.save_success"), 2.0)
 
 # 加载完成处理
 func _on_load_completed(save_name: String) -> void:

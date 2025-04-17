@@ -1,4 +1,4 @@
-extends Node2D
+extends "res://scripts/core/base_manager.gd"2D
 class_name EnvironmentEffectManager
 ## 环境特效管理器
 ## 负责管理游戏中的环境特效，如天气、环境互动等
@@ -26,11 +26,16 @@ var active_effects = {}
 var effect_configs = {}
 
 # 初始化
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "EnvironmentEffectManager"
+	
+	# 原 _ready 函数的内容
 	# 加载环境特效配置
-	_load_effect_configs()
-
-# 加载环境特效配置
+		_load_effect_configs()
+	
+	# 加载环境特效配置
 func _load_effect_configs() -> void:
 	# 从配置文件加载环境特效配置
 	var config_path = "res://configs/effects/environment_effects.json"
@@ -46,15 +51,15 @@ func _load_effect_configs() -> void:
 		if error == OK:
 			effect_configs = json.data
 		else:
-			EventBus.debug_message.emit("无法解析环境特效配置文件: " + json.get_error_message(), 1)
+			EventBus.debug.debug_message.emit("无法解析环境特效配置文件: " + json.get_error_message(), 1)
 	else:
-		EventBus.debug_message.emit("环境特效配置文件不存在: " + config_path, 1)
+		EventBus.debug.debug_message.emit("环境特效配置文件不存在: " + config_path, 1)
 
 # 启动环境特效
 func start_effect(effect_type: String, params: Dictionary = {}) -> String:
 	# 检查特效类型是否存在
 	if not effect_configs.has(effect_type):
-		EventBus.debug_message.emit("未知的环境特效类型: " + effect_type, 1)
+		EventBus.debug.debug_message.emit("未知的环境特效类型: " + effect_type, 1)
 		return ""
 	
 	# 获取特效配置
@@ -191,13 +196,13 @@ func _create_effect_instance(effect_type: String, params: Dictionary) -> Node:
 	if scene_path.is_empty():
 		var script_path = config.get("script_path", "")
 		if script_path.is_empty():
-			EventBus.debug_message.emit("环境特效没有场景或脚本路径: " + effect_type, 1)
+			EventBus.debug.debug_message.emit("环境特效没有场景或脚本路径: " + effect_type, 1)
 			return null
 		
 		# 加载脚本
 		var script = load(script_path)
 		if not script:
-			EventBus.debug_message.emit("无法加载环境特效脚本: " + script_path, 1)
+			EventBus.debug.debug_message.emit("无法加载环境特效脚本: " + script_path, 1)
 			return null
 		
 		# 创建实例
@@ -213,7 +218,7 @@ func _create_effect_instance(effect_type: String, params: Dictionary) -> Node:
 	# 加载场景
 	var scene = load(scene_path)
 	if not scene:
-		EventBus.debug_message.emit("无法加载环境特效场景: " + scene_path, 1)
+		EventBus.debug.debug_message.emit("无法加载环境特效场景: " + scene_path, 1)
 		return null
 	
 	# 实例化场景
@@ -224,3 +229,17 @@ func _create_effect_instance(effect_type: String, params: Dictionary) -> Node:
 		instance.initialize(params)
 	
 	return instance
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

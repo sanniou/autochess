@@ -120,7 +120,7 @@ func _start_prepare_phase() -> void:
 	$BottomPanel/ButtonContainer/SkipButton.disabled = false
 
 	# 发送战斗准备信号
-	EventBus.battle_round_started.emit(current_round)
+	EventBus.battle.battle_round_started.emit(current_round)
 
 ## 开始战斗阶段
 func _start_fighting_phase() -> void:
@@ -171,8 +171,8 @@ func _on_battle_ended(victory: bool) -> void:
 		$TopPanel/PhaseLabel.text = LocalizationManager.tr("ui.battle.defeat")
 
 	# 发送战斗结束信号
-	EventBus.battle_ended.emit(battle_result)
-	EventBus.battle_round_ended.emit(current_round)
+	EventBus.battle.battle_ended.emit(battle_result)
+	EventBus.battle.battle_round_ended.emit(current_round)
 
 	# 延迟返回地图
 	var timer = get_tree().create_timer(2.0)
@@ -196,7 +196,7 @@ func _on_skip_button_pressed() -> void:
 	if current_state == BattleState.PREPARE or current_state == BattleState.FIGHTING:
 		# 直接结束战斗
 		if current_state == BattleState.PREPARE:
-			EventBus.battle_started.emit()
+			EventBus.battle.battle_started.emit()
 
 		_on_battle_ended(randf() > 0.5)  # 跳过时随机结果
 

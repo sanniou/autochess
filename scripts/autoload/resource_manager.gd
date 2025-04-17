@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 # 不使用 class_name 以避免与自动加载单例冲突
 ## 资源管理器
 ## 负责管理游戏中的资源加载、缓存和释放
@@ -74,7 +74,12 @@ var loading_completed = []
 var _unload_timer = 0.0
 
 # 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "ResourceManager"
+
+	# 原 _ready 函数的内容
 	# 预加载常用资源
 	if resource_settings.preload_common:
 		_preload_common_resources()
@@ -83,7 +88,7 @@ func _ready() -> void:
 	if resource_settings.async_loading:
 		_start_loading_thread()
 
-# 处理
+	# 处理
 func _process(delta: float) -> void:
 	# 处理已完成的异步加载
 	_process_completed_loads()
@@ -690,3 +695,17 @@ func _update_stats_after_clear(type: int) -> void:
 ## 在主线程中发送资源加载信号
 func _emit_resource_loaded(path: String) -> void:
 	resource_loaded.emit(path)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

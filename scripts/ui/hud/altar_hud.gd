@@ -15,7 +15,7 @@ func _initialize() -> void:
 	altar_manager = game_manager.altar_manager
 	
 	if altar_manager == null:
-		EventBus.debug_message.emit("无法获取祭坛管理器", 1)
+		EventBus.debug.debug_message.emit("无法获取祭坛管理器", 1)
 		return
 	
 	# 获取祭坛类型
@@ -281,13 +281,13 @@ func _perform_sacrifice(item_data: Dictionary) -> void:
 	AudioManager.play_sfx("altar_sacrifice.ogg")
 	
 	# 发送牺牲信号
-	EventBus.altar_sacrifice_made.emit(altar_type, item_data)
+	EventBus.map.altar_sacrifice_made.emit(altar_type, item_data)
 	
 	# 更新显示
 	update_hud()
 	
 	# 显示提示
-	EventBus.show_toast.emit(tr("ui.altar.sacrifice_success", [item_data.name, str(item_data.value)]))
+	EventBus.ui.show_toast.emit(tr("ui.altar.sacrifice_success", [item_data.name, str(item_data.value)]))
 
 # 牺牲棋子
 func _sacrifice_chess(item_data: Dictionary) -> void:

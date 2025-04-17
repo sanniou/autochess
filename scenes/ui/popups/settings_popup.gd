@@ -97,7 +97,7 @@ func _apply_settings():
 	
 	# 应用语言设置
 	TranslationServer.set_locale(settings_data.language)
-	EventBus.language_changed.emit(settings_data.language)
+	EventBus.localization.language_changed.emit(settings_data.language)
 	
 	# 应用音频设置
 	if audio_manager:

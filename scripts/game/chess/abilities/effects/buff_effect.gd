@@ -40,7 +40,7 @@ func apply() -> void:
 			# 同时增加当前生命值
 			var heal_amount = target.heal(value, source)
 			# 发送治疗信号
-			EventBus.heal_received.emit(target, heal_amount, source)
+			EventBus.battle.heal_received.emit(target, heal_amount, source)
 		"spell_power":
 			effect_data.stats["spell_power"] = value
 			effect_data.name = "法术增益"
@@ -53,7 +53,7 @@ func apply() -> void:
 	target.add_effect(effect_data)
 
 	# 发送效果应用信号
-	EventBus.ability_effect_applied.emit(source, target, "buff", value)
+	EventBus.battle.ability_effect_applied.emit(source, target, "buff", value)
 
 	# 播放增益特效
 	_play_buff_effect()

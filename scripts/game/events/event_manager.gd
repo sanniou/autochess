@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name EventManager
 ## 事件管理器
 ## 负责事件的触发、选择和结果处理
@@ -15,14 +15,21 @@ var event_history: Array = []  # 事件历史记录
 # 引用
 @onready var config_manager = get_node("/root/ConfigManager")
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "EventManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	
+	# 原 _ready 函数的内容
 	# 初始化事件工厂
-	_initialize_event_factory()
-
-	# 连接信号
-	EventBus.map_node_selected.connect(_on_map_node_selected)
-
-# 初始化事件工厂
+		_initialize_event_factory()
+	
+		# 连接信号
+		EventBus.map.map_node_selected.connect(_on_map_node_selected)
+	
+	# 初始化事件工厂
 func _initialize_event_factory() -> void:
 	# 加载所有事件配置
 	var events_config = config_manager.get_all_events()
@@ -36,12 +43,12 @@ func _initialize_event_factory() -> void:
 func trigger_event(event_id: String) -> bool:
 	# 检查事件是否存在
 	if not event_factory.has(event_id):
-		EventBus.debug_message.emit("事件不存在: " + event_id, 2)
+		EventBus.debug.debug_message.emit("事件不存在: " + event_id, 2)
 		return false
 
 	# 检查是否已有正在进行的事件
 	if current_event != null:
-		EventBus.debug_message.emit("已有正在进行的事件", 1)
+		EventBus.debug.debug_message.emit("已有正在进行的事件", 1)
 		return false
 
 	# 创建事件实例
@@ -88,7 +95,7 @@ func trigger_random_event(context: Dictionary = {}, event_type: String = "") -> 
 
 	# 如果没有符合条件的事件，返回失败
 	if eligible_events.is_empty():
-		EventBus.debug_message.emit("没有符合条件的事件可触发", 1)
+		EventBus.debug.debug_message.emit("没有符合条件的事件可触发", 1)
 		return false
 
 	# 根据权重随机选择一个事件
@@ -227,7 +234,7 @@ func reset_events() -> void:
 func modify_event_weight(event_id: String, weight_modifier: float) -> void:
 	# 检查事件是否存在
 	if not event_factory.has(event_id):
-		EventBus.debug_message.emit("事件不存在: " + event_id, 2)
+		EventBus.debug.debug_message.emit("事件不存在: " + event_id, 2)
 		return
 
 	# 获取当前权重
@@ -240,7 +247,7 @@ func modify_event_weight(event_id: String, weight_modifier: float) -> void:
 	event_factory[event_id].weight = new_weight
 
 	# 发送事件权重修改信号
-	EventBus.debug_message.emit("事件权重修改: " + event_id + ", " + str(current_weight) + " -> " + str(new_weight), 0)
+	EventBus.debug.debug_message.emit("事件权重修改: " + event_id + ", " + str(current_weight) + " -> " + str(new_weight), 0)
 
 # 获取事件权重
 func get_event_weight(event_id: String) -> int:
@@ -317,3 +324,17 @@ func create_random_event_by_difficulty(difficulty: String) -> Event:
 
 	# 创建事件
 	return _create_event(random_event_id)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

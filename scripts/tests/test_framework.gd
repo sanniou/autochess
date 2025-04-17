@@ -88,7 +88,7 @@ func run_test(test_name: String) -> void:
 			break
 	
 	if test == null:
-		EventBus.debug_message.emit("测试不存在: " + test_name, 2)
+		EventBus.debug.debug_message.emit("测试不存在: " + test_name, 2)
 		return
 	
 	# 设置当前测试

@@ -367,7 +367,7 @@ func _on_node_button_pressed(node_data: Dictionary) -> void:
 	selected_node = node_data
 	
 	# 发送节点选择信号
-	EventBus.map_node_selected.emit(node_data)
+	EventBus.map.map_node_selected.emit(node_data)
 
 # 地图节点选择事件处理
 func _on_map_node_selected(node_data: Dictionary) -> void:

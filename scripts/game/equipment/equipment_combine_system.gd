@@ -67,12 +67,12 @@ func combine(equipment1: Equipment, equipment2: Equipment) -> Equipment:
 # 创建合成动画
 func _create_combine_animation(equipment1: Equipment, equipment2: Equipment, result: Equipment) -> void:
 	# 发送合成动画信号
-	EventBus.equipment_combine_animation_started.emit(equipment1, equipment2, result)
+	EventBus.equipment.equipment_combine_animation_started.emit(equipment1, equipment2, result)
 
 	# 在合成动画完成后发送合成完成信号
 	var timer = get_tree().create_timer(1.0) # 假设动画时间1秒
 	timer.timeout.connect(func():
-		EventBus.equipment_combine_animation_completed.emit(equipment1, equipment2, result)
+		EventBus.equipment.equipment_combine_animation_completed.emit(equipment1, equipment2, result)
 	)
 
 # 检查两个相同基础装备是否可以合成

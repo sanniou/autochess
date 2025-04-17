@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 ## 资源管理器
 ## 负责游戏资源的加载和缓存
 
@@ -33,11 +33,16 @@ var _loading_progress = 0.0
 signal loading_completed
 signal loading_progress_changed(progress)
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "ResourceManager"
+	
+	# 原 _ready 函数的内容
 	# 初始化资源管理器
-	pass
-
-## 预加载资源
+		pass
+	
+	## 预加载资源
 func preload_resources() -> void:
 	# 从配置中获取预加载列表
 	_load_preload_list()
@@ -246,3 +251,17 @@ func get_loading_progress() -> float:
 ## 是否加载完成
 func is_loading_complete() -> bool:
 	return _loading_complete
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

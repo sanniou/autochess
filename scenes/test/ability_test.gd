@@ -23,7 +23,7 @@ func _ready():
 	_load_piece_types()
 	
 	# 连接信号
-	EventBus.chess_piece_ability_activated.connect(_on_ability_activated)
+	EventBus.chess.chess_piece_ability_activated.connect(_on_ability_activated)
 
 ## 初始化测试区域
 func _initialize_test_area() -> void:

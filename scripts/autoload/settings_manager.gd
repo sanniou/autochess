@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 ## 设置管理器
 ## 负责管理游戏设置的保存和加载
 
@@ -38,14 +38,21 @@ const DEFAULT_SETTINGS = {
 var current_settings = {}
 
 # 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "SettingsManager"
+	# 添加依赖
+	add_dependency("AudioManager")
+
+	# 原 _ready 函数的内容
 	# 加载设置
 	load_settings()
 
 	# 应用设置
 	apply_settings()
 
-# 加载设置
+	# 加载设置
 func load_settings() -> void:
 	# 复制默认设置
 	current_settings = DEFAULT_SETTINGS.duplicate(true)
@@ -67,7 +74,7 @@ func load_settings() -> void:
 			# 合并设置
 			_merge_settings(current_settings, data)
 		else:
-			EventBus.debug_message.emit("无法解析设置文件: " + json.get_error_message(), 1)
+			EventBus.debug.debug_message.emit("无法解析设置文件: " + json.get_error_message(), 1)
 
 	# 发送设置变化信号
 	settings_changed.emit(current_settings)
@@ -98,7 +105,7 @@ func apply_settings() -> void:
 		audio_manager.set_music_volume(current_settings.audio.music_volume)
 		audio_manager.set_sfx_volume(current_settings.audio.sfx_volume)
 	else:
-		EventBus.debug_message.emit("无法获取AudioManager引用", 1)
+		EventBus.debug.debug_message.emit("无法获取AudioManager引用", 1)
 
 	# 应用显示设置
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if current_settings.display.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)
@@ -117,8 +124,8 @@ func apply_settings() -> void:
 	var language_codes = ["zh_CN"]
 	if current_settings.game.language < language_codes.size():
 		var language_code = language_codes[current_settings.game.language]
-		EventBus.language_changed.emit(language_code)
-		EventBus.debug_message.emit("通过EventBus设置语言: " + language_code, 0)
+		EventBus.localization.language_changed.emit(language_code)
+		EventBus.debug.debug_message.emit("通过EventBus设置语言: " + language_code, 0)
 
 # 获取设置
 func get_settings() -> Dictionary:
@@ -163,3 +170,17 @@ func _merge_settings(target: Dictionary, source: Dictionary) -> void:
 			_merge_settings(target[key], source[key])
 		else:
 			target[key] = source[key]
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

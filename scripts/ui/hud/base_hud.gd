@@ -24,7 +24,7 @@ var is_visible: bool = true
 # 初始化
 func _ready() -> void:
 	# 连接信号
-	EventBus.game_paused.connect(_on_game_paused)
+	EventBus.game.game_paused.connect(_on_game_paused)
 
 	# 初始化HUD
 	_initialize()

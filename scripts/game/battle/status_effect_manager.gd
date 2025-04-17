@@ -1,5 +1,10 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name StatusEffectManager
+
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "StatusEffectManager"
 ## 状态效果管理器
 ## 负责管理棋子的各种状态效果
 
@@ -156,7 +161,7 @@ func add_effect(effect: StatusEffect) -> bool:
 		_show_immunity_effect()
 
 		# 发送免疫触发信号
-		EventBus.status_effect_immunity_triggered.emit(chess_piece, effect.type)
+		EventBus.status_effect.status_effect_immunity_triggered.emit(chess_piece, effect.type)
 		return false
 
 	# 检查是否已有同类型效果
@@ -173,7 +178,7 @@ func add_effect(effect: StatusEffect) -> bool:
 				existing_effect.add_stack()
 
 				# 发送效果叠加信号
-				EventBus.status_effect_stacked.emit(chess_piece, existing_effect, existing_effect.stack_count)
+				EventBus.status_effect.status_effect_stacked.emit(chess_piece, existing_effect, existing_effect.stack_count)
 
 				# 显示叠加视觉效果
 				_show_stack_visual(existing_effect)
@@ -183,7 +188,7 @@ func add_effect(effect: StatusEffect) -> bool:
 				existing_effect.refresh(effect.duration)
 
 				# 发送效果刷新信号
-				EventBus.status_effect_refreshed.emit(chess_piece, existing_effect)
+				EventBus.status_effect.status_effect_refreshed.emit(chess_piece, existing_effect)
 				return false
 
 	# 检查互斥效果
@@ -200,7 +205,7 @@ func add_effect(effect: StatusEffect) -> bool:
 	_apply_effect(effect)
 
 	# 发送效果添加信号
-	EventBus.status_effect_added.emit(chess_piece, effect)
+	EventBus.status_effect.status_effect_added.emit(chess_piece, effect)
 
 	# 显示效果添加视觉反馈
 	_show_effect_applied_visual(effect)
@@ -224,7 +229,7 @@ func remove_effect(effect_id: String) -> void:
 	active_effects.erase(effect_id)
 
 	# 发送效果移除信号
-	EventBus.status_effect_removed.emit(chess_piece, effect)
+	EventBus.status_effect.status_effect_removed.emit(chess_piece, effect)
 
 # 清除所有效果
 func clear_all_effects() -> void:
@@ -434,7 +439,7 @@ func process_dot_effects(delta: float) -> void:
 					chess_piece._play_effect("burning", Color(1.0, 0.5, 0.0, 0.7))
 
 				# 发送持续伤害触发信号
-				EventBus.status_effect_dot_triggered.emit(chess_piece, effect, damage)
+				EventBus.status_effect.status_effect_dot_triggered.emit(chess_piece, effect, damage)
 
 			StatusEffectType.POISONED:
 				# 中毒伤害
@@ -446,7 +451,7 @@ func process_dot_effects(delta: float) -> void:
 					chess_piece._play_effect("poisoned", Color(0.5, 1.0, 0.0, 0.7))
 
 				# 发送持续伤害触发信号
-				EventBus.status_effect_dot_triggered.emit(chess_piece, effect, damage)
+				EventBus.status_effect.status_effect_dot_triggered.emit(chess_piece, effect, damage)
 
 # 处理移动时的效果
 func process_movement_effects() -> void:
@@ -464,7 +469,7 @@ func process_movement_effects() -> void:
 					chess_piece._play_effect("bleeding", Color(1.0, 0.0, 0.0, 0.7))
 
 				# 发送持续伤害触发信号
-				EventBus.status_effect_dot_triggered.emit(chess_piece, effect, damage)
+				EventBus.status_effect.status_effect_dot_triggered.emit(chess_piece, effect, damage)
 
 # 获取所有活跃效果
 func get_all_effects() -> Array:
@@ -1477,3 +1482,17 @@ func _add_debuff_visual_effect() -> void:
 	piece_tween.tween_property(chess_piece, "modulate", Color(0.9, 0.8, 0.9, 1.0), 0.5) # 紫色色调
 	piece_tween.tween_property(chess_piece, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.5)
 	piece_tween.set_loops() # 无限循环
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

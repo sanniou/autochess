@@ -140,7 +140,7 @@ func set_difficulty(level: int) -> void:
 	# 发送难度调整信号
 	difficulty_adjusted.emit(old_level, current_difficulty, "手动设置")
 	
-	EventBus.debug_message.emit("难度级别已设置为: " + _get_difficulty_name(level), 0)
+	EventBus.debug.debug_message.emit("难度级别已设置为: " + _get_difficulty_name(level), 0)
 
 ## 获取当前难度参数
 func get_difficulty_parameters() -> Dictionary:
@@ -157,17 +157,17 @@ func set_custom_difficulty_parameters(parameters: Dictionary) -> void:
 	if current_difficulty == DifficultyLevel.CUSTOM:
 		balance_parameters_adjusted.emit(difficulty_parameters[DifficultyLevel.CUSTOM])
 	
-	EventBus.debug_message.emit("自定义难度参数已更新", 0)
+	EventBus.debug.debug_message.emit("自定义难度参数已更新", 0)
 
 ## 启用动态难度调整
 func enable_dynamic_difficulty() -> void:
 	dynamic_difficulty_settings.enabled = true
-	EventBus.debug_message.emit("动态难度调整已启用", 0)
+	EventBus.debug.debug_message.emit("动态难度调整已启用", 0)
 
 ## 禁用动态难度调整
 func disable_dynamic_difficulty() -> void:
 	dynamic_difficulty_settings.enabled = false
-	EventBus.debug_message.emit("动态难度调整已禁用", 0)
+	EventBus.debug.debug_message.emit("动态难度调整已禁用", 0)
 
 ## 设置动态难度调整设置
 func set_dynamic_difficulty_settings(settings: Dictionary) -> void:
@@ -181,7 +181,7 @@ func set_dynamic_difficulty_settings(settings: Dictionary) -> void:
 			else:
 				dynamic_difficulty_settings[key] = settings[key]
 	
-	EventBus.debug_message.emit("动态难度调整设置已更新", 0)
+	EventBus.debug.debug_message.emit("动态难度调整设置已更新", 0)
 
 ## 更新玩家性能数据
 func update_player_performance(performance_data: Dictionary) -> void:
@@ -350,7 +350,7 @@ func _check_difficulty_adjustment() -> void:
 			# 发送难度调整信号
 			difficulty_adjusted.emit(old_difficulty, current_difficulty, "动态调整")
 			
-			EventBus.debug_message.emit("难度已动态调整为: " + _get_difficulty_name(current_difficulty) + "，性能得分: " + str(avg_score), 0)
+			EventBus.debug.debug_message.emit("难度已动态调整为: " + _get_difficulty_name(current_difficulty) + "，性能得分: " + str(avg_score), 0)
 
 ## 获取难度名称
 func _get_difficulty_name(level: int) -> String:
@@ -392,4 +392,4 @@ func reset_player_performance() -> void:
 	
 	_performance_history.clear()
 	
-	EventBus.debug_message.emit("玩家性能数据已重置", 0)
+	EventBus.debug.debug_message.emit("玩家性能数据已重置", 0)

@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name EconomyManager
 ## 经济管理器
 ## 管理游戏经济系统，包括金币收入、商店和物品价格
@@ -41,18 +41,27 @@ var economy_params = {
 @onready var player_manager = get_node("/root/GameManager/PlayerManager")
 @onready var config_manager = get_node("/root/ConfigManager")
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "EconomyManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	# 添加依赖
+	add_dependency("GameManager")
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.battle_round_started.connect(_on_battle_round_started)
-	EventBus.shop_refreshed.connect(_on_shop_refreshed)
-	EventBus.item_purchased.connect(_on_item_purchased)
-	EventBus.item_sold.connect(_on_item_sold)
-	EventBus.difficulty_changed.connect(_on_difficulty_changed)
-
-	# 加载难度设置
-	_load_difficulty_settings()
-
-# 计算回合收入
+		EventBus.battle.battle_round_started.connect(_on_battle_round_started)
+		EventBus.economy.shop_refreshed.connect(_on_shop_refreshed)
+		EventBus.economy.item_purchased.connect(_on_item_purchased)
+		EventBus.economy.item_sold.connect(_on_item_sold)
+		EventBus.difficulty_changed.connect(_on_difficulty_changed)
+	
+		# 加载难度设置
+		_load_difficulty_settings()
+	
+	# 计算回合收入
 func calculate_round_income(player: Player) -> int:
 	var income = economy_params.base_income
 
@@ -136,7 +145,7 @@ func _on_battle_round_started(round_number: int) -> void:
 		player.add_gold(income)
 
 		# 发送收入发放信号
-		EventBus.income_granted.emit(income)
+		EventBus.economy.income_granted.emit(income)
 
 		# 添加自动经验
 		player.add_exp(2)
@@ -258,3 +267,17 @@ func reset() -> void:
 
 	# 重新加载难度设置
 	_load_difficulty_settings()
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name ShopManager
 ## 商店管理器
 ## 管理商店物品的生成、购买和刷新
@@ -50,17 +50,24 @@ func get_shop_items() -> Dictionary:
 @onready var synergy_manager = get_node("/root/GameManager/SynergyManager")
 
 # 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "ShopManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.battle_round_started.connect(_on_battle_round_started)
-	EventBus.shop_refreshed.connect(_on_shop_refreshed)
-	EventBus.map_node_selected.connect(_on_map_node_selected)
-	EventBus.difficulty_changed.connect(_on_difficulty_changed)
-
-	# 从经济管理器同步参数
-	_sync_with_economy_manager()
-
-# 刷新商店
+		EventBus.battle.battle_round_started.connect(_on_battle_round_started)
+		EventBus.economy.shop_refreshed.connect(_on_shop_refreshed)
+		EventBus.map.map_node_selected.connect(_on_map_node_selected)
+		EventBus.difficulty_changed.connect(_on_difficulty_changed)
+	
+		# 从经济管理器同步参数
+		_sync_with_economy_manager()
+	
+	# 刷新商店
 func refresh_shop(force: bool = false) -> bool:
 	# 检查是否锁定
 	if is_locked and not force:
@@ -85,7 +92,7 @@ func refresh_shop(force: bool = false) -> bool:
 	_apply_pity_system(player.level)
 
 	# 发送商店刷新信号
-	EventBus.shop_refreshed.emit()
+	EventBus.economy.shop_refreshed.emit()
 
 	return true
 
@@ -110,7 +117,7 @@ func manual_refresh_shop() -> bool:
 
 		# 发送刷新事件
 		if result:
-			EventBus.shop_manually_refreshed.emit(refresh_cost)
+			EventBus.economy.shop_manually_refreshed.emit(refresh_cost)
 
 		return result
 
@@ -168,7 +175,7 @@ func purchase_chess(chess_index: int):
 			purchase_data["cost"] = chess_cost
 
 			# 发送物品购买信号
-			EventBus.item_purchased.emit(purchase_data)
+			EventBus.economy.item_purchased.emit(purchase_data)
 
 			return chess_piece
 		else:
@@ -223,7 +230,7 @@ func purchase_equipment(equipment_index: int) -> Equipment:
 			purchase_data["cost"] = equipment_cost
 
 			# 发送物品购买信号
-			EventBus.item_purchased.emit(purchase_data)
+			EventBus.economy.item_purchased.emit(purchase_data)
 
 			return equipment
 		else:
@@ -260,7 +267,7 @@ func purchase_exp() -> bool:
 		}
 
 		# 发送物品购买信号
-		EventBus.item_purchased.emit(purchase_data)
+		EventBus.economy.item_purchased.emit(purchase_data)
 
 		return true
 
@@ -297,7 +304,7 @@ func sell_chess(chess_piece) -> bool:
 		sell_data["price"] = sell_price
 
 		# 发送物品出售信号
-		EventBus.item_sold.emit(sell_data)
+		EventBus.economy.item_sold.emit(sell_data)
 
 		return true
 
@@ -334,7 +341,7 @@ func sell_equipment(equipment: Equipment) -> bool:
 		sell_data["price"] = sell_price
 
 		# 发送物品出售信号
-		EventBus.item_sold.emit(sell_data)
+		EventBus.economy.item_sold.emit(sell_data)
 
 		return true
 
@@ -372,7 +379,7 @@ func apply_discount(discount_rate: float) -> void:
 	shop_params.discount_rate = discount_rate
 
 	# 发送折扣应用信号
-	EventBus.shop_discount_applied.emit(discount_rate)
+	EventBus.economy.shop_discount_applied.emit(discount_rate)
 
 # 添加特定物品
 func add_specific_item(item_id: String) -> bool:
@@ -587,8 +594,8 @@ func _trigger_black_market() -> void:
 	_add_special_black_market_items()
 
 	# 发送黑市商人触发信号
-	EventBus.debug_message.emit("黑市商人出现了！", 0)
-	EventBus.show_toast.emit(tr("ui.shop.black_market_appeared"))
+	EventBus.debug.debug_message.emit("黑市商人出现了！", 0)
+	EventBus.ui.show_toast.emit(tr("ui.shop.black_market_appeared"))
 
 # 触发神秘商店
 func _trigger_mystery_shop() -> void:
@@ -599,8 +606,8 @@ func _trigger_mystery_shop() -> void:
 	_add_high_tier_chess_pieces()
 
 	# 发送神秘商店触发信号
-	EventBus.debug_message.emit("神秘商店出现了！", 0)
-	EventBus.show_toast.emit(tr("ui.shop.mystery_shop_appeared"))
+	EventBus.debug.debug_message.emit("神秘商店出现了！", 0)
+	EventBus.ui.show_toast.emit(tr("ui.shop.mystery_shop_appeared"))
 
 # 触发装备商店
 func _trigger_equipment_shop() -> void:
@@ -611,8 +618,8 @@ func _trigger_equipment_shop() -> void:
 	shop_params.max_equipment_items = 6
 
 	# 发送装备商店触发信号
-	EventBus.debug_message.emit("装备商店出现了！", 0)
-	EventBus.show_toast.emit(tr("ui.shop.equipment_shop_appeared"))
+	EventBus.debug.debug_message.emit("装备商店出现了！", 0)
+	EventBus.ui.show_toast.emit(tr("ui.shop.equipment_shop_appeared"))
 
 # 添加黑市特殊道具
 func _add_special_black_market_items() -> void:
@@ -690,7 +697,7 @@ func _apply_pity_system(player_level: int) -> void:
 			shop_params.target_chess_id = ""
 
 			# 发送保底触发信号
-			EventBus.debug_message.emit("保底机制触发，目标棋子出现", 0)
+			EventBus.debug.debug_message.emit("保底机制触发，目标棋子出现", 0)
 
 	# 检查高等级保底机制
 	if player_level >= 8:
@@ -726,3 +733,17 @@ func _apply_pity_system(player_level: int) -> void:
 func set_target_chess(chess_id: String) -> void:
 	shop_params.target_chess_id = chess_id
 	shop_params.consecutive_refresh_count = 0
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

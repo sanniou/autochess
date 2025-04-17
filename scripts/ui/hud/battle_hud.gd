@@ -24,16 +24,16 @@ func _initialize() -> void:
 	battle_manager = game_manager.battle_manager
 	
 	if battle_manager == null:
-		EventBus.debug_message.emit("无法获取战斗管理器", 1)
+		EventBus.debug.debug_message.emit("无法获取战斗管理器", 1)
 		return
 	
 	# 连接战斗信号
-	EventBus.battle_started.connect(_on_battle_started)
-	EventBus.battle_ended.connect(_on_battle_ended)
-	EventBus.battle_round_started.connect(_on_battle_round_started)
-	EventBus.battle_round_ended.connect(_on_battle_round_ended)
-	EventBus.battle_preparing_phase_started.connect(_on_battle_preparing_phase_started)
-	EventBus.battle_fighting_phase_started.connect(_on_battle_fighting_phase_started)
+	EventBus.battle.battle_started.connect(_on_battle_started)
+	EventBus.battle.battle_ended.connect(_on_battle_ended)
+	EventBus.battle.battle_round_started.connect(_on_battle_round_started)
+	EventBus.battle.battle_round_ended.connect(_on_battle_round_ended)
+	EventBus.battle.battle_preparing_phase_started.connect(_on_battle_preparing_phase_started)
+	EventBus.battle.battle_fighting_phase_started.connect(_on_battle_fighting_phase_started)
 	
 	# 创建回合计时器
 	round_timer = Timer.new()

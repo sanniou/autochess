@@ -87,7 +87,7 @@ func _on_home_button_pressed() -> void:
 # 主页确认处理
 func _on_home_confirmed() -> void:
 	# 触发自动存档
-	EventBus.autosave_triggered.emit()
+	EventBus.save.autosave_triggered.emit()
 	
 	# 返回主菜单
 	game_manager.change_state(GameManager.GameState.MAIN_MENU)

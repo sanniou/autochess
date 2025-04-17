@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 ## 调试管理器
 ## 负责游戏调试功能和日志记录
 
@@ -39,9 +39,16 @@ var log_entries = []
 # 控制台命令
 var console_commands = {}
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "DebugManager"
+	# 添加依赖
+	add_dependency("SceneManager")
+
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.debug_message.connect(_on_debug_message)
+	EventBus.debug.debug_message.connect(_on_debug_message)
 
 	# 注册控制台命令
 	_register_console_commands()
@@ -60,7 +67,7 @@ func _ready():
 	# 记录游戏启动信息
 	log_message("游戏启动，版本: " + Engine.get_version_info().string, DebugLevel.INFO)
 
-# 输入处理
+	# 输入处理
 func _input(event: InputEvent) -> void:
 	# 检查是否按下了波浪键（~）或F12键
 	if console_enabled and event is InputEventKey and event.pressed:
@@ -110,7 +117,7 @@ func execute_command(command_text: String) -> String:
 		return "未知命令: " + command_name
 
 	var result = console_commands[command_name].callback.call(args)
-	EventBus.debug_command_executed.emit(command_name, result)
+	EventBus.debug.debug_command_executed.emit(command_name, result)
 
 	return result
 
@@ -143,7 +150,7 @@ func log_message(message: String, level: int = DebugLevel.INFO) -> void:
 		_write_to_log_file(formatted_message)
 
 	# 发送调试消息信号
-	EventBus.debug_message.emit(message, level)
+	EventBus.debug.debug_message.emit(message, level)
 
 ## 写入日志文件
 func _write_to_log_file(message: String) -> void:
@@ -419,3 +426,17 @@ func _cmd_quit(_args: Array) -> String:
 	var timer = get_tree().create_timer(0.5)
 	timer.timeout.connect(func(): get_tree().quit())
 	return "正在退出游戏..."
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

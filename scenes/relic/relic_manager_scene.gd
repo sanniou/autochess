@@ -25,8 +25,8 @@ func _ready():
 	_load_relic_list()
 	
 	# 连接信号
-	EventBus.relic_acquired.connect(_on_relic_acquired)
-	EventBus.relic_activated.connect(_on_relic_activated)
+	EventBus.relic.relic_acquired.connect(_on_relic_acquired)
+	EventBus.relic.relic_activated.connect(_on_relic_activated)
 
 # 加载遗物列表
 func _load_relic_list():

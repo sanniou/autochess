@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name SyncManager
 ## 数据同步管理器
 ## 负责同步游戏状态和处理网络数据
@@ -46,11 +46,16 @@ var _state_history = []
 var _predicted_states = {}
 
 # 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "SyncManager"
+	
+	# 原 _ready 函数的内容
 	# 设置进程模式
-	process_mode = Node.PROCESS_MODE_ALWAYS
-
-# 进程
+		process_mode = Node.PROCESS_MODE_ALWAYS
+	
+	# 进程
 func _process(delta: float) -> void:
 	# 检查是否有网络管理器
 	if network_manager == null or not network_manager.is_connected():
@@ -400,4 +405,18 @@ func set_sync_config(config: Dictionary) -> void:
 		if sync_config.has(key):
 			sync_config[key] = config[key]
 	
-	EventBus.debug_message.emit("同步配置已更新", 0)
+	EventBus.debug.debug_message.emit("同步配置已更新", 0)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

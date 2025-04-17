@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 ## 字体管理器
 ## 负责管理游戏中的字体资源和文本样式
 
@@ -54,16 +54,18 @@ var current_language_fonts: Dictionary = {}
 # 引用
 var resource_manager = null
 
-# 初始化完成标志
-var _initialized = false
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "FontManager"
+	# 添加依赖
+	add_dependency("ResourceManager")
 
-# 初始化
-func _ready() -> void:
 	# 延迟初始化，确保其他单例已经准备好
 	call_deferred("_deferred_init")
 
 	# 调试信息
-	EventBus.debug_message.emit("字体管理器已创建", 0)
+	EventBus.debug.debug_message.emit("字体管理器已创建", 0)
 
 ## 延迟初始化
 func _deferred_init() -> void:
@@ -71,16 +73,15 @@ func _deferred_init() -> void:
 	resource_manager = get_node_or_null("/root/ResourceManager")
 
 	# 连接信号
-	EventBus.language_changed.connect(_on_language_changed)
-	EventBus.request_font.connect(_on_request_font)
-	EventBus.debug_message.emit("字体管理器已连接到EventBus", 0)
+	EventBus.localization.language_changed.connect(_on_language_changed)
+	EventBus.localization.request_font.connect(_on_request_font)
+	EventBus.debug.debug_message.emit("字体管理器已连接到EventBus", 0)
 
 	# 加载默认字体
 	_load_default_fonts()
 
 	# 标记初始化完成
-	_initialized = true
-	EventBus.debug_message.emit("字体管理器初始化完成", 0)
+	EventBus.debug.debug_message.emit("字体管理器初始化完成", 0)
 
 ## 加载默认字体
 func _load_default_fonts() -> void:
@@ -88,7 +89,7 @@ func _load_default_fonts() -> void:
 	var language_code = "zh_CN" # 默认使用中文
 
 	# 尝试通过EventBus获取当前语言代码
-	EventBus.request_language_code.emit()
+	EventBus.localization.request_language_code.emit()
 	# 注意：这里我们使用默认值，因为这是异步请求
 	# 当LocalizationManager响应请求时，它会发送language_changed信号
 	# 我们在_on_language_changed方法中处理语言变化
@@ -288,15 +289,25 @@ func _on_request_font(font_name: String) -> void:
 	# 加载并返回请求的字体
 	var font = load_font(font_name)
 	if font:
-		EventBus.font_loaded.emit(font_name, font)
+		EventBus.localization.font_loaded.emit(font_name, font)
 	else:
-		EventBus.debug_message.emit("无法加载字体: " + font_name, 1)
-
-## 检查是否初始化完成
-func is_initialized() -> bool:
-	return _initialized
+		EventBus.debug.debug_message.emit("无法加载字体: " + font_name, 1)
 
 ## 确保初始化完成
 func ensure_initialized() -> void:
-	if not _initialized:
+	if not is_initialized():
 		_deferred_init()
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

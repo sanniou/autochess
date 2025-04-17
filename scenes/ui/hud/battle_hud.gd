@@ -16,10 +16,10 @@ func _ready():
 	_update_battle_info()
 	
 	# 连接信号
-	EventBus.player_health_changed.connect(_on_player_health_changed)
-	EventBus.gold_changed.connect(_on_gold_changed)
-	EventBus.battle_started.connect(_on_battle_started)
-	EventBus.battle_ended.connect(_on_battle_ended)
+	EventBus.game.player_health_changed.connect(_on_player_health_changed)
+	EventBus.economy.gold_changed.connect(_on_gold_changed)
+	EventBus.battle.battle_started.connect(_on_battle_started)
+	EventBus.battle.battle_ended.connect(_on_battle_ended)
 
 # 更新玩家信息
 func _update_player_info():

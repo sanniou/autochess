@@ -12,10 +12,10 @@ func _ready():
 	_update_ui()
 
 	# 连接信号
-	EventBus.synergy_activated.connect(_on_synergy_activated)
-	EventBus.synergy_deactivated.connect(_on_synergy_deactivated)
-	EventBus.chess_piece_created.connect(_on_chess_piece_created)
-	EventBus.chess_piece_sold.connect(_on_chess_piece_sold)
+	EventBus.chess.synergy_activated.connect(_on_synergy_activated)
+	EventBus.chess.synergy_deactivated.connect(_on_synergy_deactivated)
+	EventBus.chess.chess_piece_created.connect(_on_chess_piece_created)
+	EventBus.chess.chess_piece_sold.connect(_on_chess_piece_sold)
 
 # 更新界面
 func _update_ui():

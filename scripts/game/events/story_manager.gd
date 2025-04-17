@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name StoryManager
 ## 剧情管理器
 ## 负责管理游戏中的剧情标记和分支
@@ -15,16 +15,21 @@ var story_progress = 0  # 主线剧情进度
 # 已触发的剧情事件
 var triggered_story_events = []  # 已触发的剧情事件ID列表
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "StoryManager"
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.event_completed.connect(_on_event_completed)
-
-# 设置剧情标记
+		EventBus.event.event_completed.connect(_on_event_completed)
+	
+	# 设置剧情标记
 func set_flag(flag_name: String, value = true) -> void:
 	story_flags[flag_name] = value
 	
 	# 发送剧情标记设置信号
-	EventBus.debug_message.emit("设置剧情标记: " + flag_name + " = " + str(value), 0)
+	EventBus.debug.debug_message.emit("设置剧情标记: " + flag_name + " = " + str(value), 0)
 	
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -40,7 +45,7 @@ func set_branch(branch_name: String, path: String) -> void:
 	story_branches[branch_name] = path
 	
 	# 发送剧情分支设置信号
-	EventBus.debug_message.emit("设置剧情分支: " + branch_name + " = " + path, 0)
+	EventBus.debug.debug_message.emit("设置剧情分支: " + branch_name + " = " + path, 0)
 	
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -56,7 +61,7 @@ func advance_story(amount: int = 1) -> void:
 	story_progress += amount
 	
 	# 发送剧情进度更新信号
-	EventBus.debug_message.emit("剧情进度更新: " + str(story_progress), 0)
+	EventBus.debug.debug_message.emit("剧情进度更新: " + str(story_progress), 0)
 	
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -172,3 +177,17 @@ func reset() -> void:
 	story_branches.clear()
 	story_progress = 0
 	triggered_story_events.clear()
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

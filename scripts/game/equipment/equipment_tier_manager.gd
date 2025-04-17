@@ -1,5 +1,10 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name EquipmentTierManager
+
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "EquipmentTierManager"
 ## 装备拉格管理器
 ## 负责管理装备的品质和随机属性
 
@@ -289,3 +294,17 @@ func get_tier_from_id(equipment_id: String) -> int:
 				return tier
 	
 	return EquipmentTier.NORMAL  # 默认为普通品质
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

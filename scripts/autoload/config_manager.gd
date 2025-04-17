@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 ## 配置管理器
 ## 负责加载和管理游戏配置数据
 ##
@@ -40,14 +40,18 @@ const CONFIG_DIR = "res://config/"
 # 是否处于调试模式
 var debug_mode = false
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "ConfigManager"
+
 	# 加载所有配置
 	load_all_configs()
 
 	# 连接调试相关信号
 	if OS.is_debug_build():
 		debug_mode = true
-		EventBus.debug_command_executed.connect(_on_debug_command_executed)
+		EventBus.debug.debug_command_executed.connect(_on_debug_command_executed)
 
 ## 加载所有配置文件
 func load_all_configs() -> void:
@@ -66,7 +70,7 @@ func load_all_configs() -> void:
 	if debug_mode:
 		validate_all_configs()
 
-	EventBus.debug_message.emit("所有配置加载完成", 0)
+	EventBus.debug.debug_message.emit("所有配置加载完成", 0)
 
 ## 验证所有配置文件
 func validate_all_configs() -> void:
@@ -86,70 +90,70 @@ func load_chess_pieces_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.chess_pieces)
 	if config:
 		chess_pieces_config = config
-		EventBus.debug_message.emit("棋子配置加载完成", 0)
+		EventBus.debug.debug_message.emit("棋子配置加载完成", 0)
 
 ## 加载装备配置
 func load_equipment_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.equipment)
 	if config:
 		equipment_config = config
-		EventBus.debug_message.emit("装备配置加载完成", 0)
+		EventBus.debug.debug_message.emit("装备配置加载完成", 0)
 
 ## 加载地图节点配置
 func load_map_nodes_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.map_nodes)
 	if config:
 		map_nodes_config = config
-		EventBus.debug_message.emit("地图节点配置加载完成", 0)
+		EventBus.debug.debug_message.emit("地图节点配置加载完成", 0)
 
 ## 加载遗物配置
 func load_relics_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.relics)
 	if config:
 		relics_config = config
-		EventBus.debug_message.emit("遗物配置加载完成", 0)
+		EventBus.debug.debug_message.emit("遗物配置加载完成", 0)
 
 ## 加载羁绊配置
 func load_synergies_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.synergies)
 	if config:
 		synergies_config = config
-		EventBus.debug_message.emit("羁绊配置加载完成", 0)
+		EventBus.debug.debug_message.emit("羁绊配置加载完成", 0)
 
 ## 加载事件配置
 func load_events_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.events)
 	if config:
 		events_config = config
-		EventBus.debug_message.emit("事件配置加载完成", 0)
+		EventBus.debug.debug_message.emit("事件配置加载完成", 0)
 
 ## 加载难度配置
 func load_difficulty_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.difficulty)
 	if config:
 		difficulty_config = config
-		EventBus.debug_message.emit("难度配置加载完成", 0)
+		EventBus.debug.debug_message.emit("难度配置加载完成", 0)
 
 ## 加载成就配置
 func load_achievements_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.achievements)
 	if config:
 		achievements_config = config
-		EventBus.debug_message.emit("成就配置加载完成", 0)
+		EventBus.debug.debug_message.emit("成就配置加载完成", 0)
 
 ## 加载皮肤配置
 func load_skins_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.skins)
 	if config:
 		skins_config = config
-		EventBus.debug_message.emit("皮肤配置加载完成", 0)
+		EventBus.debug.debug_message.emit("皮肤配置加载完成", 0)
 
 ## 加载教程配置
 func load_tutorials_config() -> void:
 	var config = _load_json_file(CONFIG_PATH.tutorials)
 	if config:
 		tutorials_config = config
-		EventBus.debug_message.emit("教程配置加载完成", 0)
+		EventBus.debug.debug_message.emit("教程配置加载完成", 0)
 
 ## 获取棋子配置
 func get_chess_piece_config(piece_id: String) -> Dictionary:
@@ -282,7 +286,7 @@ func get_all_tutorials() -> Dictionary:
 ## 重新加载配置（用于热重载）
 func reload_configs() -> void:
 	load_all_configs()
-	EventBus.debug_message.emit("配置已重新加载", 0)
+	EventBus.debug.debug_message.emit("配置已重新加载", 0)
 
 ## 从JSON文件加载配置
 func _load_json_file(file_path: String) -> Variant:
@@ -290,12 +294,12 @@ func _load_json_file(file_path: String) -> Variant:
 		# 如果文件不存在，创建一个空的配置文件
 		if debug_mode:
 			_create_empty_config_file(file_path)
-		EventBus.debug_message.emit("配置文件不存在: " + file_path, 2)
+		EventBus.debug.debug_message.emit("配置文件不存在: " + file_path, 2)
 		return {}
 
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if file == null:
-		EventBus.debug_message.emit("无法打开配置文件: " + file_path, 2)
+		EventBus.debug.debug_message.emit("无法打开配置文件: " + file_path, 2)
 		return {}
 
 	var json_text = file.get_as_text()
@@ -304,7 +308,7 @@ func _load_json_file(file_path: String) -> Variant:
 	var json = JSON.new()
 	var error = json.parse(json_text)
 	if error != OK:
-		EventBus.debug_message.emit("解析配置文件失败: " + file_path + ", 行 " + str(json.get_error_line()) + ": " + json.get_error_message(), 2)
+		EventBus.debug.debug_message.emit("解析配置文件失败: " + file_path + ", 行 " + str(json.get_error_line()) + ": " + json.get_error_message(), 2)
 		return {}
 
 	return json.get_data()
@@ -318,12 +322,12 @@ func _create_empty_config_file(file_path: String) -> void:
 
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	if file == null:
-		EventBus.debug_message.emit("无法创建配置文件: " + file_path, 2)
+		EventBus.debug.debug_message.emit("无法创建配置文件: " + file_path, 2)
 		return
 
 	file.store_string("{}")
 	file.close()
-	EventBus.debug_message.emit("创建了空配置文件: " + file_path, 1)
+	EventBus.debug.debug_message.emit("创建了空配置文件: " + file_path, 1)
 
 ## 验证棋子配置
 func validate_chess_pieces_config() -> void:
@@ -333,7 +337,7 @@ func validate_chess_pieces_config() -> void:
 
 		for field in required_fields:
 			if not piece.has(field):
-				EventBus.debug_message.emit("棋子配置验证失败: " + piece_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("棋子配置验证失败: " + piece_id + " 缺少必要字段 " + field, 2)
 
 ## 验证装备配置
 func validate_equipment_config() -> void:
@@ -343,12 +347,12 @@ func validate_equipment_config() -> void:
 
 		for field in required_fields:
 			if not equip.has(field):
-				EventBus.debug_message.emit("装备配置验证失败: " + equip_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("装备配置验证失败: " + equip_id + " 缺少必要字段 " + field, 2)
 
 ## 验证地图节点配置
 func validate_map_nodes_config() -> void:
 	if not map_nodes_config.has("map_templates") or not map_nodes_config.has("node_types"):
-		EventBus.debug_message.emit("地图节点配置验证失败: 缺少 map_templates 或 node_types", 2)
+		EventBus.debug.debug_message.emit("地图节点配置验证失败: 缺少 map_templates 或 node_types", 2)
 		return
 
 	for template_id in map_nodes_config.map_templates:
@@ -357,7 +361,7 @@ func validate_map_nodes_config() -> void:
 
 		for field in required_fields:
 			if not template.has(field):
-				EventBus.debug_message.emit("地图模板配置验证失败: " + template_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("地图模板配置验证失败: " + template_id + " 缺少必要字段 " + field, 2)
 
 ## 验证遗物配置
 func validate_relics_config() -> void:
@@ -367,7 +371,7 @@ func validate_relics_config() -> void:
 
 		for field in required_fields:
 			if not relic.has(field):
-				EventBus.debug_message.emit("遗物配置验证失败: " + relic_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("遗物配置验证失败: " + relic_id + " 缺少必要字段 " + field, 2)
 
 ## 验证羁绑配置
 func validate_synergies_config() -> void:
@@ -377,11 +381,11 @@ func validate_synergies_config() -> void:
 
 		for field in required_fields:
 			if not synergy.has(field):
-				EventBus.debug_message.emit("羁绑配置验证失败: " + synergy_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("羁绑配置验证失败: " + synergy_id + " 缺少必要字段 " + field, 2)
 
 		# 验证羁绊阈值字段
 		if not synergy.has("thresholds") and not synergy.has("tiers"):
-			EventBus.debug_message.emit("羁绑配置验证失败: " + synergy_id + " 缺少必要字段 thresholds 或 tiers", 2)
+			EventBus.debug.debug_message.emit("羁绑配置验证失败: " + synergy_id + " 缺少必要字段 thresholds 或 tiers", 2)
 
 ## 验证事件配置
 func validate_events_config() -> void:
@@ -391,7 +395,7 @@ func validate_events_config() -> void:
 
 		for field in required_fields:
 			if not event.has(field):
-				EventBus.debug_message.emit("事件配置验证失败: " + event_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("事件配置验证失败: " + event_id + " 缺少必要字段 " + field, 2)
 
 ## 验证难度配置
 func validate_difficulty_config() -> void:
@@ -401,7 +405,7 @@ func validate_difficulty_config() -> void:
 
 		for field in required_fields:
 			if not diff.has(field):
-				EventBus.debug_message.emit("难度配置验证失败: " + diff_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("难度配置验证失败: " + diff_id + " 缺少必要字段 " + field, 2)
 
 ## 验证成就配置
 func validate_achievements_config() -> void:
@@ -411,7 +415,7 @@ func validate_achievements_config() -> void:
 
 		for field in required_fields:
 			if not achievement.has(field):
-				EventBus.debug_message.emit("成就配置验证失败: " + achievement_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("成就配置验证失败: " + achievement_id + " 缺少必要字段 " + field, 2)
 
 ## 验证皮肤配置
 func validate_skins_config() -> void:
@@ -421,7 +425,7 @@ func validate_skins_config() -> void:
 
 		for field in required_fields:
 			if not skin.has(field):
-				EventBus.debug_message.emit("皮肤配置验证失败: " + skin_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("皮肤配置验证失败: " + skin_id + " 缺少必要字段 " + field, 2)
 
 ## 验证教程配置
 func validate_tutorials_config() -> void:
@@ -431,7 +435,7 @@ func validate_tutorials_config() -> void:
 
 		for field in required_fields:
 			if not tutorial.has(field):
-				EventBus.debug_message.emit("教程配置验证失败: " + tutorial_id + " 缺少必要字段 " + field, 2)
+				EventBus.debug.debug_message.emit("教程配置验证失败: " + tutorial_id + " 缺少必要字段 " + field, 2)
 
 		# 验证步骤
 		if tutorial.has("steps") and tutorial.steps is Array:
@@ -441,7 +445,7 @@ func validate_tutorials_config() -> void:
 
 				for field in step_required_fields:
 					if not step.has(field):
-						EventBus.debug_message.emit("教程步骤配置验证失败: " + tutorial_id + " 步骤 " + str(i) + " 缺少必要字段 " + field, 2)
+						EventBus.debug.debug_message.emit("教程步骤配置验证失败: " + tutorial_id + " 步骤 " + str(i) + " 缺少必要字段 " + field, 2)
 
 ## 验证配置文件结构
 func validate_config_structure(config: Dictionary, schema: Dictionary, config_name: String, config_id: String) -> bool:
@@ -450,13 +454,13 @@ func validate_config_structure(config: Dictionary, schema: Dictionary, config_na
 	# 验证必要字段
 	for field in schema.required_fields:
 		if not config.has(field):
-			EventBus.debug_message.emit(config_name + " 配置验证失败: " + config_id + " 缺少必要字段 " + field, 2)
+			EventBus.debug.debug_message.emit(config_name + " 配置验证失败: " + config_id + " 缺少必要字段 " + field, 2)
 			valid = false
 
 	# 验证字段类型
 	for field in schema.field_types:
 		if config.has(field) and typeof(config[field]) != schema.field_types[field]:
-			EventBus.debug_message.emit(config_name + " 配置验证失败: " + config_id + " 字段 " + field + " 类型错误", 2)
+			EventBus.debug.debug_message.emit(config_name + " 配置验证失败: " + config_id + " 字段 " + field + " 类型错误", 2)
 			valid = false
 
 	# 验证嵌套字段
@@ -464,7 +468,7 @@ func validate_config_structure(config: Dictionary, schema: Dictionary, config_na
 		if config.has(field) and schema.nested_fields[field].has("required_fields"):
 			for nested_field in schema.nested_fields[field].required_fields:
 				if not config[field].has(nested_field):
-					EventBus.debug_message.emit(config_name + " 配置验证失败: " + config_id + " 字段 " + field + " 缺少必要字段 " + nested_field, 2)
+					EventBus.debug.debug_message.emit(config_name + " 配置验证失败: " + config_id + " 字段 " + field + " 缺少必要字段 " + nested_field, 2)
 					valid = false
 
 	return valid
@@ -486,13 +490,13 @@ func save_json(file_path: String, data: Variant) -> bool:
 
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	if file == null:
-		EventBus.debug_message.emit("无法打开配置文件进行写入: " + file_path, 2)
+		EventBus.debug.debug_message.emit("无法打开配置文件进行写入: " + file_path, 2)
 		return false
 
 	var json_text = JSON.stringify(data, "\t")
 	file.store_string(json_text)
 	file.close()
-	EventBus.debug_message.emit("配置文件已保存: " + file_path, 0)
+	EventBus.debug.debug_message.emit("配置文件已保存: " + file_path, 0)
 	return true
 
 ## 加载指定配置
@@ -547,7 +551,7 @@ func get_all_config_files() -> Dictionary:
 	var result = {}
 	var dir = DirAccess.open(CONFIG_DIR)
 	if dir == null:
-		EventBus.debug_message.emit("无法打开配置目录: " + CONFIG_DIR, 2)
+		EventBus.debug.debug_message.emit("无法打开配置目录: " + CONFIG_DIR, 2)
 		return result
 
 	# 扫描根目录
@@ -596,3 +600,17 @@ func clear_cache() -> void:
 func clear_cache_key(key: String) -> void:
 	if cache.has(key):
 		cache.erase(key)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

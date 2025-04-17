@@ -19,7 +19,7 @@ func apply() -> void:
 
 		# 发送效果抵抗信号
 		var effect_id = "control_" + control_type
-		EventBus.status_effect_resisted.emit(target, effect_id)
+		EventBus.status_effect.status_effect_resisted.emit(target, effect_id)
 		return
 
 	# 创建效果数据
@@ -57,10 +57,10 @@ func apply() -> void:
 				effect_data.name = "嘲讽"
 
 	# 发送效果应用信号
-	EventBus.ability_effect_applied.emit(source, target, "control", control_type)
+	EventBus.battle.ability_effect_applied.emit(source, target, "control", control_type)
 
 	# 发送状态效果添加信号
-	EventBus.status_effect_added.emit(target, effect_id, effect_data)
+	EventBus.status_effect.status_effect_added.emit(target, effect_id, effect_data)
 
 	# 播放控制特效
 	_play_control_effect()

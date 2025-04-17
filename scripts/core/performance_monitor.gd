@@ -156,7 +156,7 @@ func _log_performance_data() -> void:
 		log_message += "\n警告: " + warnings.join(", ")
 	
 	# 输出日志
-	EventBus.debug_message.emit(log_message, 0)
+	EventBus.debug.debug_message.emit(log_message, 0)
 
 # 计算平均值
 func _calculate_average(values: Array) -> float:
@@ -190,33 +190,33 @@ func _check_performance_warnings(fps: float, memory: float, draw_calls: int, obj
 # 启用性能监控
 func enable() -> void:
 	monitor_settings.enabled = true
-	EventBus.debug_message.emit("性能监控已启用", 0)
+	EventBus.debug.debug_message.emit("性能监控已启用", 0)
 
 # 禁用性能监控
 func disable() -> void:
 	monitor_settings.enabled = false
-	EventBus.debug_message.emit("性能监控已禁用", 0)
+	EventBus.debug.debug_message.emit("性能监控已禁用", 0)
 
 # 设置日志间隔
 func set_log_interval(interval: float) -> void:
 	monitor_settings.log_interval = max(0.1, interval)
-	EventBus.debug_message.emit("性能监控日志间隔已设置为 %.1f 秒" % monitor_settings.log_interval, 0)
+	EventBus.debug.debug_message.emit("性能监控日志间隔已设置为 %.1f 秒" % monitor_settings.log_interval, 0)
 
 # 设置样本数量
 func set_sample_count(count: int) -> void:
 	monitor_settings.sample_count = max(10, count)
 	_initialize_performance_data()
-	EventBus.debug_message.emit("性能监控样本数量已设置为 %d" % monitor_settings.sample_count, 0)
+	EventBus.debug.debug_message.emit("性能监控样本数量已设置为 %d" % monitor_settings.sample_count, 0)
 
 # 启用脚本性能分析
 func enable_script_profiling() -> void:
 	monitor_settings.script_profiling = true
-	EventBus.debug_message.emit("脚本性能分析已启用", 0)
+	EventBus.debug.debug_message.emit("脚本性能分析已启用", 0)
 
 # 禁用脚本性能分析
 func disable_script_profiling() -> void:
 	monitor_settings.script_profiling = false
-	EventBus.debug_message.emit("脚本性能分析已禁用", 0)
+	EventBus.debug.debug_message.emit("脚本性能分析已禁用", 0)
 
 # 获取性能报告
 func get_performance_report() -> Dictionary:

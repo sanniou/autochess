@@ -19,10 +19,10 @@ func apply() -> void:
 	var final_heal = target.heal(heal_amount, source)
 
 	# 发送效果应用信号
-	EventBus.ability_effect_applied.emit(source, target, "heal", final_heal)
+	EventBus.battle.ability_effect_applied.emit(source, target, "heal", final_heal)
 
 	# 发送治疗信号
-	EventBus.heal_received.emit(target, final_heal, source)
+	EventBus.battle.heal_received.emit(target, final_heal, source)
 
 	# 播放治疗特效
 	_play_heal_effect()

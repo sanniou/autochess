@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name RelicManager
 ## 遗物管理器
 ## 负责遗物的获取、激活和效果触发
@@ -15,19 +15,26 @@ var relic_factory = {}  # 遗物工厂，用于创建不同类型的遗物
 # 引用
 @onready var config_manager = get_node("/root/ConfigManager")
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "RelicManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	
+	# 原 _ready 函数的内容
 	# 初始化遗物工厂
-	_initialize_relic_factory()
+		_initialize_relic_factory()
+		
+		# 初始化可获取的遗物池
+		_initialize_available_relics()
+		
+		# 连接信号
+		EventBus.battle.battle_ended.connect(_on_battle_ended)
+		EventBus.event.event_completed.connect(_on_event_completed)
+		EventBus.map.map_node_selected.connect(_on_map_node_selected)
 	
-	# 初始化可获取的遗物池
-	_initialize_available_relics()
-	
-	# 连接信号
-	EventBus.battle_ended.connect(_on_battle_ended)
-	EventBus.event_completed.connect(_on_event_completed)
-	EventBus.map_node_selected.connect(_on_map_node_selected)
-
-# 初始化遗物工厂
+	# 初始化遗物工厂
 func _initialize_relic_factory() -> void:
 	# 加载所有遗物配置
 	var relics_config = config_manager.get_all_relics()
@@ -49,12 +56,12 @@ func _initialize_available_relics() -> void:
 func acquire_relic(relic_id: String, player = null) -> Relic:
 	# 检查是否已达到最大遗物数量
 	if player_relics.size() >= MAX_RELICS:
-		EventBus.debug_message.emit("已达到最大遗物数量", 1)
+		EventBus.debug.debug_message.emit("已达到最大遗物数量", 1)
 		return null
 	
 	# 检查遗物是否存在
 	if not relic_factory.has(relic_id):
-		EventBus.debug_message.emit("遗物不存在: " + relic_id, 2)
+		EventBus.debug.debug_message.emit("遗物不存在: " + relic_id, 2)
 		return null
 	
 	# 创建遗物实例
@@ -73,7 +80,7 @@ func acquire_relic(relic_id: String, player = null) -> Relic:
 		relic.activate()
 	
 	# 发送遗物获取信号
-	EventBus.relic_acquired.emit(relic)
+	EventBus.relic.relic_acquired.emit(relic)
 	
 	return relic
 
@@ -290,3 +297,17 @@ func load_relics_state(save_data: Array, player = null) -> void:
 			relic.is_active = relic_data.is_active
 			relic.charges = relic_data.charges
 			relic.current_cooldown = relic_data.current_cooldown
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

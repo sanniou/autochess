@@ -90,7 +90,7 @@ func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: 
 	chess_piece.is_player_piece = is_player_piece
 
 	# 发送创建信号
-	EventBus.chess_piece_created.emit(chess_piece)
+	EventBus.chess.chess_piece_created.emit(chess_piece)
 
 	return chess_piece
 
@@ -290,7 +290,7 @@ func merge_chess_pieces(pieces: Array) -> Node2D:
 		release_chess_piece(piece)
 
 	# 发送合并完成信号
-	EventBus.chess_pieces_merged.emit(pieces, upgraded_piece)
+	EventBus.chess.chess_pieces_merged.emit(pieces, upgraded_piece)
 
 	return upgraded_piece
 
@@ -327,7 +327,7 @@ func _play_merge_animation(pieces: Array, target_position: Vector2) -> void:
 	tween.tween_callback(merge_effect.queue_free)
 
 	# 播放合并音效
-	EventBus.play_sound.emit("merge", target_position)
+	EventBus.audio.play_sound.emit("merge", target_position)
 
 ## 获取棋子配置
 func get_chess_config(chess_id: String) -> Dictionary:

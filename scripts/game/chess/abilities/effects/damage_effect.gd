@@ -22,7 +22,7 @@ func apply() -> void:
 	var final_damage = target.take_damage(actual_damage, damage_type, source)
 
 	# 发送效果应用信号
-	EventBus.ability_effect_applied.emit(source, target, "damage", final_damage)
+	EventBus.battle.ability_effect_applied.emit(source, target, "damage", final_damage)
 
 	# 播放伤害特效
 	_play_damage_effect()

@@ -10,7 +10,7 @@ var migration_results = {}
 
 func _ready():
 	# 连接信号
-	EventBus.debug_message.connect(_on_debug_message)
+	EventBus.debug.debug_message.connect(_on_debug_message)
 	
 	# 开始迁移
 	migrate_all_configs()

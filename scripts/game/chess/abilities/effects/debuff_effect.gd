@@ -52,7 +52,7 @@ func apply() -> void:
 	target.add_effect(effect_data)
 
 	# 发送效果应用信号
-	EventBus.ability_effect_applied.emit(source, target, "debuff", value)
+	EventBus.battle.ability_effect_applied.emit(source, target, "debuff", value)
 
 	# 播放减益特效
 	_play_debuff_effect()

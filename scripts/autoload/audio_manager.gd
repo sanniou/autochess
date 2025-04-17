@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 ## 音频管理器
 ## 负责游戏音频的播放和管理
 
@@ -41,7 +41,12 @@ const MAX_MUSIC_PLAYERS = 2  # 用于交叉淡入淡出
 const MAX_SFX_PLAYERS = 8
 const MAX_UI_PLAYERS = 4
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "AudioManager"
+
+	# 原 _ready 函数的内容
 	# 初始化音频总线
 	_initialize_audio_buses()
 
@@ -49,16 +54,16 @@ func _ready():
 	_initialize_audio_players()
 
 	# 连接信号
-	EventBus.game_paused.connect(_on_game_paused)
-	EventBus.game_state_changed.connect(_on_game_state_changed)
-	EventBus.battle_started.connect(_on_battle_started)
-	EventBus.battle_ended.connect(_on_battle_ended)
-	EventBus.play_sound.connect(_on_play_sound)
+	EventBus.game.game_paused.connect(_on_game_paused)
+	EventBus.game.game_state_changed.connect(_on_game_state_changed)
+	EventBus.battle.battle_started.connect(_on_battle_started)
+	EventBus.battle.battle_ended.connect(_on_battle_ended)
+	EventBus.audio.play_sound.connect(_on_play_sound)
 
 	# 调试信息
-	EventBus.debug_message.emit("音频管理器初始化完成", 0)
+	EventBus.debug.debug_message.emit("音频管理器初始化完成", 0)
 
-## 初始化音频总线
+	## 初始化音频总线
 func _initialize_audio_buses() -> void:
 	# 检查并创建必要的音频总线
 	var required_buses = ["Master", "Music", "SFX", "UI"]
@@ -69,7 +74,7 @@ func _initialize_audio_buses() -> void:
 		# Master总线应该默认存在，如果不存在则创建
 		AudioServer.add_bus(0) # 添加到第一个位置
 		AudioServer.set_bus_name(0, "Master")
-		EventBus.debug_message.emit("创建了Master音频总线", 0)
+		EventBus.debug.debug_message.emit("创建了Master音频总线", 0)
 
 	# 创建其他总线
 	for bus_name in required_buses:
@@ -85,7 +90,7 @@ func _initialize_audio_buses() -> void:
 
 			# 将新总线发送到Master
 			AudioServer.set_bus_send(bus_idx, "Master")
-			EventBus.debug_message.emit("创建了" + bus_name + "音频总线", 0)
+			EventBus.debug.debug_message.emit("创建了" + bus_name + "音频总线", 0)
 
 ## 初始化音频播放器
 func _initialize_audio_players() -> void:
@@ -121,13 +126,13 @@ func play_music(music_name: String, fade_time: float = 1.0) -> void:
 	var music_path = AUDIO_PATHS[AudioType.MUSIC] + music_name
 	var stream = _load_audio(music_path)
 	if stream == null:
-		EventBus.debug_message.emit("音乐文件不存在: " + music_path, 1)
+		EventBus.debug.debug_message.emit("音乐文件不存在: " + music_path, 1)
 		return
 
 	# 找到一个空闲的音乐播放器
 	var player = _get_free_player(AudioType.MUSIC)
 	if player == null:
-		EventBus.debug_message.emit("没有可用的音乐播放器", 1)
+		EventBus.debug.debug_message.emit("没有可用的音乐播放器", 1)
 		return
 
 	# 淡出当前音乐
@@ -144,20 +149,20 @@ func play_music(music_name: String, fade_time: float = 1.0) -> void:
 	_fade_in(player, fade_time)
 
 	current_music = music_name
-	EventBus.bgm_changed.emit(music_name)
+	EventBus.audio.bgm_changed.emit(music_name)
 
 ## 播放音效
 func play_sfx(sfx_name: String, pitch_scale: float = 1.0, volume_scale: float = 1.0) -> void:
 	var sfx_path = AUDIO_PATHS[AudioType.SFX] + sfx_name
 	var stream = _load_audio(sfx_path)
 	if stream == null:
-		EventBus.debug_message.emit("音效文件不存在: " + sfx_path, 1)
+		EventBus.debug.debug_message.emit("音效文件不存在: " + sfx_path, 1)
 		return
 
 	# 找到一个空闲的音效播放器
 	var player = _get_free_player(AudioType.SFX)
 	if player == null:
-		EventBus.debug_message.emit("没有可用的音效播放器", 1)
+		EventBus.debug.debug_message.emit("没有可用的音效播放器", 1)
 		return
 
 	# 设置音效
@@ -166,20 +171,20 @@ func play_sfx(sfx_name: String, pitch_scale: float = 1.0, volume_scale: float = 
 	player.volume_db = linear_to_db(sfx_volume * volume_scale)
 	player.play()
 
-	EventBus.sfx_played.emit(sfx_name)
+	EventBus.audio.sfx_played.emit(sfx_name)
 
 ## 播放UI音效
 func play_ui_sound(sound_name: String) -> void:
 	var sound_path = AUDIO_PATHS[AudioType.UI] + sound_name
 	var stream = _load_audio(sound_path)
 	if stream == null:
-		EventBus.debug_message.emit("UI音效文件不存在: " + sound_path, 1)
+		EventBus.debug.debug_message.emit("UI音效文件不存在: " + sound_path, 1)
 		return
 
 	# 找到一个空闲的UI音效播放器
 	var player = _get_free_player(AudioType.UI)
 	if player == null:
-		EventBus.debug_message.emit("没有可用的UI音效播放器", 1)
+		EventBus.debug.debug_message.emit("没有可用的UI音效播放器", 1)
 		return
 
 	# 设置UI音效
@@ -219,7 +224,7 @@ func set_music_volume(volume: float) -> void:
 	if bus_idx >= 0:
 		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(music_volume))
 	else:
-		EventBus.debug_message.emit("Music音频总线不存在", 1)
+		EventBus.debug.debug_message.emit("Music音频总线不存在", 1)
 
 	# 更新所有音乐播放器的音量
 	for player in music_players:
@@ -233,7 +238,7 @@ func set_sfx_volume(volume: float) -> void:
 	if bus_idx >= 0:
 		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(sfx_volume))
 	else:
-		EventBus.debug_message.emit("SFX音频总线不存在", 1)
+		EventBus.debug.debug_message.emit("SFX音频总线不存在", 1)
 
 ## 设置UI音效音量
 func set_ui_volume(volume: float) -> void:
@@ -242,7 +247,7 @@ func set_ui_volume(volume: float) -> void:
 	if bus_idx >= 0:
 		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(ui_volume))
 	else:
-		EventBus.debug_message.emit("UI音频总线不存在", 1)
+		EventBus.debug.debug_message.emit("UI音频总线不存在", 1)
 
 ## 静音/取消静音
 func toggle_mute() -> void:
@@ -251,7 +256,7 @@ func toggle_mute() -> void:
 	if bus_idx >= 0:
 		AudioServer.set_bus_mute(bus_idx, is_muted)
 	else:
-		EventBus.debug_message.emit("Master音频总线不存在", 1)
+		EventBus.debug.debug_message.emit("Master音频总线不存在", 1)
 
 ## 加载音频资源
 func _load_audio(path: String) -> AudioStream:
@@ -367,3 +372,17 @@ func _on_play_sound(sound_name: String) -> void:
 		_:
 			# 如果没有特殊处理，直接播放同名音效
 			play_sfx(sound_name)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

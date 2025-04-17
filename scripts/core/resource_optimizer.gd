@@ -229,7 +229,7 @@ func clear_all_resources() -> void:
 	# 强制垃圾回收
 	OS.delay_msec(100)  # 给GC一些时间
 	
-	EventBus.debug_message.emit("所有资源已清除", 0)
+	EventBus.debug.debug_message.emit("所有资源已清除", 0)
 
 ## 检查内存使用情况
 func _check_memory_usage() -> void:
@@ -281,7 +281,7 @@ func _unload_low_priority_resources() -> void:
 		unload_resource(resources[i].path)
 	
 	if unload_count > 0:
-		EventBus.debug_message.emit("已卸载 " + str(unload_count) + " 个低优先级资源", 0)
+		EventBus.debug.debug_message.emit("已卸载 " + str(unload_count) + " 个低优先级资源", 0)
 
 ## 卸载未使用资源
 func _unload_unused_resources() -> void:
@@ -310,7 +310,7 @@ func _unload_unused_resources() -> void:
 		unload_resource(resources[i].path)
 	
 	if unload_count > 0:
-		EventBus.debug_message.emit("已卸载 " + str(unload_count) + " 个长时间未使用的资源", 0)
+		EventBus.debug.debug_message.emit("已卸载 " + str(unload_count) + " 个长时间未使用的资源", 0)
 
 ## 估计资源大小
 func _estimate_resource_size(resource: Resource, type: int) -> int:
@@ -376,12 +376,12 @@ func _reset_memory_stats() -> void:
 ## 启用自动卸载
 func enable_auto_unload() -> void:
 	optimization_settings.auto_unload_enabled = true
-	EventBus.debug_message.emit("资源自动卸载已启用", 0)
+	EventBus.debug.debug_message.emit("资源自动卸载已启用", 0)
 
 ## 禁用自动卸载
 func disable_auto_unload() -> void:
 	optimization_settings.auto_unload_enabled = false
-	EventBus.debug_message.emit("资源自动卸载已禁用", 0)
+	EventBus.debug.debug_message.emit("资源自动卸载已禁用", 0)
 
 ## 设置优化参数
 func set_optimization_settings(settings: Dictionary) -> void:
@@ -401,4 +401,4 @@ func set_optimization_settings(settings: Dictionary) -> void:
 	if settings.has("batch_unload_count"):
 		optimization_settings.batch_unload_count = max(1, settings.batch_unload_count)
 	
-	EventBus.debug_message.emit("资源优化设置已更新", 0)
+	EventBus.debug.debug_message.emit("资源优化设置已更新", 0)

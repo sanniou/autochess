@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name CurseManager
 ## 诅咒管理器
 ## 负责管理游戏中的诅咒效果
@@ -35,17 +35,22 @@ var curse_effects = {
 	}
 }
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "CurseManager"
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.battle_round_started.connect(_on_battle_round_started)
-	EventBus.gold_changed.connect(_on_gold_changed)
-	EventBus.battle_started.connect(_on_battle_started)
-
-# 应用诅咒
+		EventBus.battle.battle_round_started.connect(_on_battle_round_started)
+		EventBus.economy.gold_changed.connect(_on_gold_changed)
+		EventBus.battle.battle_started.connect(_on_battle_started)
+	
+	# 应用诅咒
 func apply_curse(curse_type: String, duration: int) -> bool:
 	# 检查诅咒类型是否有效
 	if not curse_effects.has(curse_type):
-		EventBus.debug_message.emit("无效的诅咒类型: " + curse_type, 2)
+		EventBus.debug.debug_message.emit("无效的诅咒类型: " + curse_type, 2)
 		return false
 	
 	# 获取诅咒效果
@@ -58,7 +63,7 @@ func apply_curse(curse_type: String, duration: int) -> bool:
 	}
 	
 	# 发送诅咒应用信号
-	EventBus.debug_message.emit("应用诅咒: " + effect.name + ", 持续" + str(duration) + "回合", 0)
+	EventBus.debug.debug_message.emit("应用诅咒: " + effect.name + ", 持续" + str(duration) + "回合", 0)
 	
 	# 立即应用持续性诅咒效果
 	_apply_persistent_curse_effects()
@@ -79,7 +84,7 @@ func remove_curse(curse_type: String) -> bool:
 	active_curses.erase(curse_type)
 	
 	# 发送诅咒移除信号
-	EventBus.debug_message.emit("移除诅咒: " + effect.name, 0)
+	EventBus.debug.debug_message.emit("移除诅咒: " + effect.name, 0)
 	
 	# 移除持续性诅咒效果
 	_remove_persistent_curse_effects(curse_type)
@@ -196,8 +201,8 @@ func _apply_mirror_curse() -> void:
 	random_piece.max_health = attack
 	
 	# 发送诅咒效果应用信号
-	EventBus.debug_message.emit("镜像诅咒效果: 交换了" + random_piece.name + "的攻击力和生命值", 0)
-	EventBus.show_toast.emit(tr("ui.curse.mirror_applied", [random_piece.name]))
+	EventBus.debug.debug_message.emit("镜像诅咒效果: 交换了" + random_piece.name + "的攻击力和生命值", 0)
+	EventBus.ui.show_toast.emit(tr("ui.curse.mirror_applied", [random_piece.name]))
 
 # 应用贪婪诅咒效果
 func _apply_greed_curse(old_amount: int, new_amount: int) -> void:
@@ -213,8 +218,8 @@ func _apply_greed_curse(old_amount: int, new_amount: int) -> void:
 			player.gold -= 1
 			
 			# 发送诅咒效果应用信号
-			EventBus.debug_message.emit("贪婪诅咒效果: 减少1金币", 0)
-			EventBus.show_toast.emit(tr("ui.curse.greed_applied"))
+			EventBus.debug.debug_message.emit("贪婪诅咒效果: 减少1金币", 0)
+			EventBus.ui.show_toast.emit(tr("ui.curse.greed_applied"))
 
 # 应用虚弱诅咒效果
 func _apply_weakness_curse() -> void:
@@ -231,8 +236,8 @@ func _apply_weakness_curse() -> void:
 		piece.attack_damage = int(original_attack * 0.85)
 	
 	# 发送诅咒效果应用信号
-	EventBus.debug_message.emit("虚弱诅咒效果: 所有棋子攻击力降低15%", 0)
-	EventBus.show_toast.emit(tr("ui.curse.weakness_applied"))
+	EventBus.debug.debug_message.emit("虚弱诅咒效果: 所有棋子攻击力降低15%", 0)
+	EventBus.ui.show_toast.emit(tr("ui.curse.weakness_applied"))
 
 # 移除虚弱诅咒效果
 func _remove_weakness_curse() -> void:
@@ -249,8 +254,8 @@ func _remove_weakness_curse() -> void:
 		piece.attack_damage = int(current_attack / 0.85)
 	
 	# 发送诅咒效果移除信号
-	EventBus.debug_message.emit("虚弱诅咒效果已移除", 0)
-	EventBus.show_toast.emit(tr("ui.curse.weakness_removed"))
+	EventBus.debug.debug_message.emit("虚弱诅咒效果已移除", 0)
+	EventBus.ui.show_toast.emit(tr("ui.curse.weakness_removed"))
 
 # 应用脆弱诅咒效果
 func _apply_fragility_curse() -> void:
@@ -268,8 +273,8 @@ func _apply_fragility_curse() -> void:
 		piece.current_health = min(piece.current_health, piece.max_health)
 	
 	# 发送诅咒效果应用信号
-	EventBus.debug_message.emit("脆弱诅咒效果: 所有棋子生命值降低15%", 0)
-	EventBus.show_toast.emit(tr("ui.curse.fragility_applied"))
+	EventBus.debug.debug_message.emit("脆弱诅咒效果: 所有棋子生命值降低15%", 0)
+	EventBus.ui.show_toast.emit(tr("ui.curse.fragility_applied"))
 
 # 移除脆弱诅咒效果
 func _remove_fragility_curse() -> void:
@@ -290,8 +295,8 @@ func _remove_fragility_curse() -> void:
 		piece.current_health += health_diff
 	
 	# 发送诅咒效果移除信号
-	EventBus.debug_message.emit("脆弱诅咒效果已移除", 0)
-	EventBus.show_toast.emit(tr("ui.curse.fragility_removed"))
+	EventBus.debug.debug_message.emit("脆弱诅咒效果已移除", 0)
+	EventBus.ui.show_toast.emit(tr("ui.curse.fragility_removed"))
 
 # 应用混乱诅咒效果
 func _apply_confusion_curse() -> void:
@@ -325,8 +330,8 @@ func _apply_confusion_curse() -> void:
 		board_manager.move_piece(piece2, pos1)
 		
 		# 发送诅咒效果应用信号
-		EventBus.debug_message.emit("混乱诅咒效果: 交换了" + piece1.name + "和" + piece2.name + "的位置", 0)
-		EventBus.show_toast.emit(tr("ui.curse.confusion_applied", [piece1.name, piece2.name]))
+		EventBus.debug.debug_message.emit("混乱诅咒效果: 交换了" + piece1.name + "和" + piece2.name + "的位置", 0)
+		EventBus.ui.show_toast.emit(tr("ui.curse.confusion_applied", [piece1.name, piece2.name]))
 
 # 重置管理器
 func reset() -> void:
@@ -336,3 +341,17 @@ func reset() -> void:
 		remove_curse(curse_type)
 	
 	active_curses.clear()
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

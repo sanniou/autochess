@@ -189,7 +189,7 @@ func _on_mouse_entered() -> void:
 		_show_node_tooltip()
 
 		# 发送悬停信号
-		EventBus.map_node_hovered.emit(node_data)
+		EventBus.map.map_node_hovered.emit(node_data)
 
 ## 鼠标离开处理
 func _on_mouse_exited() -> void:

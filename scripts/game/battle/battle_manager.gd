@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name BattleManager
 ## 战斗管理器
 ## 管理战斗流程和战斗逻辑
@@ -58,14 +58,19 @@ var battle_stats = {
 @onready var board_manager: BoardManager = get_node("/root/GameManager/BoardManager")
 @onready var synergy_manager: SynergyManager = get_node("/root/GameManager/SynergyManager")
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "BattleManager"
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.battle_started.connect(_on_battle_started)
-	EventBus.battle_ended.connect(_on_battle_ended)
-	EventBus.chess_piece_died.connect(_on_chess_piece_died)
-	EventBus.damage_dealt.connect(_on_damage_dealt)
-	EventBus.healing_done.connect(_on_healing_done)
-	EventBus.ability_used.connect(_on_ability_used)
+		EventBus.battle.battle_started.connect(_on_battle_started)
+		EventBus.battle.battle_ended.connect(_on_battle_ended)
+		EventBus.chess_piece_died.connect(_on_chess_piece_died)
+		EventBus.battle.damage_dealt.connect(_on_damage_dealt)
+		EventBus.healing_done.connect(_on_healing_done)
+		EventBus.battle.ability_used.connect(_on_ability_used)
 
 func _process(delta):
 	match current_state:
@@ -105,7 +110,7 @@ func start_battle(player_team: Array = [], enemy_team: Array = []):
 	_reset_battle_stats()
 
 	# 发送战斗开始信号
-	EventBus.battle_started.emit()
+	EventBus.battle.battle_started.emit()
 
 # 结束战斗
 func end_battle(victory: bool = false):
@@ -116,7 +121,7 @@ func end_battle(victory: bool = false):
 	_calculate_battle_result(victory)
 
 	# 发送战斗结束信号
-	EventBus.battle_ended.emit(battle_result)
+	EventBus.battle.battle_ended.emit(battle_result)
 
 	# 清理战场
 	_cleanup_battle()
@@ -384,7 +389,7 @@ func set_battle_speed(speed: float) -> void:
 			piece.set_animation_speed(battle_speed)
 
 	# 发送战斗速度变化信号
-	EventBus.battle_speed_changed.emit(battle_speed)
+	EventBus.battle.battle_speed_changed.emit(battle_speed)
 
 # 棋子死亡事件处理
 func _on_chess_piece_died(piece):
@@ -483,22 +488,22 @@ func _process_battle_rewards(result: Dictionary):
 	# 处理金币奖励
 	if rewards.has("gold"):
 		var gold = rewards["gold"]
-		EventBus.gold_changed.emit(gold)
+		EventBus.economy.gold_changed.emit(gold)
 
 	# 处理经验奖励
 	if rewards.has("exp"):
 		var exp = rewards["exp"]
-		EventBus.exp_gained.emit(exp)
+		EventBus.economy.exp_gained.emit(exp)
 
 	# 处理装备奖励
 	if rewards.has("equipment") and rewards["equipment"]:
 		# 生成随机装备
-		EventBus.equipment_obtained.emit(null)  # 暂时使用null，应该由装备系统生成
+		EventBus.equipment.equipment_obtained.emit(null)  # 暂时使用null，应该由装备系统生成
 
 	# 处理棋子奖励
 	if rewards.has("chess_piece") and rewards["chess_piece"]:
 		# 生成随机棋子
-		EventBus.chess_piece_obtained.emit(null)  # 暂时使用null，应该由棋子系统生成
+		EventBus.chess.chess_piece_obtained.emit(null)  # 暂时使用null，应该由棋子系统生成
 
 # 寻找最近的敌人棋子
 func _find_nearest_enemy(piece) -> Object:
@@ -530,3 +535,17 @@ func _find_nearest_enemy(piece) -> Object:
 
 	return nearest_enemy
 
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

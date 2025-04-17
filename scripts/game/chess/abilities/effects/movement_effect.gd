@@ -36,11 +36,11 @@ func apply() -> void:
 			_apply_swap(board_manager)
 
 	# 发送效果应用信号
-	EventBus.ability_effect_applied.emit(source, target, "movement", movement_type)
+	EventBus.battle.ability_effect_applied.emit(source, target, "movement", movement_type)
 
 	# 如果位置发生变化，发送棋子移动信号
 	if target.board_position != original_position:
-		EventBus.chess_piece_moved.emit(target, original_position, target.board_position)
+		EventBus.chess.chess_piece_moved.emit(target, original_position, target.board_position)
 
 	# 播放移动特效
 	_play_movement_effect()

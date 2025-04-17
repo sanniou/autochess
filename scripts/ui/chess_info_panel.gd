@@ -19,8 +19,8 @@ func _ready():
 	visible = false
 	
 	# 连接信号
-	EventBus.show_chess_info.connect(_on_show_chess_info)
-	EventBus.hide_chess_info.connect(_on_hide_chess_info)
+	EventBus.chess.show_chess_info.connect(_on_show_chess_info)
+	EventBus.chess.hide_chess_info.connect(_on_hide_chess_info)
 
 ## 显示棋子信息
 func _on_show_chess_info(piece: ChessPiece) -> void:

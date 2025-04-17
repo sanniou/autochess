@@ -18,7 +18,7 @@ func _ready() -> void:
 		discount = blacksmith_params.get("discount", 0.0)
 
 	# 连接信号
-	EventBus.equipment_upgraded.connect(_on_equipment_upgraded)
+	EventBus.map.equipment_upgraded.connect(_on_equipment_upgraded)
 
 	# 播放背景音乐
 	AudioManager.play_music("blacksmith_theme.ogg")

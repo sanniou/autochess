@@ -214,7 +214,7 @@ func _send_error_report(error_data: Dictionary) -> void:
 	
 	# 这里应该实现发送错误报告到服务器的逻辑
 	# 由于Godot的HTTP请求需要更多设置，这里只是示例
-	EventBus.debug_message.emit("发送错误报告: " + error_data.id, 0)
+	EventBus.debug.debug_message.emit("发送错误报告: " + error_data.id, 0)
 
 ## 发送崩溃报告
 func _send_crash_report(crash_data: Dictionary) -> void:
@@ -224,7 +224,7 @@ func _send_crash_report(crash_data: Dictionary) -> void:
 	
 	# 这里应该实现发送崩溃报告到服务器的逻辑
 	# 由于Godot的HTTP请求需要更多设置，这里只是示例
-	EventBus.debug_message.emit("发送崩溃报告: " + crash_data.id, 0)
+	EventBus.debug.debug_message.emit("发送崩溃报告: " + crash_data.id, 0)
 
 ## 设置错误处理
 func _setup_error_handling() -> void:

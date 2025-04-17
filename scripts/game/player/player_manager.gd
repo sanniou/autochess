@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name PlayerManager
 ## 玩家管理器
 ## 管理玩家实例和相关操作
@@ -31,24 +31,31 @@ var current_state: PlayerState = PlayerState.IDLE
 @onready var equipment_manager = get_node("/root/GameManager/EquipmentManager")
 @onready var relic_manager = get_node("/root/GameManager/RelicManager")
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "PlayerManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.game_started.connect(_on_game_started)
-	EventBus.battle_ended.connect(_on_battle_ended)
-	EventBus.chess_piece_created.connect(_on_chess_piece_created)
-	EventBus.item_purchased.connect(_on_item_purchased)
-	EventBus.equipment_created.connect(_on_equipment_created)
-	EventBus.relic_acquired.connect(_on_relic_acquired)
-	EventBus.game_state_changed.connect(_on_game_state_changed)
-	EventBus.map_node_selected.connect(_on_map_node_selected)
-	EventBus.rest_completed.connect(_on_rest_completed)
-
-# 初始化玩家
+		EventBus.game.game_started.connect(_on_game_started)
+		EventBus.battle.battle_ended.connect(_on_battle_ended)
+		EventBus.chess.chess_piece_created.connect(_on_chess_piece_created)
+		EventBus.economy.item_purchased.connect(_on_item_purchased)
+		EventBus.equipment.equipment_created.connect(_on_equipment_created)
+		EventBus.relic.relic_acquired.connect(_on_relic_acquired)
+		EventBus.game.game_state_changed.connect(_on_game_state_changed)
+		EventBus.map.map_node_selected.connect(_on_map_node_selected)
+		EventBus.map.rest_completed.connect(_on_rest_completed)
+	
+	# 初始化玩家
 func initialize_player(player_name: String = "玩家") -> void:
 	current_player = Player.new(player_name)
 
 	# 发送玩家初始化信号
-	EventBus.debug_message.emit("玩家初始化完成", 0)
+	EventBus.debug.debug_message.emit("玩家初始化完成", 0)
 
 # 初始化AI对手
 func initialize_ai_opponents(count: int = 7) -> void:
@@ -60,7 +67,7 @@ func initialize_ai_opponents(count: int = 7) -> void:
 		ai_opponents.append(ai_player)
 
 	# 发送AI初始化信号
-	EventBus.debug_message.emit("AI对手初始化完成", 0)
+	EventBus.debug.debug_message.emit("AI对手初始化完成", 0)
 
 # 选择当前对手
 func select_opponent() -> Player:
@@ -105,7 +112,7 @@ func purchase_chess_piece(piece_id: String) -> ChessPiece:
 		# 添加到玩家棋子列表
 		if current_player.add_chess_piece(piece):
 			# 发送棋子购买信号
-			EventBus.chess_piece_created.emit(piece)
+			EventBus.chess.chess_piece_created.emit(piece)
 			return piece
 
 	return null
@@ -164,7 +171,7 @@ func refresh_shop(cost: int = 2) -> bool:
 	# 扣除金币
 	if current_player.spend_gold(cost):
 		# 发送商店刷新请求信号
-		EventBus.shop_refresh_requested.emit(current_player.level)
+		EventBus.economy.shop_refresh_requested.emit(current_player.level)
 		return true
 
 	return false
@@ -177,7 +184,7 @@ func on_round_start() -> void:
 	current_player.on_round_start()
 
 	# 自动刷新商店
-	EventBus.shop_refresh_requested.emit(current_player.level)
+	EventBus.economy.shop_refresh_requested.emit(current_player.level)
 
 	# 更新玩家状态
 	current_state = PlayerState.PREPARING
@@ -288,3 +295,17 @@ func heal_player(amount: int) -> void:
 # 获取玩家状态
 func get_player_state() -> PlayerState:
 	return current_state
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name AchievementManager
 ## 成就管理器
 ## 负责管理游戏成就的解锁和显示
@@ -21,14 +21,25 @@ var achievement_progress = {}
 @onready var game_manager = get_node("/root/GameManager")
 
 # 初始化
-func _ready() -> void:
-	# 加载成就配置
-	_load_achievement_configs()
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "AchievementManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	# 添加依赖
+	add_dependency("GameManager")
+	# 添加依赖
+	add_dependency("SaveManager")
 	
-	# 连接信号
-	_connect_signals()
-
-# 加载成就配置
+	# 原 _ready 函数的内容
+	# 加载成就配置
+		_load_achievement_configs()
+		
+		# 连接信号
+		_connect_signals()
+	
+	# 加载成就配置
 func _load_achievement_configs() -> void:
 	achievement_configs = config_manager.get_all_achievements()
 	
@@ -40,20 +51,20 @@ func _load_achievement_configs() -> void:
 # 连接信号
 func _connect_signals() -> void:
 	# 连接游戏事件信号
-	EventBus.chess_piece_created.connect(_on_chess_piece_created)
-	EventBus.chess_piece_upgraded.connect(_on_chess_piece_upgraded)
-	EventBus.battle_ended.connect(_on_battle_ended)
-	EventBus.event_completed.connect(_on_event_completed)
-	EventBus.relic_acquired.connect(_on_relic_acquired)
-	EventBus.gold_changed.connect(_on_gold_changed)
-	EventBus.synergy_activated.connect(_on_synergy_activated)
+	EventBus.chess.chess_piece_created.connect(_on_chess_piece_created)
+	EventBus.chess.chess_piece_upgraded.connect(_on_chess_piece_upgraded)
+	EventBus.battle.battle_ended.connect(_on_battle_ended)
+	EventBus.event.event_completed.connect(_on_event_completed)
+	EventBus.relic.relic_acquired.connect(_on_relic_acquired)
+	EventBus.economy.gold_changed.connect(_on_gold_changed)
+	EventBus.chess.synergy_activated.connect(_on_synergy_activated)
 	EventBus.game_completed.connect(_on_game_completed)
 
 # 解锁成就
 func unlock_achievement(achievement_id: String) -> bool:
 	# 检查成就是否存在
 	if not achievement_configs.has(achievement_id):
-		EventBus.debug_message.emit("成就不存在: " + achievement_id, 1)
+		EventBus.debug.debug_message.emit("成就不存在: " + achievement_id, 1)
 		return false
 	
 	# 检查成就是否已解锁
@@ -501,3 +512,17 @@ func _check_equipment_collector_achievement() -> void:
 	# 如果拥有所有稀有装备，解锁"装备收藏家"成就
 	if all_owned:
 		unlock_achievement("equipment_collector")
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

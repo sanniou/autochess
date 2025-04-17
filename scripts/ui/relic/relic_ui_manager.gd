@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 ## 遗物UI管理器
 ## 负责管理遗物UI的显示和交互
 
@@ -21,17 +21,22 @@ var relic_tooltip = null
 var relic_manager = null
 
 # 初始化
-func _ready():
-	# 获取遗物管理器引用
-	relic_manager = get_node_or_null("/root/GameManager/RelicManager")
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "RelicUiManager"
 	
-	# 连接信号
-	EventBus.relic_acquired.connect(_on_relic_acquired)
-	EventBus.show_relic_info.connect(_on_show_relic_info)
-	EventBus.hide_relic_info.connect(_on_hide_relic_info)
-	EventBus.game_state_changed.connect(_on_game_state_changed)
-
-## 显示遗物面板
+	# 原 _ready 函数的内容
+	# 获取遗物管理器引用
+		relic_manager = get_node_or_null("/root/GameManager/RelicManager")
+		
+		# 连接信号
+		EventBus.relic.relic_acquired.connect(_on_relic_acquired)
+		EventBus.relic.show_relic_info.connect(_on_show_relic_info)
+		EventBus.relic.hide_relic_info.connect(_on_hide_relic_info)
+		EventBus.game.game_state_changed.connect(_on_game_state_changed)
+	
+	## 显示遗物面板
 func show_relic_panel() -> void:
 	# 如果面板已存在，直接显示
 	if relic_panel and is_instance_valid(relic_panel):
@@ -123,3 +128,17 @@ func _on_game_state_changed(old_state, new_state) -> void:
 			# 商店中可以查看遗物
 			if relic_panel and is_instance_valid(relic_panel):
 				relic_panel.visible = false  # 默认隐藏，点击按钮时显示
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

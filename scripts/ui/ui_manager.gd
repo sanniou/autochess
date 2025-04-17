@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name UIManager
 ## UI管理器
 ## 负责管理游戏中的所有UI元素，包括弹窗、提示、过渡效果等
@@ -49,14 +49,26 @@ var achievement_notification_container: Control = null
 @onready var scene_manager = get_node("/root/GameManager").scene_manager
 @onready var config_manager = get_node("/root/ConfigManager")
 
-# 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "UIManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
+	# 添加依赖
+	add_dependency("GameManager")
+	# 添加依赖
+	add_dependency("AudioManager")
+
+	# 添加依赖
+	add_dependency("SceneManager")
+
 	# 连接信号
-	EventBus.show_toast.connect(show_toast)
-	EventBus.show_popup.connect(show_popup)
-	EventBus.close_popup.connect(close_popup)
-	EventBus.start_transition.connect(start_transition)
-	EventBus.game_state_changed.connect(_on_game_state_changed)
+	EventBus.ui.show_toast.connect(show_toast)
+	EventBus.ui.show_popup.connect(show_popup)
+	EventBus.ui.close_popup.connect(close_popup)
+	EventBus.ui.start_transition.connect(start_transition)
+	EventBus.game.game_state_changed.connect(_on_game_state_changed)
 
 	# 创建过渡动画节点
 	_create_transition_node()
@@ -127,7 +139,7 @@ func show_popup(popup_name: String, popup_data: Dictionary = {}) -> Control:
 	var popup_scene = load(popup_path)
 
 	if popup_scene == null:
-		EventBus.debug_message.emit("无法加载弹窗: " + popup_path, 1)
+		EventBus.debug.debug_message.emit("无法加载弹窗: " + popup_path, 1)
 		return null
 
 	# 实例化弹窗
@@ -228,14 +240,14 @@ func start_transition(transition_type: String = "fade", duration: float = TRANSI
 			# 淡入淡出动画
 			var tween = create_tween()
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
-			tween.tween_callback(func(): EventBus.transition_midpoint.emit())
+			tween.tween_callback(func(): EventBus.ui.transition_midpoint.emit())
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 		_:
 			# 默认淡入淡出
 			var tween = create_tween()
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
-			tween.tween_callback(func(): EventBus.transition_midpoint.emit())
+			tween.tween_callback(func(): EventBus.ui.transition_midpoint.emit())
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 
@@ -262,7 +274,7 @@ func load_hud(hud_name: String) -> Control:
 	var hud_scene = load(hud_path)
 
 	if hud_scene == null:
-		EventBus.debug_message.emit("无法加载HUD: " + hud_path, 1)
+		EventBus.debug.debug_message.emit("无法加载HUD: " + hud_path, 1)
 		return null
 
 	# 实例化HUD
@@ -332,7 +344,7 @@ func show_achievement_notification(achievement_id: String, achievement_data: Dic
 	var notification_scene = load(notification_path)
 
 	if notification_scene == null:
-		EventBus.debug_message.emit("无法加载成就通知: " + notification_path, 1)
+		EventBus.debug.debug_message.emit("无法加载成就通知: " + notification_path, 1)
 		return
 
 	# 实例化成就通知
@@ -347,3 +359,17 @@ func show_achievement_notification(achievement_id: String, achievement_data: Dic
 	var audio_manager = get_node_or_null("/root/AudioManager")
 	if audio_manager:
 		audio_manager.play_sfx("achievement_unlock.ogg")
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

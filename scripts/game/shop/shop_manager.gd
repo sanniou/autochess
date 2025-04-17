@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name ShopManager
 ## 商店管理器
 ## 负责商店物品的生成、刷新和购买
@@ -18,11 +18,16 @@ var refresh_count = 0  # 刷新次数
 @onready var equipment_manager = get_node("/root/GameManager/EquipmentManager")
 @onready var chess_factory = get_node("/root/GameManager/ChessFactory")
 
-func _ready():
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "ShopManager"
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.map_node_selected.connect(_on_map_node_selected)
-
-# 生成商店物品
+		EventBus.map.map_node_selected.connect(_on_map_node_selected)
+	
+	# 生成商店物品
 func generate_shop_items(tier: int = 1, has_discount: bool = false) -> Array:
 	# 设置商店等级
 	shop_tier = clamp(tier, 1, MAX_SHOP_TIER)
@@ -185,7 +190,7 @@ func refresh_shop(player_gold: int, free_refresh: bool = false) -> bool:
 	generate_shop_items(shop_tier, shop_discount > 0)
 	
 	# 发送商店刷新信号
-	EventBus.shop_refreshed.emit(current_shop_items)
+	EventBus.economy.shop_refreshed.emit(current_shop_items)
 	
 	return true
 
@@ -207,7 +212,7 @@ func purchase_item(item_index: int, player_gold: int) -> Dictionary:
 	current_shop_items.remove_at(item_index)
 	
 	# 发送物品购买信号
-	EventBus.shop_item_purchased.emit(purchased_item)
+	EventBus.economy.shop_item_purchased.emit(purchased_item)
 	
 	return purchased_item
 
@@ -253,4 +258,18 @@ func _handle_shop_node(node_data: Dictionary) -> void:
 	generate_shop_items(tier, has_discount)
 	
 	# 发送商店打开信号
-	EventBus.shop_opened.emit(current_shop_items)
+	EventBus.economy.shop_opened.emit(current_shop_items)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

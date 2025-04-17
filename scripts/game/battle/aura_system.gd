@@ -53,10 +53,10 @@ var active_auras: Array = []
 # 初始化
 func _ready():
 	# 连接信号
-	EventBus.battle_started.connect(_on_battle_started)
-	EventBus.battle_ended.connect(_on_battle_ended)
-	EventBus.chess_piece_moved.connect(_on_chess_piece_moved)
-	EventBus.unit_died.connect(_on_unit_died)
+	EventBus.battle.battle_started.connect(_on_battle_started)
+	EventBus.battle.battle_ended.connect(_on_battle_ended)
+	EventBus.chess.chess_piece_moved.connect(_on_chess_piece_moved)
+	EventBus.battle.unit_died.connect(_on_unit_died)
 
 # 更新所有光环
 func update_all_auras() -> void:

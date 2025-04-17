@@ -1,7 +1,7 @@
 extends Node
-class_name TextUtils
 ## 文本工具类
 ## 提供文本处理和显示相关的工具函数
+## 使用单例模式实现，避免静态方法和全局变量
 
 # 文本截断模式
 enum TruncateMode {
@@ -25,22 +25,30 @@ enum TextDirection {
 }
 
 # 引用
-static var localization_manager = null
-static var font_manager = null
+var localization_manager = null
+var font_manager = null
+
+# 初始化状态
+var _initialized: bool = false
 
 ## 初始化
-static func initialize() -> void:
-	# 尝试获取单例
-	localization_manager = Engine.get_singleton("LocalizationManager")
-	if not localization_manager:
-		EventBus.debug_message.emit("无法获取LocalizationManager单例", 1)
+func initialize() -> void:
+	if _initialized:
+		return
 
-	font_manager = Engine.get_singleton("FontManager")
+	# 尝试获取单例
+	localization_manager = get_node_or_null("/root/LocalizationManager")
+	if not localization_manager:
+		EventBus.debug.debug_message.emit("无法获取LocalizationManager单例", 1)
+
+	font_manager = get_node_or_null("/root/FontManager")
 	if not font_manager:
-		EventBus.debug_message.emit("无法获取FontManager单例", 1)
+		EventBus.debug.debug_message.emit("无法获取FontManager单例", 1)
+
+	_initialized = true
 
 ## 获取本地化文本
-static func translate(key: String, params: Array = []) -> String:
+func translate(key: String, params: Array = []) -> String:
 	# 如果有本地化管理器，使用它
 	if localization_manager and localization_manager.has_method("translate"):
 		return localization_manager.translate(key, params)
@@ -49,7 +57,7 @@ static func translate(key: String, params: Array = []) -> String:
 	return key
 
 ## 截断文本
-static func truncate_text(text: String, max_length: int, mode: int = TruncateMode.END, ellipsis: String = "...") -> String:
+func truncate_text(text: String, max_length: int, mode: int = TruncateMode.END, ellipsis: String = "...") -> String:
 	if text.length() <= max_length:
 		return text
 
@@ -65,7 +73,7 @@ static func truncate_text(text: String, max_length: int, mode: int = TruncateMod
 			return text
 
 ## 获取文本宽度
-static func get_text_width(text: String, font: Font = null, font_size: int = 16) -> float:
+func get_text_width(text: String, font: Font = null, font_size: int = 16) -> float:
 	if font == null and font_manager:
 		font = font_manager.get_font()
 
@@ -75,7 +83,7 @@ static func get_text_width(text: String, font: Font = null, font_size: int = 16)
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 ## 获取文本高度
-static func get_text_height(text: String, font: Font = null, font_size: int = 16, width: float = -1) -> float:
+func get_text_height(text: String, font: Font = null, font_size: int = 16, width: float = -1) -> float:
 	if font == null and font_manager:
 		font = font_manager.get_font()
 
@@ -85,7 +93,7 @@ static func get_text_height(text: String, font: Font = null, font_size: int = 16
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, width, font_size).y
 
 ## 自动调整文本大小以适应容器
-static func auto_fit_text(label: Label, min_size: int = 10, max_size: int = 32, step: int = 2) -> void:
+func auto_fit_text(label: Label, min_size: int = 10, max_size: int = 32, step: int = 2) -> void:
 	if label == null:
 		return
 
@@ -114,7 +122,7 @@ static func auto_fit_text(label: Label, min_size: int = 10, max_size: int = 32, 
 	label.add_theme_font_size_override("font_size", min_size)
 
 ## 创建带有自动换行的标签
-static func create_autowrap_label(text: String, font_size: int = 16, color: Color = Color.WHITE, alignment: int = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
+func create_autowrap_label(text: String, font_size: int = 16, color: Color = Color.WHITE, alignment: int = HORIZONTAL_ALIGNMENT_LEFT) -> Label:
 	var label = Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", font_size)
@@ -128,7 +136,7 @@ static func create_autowrap_label(text: String, font_size: int = 16, color: Colo
 	return label
 
 ## 创建带有自动换行的富文本标签
-static func create_autowrap_rich_text_label(bbcode_text: String, font_size: int = 16) -> RichTextLabel:
+func create_autowrap_rich_text_label(bbcode_text: String, font_size: int = 16) -> RichTextLabel:
 	var rich_text = RichTextLabel.new()
 	rich_text.bbcode_enabled = true
 	rich_text.text = bbcode_text
@@ -142,7 +150,7 @@ static func create_autowrap_rich_text_label(bbcode_text: String, font_size: int 
 	return rich_text
 
 ## 设置文本方向
-static func set_text_direction(control: Control, direction: int = TextDirection.LTR) -> void:
+func set_text_direction(control: Control, direction: int = TextDirection.LTR) -> void:
 	if control is Label or control is RichTextLabel:
 		match direction:
 			TextDirection.RTL:
@@ -151,7 +159,7 @@ static func set_text_direction(control: Control, direction: int = TextDirection.
 				control.text_direction = TextServer.DIRECTION_LTR
 
 ## 格式化数字（添加千位分隔符）
-static func format_number(number: float, decimals: int = 0) -> String:
+func format_number(number: float, decimals: int = 0) -> String:
 	var result = ""
 	var str_number = str(snappedf(number, pow(0.1, decimals)))
 
@@ -188,7 +196,7 @@ static func format_number(number: float, decimals: int = 0) -> String:
 	return result
 
 ## 格式化时间（将秒转换为时:分:秒格式）
-static func format_time(seconds: float) -> String:
+func format_time(seconds: float) -> String:
 	var hours = int(seconds / 3600)
 	var remainder = int(seconds) % 3600
 	var minutes = remainder / 60
@@ -200,7 +208,7 @@ static func format_time(seconds: float) -> String:
 		return str(minutes).pad_zeros(2) + ":" + str(secs).pad_zeros(2)
 
 ## 格式化日期时间
-static func format_datetime(unix_time: int) -> String:
+func format_datetime(unix_time: int) -> String:
 	var datetime = Time.get_datetime_dict_from_unix_time(unix_time)
 	var year_str = str(datetime.year).pad_zeros(4)
 	var month_str = str(datetime.month).pad_zeros(2)
@@ -211,7 +219,7 @@ static func format_datetime(unix_time: int) -> String:
 	return year_str + "-" + month_str + "-" + day_str + " " + hour_str + ":" + minute_str + ":" + second_str
 
 ## 获取文本的显示宽度（考虑不同字符宽度）
-static func get_display_width(text: String, font: Font = null, font_size: int = 16) -> float:
+func get_display_width(text: String, font: Font = null, font_size: int = 16) -> float:
 	if font == null and font_manager:
 		font = font_manager.get_font()
 
@@ -229,14 +237,14 @@ static func get_display_width(text: String, font: Font = null, font_size: int = 
 	return font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
 
 ## 检查文本是否包含中文字符
-static func contains_chinese(text: String) -> bool:
+func contains_chinese(text: String) -> bool:
 	for c in text:
 		if c.unicode_at(0) >= 0x4E00 and c.unicode_at(0) <= 0x9FFF:
 			return true
 	return false
 
 ## 检查文本是否包含日文字符
-static func contains_japanese(text: String) -> bool:
+func contains_japanese(text: String) -> bool:
 	for c in text:
 		# 平假名、片假名和日文汉字范围
 		if (c.unicode_at(0) >= 0x3040 and c.unicode_at(0) <= 0x309F) or (c.unicode_at(0) >= 0x30A0 and c.unicode_at(0) <= 0x30FF) or (c.unicode_at(0) >= 0x4E00 and c.unicode_at(0) <= 0x9FFF):    # 平假名、片假名和汉字
@@ -244,7 +252,7 @@ static func contains_japanese(text: String) -> bool:
 	return false
 
 ## 检查文本是否包含韩文字符
-static func contains_korean(text: String) -> bool:
+func contains_korean(text: String) -> bool:
 	for c in text:
 		# 韩文字符范围
 		if (c.unicode_at(0) >= 0xAC00 and c.unicode_at(0) <= 0xD7A3) or (c.unicode_at(0) >= 0x1100 and c.unicode_at(0) <= 0x11FF):    # 韩文音节和韩文字母
@@ -252,7 +260,7 @@ static func contains_korean(text: String) -> bool:
 	return false
 
 ## 检测文本语言
-static func detect_text_language(text: String) -> String:
+func detect_text_language(text: String) -> String:
 	if contains_chinese(text):
 		return "zh_CN"
 	if contains_japanese(text):

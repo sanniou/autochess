@@ -1,4 +1,4 @@
-extends Node
+extends "res://scripts/core/base_manager.gd"
 class_name AnimationManager
 ## 动画管理器
 ## 负责管理游戏中的所有动画效果，包括棋子动画、战斗动画和UI动画
@@ -47,17 +47,24 @@ var is_playing = {
 @onready var resource_manager = get_node("/root/ResourceManager")
 
 # 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "AnimationManager"
+	# 添加依赖
+	add_dependency("ResourceManager")
+	
+	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.game_paused.connect(_on_game_paused)
-
-	# 初始化动画控制器
-	_initialize_animators()
-
-	# 添加到处理列表
-	set_process(true)
-
-# 处理函数，用于更新动画队列和状态
+		EventBus.game.game_paused.connect(_on_game_paused)
+	
+		# 初始化动画控制器
+		_initialize_animators()
+	
+		# 添加到处理列表
+		set_process(true)
+	
+	# 处理函数，用于更新动画队列和状态
 func _process(delta: float) -> void:
 	# 处理各类型的动画队列
 	for type in animation_queues.keys():
@@ -631,3 +638,17 @@ func _on_game_paused(paused: bool) -> void:
 
 	# 更新处理状态
 	set_process(!paused)
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.debug_message.emit(error_message, 2)
+	error_occurred.emit(error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	EventBus.debug.debug_message.emit(warning_message, 1)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.debug_message.emit(info_message, 0)

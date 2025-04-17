@@ -47,8 +47,8 @@ func _ready() -> void:
 	_load_unlocked_skins()
 
 	# 连接信号
-	EventBus.skin_changed.connect(_on_skin_changed)
-	EventBus.skin_unlocked.connect(_on_skin_unlocked)
+	EventBus.skin.skin_changed.connect(_on_skin_changed)
+	EventBus.skin.skin_unlocked.connect(_on_skin_unlocked)
 
 # 加载皮肤配置
 func _load_skin_config() -> void:
@@ -130,12 +130,12 @@ func _load_unlocked_skins() -> void:
 func apply_skin(skin_type: SkinType, skin_id: String) -> bool:
 	# 检查皮肤是否存在
 	if not _skin_exists(skin_type, skin_id):
-		EventBus.debug_message.emit("皮肤不存在: " + SkinType.keys()[skin_type] + " - " + skin_id, 1)
+		EventBus.debug.debug_message.emit("皮肤不存在: " + SkinType.keys()[skin_type] + " - " + skin_id, 1)
 		return false
 
 	# 检查皮肤是否已解锁
 	if not _skin_unlocked(skin_type, skin_id):
-		EventBus.debug_message.emit("皮肤未解锁: " + SkinType.keys()[skin_type] + " - " + skin_id, 1)
+		EventBus.debug.debug_message.emit("皮肤未解锁: " + SkinType.keys()[skin_type] + " - " + skin_id, 1)
 		return false
 
 	# 更新当前皮肤
@@ -164,12 +164,12 @@ func apply_skin(skin_type: SkinType, skin_id: String) -> bool:
 func unlock_skin(skin_type: SkinType, skin_id: String) -> bool:
 	# 检查皮肤是否存在
 	if not _skin_exists(skin_type, skin_id):
-		EventBus.debug_message.emit("皮肤不存在: " + SkinType.keys()[skin_type] + " - " + skin_id, 1)
+		EventBus.debug.debug_message.emit("皮肤不存在: " + SkinType.keys()[skin_type] + " - " + skin_id, 1)
 		return false
 
 	# 检查皮肤是否已解锁
 	if _skin_unlocked(skin_type, skin_id):
-		EventBus.debug_message.emit("皮肤已解锁: " + SkinType.keys()[skin_type] + " - " + skin_id, 0)
+		EventBus.debug.debug_message.emit("皮肤已解锁: " + SkinType.keys()[skin_type] + " - " + skin_id, 0)
 		return true
 
 	# 解锁皮肤
@@ -269,17 +269,17 @@ func _skin_unlocked(skin_type: SkinType, skin_id: String) -> bool:
 # 应用棋子皮肤
 func _apply_chess_skin(skin_id: String) -> void:
 	# 通知棋子工厂更新皮肤
-	EventBus.chess_skin_changed.emit(skin_id)
+	EventBus.skin.chess_skin_changed.emit(skin_id)
 
 # 应用棋盘皮肤
 func _apply_board_skin(skin_id: String) -> void:
 	# 通知棋盘管理器更新皮肤
-	EventBus.board_skin_changed.emit(skin_id)
+	EventBus.skin.board_skin_changed.emit(skin_id)
 
 # 应用UI皮肤
 func _apply_ui_skin(skin_id: String) -> void:
 	# 通知UI管理器更新皮肤
-	EventBus.ui_skin_changed.emit(skin_id)
+	EventBus.skin.ui_skin_changed.emit(skin_id)
 
 # 皮肤变化处理
 func _on_skin_changed(skin_type_str: String, skin_id: String) -> void:

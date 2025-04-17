@@ -34,14 +34,14 @@ func _ready():
 # 连接测试事件
 func _connect_test_events():
     # 连接所有测试事件
-    EventBus.game_started.connect(func(): _on_event_triggered("game_started"))
-    EventBus.game_ended.connect(func(): _on_event_triggered("game_ended"))
-    EventBus.player_died.connect(func(): _on_event_triggered("player_died"))
-    EventBus.chess_piece_created.connect(func(piece): _on_event_triggered("chess_piece_created"))
-    EventBus.chess_piece_upgraded.connect(func(piece): _on_event_triggered("chess_piece_upgraded"))
-    EventBus.damage_dealt.connect(func(attacker, defender, damage, type): _on_event_triggered("damage_dealt"))
-    EventBus.gold_changed.connect(func(old_value, new_value): _on_event_triggered("gold_changed"))
-    EventBus.map_node_selected.connect(func(node_data): _on_event_triggered("map_node_selected"))
+    EventBus.game.game_started.connect(func(): _on_event_triggered("game_started"))
+    EventBus.game.game_ended.connect(func(): _on_event_triggered("game_ended"))
+    EventBus.game.player_died.connect(func(): _on_event_triggered("player_died"))
+    EventBus.chess.chess_piece_created.connect(func(piece): _on_event_triggered("chess_piece_created"))
+    EventBus.chess.chess_piece_upgraded.connect(func(piece): _on_event_triggered("chess_piece_upgraded"))
+    EventBus.battle.damage_dealt.connect(func(attacker, defender, damage, type): _on_event_triggered("damage_dealt"))
+    EventBus.economy.gold_changed.connect(func(old_value, new_value): _on_event_triggered("gold_changed"))
+    EventBus.map.map_node_selected.connect(func(node_data): _on_event_triggered("map_node_selected"))
 
 # 触发按钮处理
 func _on_trigger_button_pressed():
@@ -51,30 +51,30 @@ func _on_trigger_button_pressed():
     # 根据事件类型触发不同的事件
     match event:
         "game_started":
-            EventBus.game_started.emit()
+            EventBus.game.game_started.emit()
         "game_ended":
-            EventBus.game_ended.emit()
+            EventBus.game.game_ended.emit()
         "player_died":
-            EventBus.player_died.emit()
+            EventBus.game.player_died.emit()
         "chess_piece_created":
             # 创建一个模拟棋子
             var mock_piece = {"id": "test_piece", "name": "Test Piece"}
-            EventBus.chess_piece_created.emit(mock_piece)
+            EventBus.chess.chess_piece_created.emit(mock_piece)
         "chess_piece_upgraded":
             # 创建一个模拟棋子
             var mock_piece = {"id": "test_piece", "name": "Test Piece", "level": 2}
-            EventBus.chess_piece_upgraded.emit(mock_piece)
+            EventBus.chess.chess_piece_upgraded.emit(mock_piece)
         "damage_dealt":
             # 创建模拟攻击者和防御者
             var mock_attacker = {"id": "attacker", "name": "Attacker"}
             var mock_defender = {"id": "defender", "name": "Defender"}
-            EventBus.damage_dealt.emit(mock_attacker, mock_defender, 100, "physical")
+            EventBus.battle.damage_dealt.emit(mock_attacker, mock_defender, 100, "physical")
         "gold_changed":
-            EventBus.gold_changed.emit(100, 150)
+            EventBus.economy.gold_changed.emit(100, 150)
         "map_node_selected":
             # 创建模拟节点数据
             var mock_node = {"id": "node_1", "type": "battle", "difficulty": 1}
-            EventBus.map_node_selected.emit(mock_node)
+            EventBus.map.map_node_selected.emit(mock_node)
 
 # 事件触发处理
 func _on_event_triggered(event_name):

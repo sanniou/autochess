@@ -17,16 +17,18 @@ config/icon="res://assets/images/icons/app_icon.png"
 
 [autoload]
 
-GameManager="*res://scripts/autoload/game_manager.gd"
 EventBus="*res://scripts/autoload/event_bus.gd"
-SaveManager="*res://scripts/autoload/save_manager.gd"
+TextUtils="*res://scripts/ui/text_utils.gd"
+UIUtils="*res://scripts/ui/ui_utils.gd"
 ConfigManager="*res://scripts/autoload/config_manager.gd"
+ResourceManager="*res://scripts/autoload/resource_manager.gd"
 LocalizationManager="*res://scripts/autoload/localization_manager.gd"
+FontManager="*res://scripts/autoload/font_manager.gd"
 AudioManager="*res://scripts/autoload/audio_manager.gd"
+SaveManager="*res://scripts/autoload/save_manager.gd"
 SettingsManager="*res://scripts/autoload/settings_manager.gd"
 DebugManager="*res://scripts/autoload/debug_manager.gd"
-FontManager="*res://scripts/autoload/font_manager.gd"
-ResourceManager="*res://scripts/autoload/resource_manager.gd"
+GameManager="*res://scripts/autoload/game_manager.gd"
 ObjectPool="*res://scripts/core/object_pool.gd"
 PerformanceMonitor="*res://scripts/debug/performance_monitor.gd"
 
