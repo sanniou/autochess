@@ -1,4 +1,4 @@
-extends "res://scripts/core/base_manager.gd"
+extends "res://scripts/managers/core/base_manager.gd"
 ## 音频管理器
 ## 负责游戏音频的播放和管理
 

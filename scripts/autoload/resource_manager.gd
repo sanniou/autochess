@@ -1,4 +1,4 @@
-extends "res://scripts/core/base_manager.gd"
+extends "res://scripts/managers/core/base_manager.gd"
 # 不使用 class_name 以避免与自动加载单例冲突
 ## 资源管理器
 ## 负责管理游戏中的资源加载、缓存和释放

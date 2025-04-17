@@ -1,4 +1,4 @@
-extends "res://scripts/core/base_manager.gd"
+extends "res://scripts/managers/core/base_manager.gd"
 ## 存档管理器
 ## 负责游戏数据的持久化和加载
 

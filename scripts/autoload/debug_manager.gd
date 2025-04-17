@@ -1,4 +1,4 @@
-extends "res://scripts/core/base_manager.gd"
+extends "res://scripts/managers/core/base_manager.gd"
 ## 调试管理器
 ## 负责游戏调试功能和日志记录
 

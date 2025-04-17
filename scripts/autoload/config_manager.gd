@@ -1,4 +1,4 @@
-extends "res://scripts/core/base_manager.gd"
+extends "res://scripts/managers/core/base_manager.gd"
 ## 配置管理器
 ## 负责加载和管理游戏配置数据
 ##

@@ -1,4 +1,4 @@
-extends "res://scripts/core/base_manager.gd"
+extends "res://scripts/managers/core/base_manager.gd"
 ## 游戏管理器
 ## 负责游戏全局状态管理和系统协调
 ## 提供管理器注册系统，统一管理各系统组件
@@ -76,7 +76,7 @@ func _do_initialize() -> void:
 	add_dependency("SaveManager")
 
 	# 初始化管理器注册表
-	var manager_registry_script = load("res://scripts/core/manager_registry.gd")
+	var manager_registry_script = load("res://scripts/managers/core/manager_registry.gd")
 	manager_registry = manager_registry_script.new()
 	add_child(manager_registry)
 
@@ -119,34 +119,36 @@ func _register_all_managers() -> void:
 		register_manager("TextUtils", text_utils)
 
 	# 注册核心管理器
-	_register_manager("SceneManager", "res://scripts/ui/scene_manager.gd", [])
-	_register_manager("UIManager", "res://scripts/managers/ui_manager.gd", ["SceneManager"])
-	_register_manager("ThemeManager", "res://scripts/managers/theme_manager.gd", ["UIManager"])
+	_register_manager("SceneManager", "res://scripts/managers/ui/scene_manager.gd", [])
+	_register_manager("UIManager", "res://scripts/managers/ui/ui_manager.gd", ["SceneManager"])
+	_register_manager("ThemeManager", "res://scripts/managers/ui/theme_manager.gd", ["UIManager"])
+	_register_manager("HUDManager", "res://scripts/managers/ui/hud_manager.gd", ["UIManager"])
 
 	# 注册游戏系统管理器
-	_register_manager("MapManager", "res://scripts/managers/map_manager.gd", ["SceneManager"])
-	_register_manager("PlayerManager", "res://scripts/managers/player_manager.gd", [])
-	_register_manager("BoardManager", "res://scripts/managers/board_manager.gd", [])
-	_register_manager("BattleManager", "res://scripts/managers/battle_manager.gd", ["BoardManager"])
-	_register_manager("EconomyManager", "res://scripts/managers/economy_manager.gd", ["PlayerManager"])
-	_register_manager("ShopManager", "res://scripts/managers/shop_manager.gd", ["EconomyManager"])
-	_register_manager("EquipmentManager", "res://scripts/managers/equipment_manager.gd", ["PlayerManager"])
-	_register_manager("RelicManager", "res://scripts/managers/relic_manager.gd", ["PlayerManager"])
-	_register_manager("EventManager", "res://scripts/managers/event_manager.gd", ["SceneManager"])
-	_register_manager("CurseManager", "res://scripts/managers/curse_manager.gd", ["PlayerManager"])
-	_register_manager("StoryManager", "res://scripts/managers/story_manager.gd", ["EventManager"])
+	_register_manager("MapManager", "res://scripts/managers/game/map_manager.gd", ["SceneManager"])
+	_register_manager("PlayerManager", "res://scripts/managers/game/player_manager.gd", [])
+	_register_manager("BoardManager", "res://scripts/managers/game/board_manager.gd", [])
+	_register_manager("BattleManager", "res://scripts/managers/game/battle_manager.gd", ["BoardManager"])
+	_register_manager("EconomyManager", "res://scripts/managers/game/economy_manager.gd", ["PlayerManager"])
+	_register_manager("ShopManager", "res://scripts/managers/game/shop_manager.gd", ["EconomyManager"])
+	_register_manager("EquipmentManager", "res://scripts/managers/game/equipment_manager.gd", ["PlayerManager"])
+	_register_manager("RelicManager", "res://scripts/managers/game/relic_manager.gd", ["PlayerManager"])
+	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd", ["SceneManager"])
+	_register_manager("CurseManager", "res://scripts/managers/game/curse_manager.gd", ["PlayerManager"])
+	_register_manager("StoryManager", "res://scripts/managers/game/story_manager.gd", ["EventManager"])
+	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager.gd", [])
 
 	# 注册其他管理器
-	_register_manager("UIAnimator", "res://scripts/ui/ui_animator.gd", ["UIManager"])
-	_register_manager("NotificationSystem", "res://scripts/ui/notification_system.gd", ["UIManager"])
-	_register_manager("TooltipSystem", "res://scripts/ui/tooltip_system.gd", ["UIManager"])
-	_register_manager("SkinManager", "res://scripts/managers/skin_manager.gd", [])
-	_register_manager("EnvironmentEffectManager", "res://scripts/managers/environment_effect_manager.gd", ["SceneManager"])
-	_register_manager("DamageNumberManager", "res://scripts/ui/damage_number_manager.gd", ["BattleManager"])
-	_register_manager("AchievementManager", "res://scripts/managers/achievement_manager.gd", [])
-	_register_manager("TutorialManager", "res://scripts/managers/tutorial_manager.gd", ["UIManager"])
-	_register_manager("AbilityFactory", "res://scripts/game/abilities/ability_factory.gd", [])
-	_register_manager("RelicUIManager", "res://scripts/ui/relic/relic_ui_manager.gd", ["RelicManager", "UIManager"])
+	_register_manager("UIAnimator", "res://scripts/managers/ui/ui_animator.gd", ["UIManager"])
+	_register_manager("NotificationSystem", "res://scripts/managers/ui/notification_system.gd", ["UIManager"])
+	_register_manager("TooltipSystem", "res://scripts/managers/ui/tooltip_system.gd", ["UIManager"])
+	_register_manager("SkinManager", "res://scripts/managers/game/skin_manager.gd", [])
+	_register_manager("EnvironmentEffectManager", "res://scripts/managers/game/environment_effect_manager.gd", ["SceneManager"])
+	_register_manager("DamageNumberManager", "res://scripts/managers/game/damage_number_manager.gd", ["BattleManager"])
+	_register_manager("AchievementManager", "res://scripts/managers/game/achievement_manager.gd", [])
+	_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd", ["UIManager"])
+	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd", [])
+	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd", ["RelicManager", "UIManager"])
 
 ## 注册单个管理器
 func _register_manager(manager_name: String, script_path: String, dependencies: Array) -> void:
