@@ -44,10 +44,12 @@ var economy_params = {
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "EconomyManager"
+
 	# 添加依赖
 	add_dependency("ConfigManager")
-	# 添加依赖
-	add_dependency("GameManager")
+	add_dependency("PlayerManager")
+	add_dependency("StatsManager")
+	add_dependency("RelicManager")
 
 	# 原 _ready 函数的内容
 	# 加载事件定义
@@ -62,6 +64,8 @@ func _do_initialize() -> void:
 
 	# 加载难度设置
 	_load_difficulty_settings()
+
+	_log_info("经济管理器初始化完成")
 
 # 计算回合收入
 func calculate_round_income(player: Player) -> int:
@@ -292,3 +296,51 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
+			EventBus.economy.disconnect_event("shop_refreshed", _on_shop_refreshed)
+			EventBus.economy.disconnect_event("item_purchased", _on_item_purchased)
+			EventBus.economy.disconnect_event("item_sold", _on_item_sold)
+
+			# 断开难度变化事件
+			var event_definitions = load("res://scripts/events/event_definitions.gd")
+			EventBus.game.disconnect_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, _on_difficulty_changed)
+
+	# 重置经济参数
+	economy_params = {
+		"base_income": BASE_INCOME,
+		"max_interest": MAX_INTEREST,
+		"streak_bonus": STREAK_BONUS.duplicate(),
+		"shop_refresh_cost": SHOP_REFRESH_COST,
+		"exp_purchase_cost": EXP_PURCHASE_COST,
+		"exp_purchase_amount": EXP_PURCHASE_AMOUNT,
+		"difficulty_modifier": 1.0,
+		"bankruptcy_protection": true
+	}
+
+	_log_info("经济管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置经济参数
+	economy_params = {
+		"base_income": BASE_INCOME,
+		"max_interest": MAX_INTEREST,
+		"streak_bonus": STREAK_BONUS.duplicate(),
+		"shop_refresh_cost": SHOP_REFRESH_COST,
+		"exp_purchase_cost": EXP_PURCHASE_COST,
+		"exp_purchase_amount": EXP_PURCHASE_AMOUNT,
+		"difficulty_modifier": 1.0,
+		"bankruptcy_protection": true
+	}
+
+	# 重新加载难度设置
+	_load_difficulty_settings()
+
+	_log_info("经济管理器重置完成")

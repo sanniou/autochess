@@ -37,10 +37,13 @@ func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "BoardManager"
 
+	# 添加依赖
+	add_dependency("ObjectPool")
+
 	# 获取对象池引用
-	piece_pool = get_node("/root/ObjectPool")
+	piece_pool = get_manager("ObjectPool")
 	if not piece_pool:
-		push_error("无法获取对象池引用")
+		_log_error("无法获取对象池引用")
 
 	# 初始化数据结构
 	_initialize_data_structures()
@@ -48,6 +51,8 @@ func _do_initialize() -> void:
 	# 连接信号
 	EventBus.battle.connect_event("battle_started", _on_battle_started)
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+
+	_log_info("棋盘管理器初始化完成")
 
 # 初始化数据结构
 func _initialize_data_structures() -> void:
@@ -169,18 +174,25 @@ func get_ally_pieces(is_player: bool) -> Array:
 
 # 从对象池获取棋子
 func get_piece_from_pool(piece_id: String) -> ChessPiece:
-	# 棋子对象池名称是 "chess_pieces"
-	var piece = piece_pool.get_object("chess_pieces")
+	# 使用棋子工厂创建棋子
+	var chess_factory = get_manager("ChessFactory")
+	if not chess_factory:
+		_log_error("无法获取棋子工厂")
+		return null
+
+	var piece = chess_factory.create_chess_piece(piece_id)
 	if piece:
-		# 设置棋子ID和属性
-		piece.id = piece_id
-		piece.reset_stats()
 		piece.show()
 	return piece
 
 # 回收棋子到对象池
 func return_piece_to_pool(piece: ChessPiece):
-	piece_pool.release_object("chess_pieces", piece)
+	var chess_factory = get_manager("ChessFactory")
+	if not chess_factory:
+		_log_error("无法获取棋子工厂")
+		return
+
+	chess_factory.release_chess_piece(piece)
 
 # 获取移动范围
 func get_movement_range(start_pos: Vector2i, move_range: int) -> Array:
@@ -445,3 +457,24 @@ func _log_warning(warning_message: String) -> void:
 func _log_info(info_message: String) -> void:
 	print(info_message)
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			EventBus.battle.disconnect_event("battle_started", _on_battle_started)
+			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+
+	# 清理数据结构
+	_initialize_data_structures()
+
+	_log_info("棋盘管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置棋盘
+	reset_board()
+
+	_log_info("棋盘管理器重置完成")

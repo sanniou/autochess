@@ -343,3 +343,28 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+
+	# 清理当前事件
+	clear_current_event()
+
+	# 清理事件工厂和历史记录
+	event_factory.clear()
+	completed_events.clear()
+	event_history.clear()
+
+	_log_info("事件管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置事件状态
+	reset_events()
+
+	_log_info("事件管理器重置完成")

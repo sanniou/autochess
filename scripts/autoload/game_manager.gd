@@ -38,8 +38,8 @@ var altar_params: Dictionary = {}
 # 铁匠铺相关参数
 var blacksmith_params: Dictionary = {}
 
-# 管理器注册表
-var manager_registry = null
+# 管理器系统
+var manager_system = null
 
 # 系统管理器引用
 var map_manager: MapManager = null
@@ -72,6 +72,7 @@ var tutorial_manager: TutorialManager = null
 var ability_factory: AbilityFactory = null
 var relic_ui_manager: RelicUiManager = null
 var effect_manager: EffectManager = null
+var chess_factory: ChessFactory = null
 
 # 初始化
 func _ready() -> void:
@@ -85,10 +86,10 @@ func _do_initialize() -> void:
 	# 添加依赖
 	add_dependency("SaveManager")
 
-	# 初始化管理器注册表
-	var manager_registry_script = load("res://scripts/managers/core/manager_registry.gd")
-	manager_registry = manager_registry_script.new()
-	add_child(manager_registry)
+	# 初始化管理器系统
+	var manager_system_script = load("res://scripts/managers/core/manager_system.gd")
+	manager_system = manager_system_script.new(OS.is_debug_build())
+	add_child(manager_system)
 
 	# 连接必要的信号
 	EventBus.game.connect_event("game_started", _on_game_started)
@@ -100,22 +101,22 @@ func _do_initialize() -> void:
 	_register_all_managers()
 
 	# 初始化所有管理器
-	manager_registry.initialize_all()
+	manager_system.initialize_all()
 
 	# 初始化游戏状态
 	change_state(GameState.MAIN_MENU)
 
 ## 注册管理器
-func register_manager(manager_name: String, manager_instance, dependencies: Array = []) -> void:
-	manager_registry.register(manager_name, manager_instance, dependencies)
+func register_manager(manager_name: String, manager_instance) -> bool:
+	return manager_system.register(manager_name, manager_instance)
 
 ## 获取管理器
 func get_manager(manager_name: String):
-	return manager_registry.get_manager(manager_name)
+	return manager_system.get_manager(manager_name)
 
 ## 检查管理器是否存在
 func has_manager(manager_name: String) -> bool:
-	return manager_registry.has_manager(manager_name)
+	return manager_system.has_manager(manager_name)
 
 ## 注册所有管理器
 func _register_all_managers() -> void:
@@ -126,42 +127,42 @@ func _register_all_managers() -> void:
 
 	# 注册核心管理器
 	# SceneManager 现在是 Autoload 节点
-	_register_manager("UIManager", "res://scripts/managers/ui/ui_manager.gd", [])
-	_register_manager("ThemeManager", "res://scripts/managers/ui/theme_manager.gd", ["UIManager"])
-	_register_manager("HUDManager", "res://scripts/managers/ui/hud_manager.gd", ["UIManager"])
+	_register_manager("UIManager", "res://scripts/managers/ui/ui_manager.gd")
+	_register_manager("ThemeManager", "res://scripts/managers/ui/theme_manager.gd")
+	_register_manager("HUDManager", "res://scripts/managers/ui/hud_manager.gd")
 
 	# 注册游戏系统管理器
-	_register_manager("MapManager", "res://scripts/managers/game/map_manager.gd", [])
-	_register_manager("PlayerManager", "res://scripts/managers/game/player_manager.gd", [])
-	_register_manager("BoardManager", "res://scripts/managers/game/board_manager.gd", [])
-	_register_manager("BattleManager", "res://scripts/managers/game/battle_manager.gd", ["BoardManager"])
-	_register_manager("EconomyManager", "res://scripts/managers/game/economy_manager.gd", ["PlayerManager"])
-	_register_manager("ShopManager", "res://scripts/managers/game/shop_manager.gd", ["EconomyManager"])
-	_register_manager("EquipmentManager", "res://scripts/managers/game/equipment_manager.gd", ["PlayerManager"])
-	_register_manager("RelicManager", "res://scripts/managers/game/relic_manager.gd", ["PlayerManager"])
-	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd", [])
-	_register_manager("CurseManager", "res://scripts/managers/game/curse_manager.gd", ["PlayerManager"])
-	_register_manager("StoryManager", "res://scripts/managers/game/story_manager.gd", ["EventManager"])
-	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager.gd", [])
+	_register_manager("MapManager", "res://scripts/managers/game/map_manager.gd")
+	_register_manager("PlayerManager", "res://scripts/managers/game/player_manager.gd")
+	_register_manager("BoardManager", "res://scripts/managers/game/board_manager.gd")
+	_register_manager("BattleManager", "res://scripts/managers/game/battle_manager.gd")
+	_register_manager("EconomyManager", "res://scripts/managers/game/economy_manager.gd")
+	_register_manager("ShopManager", "res://scripts/managers/game/shop_manager.gd")
+	_register_manager("EquipmentManager", "res://scripts/managers/game/equipment_manager.gd")
+	_register_manager("RelicManager", "res://scripts/managers/game/relic_manager.gd")
+	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd")
+	_register_manager("CurseManager", "res://scripts/managers/game/curse_manager.gd")
+	_register_manager("StoryManager", "res://scripts/managers/game/story_manager.gd")
+	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager.gd")
 
 	# 注册其他管理器
-	_register_manager("UIAnimator", "res://scripts/managers/ui/ui_animator.gd", ["UIManager"])
-	_register_manager("NotificationSystem", "res://scripts/managers/ui/notification_system.gd", ["UIManager"])
-	_register_manager("TooltipSystem", "res://scripts/managers/ui/tooltip_system.gd", ["UIManager"])
-	_register_manager("SkinManager", "res://scripts/managers/game/skin_manager.gd", [])
-	_register_manager("EnvironmentEffectManager", "res://scripts/managers/game/environment_effect_manager.gd", ["SceneManager"])
-	_register_manager("DamageNumberManager", "res://scripts/managers/game/damage_number_manager.gd", ["BattleManager"])
-	_register_manager("AchievementManager", "res://scripts/managers/game/achievement_manager.gd", [])
-	_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd", ["UIManager"])
-	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd", [])
-	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd", ["RelicManager", "UIManager"])
-	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd", [])
-	# StatusEffectManager 已被移除，使用 EffectManager 替代
+	_register_manager("UIAnimator", "res://scripts/managers/ui/ui_animator.gd")
+	_register_manager("NotificationSystem", "res://scripts/managers/ui/notification_system.gd")
+	_register_manager("TooltipSystem", "res://scripts/managers/ui/tooltip_system.gd")
+	_register_manager("SkinManager", "res://scripts/managers/game/skin_manager.gd")
+	_register_manager("EnvironmentEffectManager", "res://scripts/managers/game/environment_effect_manager.gd")
+	_register_manager("DamageNumberManager", "res://scripts/managers/game/damage_number_manager.gd")
+	_register_manager("AchievementManager", "res://scripts/managers/game/achievement_manager.gd")
+	_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd")
+	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd")
+	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd")
+	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd")
+	_register_manager("ChessFactory", "res://scripts/game/chess/chess_factory.gd")
 
 ## 注册单个管理器
-func _register_manager(manager_name: String, script_path: String, dependencies: Array) -> void:
+func _register_manager(manager_name: String, script_path: String) -> void:
 	if not FileAccess.file_exists(script_path):
-		EventBus.debug.emit_event("debug_message", ["管理器脚本不存在: " + script_path, 1])
+		_log_error("管理器脚本不存在: " + script_path)
 		return
 
 	var manager_script = load(script_path)
@@ -169,12 +170,12 @@ func _register_manager(manager_name: String, script_path: String, dependencies: 
 		var manager_instance = manager_script.new()
 		add_child(manager_instance)
 		manager_instance.name = manager_name
-		register_manager(manager_name, manager_instance, dependencies)
 
-		# 更新管理器引用
-		_update_manager_reference(manager_name, manager_instance)
+		if register_manager(manager_name, manager_instance):
+			# 更新管理器引用
+			_update_manager_reference(manager_name, manager_instance)
 	else:
-		EventBus.debug.emit_event("debug_message", ["无法加载管理器脚本: " + script_path, 2])
+		_log_error("无法加载管理器脚本: " + script_path)
 
 ## 更新管理器引用
 func _update_manager_reference(manager_name: String, manager_instance) -> void:
@@ -209,6 +210,7 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"AbilityFactory": ability_factory = manager_instance
 		"RelicUIManager": relic_ui_manager = manager_instance
 		"EffectManager": effect_manager = manager_instance
+		"ChessFactory": chess_factory = manager_instance
 
 ## 改变游戏状态
 func change_state(new_state: int) -> void:
@@ -264,8 +266,8 @@ func start_new_game(difficulty: int = 1) -> void:
 	current_round = 0
 
 	# 重置所有管理器
-	if manager_registry:
-		manager_registry.reset_all()
+	if manager_system:
+		manager_system.reset_all()
 
 	# 切换到地图状态
 	change_state(GameState.MAP)
@@ -281,7 +283,7 @@ func load_game(save_slot: String) -> bool:
 	# 获取存档管理器
 	var save_manager = get_node_or_null("/root/SaveManager")
 	if save_manager == null:
-		EventBus.debug.emit_event("debug_message", ["无法获取存档管理器", 2])
+		_log_error("无法获取存档管理器")
 		return false
 
 	# 加载存档
@@ -295,7 +297,7 @@ func load_game(save_slot: String) -> bool:
 
 		return true
 	else:
-		EventBus.debug.emit_event("debug_message", ["加载存档失败", 2])
+		_log_error("加载存档失败")
 		return false
 
 ## 保存游戏

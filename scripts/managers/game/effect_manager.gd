@@ -211,7 +211,42 @@ func _process(delta):
 
 # 获取特效颜色
 func get_effect_color(effect_type: String) -> Color:
-	return effect_colors.get(effect_type, Color(1, 1, 1, 1))
+	# 根据效果类型返回对应的颜色
+	match effect_type:
+		"fire", "burning":
+			return effect_colors.get("fire", Color(0.8, 0.4, 0.0, 0.8))
+		"ice", "frozen":
+			return effect_colors.get("ice", Color(0.0, 0.8, 0.8, 0.8))
+		"lightning":
+			return effect_colors.get("lightning", Color(0.8, 0.8, 0.0, 0.8))
+		"earth":
+			return effect_colors.get("earth", Color(0.5, 0.3, 0.0, 0.8))
+		"poison", "poisoned":
+			return effect_colors.get("poison", Color(0.0, 0.8, 0.0, 0.8))
+		"physical", "bleeding":
+			return effect_colors.get("physical", Color(0.8, 0.2, 0.2, 0.8))
+		"magical":
+			return effect_colors.get("magical", Color(0.2, 0.2, 0.8, 0.8))
+		"heal":
+			return effect_colors.get("heal", Color(0.0, 0.8, 0.0, 0.8))
+		"buff":
+			return effect_colors.get("buff", Color(0.0, 0.8, 0.8, 0.8))
+		"debuff":
+			return effect_colors.get("debuff", Color(0.8, 0.0, 0.8, 0.8))
+		"stun":
+			return effect_colors.get("stun", Color(0.8, 0.8, 0.0, 0.8))
+		"silence":
+			return effect_colors.get("silence", Color(0.5, 0.5, 0.5, 0.8))
+		"taunt":
+			return effect_colors.get("taunt", Color(1.0, 0.4, 0.0, 0.8))
+		"dodge":
+			return effect_colors.get("dodge", Color(0.2, 0.8, 0.8, 0.8))
+		"ability_cast":
+			return effect_colors.get("magical", Color(0.8, 0.2, 0.8, 0.5))
+		"level_up":
+			return effect_colors.get("level_up", Color(1.0, 0.8, 0.0, 0.8))
+		_:
+			return effect_colors.get(effect_type, Color(1, 1, 1, 0.5))
 
 # 重置管理器
 func reset() -> bool:

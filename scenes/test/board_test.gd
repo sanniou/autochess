@@ -69,11 +69,11 @@ func _initialize_test():
 func _on_add_piece_button_pressed():
 	# 随机选择一个棋子类型
 	var piece_data = test_pieces[randi() % test_pieces.size()]
-	
+
 	# 创建棋子
 	var piece = chess_piece_scene.instantiate()
 	piece.initialize(piece_data)
-	
+
 	# 随机选择一个空格子
 	var empty_cells = _get_empty_cells()
 	if empty_cells.size() > 0:
@@ -118,42 +118,45 @@ func _on_board_initialized():
 
 # 棋子移动事件处理
 func _on_chess_piece_moved(piece, from_pos, to_pos):
-	print("棋子移动: %s 从 %s 到 %s" % [piece.display_name, from_pos, to_pos])
+	var display_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+	print("棋子移动: %s 从 %s 到 %s" % [display_name, from_pos, to_pos])
 
 # 棋子升级事件处理
 func _on_chess_piece_upgraded(piece):
-	print("棋子升级: %s 到 %d 星" % [piece.display_name, piece.star_level])
+	var display_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+	var star_level = piece.get_property("star_level") if piece.has_method("get_property") else piece.data.star_level
+	print("棋子升级: %s 到 %d 星" % [display_name, star_level])
 
 # 获取所有空格子
 func _get_empty_cells() -> Array:
 	var empty_cells = []
-	
+
 	# 检查棋盘格子
 	for row in board.cells:
 		for cell in row:
 			if cell.is_playable and not cell.current_piece:
 				empty_cells.append(cell)
-	
+
 	# 检查备战区格子
 	for cell in board.bench_cells:
 		if cell.is_playable and not cell.current_piece:
 			empty_cells.append(cell)
-	
+
 	return empty_cells
 
 # 获取所有有棋子的格子
 func _get_occupied_cells() -> Array:
 	var occupied_cells = []
-	
+
 	# 检查棋盘格子
 	for row in board.cells:
 		for cell in row:
 			if cell.current_piece:
 				occupied_cells.append(cell)
-	
+
 	# 检查备战区格子
 	for cell in board.bench_cells:
 		if cell.current_piece:
 			occupied_cells.append(cell)
-	
+
 	return occupied_cells

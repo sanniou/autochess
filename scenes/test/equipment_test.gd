@@ -153,7 +153,8 @@ func _create_chess_item(chess: ChessPiece):
 
 	# 创建名称标签
 	var name_label = Label.new()
-	name_label.text = chess.display_name
+	var display_name = chess.get_property("display_name") if chess.has_method("get_property") else chess.data.display_name
+	name_label.text = display_name
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	item.add_child(name_label)
 
@@ -195,7 +196,10 @@ func _on_chess_selected(chess: ChessPiece):
 func _on_equip_button_pressed():
 	if selected_equipment and selected_chess:
 		# 装备到棋子
-		selected_chess.equip_item(selected_equipment)
+		if selected_chess.has_method("equip_item"):
+			selected_chess.equip_item(selected_equipment)
+		elif selected_chess.has_method("equip_equipment"):
+			selected_chess.equip_equipment(selected_equipment)
 
 		# 更新状态
 		_update_status_label()
@@ -210,7 +214,10 @@ func _on_unequip_button_pressed():
 		)
 
 		# 卸下装备
-		selected_chess.unequip_item(slot.to_lower())
+		if selected_chess.has_method("unequip_item"):
+			selected_chess.unequip_item(slot.to_lower())
+		elif selected_chess.has_method("unequip_equipment"):
+			selected_chess.unequip_equipment(slot.to_lower())
 
 		# 更新状态
 		_update_status_label()
@@ -220,16 +227,29 @@ func _on_unequip_button_pressed():
 func _on_trigger_effect_button_pressed():
 	if selected_chess:
 		# 模拟攻击触发
-		selected_chess.emit_signal("ability_activated", null)
+		if selected_chess.has_signal("ability_activated"):
+			selected_chess.emit_signal("ability_activated", null)
+		elif selected_chess.has_method("emit_event"):
+			selected_chess.emit_event("ability_activated", [null])
 
 		# 模拟受伤触发
-		selected_chess.emit_signal("health_changed", selected_chess.current_health, selected_chess.current_health - 10)
+		var current_health = selected_chess.get_property("current_health") if selected_chess.has_method("get_property") else selected_chess.data.current_health
+		if selected_chess.has_signal("health_changed"):
+			selected_chess.emit_signal("health_changed", current_health, current_health - 10)
+		elif selected_chess.has_method("emit_event"):
+			selected_chess.emit_event("health_changed", [current_health, current_health - 10])
 
 		# 模拟闪避触发
-		selected_chess.emit_signal("dodge_successful", null)
+		if selected_chess.has_signal("dodge_successful"):
+			selected_chess.emit_signal("dodge_successful", null)
+		elif selected_chess.has_method("emit_event"):
+			selected_chess.emit_event("dodge_successful", [null])
 
 		# 模拟暴击触发
-		selected_chess.emit_signal("critical_hit", null, 20)
+		if selected_chess.has_signal("critical_hit"):
+			selected_chess.emit_signal("critical_hit", null, 20)
+		elif selected_chess.has_method("emit_event"):
+			selected_chess.emit_event("critical_hit", [null, 20])
 
 		# 更新状态
 		_update_status_label()
@@ -360,15 +380,31 @@ func _update_effect_list():
 		var effects = []
 
 		# 获取装备效果
-		if selected_chess.weapon_slot:
-			effects.append_array(selected_chess.weapon_slot.effects)
-		if selected_chess.armor_slot:
-			effects.append_array(selected_chess.armor_slot.effects)
-		if selected_chess.accessory_slot:
-			effects.append_array(selected_chess.accessory_slot.effects)
+		if selected_chess.has_method("get_equipment_info"):
+			var equipment_info = selected_chess.get_equipment_info()
+			if equipment_info.has("weapon") and equipment_info["weapon"]:
+				effects.append_array(equipment_info["weapon"].effects)
+			if equipment_info.has("armor") and equipment_info["armor"]:
+				effects.append_array(equipment_info["armor"].effects)
+			if equipment_info.has("accessory") and equipment_info["accessory"]:
+				effects.append_array(equipment_info["accessory"].effects)
+		else:
+			# 兼容旧版棋子
+			if selected_chess.has("weapon_slot") and selected_chess.weapon_slot:
+				effects.append_array(selected_chess.weapon_slot.effects)
+			if selected_chess.has("armor_slot") and selected_chess.armor_slot:
+				effects.append_array(selected_chess.armor_slot.effects)
+			if selected_chess.has("accessory_slot") and selected_chess.accessory_slot:
+				effects.append_array(selected_chess.accessory_slot.effects)
 
 		# 获取状态效果
-		if selected_chess.status_effect_manager:
+		if selected_chess.has_method("get_active_effects"):
+			var active_effects = selected_chess.get_active_effects()
+			for effect in active_effects:
+				effects.append({
+					"description": effect.name + ": " + effect.description + " (" + str(effect.remaining_time) + "s)"
+				})
+		elif selected_chess.has("status_effect_manager") and selected_chess.status_effect_manager:
 			var status_effects = selected_chess.status_effect_manager.get_all_effects()
 			for effect in status_effects:
 				effects.append({
@@ -396,21 +432,38 @@ func _update_status_label():
 		status_text += "\n"
 
 	if selected_chess:
-		status_text += "选中棋子: " + selected_chess.display_name + "\n"
-		status_text += "生命值: " + str(selected_chess.current_health) + "/" + str(selected_chess.max_health) + "\n"
-		status_text += "攻击力: " + str(selected_chess.attack_damage) + "\n"
-		status_text += "攻击速度: " + str(selected_chess.attack_speed) + "\n"
-		status_text += "护甲: " + str(selected_chess.armor) + "\n"
-		status_text += "魔抗: " + str(selected_chess.magic_resist) + "\n"
+		var display_name = selected_chess.get_property("display_name") if selected_chess.has_method("get_property") else selected_chess.data.display_name
+		var current_health = selected_chess.get_property("current_health") if selected_chess.has_method("get_property") else selected_chess.data.current_health
+		var max_health = selected_chess.get_property("max_health") if selected_chess.has_method("get_property") else selected_chess.data.max_health
+		var attack_damage = selected_chess.get_property("attack_damage") if selected_chess.has_method("get_property") else selected_chess.data.attack_damage
+		var attack_speed = selected_chess.get_property("attack_speed") if selected_chess.has_method("get_property") else selected_chess.data.attack_speed
+		var armor = selected_chess.get_property("armor") if selected_chess.has_method("get_property") else selected_chess.data.armor
+		var magic_resist = selected_chess.get_property("magic_resist") if selected_chess.has_method("get_property") else selected_chess.data.magic_resist
+
+		status_text += "选中棋子: " + display_name + "\n"
+		status_text += "生命值: " + str(current_health) + "/" + str(max_health) + "\n"
+		status_text += "攻击力: " + str(attack_damage) + "\n"
+		status_text += "攻击速度: " + str(attack_speed) + "\n"
+		status_text += "护甲: " + str(armor) + "\n"
+		status_text += "魔抗: " + str(magic_resist) + "\n"
 		status_text += "装备: "
 
-		if selected_chess.weapon_slot:
+		# 获取装备信息
+		var equipment_info = selected_chess.get_equipment_info() if selected_chess.has_method("get_equipment_info") else {}
+
+		if equipment_info.has("weapon") and equipment_info["weapon"]:
+			status_text += "武器: " + equipment_info["weapon"].display_name + ", "
+		elif selected_chess.has("weapon_slot") and selected_chess.weapon_slot:
 			status_text += "武器: " + selected_chess.weapon_slot.display_name + ", "
 
-		if selected_chess.armor_slot:
+		if equipment_info.has("armor") and equipment_info["armor"]:
+			status_text += "护甲: " + equipment_info["armor"].display_name + ", "
+		elif selected_chess.has("armor_slot") and selected_chess.armor_slot:
 			status_text += "护甲: " + selected_chess.armor_slot.display_name + ", "
 
-		if selected_chess.accessory_slot:
+		if equipment_info.has("accessory") and equipment_info["accessory"]:
+			status_text += "饰品: " + equipment_info["accessory"].display_name
+		elif selected_chess.has("accessory_slot") and selected_chess.accessory_slot:
 			status_text += "饰品: " + selected_chess.accessory_slot.display_name
 
 	status_label.text = status_text

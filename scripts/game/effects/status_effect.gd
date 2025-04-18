@@ -166,22 +166,40 @@ func _create_visual_effect() -> void:
 		return
 
 	# 获取特效管理器
-	var game_manager = target.get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
+	# 根据状态类型选择特效类型和颜色
+	var effect_type = game_manager.effect_manager.VisualEffectType.DEBUFF
+	var status_name = ""
+
+	match status_type:
+		StatusType.STUN:
+			effect_type = game_manager.effect_manager.VisualEffectType.STUN
+			status_name = "stun"
+		StatusType.SILENCE:
+			status_name = "silence"
+		StatusType.DISARM:
+			status_name = "disarm"
+		StatusType.TAUNT:
+			status_name = "taunt"
+		StatusType.FROZEN:
+			status_name = "frozen"
+
 	# 创建视觉特效参数
 	var params = {
-		"id": id + "_visual",
-		"name": name + "特效",
-		"description": "显示" + name + "特效",
-		"visual_type": VisualEffect.VisualType.PARTICLE,
-		"status_type": status_type,
-		"duration": duration
+		"color": game_manager.effect_manager.get_effect_color(status_name),
+		"duration": duration,
+		"debuff_type": status_name
 	}
 
-	# 使用 BaseEffect.create 创建视觉效果
-	BaseEffect.create(BaseEffect.EffectType.VISUAL, params, source, target)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(
+		effect_type,
+		target,
+		params
+	)
 
 # 增加叠加层数
 func add_stack() -> void:

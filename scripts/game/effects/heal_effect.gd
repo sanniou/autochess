@@ -47,21 +47,23 @@ func _create_visual_effect(heal_amount: float) -> void:
 		return
 
 	# 获取特效管理器
-	var game_manager = target.get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
 	# 创建视觉特效参数
 	var params = {
-		"id": id + "_visual",
-		"name": name + "特效",
-		"description": "显示" + name + "特效",
-		"visual_type": VisualEffect.VisualType.PARTICLE,
+		"color": game_manager.effect_manager.get_effect_color("heal"),
+		"duration": 1.0,
 		"heal_amount": heal_amount
 	}
 
-	# 使用 BaseEffect.create 创建视觉效果
-	BaseEffect.create(BaseEffect.EffectType.VISUAL, params, source, target)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.HEAL,
+		target,
+		params
+	)
 
 # 获取效果数据
 func get_data() -> Dictionary:

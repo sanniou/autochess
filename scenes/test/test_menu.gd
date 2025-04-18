@@ -4,6 +4,7 @@ extends Control
 @onready var event_bus_button = $ScrollContainer/VBoxContainer/EventBusButton
 @onready var save_system_button = $ScrollContainer/VBoxContainer/SaveSystemButton
 @onready var localization_button = $ScrollContainer/VBoxContainer/LocalizationButton
+@onready var manager_system_button = $ScrollContainer/VBoxContainer/ManagerSystemButton
 @onready var board_button = $ScrollContainer/VBoxContainer/BoardButton
 @onready var battle_button = $ScrollContainer/VBoxContainer/BattleButton
 @onready var map_button = $ScrollContainer/VBoxContainer/MapButton
@@ -20,6 +21,7 @@ func _ready():
     event_bus_button.pressed.connect(_on_event_bus_button_pressed)
     save_system_button.pressed.connect(_on_save_system_button_pressed)
     localization_button.pressed.connect(_on_localization_button_pressed)
+    manager_system_button.pressed.connect(_on_manager_system_button_pressed)
     board_button.pressed.connect(_on_board_button_pressed)
     battle_button.pressed.connect(_on_battle_button_pressed)
     map_button.pressed.connect(_on_map_button_pressed)
@@ -41,6 +43,10 @@ func _on_save_system_button_pressed():
 # 本地化按钮处理
 func _on_localization_button_pressed():
     get_tree().change_scene_to_file("res://scenes/test/localization_test.tscn")
+
+# 管理器系统按钮处理
+func _on_manager_system_button_pressed():
+    get_tree().change_scene_to_file("res://scenes/test/manager_system_test.tscn")
 
 # 棋盘按钮处理
 func _on_board_button_pressed():

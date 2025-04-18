@@ -338,28 +338,36 @@ func _initialize_auras() -> void:
 
 # 创建光环视觉效果
 func _create_visual_effect() -> Node2D:
-	# 创建光环视觉效果
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		# 如果没有特效管理器，创建基本的光环效果
+		var visual = Node2D.new()
+
+		# 创建光环精灵
+		var sprite = Sprite2D.new()
+		sprite.texture = preload("res://assets/images/vfx/aura_circle.png") # 光环纹理占位
+		sprite.modulate = Color(0.5, 0.8, 1.0, 0.3) # 默认蓝色光环
+		visual.add_child(sprite)
+
+		return visual
+
+	# 创建光环容器
 	var visual = Node2D.new()
 
-	# 创建光环精灵
-	var sprite = Sprite2D.new()
-	sprite.texture = preload("res://assets/images/vfx/aura_circle.png") # 光环纹理占位
-	sprite.modulate = Color(0.5, 0.8, 1.0, 0.3) # 默认蓝色光环
-	visual.add_child(sprite)
+	# 创建视觉特效参数
+	var params = {
+		"color": Color(0.5, 0.8, 1.0, 0.3),  # 默认蓝色光环
+		"duration": 0.0,  # 持续存在
+		"buff_type": "aura",
+		"loop": true  # 循环效果
+	}
 
-	# 创建光环粒子效果
-	var particles = CPUParticles2D.new()
-	particles.amount = 20
-	particles.lifetime = 1.0
-	particles.emission_shape = CPUParticles2D.EMISSION_SHAPE_CIRCLE
-	particles.emission_sphere_radius = 50.0
-	particles.direction = Vector2(0, -1)
-	particles.gravity = Vector2(0, 0)
-	particles.initial_velocity_min = 10.0
-	particles.initial_velocity_max = 20.0
-	particles.scale_amount_min = 1.0
-	particles.scale_amount_max = 2.0
-	particles.color = Color(0.7, 0.9, 1.0, 0.5)
-	visual.add_child(particles)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.BUFF,
+		visual,
+		params
+	)
 
 	return visual

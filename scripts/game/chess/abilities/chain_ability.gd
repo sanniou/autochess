@@ -29,9 +29,11 @@ func _execute_effect(target = null) -> void:
 		return
 
 	# 获取棋盘管理器
-	var board_manager = owner.get_node("/root/GameManager").board_manager
-	if not board_manager:
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.board_manager:
 		return
+
+	var board_manager = game_manager.board_manager
 
 	# 已经命中的目标
 	var hit_targets = [target]
@@ -40,16 +42,22 @@ func _execute_effect(target = null) -> void:
 	var current_damage = damage
 
 	# 获取特效管理器
-
-	if GameManager.effect_manager:
-		# 创建伤害特效
+	var game_manager = Engine.get_singleton("GameManager")
+	if game_manager and game_manager.effect_manager:
+		# 创建伤害特效参数
 		var params = {
+			"color": game_manager.effect_manager.get_effect_color(damage_type),
+			"duration": 0.5,
 			"damage_type": damage_type,
 			"damage_amount": current_damage
 		}
 
 		# 使用特效管理器创建特效
-		GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
+		game_manager.effect_manager.create_visual_effect(
+			game_manager.effect_manager.VisualEffectType.DAMAGE,
+			target,
+			params
+		)
 
 	# 直接造成伤害
 	target.take_damage(current_damage, damage_type, owner)
@@ -72,15 +80,22 @@ func _execute_effect(target = null) -> void:
 		hit_targets.append(next_target)
 
 		# 获取特效管理器
-		if GameManager.effect_manager:
-			# 创建伤害特效
+		var game_manager = Engine.get_singleton("GameManager")
+		if game_manager and game_manager.effect_manager:
+			# 创建伤害特效参数
 			var params = {
+				"color": game_manager.effect_manager.get_effect_color(damage_type),
+				"duration": 0.5,
 				"damage_type": damage_type,
 				"damage_amount": current_damage
 			}
 
 			# 使用特效管理器创建特效
-			GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, next_target, params)
+			game_manager.effect_manager.create_visual_effect(
+				game_manager.effect_manager.VisualEffectType.DAMAGE,
+				next_target,
+				params
+			)
 
 		# 直接造成伤害
 		next_target.take_damage(current_damage, damage_type, owner)
@@ -106,9 +121,11 @@ func _execute_effect(target = null) -> void:
 # 查找下一个连锁目标
 func _find_next_chain_target(current_target: ChessPiece, hit_targets: Array) -> ChessPiece:
 	# 获取棋盘管理器
-	var board_manager = owner.get_node("/root/GameManager").board_manager
-	if not board_manager:
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.board_manager:
 		return null
+
+	var board_manager = game_manager.board_manager
 
 	# 获取所有敌人
 	var enemies = []
@@ -134,7 +151,7 @@ func _find_next_chain_target(current_target: ChessPiece, hit_targets: Array) -> 
 # 播放连锁特效
 func _play_chain_visual_effect(from_target: ChessPiece, to_target: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
@@ -143,15 +160,21 @@ func _play_chain_visual_effect(from_target: ChessPiece, to_target: ChessPiece) -
 	effect_node.position = from_target.position
 	owner.get_parent().add_child(effect_node)
 
-	# 创建连锁特效
+	# 创建连锁特效参数
 	var params = {
+		"color": game_manager.effect_manager.get_effect_color(damage_type),
+		"duration": 0.5,
 		"damage_type": damage_type,
 		"from_position": from_target.position,
 		"to_position": to_target.position
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.CHAIN, effect_node, params)
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.CHAIN,
+		effect_node,
+		params
+	)
 
 	# 设置定时器删除节点
 	var timer = Timer.new()
@@ -164,3 +187,33 @@ func _play_chain_visual_effect(from_target: ChessPiece, to_target: ChessPiece) -
 
 	if is_instance_valid(effect_node) and not effect_node.is_queued_for_deletion():
 		effect_node.queue_free()
+
+# 播放技能特效
+func _play_ability_effect(targets: Array) -> void:
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
+	# 播放技能音效
+	_play_ability_sound()
+
+	# 播放技能视觉效果
+	for target in targets:
+		# 创建视觉特效参数
+		var params = {
+			"color": game_manager.effect_manager.get_effect_color(damage_type),
+			"duration": 0.5,
+			"damage_type": damage_type,
+			"damage_amount": damage
+		}
+
+		# 使用特效管理器创建特效
+		game_manager.effect_manager.create_visual_effect(
+			game_manager.effect_manager.VisualEffectType.DAMAGE,
+			target,
+			params
+		)
+
+	# 播放技能施法者效果
+	_play_caster_effect()

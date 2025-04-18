@@ -18,27 +18,39 @@ var _shop_inventory: Array = []
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "EquipmentManager"
-	
+
+	# 添加依赖
+	add_dependency("ConfigManager")
+
 	# 原 _ready 函数的内容
 	# 添加装备拉格管理器
 	add_child(tier_manager)
-	
+
 	# 添加装备合成系统
 	add_child(combine_system)
-	
+
 	# 连接信号
 	EventBus.economy.connect_event("shop_refresh_requested", _on_shop_refresh_requested)
 	EventBus.equipment.connect_event("equipment_combine_requested", _on_equipment_combine_requested)
-	
+
+	_log_info("装备管理器初始化完成")
+
 # 获取装备实例
 func get_equipment(equipment_id: String) -> Equipment:
 	# 先从缓存查找
 	if _equipment_cache.has(equipment_id):
 		return _equipment_cache[equipment_id]
 
+	# 获取配置管理器
+	var config_manager = get_manager("ConfigManager")
+	if not config_manager:
+		_log_error("无法获取配置管理器")
+		return null
+
 	# 从配置创建新实例
 	var config = config_manager.get_equipment(equipment_id)
 	if not config:
+		_log_warning("无法获取装备配置: " + equipment_id)
 		return null
 
 	var equipment = Equipment.new()
@@ -59,6 +71,12 @@ func get_equipments(equipment_ids: Array) -> Array:
 # 刷新商店库存
 func refresh_shop_inventory(count: int = 5, player_level: int = 1, shop_tier: int = 1):
 	_shop_inventory.clear()
+
+	# 获取配置管理器
+	var config_manager = get_manager("ConfigManager")
+	if not config_manager:
+		_log_error("无法获取配置管理器")
+		return
 
 	# 根据玩家等级获取可生成的装备
 	var available_equipments = config_manager.get_equipments_by_rarity(get_available_rarities(player_level))
@@ -193,6 +211,39 @@ func get_possible_combinations(equipment: Equipment) -> Array:
 func reset():
 	_equipment_cache.clear()
 	_shop_inventory.clear()
+	_log_info("装备管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			EventBus.economy.disconnect_event("shop_refresh_requested", _on_shop_refresh_requested)
+			EventBus.equipment.disconnect_event("equipment_combine_requested", _on_equipment_combine_requested)
+
+	# 清理装备缓存
+	_equipment_cache.clear()
+	_shop_inventory.clear()
+
+	# 清理装备拉格管理器和合成系统
+	if tier_manager:
+		tier_manager.queue_free()
+		tier_manager = null
+
+	if combine_system:
+		combine_system.queue_free()
+		combine_system = null
+
+	_log_info("装备管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清理装备缓存
+	_equipment_cache.clear()
+	_shop_inventory.clear()
+
+	_log_info("装备管理器重置完成")
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:

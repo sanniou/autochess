@@ -424,6 +424,66 @@ func reset() -> bool:
 	_log_info("玩家管理器重置完成")
 	return true
 
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			# 游戏事件
+			EventBus.game.disconnect_event("game_started", _on_game_started)
+			EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+
+			# 战斗事件
+			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+
+			# 棋子事件
+			EventBus.chess.disconnect_event("chess_piece_created", _on_chess_piece_created)
+
+			# 经济事件
+			EventBus.economy.disconnect_event("item_purchased", _on_item_purchased)
+
+			# 装备事件
+			EventBus.equipment.disconnect_event("equipment_created", _on_equipment_created)
+
+			# 遗物事件
+			EventBus.relic.disconnect_event("relic_acquired", _on_relic_acquired)
+
+			# 地图事件
+			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+			EventBus.map.disconnect_event("rest_completed", _on_rest_completed)
+
+	# 清理玩家数据
+	if current_player != null:
+		current_player.free()
+		current_player = null
+
+	# 清理AI对手
+	for opponent in ai_opponents:
+		opponent.free()
+	ai_opponents.clear()
+	current_opponent = null
+
+	# 重置状态
+	current_state = PlayerState.IDLE
+
+	_log_info("玩家管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置玩家数据
+	if current_player != null:
+		current_player.reset()
+
+	# 清理AI对手
+	ai_opponents.clear()
+	current_opponent = null
+
+	# 重置状态
+	current_state = PlayerState.IDLE
+
+	_log_info("玩家管理器重置完成")
+
 ## 游戏状态变化处理
 ## @param old_state 旧游戏状态
 ## @param new_state 新游戏状态

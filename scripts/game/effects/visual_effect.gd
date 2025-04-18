@@ -30,7 +30,7 @@ func apply() -> void:
 		return
 
 	# 获取特效管理器
-	var game_manager = target.get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
@@ -43,20 +43,24 @@ func apply() -> void:
 		VisualType.PARTICLE:
 			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
+			params["color"] = game_manager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 		VisualType.SPRITE:
 			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
+			params["color"] = game_manager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 			params["visual_path"] = visual_path
 		VisualType.ANIMATION:
 			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
+			params["color"] = game_manager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 			params["visual_path"] = visual_path
 		_:
 			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
+			params["color"] = game_manager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 
 	# 使用特效管理器创建特效

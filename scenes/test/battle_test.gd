@@ -144,7 +144,8 @@ func _on_add_piece_button_pressed():
 	if empty_cells.size() > 0:
 		var cell = empty_cells[randi() % empty_cells.size()]
 		cell.place_piece(piece)
-		print("添加棋子: %s 到位置 %s" % [piece_data.name, cell.grid_position])
+		var display_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+		print("添加棋子: %s 到位置 %s" % [display_name, cell.grid_position])
 
 		# 连接棋子信号
 		piece.connect("pressed", _on_chess_piece_pressed.bind(piece))
@@ -163,7 +164,8 @@ func _on_remove_piece_button_pressed():
 		var cell = occupied_cells[randi() % occupied_cells.size()]
 		var piece = cell.remove_piece()
 		if piece:
-			print("移除棋子: %s 从位置 %s" % [piece.display_name, cell.grid_position])
+			var display_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+			print("移除棋子: %s 从位置 %s" % [display_name, cell.grid_position])
 			piece.queue_free()
 
 			# 如果移除的是当前选中的棋子，清除选择
@@ -210,19 +212,30 @@ func _on_board_initialized():
 
 # 棋子移动事件处理
 func _on_chess_piece_moved(piece, from_pos, to_pos):
-	print("棋子移动: %s 从 %s 到 %s" % [piece.display_name, from_pos, to_pos])
+	var display_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+	print("棋子移动: %s 从 %s 到 %s" % [display_name, from_pos, to_pos])
 
 # 棋子升级事件处理
 func _on_chess_piece_upgraded(piece):
-	print("棋子升级: %s 到 %d 星" % [piece.display_name, piece.star_level])
+	var display_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+	var star_level = piece.get_property("star_level") if piece.has_method("get_property") else piece.data.star_level
+	print("棋子升级: %s 到 %d 星" % [display_name, star_level])
 
 # 棋子技能激活事件处理
 func _on_chess_piece_ability_activated(piece, target):
-	print("棋子技能激活: %s 对 %s 使用了 %s" % [piece.display_name, target.display_name if target else "无目标", piece.ability_name])
+	var piece_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+	var ability_name = piece.get_property("ability_name") if piece.has_method("get_property") else piece.data.ability_name
+	
+	var target_name = "无目标"
+	if target:
+		target_name = target.get_property("display_name") if target.has_method("get_property") else target.data.display_name
+	
+	print("棋子技能激活: %s 对 %s 使用了 %s" % [piece_name, target_name, ability_name])
 
 # 单位死亡事件处理
 func _on_unit_died(unit):
-	print("单位死亡: %s" % unit.display_name)
+	var display_name = unit.get_property("display_name") if unit.has_method("get_property") else unit.data.display_name
+	print("单位死亡: %s" % display_name)
 
 	# 如果死亡的是当前选中的棋子，清除选择
 	if unit == selected_piece:
@@ -235,7 +248,8 @@ func _on_unit_died(unit):
 # 棋子点击事件处理
 func _on_chess_piece_pressed(piece):
 	selected_piece = piece
-	print("选中棋子: %s" % piece.display_name)
+	var display_name = piece.get_property("display_name") if piece.has_method("get_property") else piece.data.display_name
+	print("选中棋子: %s" % display_name)
 
 	# 更新效果按钮
 	_update_effect_buttons()
@@ -248,105 +262,189 @@ func _update_effect_buttons():
 # 眩晕效果按钮处理
 func _on_stun_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加眩晕效果
-			game_manager.battle_manager.apply_status_effect(self, selected_piece, StatusEffect.StatusType.STUN, 3.0)
-			print("添加眩晕效果到: %s" % selected_piece.display_name)
+			var effect_data = {
+				"type": "status",
+				"status_type": "stun",
+				"duration": 3.0,
+				"source": self,
+				"target": selected_piece
+			}
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加眩晕效果到: %s" % display_name)
 
 # 沉默效果按钮处理
 func _on_silence_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加沉默效果
-			game_manager.battle_manager.apply_status_effect(self, selected_piece, StatusEffect.StatusType.SILENCE, 5.0)
-			print("添加沉默效果到: %s" % selected_piece.display_name)
+			var effect_data = {
+				"type": "status",
+				"status_type": "silence",
+				"duration": 5.0,
+				"source": self,
+				"target": selected_piece
+			}
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加沉默效果到: %s" % display_name)
 
 # 减速效果按钮处理
 func _on_slow_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加减速效果
-			var stats = {"move_speed": -selected_piece.move_speed * 0.3}
-			game_manager.battle_manager.apply_stat_effect(self, selected_piece, stats, 4.0, true)
-			print("添加减速效果到: %s" % selected_piece.display_name)
+			var move_speed = selected_piece.get_property("move_speed") if selected_piece.has_method("get_property") else selected_piece.data.move_speed
+			var effect_data = {
+				"type": "stat",
+				"stats": {"move_speed": -move_speed * 0.3},
+				"duration": 4.0,
+				"is_debuff": true,
+				"source": self,
+				"target": selected_piece
+			}
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加减速效果到: %s" % display_name)
 
 # 缴械效果按钮处理
 func _on_disarm_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加缴械效果
-			game_manager.battle_manager.apply_status_effect(self, selected_piece, StatusEffect.StatusType.DISARM, 3.0)
-			print("添加缴械效果到: %s" % selected_piece.display_name)
+			var effect_data = {
+				"type": "status",
+				"status_type": "disarm",
+				"duration": 3.0,
+				"source": self,
+				"target": selected_piece
+			}
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加缴械效果到: %s" % display_name)
 
 # 嘲讽效果按钮处理
 func _on_taunt_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加嘲讽效果
-			game_manager.battle_manager.apply_status_effect(self, selected_piece, StatusEffect.StatusType.TAUNT, 4.0)
-			print("添加嘲讽效果到: %s" % selected_piece.display_name)
+			var effect_data = {
+				"type": "status",
+				"status_type": "taunt",
+				"duration": 4.0,
+				"source": self,
+				"target": selected_piece
+			}
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加嘲讽效果到: %s" % display_name)
 
 # 增益效果按钮处理
 func _on_buff_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加增益效果
-			var stats = {
-				"attack_damage": 10.0,
-				"attack_speed": 0.2,
-				"armor": 5.0,
-				"magic_resist": 5.0
+			var effect_data = {
+				"type": "stat",
+				"stats": {
+					"attack_damage": 10.0,
+					"attack_speed": 0.2,
+					"armor": 5.0,
+					"magic_resist": 5.0
+				},
+				"duration": 10.0,
+				"is_debuff": false,
+				"source": self,
+				"target": selected_piece
 			}
-			game_manager.battle_manager.apply_stat_effect(self, selected_piece, stats, 10.0, false)
-			print("添加增益效果到: %s" % selected_piece.display_name)
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加增益效果到: %s" % display_name)
 
 # 减益效果按钮处理
 func _on_debuff_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加减益效果
-			var stats = {
-				"attack_damage": -5.0,
-				"attack_speed": -0.1,
-				"armor": -3.0,
-				"magic_resist": -3.0
+			var effect_data = {
+				"type": "stat",
+				"stats": {
+					"attack_damage": -5.0,
+					"attack_speed": -0.1,
+					"armor": -3.0,
+					"magic_resist": -3.0
+				},
+				"duration": 8.0,
+				"is_debuff": true,
+				"source": self,
+				"target": selected_piece
 			}
-			game_manager.battle_manager.apply_stat_effect(self, selected_piece, stats, 8.0, true)
-			print("添加减益效果到: %s" % selected_piece.display_name)
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加减益效果到: %s" % display_name)
 
 # 冰冻效果按钮处理
 func _on_frozen_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加冰冻效果
-			game_manager.battle_manager.apply_status_effect(self, selected_piece, StatusEffect.StatusType.FROZEN, 4.0)
-			print("添加冰冻效果到: %s" % selected_piece.display_name)
+			var effect_data = {
+				"type": "status",
+				"status_type": "frozen",
+				"duration": 4.0,
+				"source": self,
+				"target": selected_piece
+			}
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加冰冻效果到: %s" % display_name)
 
 # 燃烧效果按钮处理
 func _on_burning_button_pressed():
 	if selected_piece:
-		# 获取战斗管理器
+		# 获取效果管理器
 		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.battle_manager:
+		if game_manager and game_manager.effect_manager:
 			# 添加燃烧效果
-			game_manager.battle_manager.apply_dot_effect(self, selected_piece, DotEffect.DotType.BURNING, 10.0, 5.0, "fire")
-			print("添加燃烧效果到: %s" % selected_piece.display_name)
+			var effect_data = {
+				"type": "dot",
+				"dot_type": "burning",
+				"damage": 10.0,
+				"duration": 5.0,
+				"visual_effect": "fire",
+				"source": self,
+				"target": selected_piece
+			}
+			game_manager.effect_manager.create_effect(effect_data)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("添加燃烧效果到: %s" % display_name)
 
 # 清除效果按钮处理
 func _on_clear_effects_button_pressed():
@@ -359,7 +457,9 @@ func _on_clear_effects_button_pressed():
 				var effect = game_manager.effect_manager.active_logical_effects[effect_id]
 				if effect.target == selected_piece:
 					game_manager.effect_manager.remove_effect(effect_id)
-			print("清除所有效果: %s" % selected_piece.display_name)
+			
+			var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+			print("清除所有效果: %s" % display_name)
 
 # 获取所有空格子
 func _get_empty_cells() -> Array:
@@ -401,12 +501,18 @@ func _update_status_label():
 	var status_text = "棋盘状态: %d 个棋子" % total_pieces
 
 	if selected_piece:
+		var display_name = selected_piece.get_property("display_name") if selected_piece.has_method("get_property") else selected_piece.data.display_name
+		var current_health = selected_piece.get_property("current_health") if selected_piece.has_method("get_property") else selected_piece.data.current_health
+		var max_health = selected_piece.get_property("max_health") if selected_piece.has_method("get_property") else selected_piece.data.max_health
+		var current_mana = selected_piece.get_property("current_mana") if selected_piece.has_method("get_property") else selected_piece.data.current_mana
+		var max_mana = selected_piece.get_property("max_mana") if selected_piece.has_method("get_property") else selected_piece.data.max_mana
+
 		status_text += "\n选中: %s (生命: %.1f/%.1f, 法力: %.1f/%.1f)" % [
-			selected_piece.display_name,
-			selected_piece.current_health,
-			selected_piece.max_health,
-			selected_piece.current_mana,
-			selected_piece.max_mana
+			display_name,
+			current_health,
+			max_health,
+			current_mana,
+			max_mana
 		]
 
 	status_label.text = status_text

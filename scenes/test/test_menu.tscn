@@ -78,6 +78,11 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "本地化系统测试"
 
+[node name="ManagerSystemButton" type="Button" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "管理器系统测试"
+
 [node name="HSeparator2" type="HSeparator" parent="ScrollContainer/VBoxContainer"]
 layout_mode = 2
 

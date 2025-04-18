@@ -32,8 +32,6 @@ func _do_initialize() -> void:
 	manager_name = "MapManager"
 	# 添加依赖
 	add_dependency("ConfigManager")
-	# 添加依赖
-	add_dependency("GameManager")
 
 	# 原 _ready 函数的内容
 	# 创建地图生成器
@@ -44,6 +42,8 @@ func _do_initialize() -> void:
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
 	EventBus.event.connect_event("event_completed", _on_event_completed)
 	EventBus.economy.connect_event("shop_closed", _on_shop_exited)
+
+	_log_info("地图管理器初始化完成")
 
 	## 初始化地图
 func initialize_map(template: String = "standard", difficulty: int = 1, seed_value: int = -1) -> void:
@@ -445,6 +445,43 @@ func _on_shop_exited() -> void:
 ## 地图生成事件处理
 func _on_map_generated(data: Dictionary) -> void:
 	map_data = data
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+			EventBus.event.disconnect_event("event_completed", _on_event_completed)
+			EventBus.economy.disconnect_event("shop_closed", _on_shop_exited)
+
+	# 清理地图生成器
+	if map_generator:
+		map_generator.queue_free()
+		map_generator = null
+
+	# 清理地图数据
+	map_data.clear()
+	nodes.clear()
+	selectable_nodes.clear()
+	current_node = null
+	current_layer = 0
+	completed = false
+
+	_log_info("地图管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清理地图数据
+	map_data.clear()
+	nodes.clear()
+	selectable_nodes.clear()
+	current_node = null
+	current_layer = 0
+	completed = false
+
+	_log_info("地图管理器重置完成")
 
 ## 触发神秘节点
 func _trigger_mystery_node(node: MapNode) -> void:

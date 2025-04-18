@@ -74,8 +74,7 @@ var is_frozen: bool = false        # 是否被冰冻
 var taunted_by = null              # 嘲讽来源
 var control_resistance: float = 0.0 # 控制抗性
 
-# 状态效果管理器 - 已移除，使用 EffectManager 替代
-# var status_effect_manager = null   # 状态效果管理器
+# 状态效果由 EffectManager 管理   # 状态效果管理器
 
 # 位置和目标
 var board_position: Vector2i = Vector2i(-1, -1)  # 棋盘位置
@@ -124,10 +123,7 @@ func _physics_process(delta):
 	if state_machine:
 		state_machine.physics_process(delta)
 
-	# 更新状态效果管理器 - 已由新的效果系统处理
-	# if status_effect_manager:
-	# 	status_effect_manager.update(delta)
-	# 	status_effect_manager.process_dot_effects(delta)
+	# 更新状态效果 - 由效果系统处理
 
 	# 更新冷却时间
 	if current_cooldown > 0:
@@ -507,19 +503,25 @@ func _perform_ability() -> void:
 
 # 播放技能特效
 func _play_ability_effect(target: ChessPiece) -> void:
-	# 创建特效
-	var effect = ColorRect.new()
-	effect.color = Color(0.8, 0.2, 0.8, 0.5)  # 紫色
-	effect.size = Vector2(40, 40)
-	effect.position = Vector2(-20, -20)
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
 
-	# 添加到目标
-	target.add_child(effect)
+	# 创建视觉特效参数
+	var params = {
+		"color": game_manager.effect_manager.get_effect_color("magical"),
+		"duration": 0.5,
+		"damage_type": "magical",
+		"damage_amount": ability_damage + spell_power
+	}
 
-	# 创建消失动画
-	var tween = create_tween()
-	tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
-	tween.tween_callback(effect.queue_free)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.DAMAGE,
+		target,
+		params
+	)
 
 # 死亡
 func die() -> void:
@@ -1098,12 +1100,10 @@ func reset() -> void:
 	# 重置效果
 	active_effects.clear()
 
-	# 清除状态效果管理器中的所有效果 - 已移除
-	# if status_effect_manager:
-	# 	status_effect_manager.clear_all_effects()
+	# 清除状态效果 - 由效果系统处理
 
-	# 清除新系统中的所有效果
-	var game_manager = get_node_or_null("/root/GameManager")
+	# 清除效果系统中的所有效果
+	var game_manager = Engine.get_singleton("GameManager")
 	if game_manager and game_manager.effect_manager:
 		# 清除与该棋子相关的所有效果
 		for effect_id in game_manager.effect_manager.active_logical_effects.keys():
@@ -1218,36 +1218,79 @@ func _update_equipment_visuals() -> void:
 
 # 添加装备视觉效果
 func _add_equipment_visual(equipment: Equipment, offset: Vector2, color: Color) -> void:
-	# 创建视觉效果
-	var visual = ColorRect.new()
-	visual.set_meta("equipment_visual", true)
-	visual.color = color
-	visual.custom_minimum_size = Vector2(15, 15)
-	visual.position = offset - Vector2(7.5, 7.5)  # 居中
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
 
-	# 添加到效果容器
-	effect_container.add_child(visual)
+	# 创建一个节点来放置装备效果
+	var equipment_node = Node2D.new()
+	equipment_node.set_meta("equipment_visual", true)
+	equipment_node.position = offset
+	effect_container.add_child(equipment_node)
 
-	# 添加简单的动画效果
-	var tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(visual, "modulate", Color(1, 1, 1, 0.7), 0.8)
-	tween.tween_property(visual, "modulate", Color(1, 1, 1, 1), 0.8)
+	# 创建视觉特效参数
+	var params = {
+		"color": game_manager.effect_manager.get_effect_color(equipment.type),
+		"duration": 1.6,  # 总时间为两个周期
+		"buff_type": equipment.type,
+		"loop": true  # 循环效果
+	}
+
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.BUFF,
+		equipment_node,
+		params
+	)
 
 # 更新效果视觉效果
 func _update_effect_visuals() -> void:
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
 	# 清除现有效果视觉
 	for child in effect_container.get_children():
-		child.queue_free()
+		if not child.has_meta("equipment_visual"):
+			child.queue_free()
 
 	# 添加效果视觉
 	var offset = 0
 	for effect in active_effects:
 		if effect.has("visual"):
-			var effect_sprite = Sprite2D.new()
-			# 设置效果纹理
-			effect_sprite.position = Vector2(offset, -50)
-			effect_container.add_child(effect_sprite)
-			offset += 10
+			# 创建一个节点来放置效果
+			var effect_node = Node2D.new()
+			effect_node.position = Vector2(offset, -50)
+			effect_container.add_child(effect_node)
+
+			# 获取效果类型
+			var effect_type = effect.get("type", "buff")
+			var visual_type = game_manager.effect_manager.VisualEffectType.BUFF
+
+			# 根据效果类型选择视觉特效类型
+			if effect_type in ["burning", "bleeding", "poisoned"]:
+				visual_type = game_manager.effect_manager.VisualEffectType.DOT
+			elif effect_type in ["stun", "silence", "disarm", "frozen"]:
+				visual_type = game_manager.effect_manager.VisualEffectType.DEBUFF
+
+			# 创建视觉特效参数
+			var params = {
+				"color": game_manager.effect_manager.get_effect_color(effect_type),
+				"duration": 1.0,
+				"buff_type": effect_type,
+				"loop": true  # 循环效果
+			}
+
+			# 使用特效管理器创建特效
+			game_manager.effect_manager.create_visual_effect(
+				visual_type,
+				effect_node,
+				params
+			)
+
+			offset += 20
 
 # 初始化状态机
 func _initialize_state_machine() -> void:
@@ -1300,11 +1343,8 @@ func _initialize_state_machine() -> void:
 	# 设置初始状态
 	state_machine.set_initial_state("idle")
 
-# 初始化状态效果管理器
+# 初始化状态效果相关参数
 func _initialize_status_effect_manager() -> void:
-	# 不再创建旧的状态效果管理器，使用新的效果系统
-	# status_effect_manager = StatusEffectManager.new(self)
-
 	# 设置控制抗性（根据星级提升）
 	control_resistance = 0.1 * star_level  # 基础值10%，每星级提升10%
 
@@ -1330,32 +1370,48 @@ func _on_attack(target: ChessPiece, damage: float, is_crit: bool) -> void:
 	if is_crit:
 		critical_hit.emit(target, damage)
 
-		# 创建暴击视觉效果
-		var effect = ColorRect.new()
-		effect.color = Color(1.0, 0.0, 0.0, 0.5)  # 红色
-		effect.size = Vector2(60, 60)
-		effect.position = Vector2(-30, -30)
-		target.add_child(effect)
+		# 获取特效管理器
+		var game_manager = Engine.get_singleton("GameManager")
+		if not game_manager or not game_manager.effect_manager:
+			return
 
-		# 创建消失动画
-		var tween = create_tween()
-		tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
-		tween.tween_callback(effect.queue_free)
+		# 创建视觉特效参数
+		var params = {
+			"color": game_manager.effect_manager.get_effect_color("physical"),
+			"duration": 0.5,
+			"damage_type": "physical",
+			"damage_amount": damage,
+			"is_critical": true
+		}
+
+		# 使用特效管理器创建特效
+		game_manager.effect_manager.create_visual_effect(
+			game_manager.effect_manager.VisualEffectType.DAMAGE,
+			target,
+			params
+		)
 
 # 闪避效果
 func _on_dodge(attacker = null) -> void:
 	# 处理闪避效果
-	# 创建闪避视觉效果
-	var effect = ColorRect.new()
-	effect.color = Color(0.2, 0.8, 0.8, 0.5)  # 青色
-	effect.size = Vector2(60, 60)
-	effect.position = Vector2(-30, -30)
-	add_child(effect)
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
 
-	# 创建消失动画
-	var tween = create_tween()
-	tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.5)
-	tween.tween_callback(effect.queue_free)
+	# 创建视觉特效参数
+	var params = {
+		"color": game_manager.effect_manager.get_effect_color("dodge"),
+		"duration": 0.5,
+		"buff_type": "dodge"
+	}
+
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.BUFF,
+		self,
+		params
+	)
 
 	# 发送元素效果触发信号
 	elemental_effect_triggered.emit(attacker, "dodge")
@@ -1396,7 +1452,7 @@ func _trigger_elemental_effect(target: ChessPiece) -> void:
 # 应用火元素效果
 func _apply_fire_effect(target: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
@@ -1425,7 +1481,7 @@ func _on_fire_effect_tick(target: ChessPiece, effect_data: Dictionary) -> void:
 # 应用冰元素效果
 func _apply_ice_effect(target: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
@@ -1448,7 +1504,7 @@ func _apply_ice_effect(target: ChessPiece) -> void:
 # 应用雷元素效果
 func _apply_lightning_effect(target: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
@@ -1470,7 +1526,7 @@ func _apply_lightning_effect(target: ChessPiece) -> void:
 # 应用土元素效果
 func _apply_earth_effect(target: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
@@ -1493,18 +1549,23 @@ func _apply_earth_effect(target: ChessPiece) -> void:
 # 播放元素效果
 func _play_elemental_effect(target: ChessPiece, color: Color) -> void:
 	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
 	# 创建视觉特效参数
 	var params = {
 		"color": color,
-		"duration": 0.8
+		"duration": 0.8,
+		"buff_type": "elemental"
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.BUFF, target, params)
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.BUFF,
+		target,
+		params
+	)
 
 # ===== 状态处理函数 =====
 
@@ -1563,9 +1624,7 @@ func _on_state_moving_process(delta: float) -> void:
 	var direction = (target.global_position - global_position).normalized()
 	global_position += direction * move_speed * delta
 
-	# 如果有状态效果管理器，处理移动时的效果（如流血） - 已由新的效果系统处理
-	# if status_effect_manager:
-	# 	status_effect_manager.process_movement_effects()
+	# 处理移动时的效果（如流血） - 由效果系统处理
 
 	# 检查是否到达攻击范围
 	var distance = global_position.distance_to(target.global_position)
@@ -1687,17 +1746,29 @@ func is_stunned() -> bool:
 
 # 播放升星特效
 func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increases: Dictionary) -> void:
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
 	# 创建升星特效容器
 	var upgrade_effect = Node2D.new()
 	upgrade_effect.name = "UpgradeEffect"
 	add_child(upgrade_effect)
 
-	# 创建升星光环
-	var light_ring = ColorRect.new()
-	light_ring.color = Color(1.0, 0.8, 0.0, 0.5) # 金色
-	light_ring.size = Vector2(100, 100)
-	light_ring.position = Vector2(-50, -50)
-	upgrade_effect.add_child(light_ring)
+	# 创建视觉特效参数
+	var params = {
+		"color": Color(1.0, 0.8, 0.0, 0.5),  # 金色
+		"duration": 1.5,
+		"buff_type": "level_up"
+	}
+
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.LEVEL_UP,
+		upgrade_effect,
+		params
+	)
 
 	# 创建星级文本
 	var star_text = Label.new()
@@ -1732,11 +1803,9 @@ func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increas
 			upgrade_effect.add_child(stat_label)
 			y_offset += 20
 
-	# 创建升星动画
+	# 创建消失动画
 	var tween = create_tween()
-	tween.tween_property(light_ring, "scale", Vector2(1.5, 1.5), 0.3)
-	tween.tween_property(light_ring, "scale", Vector2(1.0, 1.0), 0.3)
-	tween.parallel().tween_property(star_text, "modulate", Color(1.0, 0.8, 0.0, 1.0), 0.3)
+	tween.tween_property(star_text, "modulate", Color(1.0, 0.8, 0.0, 1.0), 0.3)
 	tween.tween_property(upgrade_effect, "modulate", Color(1, 1, 1, 0), 1.0)
 	tween.tween_callback(upgrade_effect.queue_free)
 

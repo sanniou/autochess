@@ -158,44 +158,60 @@ func _on_owner_died() -> void:
 # 播放召唤特效
 func _play_summon_effect(summon: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = owner.get_node("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
-	# 创建召唤特效
+	# 创建召唤特效参数
 	var params = {
-		"summon_type": "summon"
+		"color": game_manager.effect_manager.get_effect_color("summon"),
+		"duration": 1.0
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.SUMMON, summon, params)
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.SUMMON,
+		summon,
+		params
+	)
 
 # 播放消失特效
 func _play_despawn_effect(summon: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = owner.get_node("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
-	# 创建消失特效
+	# 创建消失特效参数
 	var params = {
-		"teleport_type": "disappear"
+		"color": game_manager.effect_manager.get_effect_color("teleport"),
+		"duration": 1.0
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR, summon, params)
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
+		summon,
+		params
+	)
 
 # 播放技能特效
 func _play_effect(target: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = owner.get_node("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
-	# 创建增益特效
+	# 创建增益特效参数
 	var params = {
-		"buff_type": "buff"
+		"color": game_manager.effect_manager.get_effect_color("buff"),
+		"duration": 1.0,
+		"buff_type": "summon_ability"
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.BUFF, target, params)
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.BUFF,
+		target,
+		params
+	)

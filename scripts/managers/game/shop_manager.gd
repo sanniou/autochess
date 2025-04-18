@@ -54,8 +54,13 @@ func get_shop_items() -> Dictionary:
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "ShopManager"
+
 	# 添加依赖
 	add_dependency("ConfigManager")
+	add_dependency("PlayerManager")
+	add_dependency("EconomyManager")
+	add_dependency("EquipmentManager")
+	add_dependency("SynergyManager")
 
 	# 原 _ready 函数的内容
 	# 加载事件定义
@@ -69,6 +74,8 @@ func _do_initialize() -> void:
 
 	# 从经济管理器同步参数
 	_sync_with_economy_manager()
+
+	_log_info("商店管理器初始化完成")
 
 # 刷新商店
 func refresh_shop(force: bool = false) -> bool:
@@ -752,3 +759,62 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
+			EventBus.economy.disconnect_event("shop_refreshed", _on_shop_refreshed)
+			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+
+			# 断开难度变化事件
+			var event_definitions = load("res://scripts/events/event_definitions.gd")
+			EventBus.game.disconnect_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, _on_difficulty_changed)
+
+	# 清理商店数据
+	shop_items.chess.clear()
+	shop_items.equipment.clear()
+
+	# 重置商店参数
+	shop_params.refresh_cost = DEFAULT_REFRESH_COST
+	shop_params.equipment_cost = DEFAULT_EQUIPMENT_COST
+	shop_params.discount_rate = 1.0
+	shop_params.special_offer = false
+	shop_params.is_black_market = false
+	shop_params.is_mystery_shop = false
+	shop_params.is_equipment_shop = false
+	shop_params.consecutive_refresh_count = 0
+	shop_params.target_chess_id = ""
+
+	# 重置商店锁定状态
+	is_locked = false
+
+	_log_info("商店管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清理商店数据
+	shop_items.chess.clear()
+	shop_items.equipment.clear()
+
+	# 重置商店参数
+	shop_params.refresh_cost = DEFAULT_REFRESH_COST
+	shop_params.equipment_cost = DEFAULT_EQUIPMENT_COST
+	shop_params.discount_rate = 1.0
+	shop_params.special_offer = false
+	shop_params.is_black_market = false
+	shop_params.is_mystery_shop = false
+	shop_params.is_equipment_shop = false
+	shop_params.consecutive_refresh_count = 0
+	shop_params.target_chess_id = ""
+
+	# 重置商店锁定状态
+	is_locked = false
+
+	# 从经济管理器同步参数
+	_sync_with_economy_manager()
+
+	_log_info("商店管理器重置完成")

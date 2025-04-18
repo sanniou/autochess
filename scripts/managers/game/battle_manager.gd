@@ -59,17 +59,23 @@ func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "BattleManager"
 
+	# 添加依赖
+	add_dependency("BoardManager")
+	add_dependency("PlayerManager")
+	add_dependency("EffectManager")
+
 	# 加载事件定义
-	var event_definitions = load("res://scripts/events/event_definitions.gd")
-	var BattleEvents = event_definitions.BattleEvents
+	var Events = load("res://scripts/events/event_definitions.gd")
 
 	# 连接信号 - 使用规范的事件连接方式和常量
-	EventBus.battle.connect_event(BattleEvents.BATTLE_STARTED, _on_battle_started)
-	EventBus.battle.connect_event(BattleEvents.BATTLE_ENDED, _on_battle_ended)
-	EventBus.battle.connect_event(BattleEvents.UNIT_DIED, _on_unit_died)  # 使用规范的 unit_died 事件
-	EventBus.battle.connect_event(BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
-	EventBus.battle.connect_event(BattleEvents.HEAL_RECEIVED, _on_heal_received)  # 使用规范的 heal_received 事件
-	EventBus.battle.connect_event(BattleEvents.ABILITY_USED, _on_ability_used)
+	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_STARTED, _on_battle_started)
+	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_ENDED, _on_battle_ended)
+	EventBus.battle.connect_event(Events.BattleEvents.UNIT_DIED, _on_unit_died)
+	EventBus.battle.connect_event(Events.BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
+	EventBus.battle.connect_event(Events.BattleEvents.HEAL_RECEIVED, _on_heal_received)
+	EventBus.battle.connect_event(Events.BattleEvents.ABILITY_USED, _on_ability_used)
+
+	_log_info("战斗管理器初始化完成")
 
 func _process(delta):
 	match current_state:
@@ -100,17 +106,22 @@ func start_battle(player_team: Array = [], enemy_team: Array = []):
 		piece.add_to_group("enemy_chess_pieces")
 
 	# 重置棋盘
-	GameManager.board_manager.reset_board()
+	var board_manager = get_manager("BoardManager")
+	if board_manager:
+		board_manager.reset_board()
 
 	# 初始化AI控制器
-	ai_controller = AIController.new(self, GameManager.board_manager, difficulty)
+	ai_controller = AIController.new(self, board_manager, difficulty)
+	add_child(ai_controller)
 
 	# 重置战斗统计
 	_reset_battle_stats()
 
 	# 发送战斗开始信号
-	var event_definitions = load("res://scripts/events/event_definitions.gd")
-	EventBus.battle.emit_event(event_definitions.BattleEvents.BATTLE_STARTED, [])
+	var Events = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_STARTED, [])
+
+	_log_info("战斗开始")
 
 # 结束战斗
 func end_battle(victory: bool = false):
@@ -121,11 +132,13 @@ func end_battle(victory: bool = false):
 	_calculate_battle_result(victory)
 
 	# 发送战斗结束信号
-	var event_definitions = load("res://scripts/events/event_definitions.gd")
-	EventBus.battle.emit_event(event_definitions.BattleEvents.BATTLE_ENDED, [battle_result])
+	var Events = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_ENDED, [battle_result])
 
 	# 清理战场
 	_cleanup_battle()
+
+	_log_info("战斗结束，胜利：" + str(victory))
 
 # 更新准备阶段
 func _update_prepare_phase(delta):
@@ -174,10 +187,17 @@ func _update_result_phase(delta):
 # 开始战斗阶段
 func _start_battle_phase():
 	# 激活所有羁绊效果
-	GameManager.synergy_manager._update_synergies()
+	var synergy_manager = get_manager("SynergyManager")
+	if synergy_manager:
+		synergy_manager._update_synergies()
 
 	# 设置所有棋子为战斗状态
-	var pieces = GameManager.board_manager.pieces
+	var board_manager = get_manager("BoardManager")
+	if not board_manager:
+		_log_error("无法获取棋盘管理器")
+		return
+
+	var pieces = board_manager.pieces
 	for piece in pieces:
 		# 重置棋子的控制效果状态
 		piece.is_silenced = false
@@ -185,11 +205,8 @@ func _start_battle_phase():
 		piece.is_frozen = false
 		piece.taunted_by = null
 
-			# 清除旧的状态效果管理器中的所有效果 - 已移除
-		# if piece.status_effect_manager:
-		# 	piece.status_effect_manager.clear_all_effects()
-
 		# 清除新系统中的所有效果
+		var effect_manager = get_manager("EffectManager")
 		if effect_manager:
 			# 清除与该棋子相关的所有效果
 			for effect_id in effect_manager.active_logical_effects.keys():
@@ -198,92 +215,104 @@ func _start_battle_phase():
 					effect_manager.remove_effect(effect_id)
 
 		# 切换到空闲状态
-		piece.change_state(ChessPiece.ChessState.IDLE)
+		piece.state_machine.change_state("idle")
+
+	_log_info("战斗阶段开始")
 
 # 更新棋子状态
 func _update_chess_pieces(delta):
-	var pieces = GameManager.board_manager.pieces
+	var board_manager = get_manager("BoardManager")
+	if not board_manager:
+		_log_error("无法获取棋盘管理器")
+		return
+
+	var pieces = board_manager.pieces
 
 	for piece in pieces:
-		if piece.current_state == ChessPiece.ChessState.DEAD:
+		if piece.state_machine.is_in_state("dead"):
 			continue
 
 		# 自动寻找目标
-		if piece.current_state == ChessPiece.ChessState.IDLE:
+		if piece.state_machine.is_in_state("idle"):
 			# 寻找最近的敌人棋子
 			var target = _find_nearest_enemy(piece)
 			if target:
 				piece.set_target(target)
 
 		# 处理移动逻辑
-		if piece.current_state == ChessPiece.ChessState.MOVING:
+		if piece.state_machine.is_in_state("moving"):
 			_process_movement(piece, delta)
 
 		# 处理攻击逻辑
-		if piece.current_state == ChessPiece.ChessState.ATTACKING:
+		if piece.state_machine.is_in_state("attacking"):
 			_process_attack(piece, delta)
 
 # 处理移动逻辑
 func _process_movement(piece, delta):
 	# 检查目标是否有效
-	if not piece.target or piece.target.current_state == ChessPiece.ChessState.DEAD:
+	if not piece.has_target() or piece.is_target_dead(piece.get_target()):
 		piece.clear_target()
 		return
 
 	# 检查是否被冰冻
-	if piece.is_frozen:
+	if piece.is_frozen():
 		return
 
 	# 检查是否被嘲讽
-	if piece.taunted_by and is_instance_valid(piece.taunted_by) and piece.taunted_by.current_state != ChessPiece.ChessState.DEAD:
+	if piece.is_taunting():
 		# 如果被嘲讽，强制将嘲讽源设为目标
-		if piece.target != piece.taunted_by:
-			piece.set_target(piece.taunted_by)
-
-	# 简化版移动逻辑 - 实际项目中需要更复杂的寻路
-	var target_pos = piece.target.board_position
-	var dir = (Vector2(target_pos) - Vector2(piece.board_position)).normalized()
+		var taunt_source = piece.get_taunt_source()
+		if taunt_source and piece.get_target() != taunt_source:
+			piece.set_target(taunt_source)
 
 	# 移动棋子
-	piece.position += dir * piece.move_speed * delta
-
-	# 如果有状态效果管理器，处理移动时的效果（如流血）
-	if piece.status_effect_manager:
-		piece.status_effect_manager.process_movement_effects()
+	piece.move_towards_target(piece.get_target(), delta)
 
 	# 检查是否到达攻击范围
-	var distance = piece.position.distance_to(piece.target.position)
-	if distance <= piece.attack_range * GameManager.board_manager.cell_size.x:
-		piece.change_state(ChessPiece.ChessState.ATTACKING)
+	var distance = piece.get_distance_to_target(piece.get_target())
+	if distance <= piece.get_attack_range():
+		piece.state_machine.change_state("attacking")
 
 # 处理攻击逻辑
 func _process_attack(piece, delta):
 	# 检查目标是否有效
-	if not piece.target or piece.target.current_state == ChessPiece.ChessState.DEAD:
+	if not piece.has_target() or piece.is_target_dead(piece.get_target()):
 		piece.clear_target()
 		return
 
 	# 检查是否被嘲讽
-	if piece.taunted_by and is_instance_valid(piece.taunted_by) and piece.taunted_by.current_state != ChessPiece.ChessState.DEAD:
+	if piece.is_taunting():
 		# 如果被嘲讽，强制将嘲讽源设为目标
-		if piece.target != piece.taunted_by:
-			piece.set_target(piece.taunted_by)
+		var taunt_source = piece.get_taunt_source()
+		if taunt_source and piece.get_target() != taunt_source:
+			piece.set_target(taunt_source)
 			return
 
 	# 检查是否被缴械
-	if piece.is_disarmed:
+	if piece.is_disarmed():
+		return
+
+	# 检查是否可以施法
+	if piece.can_cast_ability():
+		piece.state_machine.change_state("casting")
 		return
 
 	# 更新攻击计时器
-	piece.attack_timer += delta
-	if piece.attack_timer >= 1.0 / piece.attack_speed:
-		piece.attack_timer = 0
-		piece._perform_attack()
+	if piece.data:
+		piece.data.attack_timer += delta
+		if piece.data.attack_timer >= 1.0 / piece.data.attack_speed:
+			piece.data.attack_timer = 0
+			piece.perform_attack()
 
 # 检查战斗是否结束
 func _check_battle_end() -> bool:
-	var player_pieces = GameManager.board_manager.get_ally_pieces(is_player_turn)
-	var enemy_pieces = GameManager.board_manager.get_enemy_pieces(is_player_turn)
+	var board_manager = get_manager("BoardManager")
+	if not board_manager:
+		_log_error("无法获取棋盘管理器")
+		return false
+
+	var player_pieces = board_manager.get_ally_pieces(is_player_turn)
+	var enemy_pieces = board_manager.get_enemy_pieces(is_player_turn)
 
 	return player_pieces.is_empty() or enemy_pieces.is_empty()
 
@@ -317,8 +346,9 @@ func _calculate_battle_result(victory: bool):
 
 	# 设置战斗信息
 	var map_node_id = ""
-	if GameManager.map_manager and GameManager.map_manager.current_node:
-		map_node_id = GameManager.map_manager.current_node.id
+	var map_manager = get_manager("MapManager")
+	if map_manager and map_manager.current_node:
+		map_node_id = map_manager.current_node.id
 
 	result.set_battle_info(
 		current_round,
@@ -410,19 +440,20 @@ func _calculate_battle_result(victory: bool):
 	var health_change = 0
 	var streak_change = 0
 
-	if GameManager.player_manager and GameManager.player_manager.get_current_player():
-		var player = GameManager.player_manager.get_current_player()
+	var player_manager = get_manager("PlayerManager")
+	if player_manager and player_manager.has_method("get_current_player"):
+		var player = player_manager.get_current_player()
+		if player:
+			# 计算生命值变化
+			if not victory:
+				# 失败时损失生命值，基于敌方剩余棋子数量
+				health_change = -enemy_pieces.size() - difficulty
 
-		# 计算生命值变化
-		if not victory:
-			# 失败时损失生命值，基于敌方剩余棋子数量
-			health_change = -enemy_pieces.size() - difficulty
-
-		# 计算连胜/连败变化
-		if victory:
-			streak_change = 1
-		else:
-			streak_change = -1
+			# 计算连胜/连败变化
+			if victory:
+				streak_change = 1
+			else:
+				streak_change = -1
 
 	result.set_player_impact(health_change, streak_change)
 
@@ -458,8 +489,10 @@ func set_battle_speed(speed: float) -> void:
 			piece.set_animation_speed(battle_speed)
 
 	# 发送战斗速度变化信号
-	var event_definitions = load("res://scripts/events/event_definitions.gd")
-	EventBus.battle.emit_event(event_definitions.BattleEvents.BATTLE_SPEED_CHANGED, [battle_speed])
+	var Events = load("res://scripts/events/event_definitions.gd")
+	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_SPEED_CHANGED, [battle_speed])
+
+	_log_info("战斗速度设置为：" + str(battle_speed))
 
 # 棋子死亡事件处理
 func _on_unit_died(piece):
@@ -482,11 +515,11 @@ func _on_unit_died(piece):
 func _initialize_chess_pieces():
 	# 设置玩家棋子状态
 	for piece in player_pieces:
-		piece.change_state(ChessPiece.ChessState.IDLE)
+		piece.state_machine.change_state("idle")
 
 	# 设置敌方棋子状态
 	for piece in enemy_pieces:
-		piece.change_state(ChessPiece.ChessState.IDLE)
+		piece.state_machine.change_state("idle")
 
 # 清理战场
 func _cleanup_battle():
@@ -498,14 +531,63 @@ func _cleanup_battle():
 	for piece in enemy_pieces:
 		piece.queue_free()
 
+	# 清理AI控制器
+	if ai_controller:
+		ai_controller.queue_free()
+		ai_controller = null
+
+	_log_info("战场清理完成")
+
 	# 清空数组
 	player_pieces.clear()
 	enemy_pieces.clear()
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			var Events = load("res://scripts/events/event_definitions.gd")
+			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_STARTED, _on_battle_started)
+			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_ENDED, _on_battle_ended)
+			EventBus.battle.disconnect_event(Events.BattleEvents.UNIT_DIED, _on_unit_died)
+			EventBus.battle.disconnect_event(Events.BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
+			EventBus.battle.disconnect_event(Events.BattleEvents.HEAL_RECEIVED, _on_heal_received)
+			EventBus.battle.disconnect_event(Events.BattleEvents.ABILITY_USED, _on_ability_used)
 
 	# 清理AI控制器
 	if ai_controller:
 		ai_controller.queue_free()
 		ai_controller = null
+
+	# 清理棋子数组
+	player_pieces.clear()
+	enemy_pieces.clear()
+
+	# 重置战斗状态
+	current_state = BattleState.PREPARE
+	timer = 0.0
+
+	_log_info("战斗管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置战斗状态
+	current_state = BattleState.PREPARE
+	timer = 0.0
+
+	# 清理棋子数组
+	player_pieces.clear()
+	enemy_pieces.clear()
+
+	# 重置战斗统计
+	_reset_battle_stats()
+
+	# 重置战斗结果
+	battle_result.clear()
+
+	_log_info("战斗管理器重置完成")
 
 # 计算胜利条件
 func _calculate_victory_condition() -> bool:
@@ -636,8 +718,9 @@ func apply_dot_effect(source, target, dot_type: int, damage_per_second: float, d
 		return false
 
 	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
+	var effect_manager = get_manager("EffectManager")
+	if not effect_manager:
+		_log_error("无法获取效果管理器")
 		return false
 
 	# 创建持续伤害效果参数
@@ -652,7 +735,7 @@ func apply_dot_effect(source, target, dot_type: int, damage_per_second: float, d
 	}
 
 	# 使用特效管理器创建持续伤害效果
-	var effect = game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, source, target, params)
+	var effect = effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, source, target, params)
 
 	# 返回是否成功创建效果
 	return effect != null

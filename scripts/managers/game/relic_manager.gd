@@ -316,3 +316,32 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if Engine.has_singleton("EventBus"):
+		var EventBus = Engine.get_singleton("EventBus")
+		if EventBus:
+			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+			EventBus.event.disconnect_event("event_completed", _on_event_completed)
+			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+
+	# 清理遗物
+	clear_all_relics()
+
+	# 清理遗物工厂和可获取池
+	relic_factory.clear()
+	available_relics.clear()
+
+	_log_info("遗物管理器清理完成")
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清理遗物
+	clear_all_relics()
+
+	# 重新初始化可获取的遗物池
+	_initialize_available_relics()
+
+	_log_info("遗物管理器重置完成")

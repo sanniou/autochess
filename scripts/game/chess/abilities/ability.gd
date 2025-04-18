@@ -159,7 +159,7 @@ func _execute_effect(target = null) -> void:
 # 应用效果
 func _apply_effects(target: ChessPiece) -> void:
 	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
@@ -202,11 +202,8 @@ func _play_ability_effect(targets: Array) -> void:
 
 # 播放技能音效
 func _play_ability_sound() -> void:
-	# 获取音频管理器
-	var audio_manager = owner.get_node_or_null("/root/AudioManager")
-	if audio_manager:
-		# 播放技能音效
-		audio_manager.play_sound("ability_cast.ogg")
+	# 使用事件总线播放音效
+	EventBus.audio.emit_event("play_sound", ["ability_cast", owner.global_position])
 
 # 播放目标效果
 func _play_target_effect(target: ChessPiece) -> void:
@@ -214,21 +211,24 @@ func _play_target_effect(target: ChessPiece) -> void:
 		return
 
 	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
-	# 创建并应用视觉效果
+	# 创建视觉特效参数
 	var params = {
-		"id": "ability_" + id + "_visual",
-		"name": name + "特效",
-		"description": "技能特效",
+		"color": game_manager.effect_manager.get_effect_color(damage_type),
 		"duration": 1.0,
-		"visual_type": VisualEffect.VisualType.PARTICLE
+		"damage_type": damage_type,
+		"damage_amount": damage
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.VISUAL, owner, target, params)
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.DAMAGE,
+		target,
+		params
+	)
 
 # 播放施法者效果
 func _play_caster_effect() -> void:
@@ -236,19 +236,20 @@ func _play_caster_effect() -> void:
 		return
 
 	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
+	var game_manager = Engine.get_singleton("GameManager")
 	if not game_manager or not game_manager.effect_manager:
 		return
 
-	# 创建并应用视觉效果
+	# 创建视觉特效参数
 	var params = {
-		"id": "ability_" + id + "_cast_buff",
-		"name": "施法增益",
-		"description": "施法时的增益效果",
+		"color": Color(0.8, 0.2, 0.8, 0.5),  # 紫色
 		"duration": 1.0,
-		"value": 0.0,  # 仅视觉效果，无实际数值
-		"buff_type": BuffEffect.BuffType.ATTACK
+		"buff_type": "ability_cast"
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, owner, owner, params)
+	game_manager.effect_manager.create_visual_effect(
+		game_manager.effect_manager.VisualEffectType.BUFF,
+		owner,
+		params
+	)
