@@ -1,23 +1,26 @@
 # General Preferences
 - User prefers communication in Chinese.
-- User prefers breaking down complex implementations into multiple steps, first defining functions then implementing them separately.
-- 用户偏好先创建空文件完成编码，而不是主动创建PNG等媒体文件。
+- Godot 4.4.1
+- 应用 AngularJS commit 规范
+- 修改代码的时候必须先对原文件和相关模块完全的掌握，不应该粗暴的完全替换原文件。
+- 带着重构优化的目光审视相关代码，以最优解重构模块，不需要考虑兼容问题，如果有保护性的兼容代码请修改掉，不要使用注释相关功能的方式来逃避问题。
+- 分步进行修改。
+- 优先使用已有文件，如果判断已有文件不合理可以直接修改/删除/替换。不要随意新建相同功能的新文件/函数，以免造成混乱。
+- 不合理的或者有更好实现的模块请直接用最优解重构，不需要考虑兼容问题，重构完成后检查api的变化，修复其他引用此模块的地方。
+- 我们生成代码的时候，提前考虑好性能、可扩展性、可配置、解耦、模块化的实现。代码要提前关注可能与其他系统的交互,预设交互空间（比如难度、皮肤、多语言-目前只需要中文、成就统计、遗物影响、事件影响、插件系统以及其它系统）
+- 当涉及到无法生成的文件的时候，请使用虚拟文件占位（或者godot 是否会有一些公共素材？）。
+- 新增/删除/重构功能时判断此项目是否真的需要这些需修改？在合适的范围内做减法。
+- 完成模块开发后，在最后再次确认是否有遗漏，确认无误后更新 README.md，以规划下一步的开发工作。
+- User prefers to delete deprecated .gd files rather than just marking them as deprecated.
+- 用户希望检查并清理项目中的矛盾、重复和未使用的部分，保持代码库的整洁。
+- User prefers to delete original files when moving them to new locations rather than just copying them.
+- 用户关心配置模型类在项目中的实际使用情况。
+- User prefers to execute migration plans without using compatibility layers, directly deleting the old system.
+- 用户偏好直接执行代码迁移而不需要创建迁移指南。
 
-# Project Goal
-- User wants to develop an auto chess game using Godot, based on Slay the Spire's branching map.
-- 用户希望开始进行基于杀戮尖塔分支树形地图的自走棋游戏的代码实现。
-- User wants to summarize designs and progress in a README file, marking module completion status for continuation in future conversations.
-- 用户希望将设计和进度总结到README文件中，并对模块完成状态进行标记，以便下次对话继续当前进度。
-
-# Game Architecture & Development Practices
-- The game architecture should be comprehensive and flexible/extensible.
-- The architecture includes the following systems: UI, sound, map, random events, board, level/gold, chess piece, attack, aura, equipment, and relic systems.
-- 用户同意在自走棋项目中添加数据持久化、网络多人模式和教程系统的优化建议。
-- User requests the use of an internationalization support system, considering the interactions between systems (e.g., multilingualism, skins, difficulty, values, achievements, relics, event influences).
-- 用户要求使用国际化支持系统，并要求考虑系统间互相影响（如多语言、皮肤、难度、数值、成就、遗物、事件影响等）。
-- User requests that the multilingual system initially only supports Simplified Chinese.
-- 用户要求多语言系统暂时只需支持简体中文。
-- User requires code implementation to consider performance, extensibility, decoupling, and modularity, and to anticipate interactions with other systems (difficulty, skins, localization, achievements, relics, events, plugins).
-- 用户要求代码实现需考虑性能、可扩展性/解耦和模块化，并预先考虑与其他系统（难度、皮肤、多语言、成就、遗物、事件、插件等）的交互。
-- When developing code: understand existing modules first, implement complex features step-by-step, reuse existing files where possible, ensure code has good performance/extensibility/decoupling/modularity, consider interactions with other systems (difficulty, skins, localization, achievements, relics, events, plugins), and use placeholders for media files.
-- 开发代码时需要先理解原有模块，分步实现复杂功能，优先使用已有文件，确保代码具有良好的性能/可扩展性/解耦/模块化，考虑与其他系统的交互（难度、皮肤、多语言、成就、遗物、事件、插件等），对媒体文件使用占位符。
+# Optimization and Refactoring
+- User wants to address the issue of scattered state management in the codebase.
+- 用户希望从功能、UI和代码质量等多个方向优化和重构代码，特别关注主页面的合理性。
+- 用户偏好通过合并功能并删除重复模块来提高代码质量，保持代码简洁。
+- 用户希望检查并规范化项目中的所有文件，包括network、sync、animation和test-config等模块，确保它们符合统一的目录结构规范。
+- 用户希望优化事件系统和配置数据加载管理，减少重复和分散。

@@ -183,7 +183,7 @@ func _play_despawn_effect(summon: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.TELEPORT_DISAPPEAR, summon, params)
+	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR, summon, params)
 
 # 播放技能特效
 func _play_effect(target: ChessPiece) -> void:

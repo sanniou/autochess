@@ -1,0 +1,67 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8yvnqxq8yvdqw"]
+
+[ext_resource type="Script" path="res://scripts/game/effects/visuals/damage_visual.gd" id="1_yvnqw"]
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_uxvs8"]
+emission_shape = 1
+emission_sphere_radius = 20.0
+particle_flag_disable_z = true
+direction = Vector3(0, -1, 0)
+spread = 45.0
+gravity = Vector3(0, 50, 0)
+initial_velocity_min = 30.0
+initial_velocity_max = 60.0
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 2.0
+scale_max = 4.0
+color = Color(0.8, 0.2, 0.2, 0.8)
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_lfgxj"]
+emission_shape = 1
+emission_sphere_radius = 10.0
+particle_flag_disable_z = true
+direction = Vector3(0, 0, 0)
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 20.0
+initial_velocity_max = 40.0
+orbit_velocity_min = 0.0
+orbit_velocity_max = 0.0
+scale_min = 3.0
+scale_max = 6.0
+color = Color(0.8, 0.2, 0.2, 0.5)
+
+[node name="DamageVisual" type="Node2D"]
+script = ExtResource("1_yvnqw")
+
+[node name="DamageParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 16
+process_material = SubResource("ParticleProcessMaterial_uxvs8")
+lifetime = 0.8
+one_shot = true
+explosiveness = 0.8
+randomness = 0.5
+
+[node name="ImpactParticles" type="GPUParticles2D" parent="."]
+emitting = false
+amount = 1
+process_material = SubResource("ParticleProcessMaterial_lfgxj")
+lifetime = 0.3
+one_shot = true
+explosiveness = 1.0
+
+[node name="NumberLabel" type="Label" parent="."]
+visible = false
+offset_left = -20.0
+offset_top = -40.0
+offset_right = 20.0
+offset_bottom = -14.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 16
+text = "100"
+horizontal_alignment = 1
+vertical_alignment = 1

@@ -195,7 +195,7 @@ func _play_aura_effect() -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.BUFF, owner, params)
+	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.BUFF, owner, params)
 
 # 播放单体特效
 func _play_effect(target: ChessPiece) -> void:
@@ -210,4 +210,4 @@ func _play_effect(target: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.BUFF, target, params)
+	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.BUFF, target, params)

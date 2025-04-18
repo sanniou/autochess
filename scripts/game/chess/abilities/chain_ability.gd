@@ -151,7 +151,7 @@ func _play_chain_visual_effect(from_target: ChessPiece, to_target: ChessPiece) -
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.CHAIN, effect_node, params)
+	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.CHAIN, effect_node, params)
 
 	# 设置定时器删除节点
 	var timer = Timer.new()

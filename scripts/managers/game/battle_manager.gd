@@ -185,9 +185,17 @@ func _start_battle_phase():
 		piece.is_frozen = false
 		piece.taunted_by = null
 
-		# 清除状态效果管理器中的所有效果
-		if piece.status_effect_manager:
-			piece.status_effect_manager.clear_all_effects()
+			# 清除旧的状态效果管理器中的所有效果 - 已移除
+		# if piece.status_effect_manager:
+		# 	piece.status_effect_manager.clear_all_effects()
+
+		# 清除新系统中的所有效果
+		if effect_manager:
+			# 清除与该棋子相关的所有效果
+			for effect_id in effect_manager.active_logical_effects.keys():
+				var effect = effect_manager.active_logical_effects[effect_id]
+				if effect.target == piece:
+					effect_manager.remove_effect(effect_id)
 
 		# 切换到空闲状态
 		piece.change_state(ChessPiece.ChessState.IDLE)
@@ -599,6 +607,107 @@ func _find_nearest_enemy(piece) -> Object:
 
 	return nearest_enemy
 
+
+# 应用伤害
+func apply_damage(source, target, damage_amount: float, damage_type: String = "magical", is_critical: bool = false, is_dodgeable: bool = true) -> float:
+	if not target or not is_instance_valid(target) or target.current_state == target.ChessState.DEAD:
+		return 0.0
+
+	# 直接应用伤害
+	var final_damage = target.take_damage(damage_amount, damage_type, source, is_critical, is_dodgeable)
+
+	# 返回实际伤害值
+	return final_damage
+
+# 应用治疗
+func apply_heal(source, target, heal_amount: float) -> float:
+	if not target or not is_instance_valid(target) or target.current_state == target.ChessState.DEAD:
+		return 0.0
+
+	# 直接应用治疗
+	var final_heal = target.heal(heal_amount, source)
+
+	# 返回实际治疗值
+	return final_heal
+
+# 应用持续伤害效果
+func apply_dot_effect(source, target, dot_type: int, damage_per_second: float, duration: float, damage_type: String = "magical") -> bool:
+	if not target or not is_instance_valid(target) or target.current_state == target.ChessState.DEAD:
+		return false
+
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return false
+
+	# 创建持续伤害效果参数
+	var params = {
+		"id": "dot_" + str(randi()) + "_" + str(Time.get_ticks_msec()),
+		"name": DotEffect.get_dot_name(dot_type),
+		"description": DotEffect.get_dot_description(dot_type),
+		"duration": duration,
+		"value": damage_per_second,
+		"damage_type": damage_type,
+		"dot_type": dot_type
+	}
+
+	# 使用特效管理器创建持续伤害效果
+	var effect = game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, source, target, params)
+
+	# 返回是否成功创建效果
+	return effect != null
+
+# 应用状态效果
+func apply_status_effect(source, target, status_type: int, duration: float, value: float = 0.0) -> bool:
+	if not target or not is_instance_valid(target) or target.current_state == target.ChessState.DEAD:
+		return false
+
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return false
+
+	# 创建状态效果参数
+	var params = {
+		"id": "status_" + str(randi()) + "_" + str(Time.get_ticks_msec()),
+		"name": StatusEffect.get_status_name(status_type),
+		"description": StatusEffect.get_status_description(status_type),
+		"duration": duration,
+		"value": value,
+		"status_type": status_type
+	}
+
+	# 使用特效管理器创建状态效果
+	var effect = game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, source, target, params)
+
+	# 返回是否成功创建效果
+	return effect != null
+
+# 应用属性效果
+func apply_stat_effect(source, target, stats: Dictionary, duration: float, is_debuff: bool = false) -> bool:
+	if not target or not is_instance_valid(target) or target.current_state == target.ChessState.DEAD:
+		return false
+
+	# 获取特效管理器
+	var game_manager = Engine.get_singleton("GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return false
+
+	# 创建属性效果参数
+	var params = {
+		"id": "stat_" + str(randi()) + "_" + str(Time.get_ticks_msec()),
+		"name": "Stat " + ("Debuff" if is_debuff else "Buff"),
+		"description": "Modifies stats",
+		"duration": duration,
+		"stats": stats,
+		"is_debuff": is_debuff
+	}
+
+	# 使用特效管理器创建属性效果
+	var effect = game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, source, target, params)
+
+	# 返回是否成功创建效果
+	return effect != null
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:

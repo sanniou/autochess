@@ -158,25 +158,24 @@ func _execute_effect(target = null) -> void:
 
 # 应用效果
 func _apply_effects(target: ChessPiece) -> void:
+	# 获取特效管理器
+	var game_manager = owner.get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
 	# 如果没有自定义效果，使用默认效果
 	if effects.size() == 0:
-		# 获取特效管理器
-		var game_manager = owner.get_node_or_null("/root/GameManager")
-		if game_manager and game_manager.effect_manager:
-			# 创建伤害特效
-			var params = {
-				"damage_type": "magical",
-				"damage_amount": damage
-			}
+		# 创建伤害效果参数
+		var params = {
+			"id": "ability_" + id + "_damage",
+			"name": name + "伤害",
+			"description": "造成" + str(damage) + "点伤害",
+			"value": damage,
+			"damage_type": "magical"
+		}
 
-			# 使用特效管理器创建特效
-			game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
-
-			# 直接造成伤害
-			target.take_damage(damage, "magical", owner)
-		else:
-			# 直接造成伤害
-			target.take_damage(damage, "magical", owner)
+		# 使用特效管理器创建效果
+		game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DAMAGE, owner, target, params)
 	else:
 		# 应用自定义效果
 		for effect in effects:
@@ -219,16 +218,17 @@ func _play_target_effect(target: ChessPiece) -> void:
 	if not game_manager or not game_manager.effect_manager:
 		return
 
-	# 创建伤害特效
+	# 创建并应用视觉效果
 	var params = {
-		"damage_type": "magical",  # 默认使用魔法伤害
-		"damage_amount": damage
+		"id": "ability_" + id + "_visual",
+		"name": name + "特效",
+		"description": "技能特效",
+		"duration": 1.0,
+		"visual_type": VisualEffect.VisualType.PARTICLE
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
-
-
+	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.VISUAL, owner, target, params)
 
 # 播放施法者效果
 func _play_caster_effect() -> void:
@@ -240,10 +240,15 @@ func _play_caster_effect() -> void:
 	if not game_manager or not game_manager.effect_manager:
 		return
 
-	# 创建施法特效
+	# 创建并应用视觉效果
 	var params = {
-		"buff_type": "buff",  # 默认使用增益类型
+		"id": "ability_" + id + "_cast_buff",
+		"name": "施法增益",
+		"description": "施法时的增益效果",
+		"duration": 1.0,
+		"value": 0.0,  # 仅视觉效果，无实际数值
+		"buff_type": BuffEffect.BuffType.ATTACK
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.BUFF, owner, params)
+	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, owner, owner, params)

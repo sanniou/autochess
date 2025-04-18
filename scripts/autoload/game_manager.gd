@@ -156,6 +156,7 @@ func _register_all_managers() -> void:
 	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd", [])
 	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd", ["RelicManager", "UIManager"])
 	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd", [])
+	# StatusEffectManager 已被移除，使用 EffectManager 替代
 
 ## 注册单个管理器
 func _register_manager(manager_name: String, script_path: String, dependencies: Array) -> void:

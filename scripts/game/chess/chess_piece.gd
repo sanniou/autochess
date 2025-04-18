@@ -74,8 +74,8 @@ var is_frozen: bool = false        # 是否被冰冻
 var taunted_by = null              # 嘲讽来源
 var control_resistance: float = 0.0 # 控制抗性
 
-# 状态效果管理器
-var status_effect_manager = null   # 状态效果管理器
+# 状态效果管理器 - 已移除，使用 EffectManager 替代
+# var status_effect_manager = null   # 状态效果管理器
 
 # 位置和目标
 var board_position: Vector2i = Vector2i(-1, -1)  # 棋盘位置
@@ -124,10 +124,10 @@ func _physics_process(delta):
 	if state_machine:
 		state_machine.physics_process(delta)
 
-	# 更新状态效果管理器
-	if status_effect_manager:
-		status_effect_manager.update(delta)
-		status_effect_manager.process_dot_effects(delta)
+	# 更新状态效果管理器 - 已由新的效果系统处理
+	# if status_effect_manager:
+	# 	status_effect_manager.update(delta)
+	# 	status_effect_manager.process_dot_effects(delta)
 
 	# 更新冷却时间
 	if current_cooldown > 0:
@@ -710,93 +710,228 @@ func unequip_item(slot: String) -> Equipment:
 	return null
 
 # 添加效果
-func add_effect(effect_data: Dictionary) -> void:
-	# 兼容旧系统，将字典效果转换为状态效果管理器的效果
-	if status_effect_manager:
-		# 根据效果数据创建状态效果
-		var effect_type = StatusEffectManager.StatusEffectType.BUFF  # 默认为增益效果
+func add_effect(effect_data) -> void:
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
 
-		# 根据效果属性确定类型
-		if effect_data.has("is_stun") and effect_data.is_stun:
-			effect_type = StatusEffectManager.StatusEffectType.STUN
-		elif effect_data.has("is_silence") and effect_data.is_silence:
-			effect_type = StatusEffectManager.StatusEffectType.SILENCE
-		elif effect_data.has("is_disarm") and effect_data.is_disarm:
-			effect_type = StatusEffectManager.StatusEffectType.DISARM
-		elif effect_data.has("is_taunt") and effect_data.is_taunt:
-			effect_type = StatusEffectManager.StatusEffectType.TAUNT
-		elif effect_data.has("is_slow") and effect_data.is_slow:
-			effect_type = StatusEffectManager.StatusEffectType.SLOW
-		elif effect_data.has("is_frozen") and effect_data.is_frozen:
-			effect_type = StatusEffectManager.StatusEffectType.FROZEN
-		elif effect_data.has("damage_per_second"):
-			if effect_data.has("damage_type") and effect_data.damage_type == "fire":
-				effect_type = StatusEffectManager.StatusEffectType.BURNING
-			else:
-				effect_type = StatusEffectManager.StatusEffectType.POISONED
-		elif effect_data.has("stats"):
-			# 检查是增益还是减益
-			var is_debuff = false
-			for stat_name in effect_data.stats:
-				if effect_data.stats[stat_name] < 0:
-					is_debuff = true
-					break
+	# 检查是否为新的效果系统
+	if effect_data is BaseEffect:
+		# 使用新的效果系统
+		if game_manager and game_manager.effect_manager:
+			# 设置目标
+			effect_data.target = self
 
-			if is_debuff:
-				effect_type = StatusEffectManager.StatusEffectType.DEBUFF
-			else:
-				effect_type = StatusEffectManager.StatusEffectType.BUFF
-
-		# 创建效果
-		var effect_id = effect_data.get("id", "effect_" + str(randi()))
-		var effect_name = effect_data.get("name", "Effect")
-		var effect_description = effect_data.get("description", "")
-		var effect_duration = effect_data.get("duration", 5.0)
-		var effect_value = 0.0
-
-		# 根据效果类型设置值
-		if effect_type == StatusEffectManager.StatusEffectType.SLOW and effect_data.has("stats") and effect_data.stats.has("move_speed"):
-			effect_value = abs(effect_data.stats.move_speed) / base_move_speed
-		elif effect_type == StatusEffectManager.StatusEffectType.BURNING and effect_data.has("damage_per_second"):
-			effect_value = effect_data.damage_per_second
-		elif effect_type == StatusEffectManager.StatusEffectType.POISONED and effect_data.has("damage_per_second"):
-			effect_value = effect_data.damage_per_second
-
-		# 创建状态效果对象
-		var status_effect = StatusEffectManager.StatusEffect.new(
-			effect_id,
-			effect_type,
-			effect_name,
-			effect_description,
-			effect_duration,
-			effect_value,
-			effect_data.get("source", null),
-			effect_data.get("icon", ""),
-			effect_data.get("is_stackable", false)
-		)
-
-		# 添加到状态效果管理器
-		status_effect_manager.add_effect(status_effect)
+			# 添加效果
+			game_manager.effect_manager.add_effect(effect_data)
+		else:
+			# 直接应用效果
+			effect_data.target = self
+			effect_data.apply()
 	else:
-		# 旧系统兼容处理
-		# 添加效果
-		active_effects.append(effect_data)
+		# 兼容旧系统，将字典效果转换为新的效果系统
+		if game_manager and game_manager.effect_manager:
+			# 使用特效管理器创建效果
+			var effect = _convert_dict_to_effect(effect_data)
 
-		# 应用效果
-		_apply_effect(effect_data)
+			# 如果转换成功，添加效果
+			if effect:
+				# 设置目标
+				effect.target = self
 
-		# 如果效果有持续时间，设置定时器
-		if effect_data.has("duration") and effect_data.duration > 0:
-			var timer = get_tree().create_timer(effect_data.duration)
-			timer.timeout.connect(_on_effect_timeout.bind(effect_data))
+				# 添加效果
+				game_manager.effect_manager.add_effect(effect)
+			else:
+				# 旧系统兼容处理
+				# 添加效果
+				active_effects.append(effect_data)
+
+				# 应用效果
+				_apply_effect(effect_data)
+
+				# 如果效果有持续时间，设置定时器
+				if effect_data.has("duration") and effect_data.duration > 0:
+					var timer = get_tree().create_timer(effect_data.duration)
+					timer.timeout.connect(_on_effect_timeout.bind(effect_data))
+		else:
+			# 旧系统兼容处理
+			# 添加效果
+			active_effects.append(effect_data)
+
+			# 应用效果
+			_apply_effect(effect_data)
+
+			# 如果效果有持续时间，设置定时器
+			if effect_data.has("duration") and effect_data.duration > 0:
+				var timer = get_tree().create_timer(effect_data.duration)
+				timer.timeout.connect(_on_effect_timeout.bind(effect_data))
+
+# 将字典转换为效果对象
+func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return null
+
+	# 创建效果ID
+	var effect_id = effect_data.get("id", "effect_" + str(randi()))
+
+	# 准备参数
+	var params = {
+		"id": effect_id,
+		"name": effect_data.get("name", ""),
+		"description": effect_data.get("description", ""),
+		"duration": effect_data.get("duration", 0.0),
+		"value": effect_data.get("value", 0.0),
+		"source": effect_data.get("source", null)
+	}
+
+	# 根据效果类型创建不同的效果
+	if effect_data.has("is_stun") and effect_data.is_stun:
+		# 创建眩晕效果
+		params["name"] = effect_data.get("name", "眩晕")
+		params["description"] = effect_data.get("description", "无法行动")
+		params["duration"] = effect_data.get("duration", 2.0)
+		params["status_type"] = StatusEffect.StatusType.STUN
+
+		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+
+	elif effect_data.has("is_silence") and effect_data.is_silence:
+		# 创建沉默效果
+		params["name"] = effect_data.get("name", "沉默")
+		params["description"] = effect_data.get("description", "无法施放技能")
+		params["duration"] = effect_data.get("duration", 3.0)
+		params["status_type"] = StatusEffect.StatusType.SILENCE
+
+		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+
+	elif effect_data.has("is_disarm") and effect_data.is_disarm:
+		# 创建缴械效果
+		params["name"] = effect_data.get("name", "缴械")
+		params["description"] = effect_data.get("description", "无法普通攻击")
+		params["duration"] = effect_data.get("duration", 3.0)
+		params["status_type"] = StatusEffect.StatusType.DISARM
+
+		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+
+	elif effect_data.has("is_frozen") and effect_data.is_frozen:
+		# 创建冰冻效果
+		params["name"] = effect_data.get("name", "冰冻")
+		params["description"] = effect_data.get("description", "无法移动")
+		params["duration"] = effect_data.get("duration", 2.0)
+		params["status_type"] = StatusEffect.StatusType.FROZEN
+
+		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+
+	elif effect_data.has("damage_per_second"):
+		# 创建持续伤害效果
+		var dot_type = DotEffect.DotType.BURNING
+		var damage_type = "magical"
+		var name = "燃烧"
+
+		if effect_data.has("damage_type"):
+			damage_type = effect_data.damage_type
+			if damage_type == "fire":
+				dot_type = DotEffect.DotType.BURNING
+				name = "燃烧"
+			elif damage_type == "poison":
+				dot_type = DotEffect.DotType.POISONED
+				name = "中毒"
+			else:
+				dot_type = DotEffect.DotType.BLEEDING
+				name = "流血"
+
+		params["name"] = effect_data.get("name", name)
+		params["description"] = effect_data.get("description", "每秒造成伤害")
+		params["duration"] = effect_data.get("duration", 3.0)
+		params["value"] = effect_data.damage_per_second
+		params["damage_type"] = damage_type
+		params["dot_type"] = dot_type
+
+		if effect_data.has("tick_interval"):
+			params["tick_interval"] = effect_data.tick_interval
+
+		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, params["source"], self, params)
+
+	elif effect_data.has("stats"):
+		# 检查是增益还是减益
+		var is_debuff = false
+		for stat_name in effect_data.stats:
+			if effect_data.stats[stat_name] < 0:
+				is_debuff = true
+				break
+
+		if is_debuff:
+			# 创建减益效果
+			var debuff_type = DebuffEffect.DebuffType.ATTACK
+			var value = 0.0
+
+			# 根据属性确定减益类型
+			if effect_data.stats.has("attack_damage"):
+				debuff_type = DebuffEffect.DebuffType.ATTACK
+				value = abs(effect_data.stats.attack_damage)
+			elif effect_data.stats.has("armor") or effect_data.stats.has("magic_resist"):
+				debuff_type = DebuffEffect.DebuffType.DEFENSE
+				value = abs(effect_data.stats.get("armor", effect_data.stats.get("magic_resist", 0.0)))
+			elif effect_data.stats.has("attack_speed") or effect_data.stats.has("move_speed"):
+				debuff_type = DebuffEffect.DebuffType.SPEED
+				value = abs(effect_data.stats.get("attack_speed", effect_data.stats.get("move_speed", 0.0) / 10.0))
+			elif effect_data.stats.has("max_health"):
+				debuff_type = DebuffEffect.DebuffType.HEALTH
+				value = abs(effect_data.stats.max_health)
+
+			params["name"] = effect_data.get("name", "减益")
+			params["description"] = effect_data.get("description", "降低属性")
+			params["duration"] = effect_data.get("duration", 5.0)
+			params["value"] = value
+			params["debuff_type"] = debuff_type
+			params["stats"] = effect_data.stats
+
+			return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, params["source"], self, params)
+		else:
+			# 创建增益效果
+			var buff_type = BuffEffect.BuffType.ATTACK
+			var value = 0.0
+
+			# 根据属性确定增益类型
+			if effect_data.stats.has("attack_damage"):
+				buff_type = BuffEffect.BuffType.ATTACK
+				value = effect_data.stats.attack_damage
+			elif effect_data.stats.has("armor") or effect_data.stats.has("magic_resist"):
+				buff_type = BuffEffect.BuffType.DEFENSE
+				value = effect_data.stats.get("armor", effect_data.stats.get("magic_resist", 0.0))
+			elif effect_data.stats.has("attack_speed") or effect_data.stats.has("move_speed"):
+				buff_type = BuffEffect.BuffType.SPEED
+				value = effect_data.stats.get("attack_speed", effect_data.stats.get("move_speed", 0.0) / 10.0)
+			elif effect_data.stats.has("max_health"):
+				buff_type = BuffEffect.BuffType.HEALTH
+				value = effect_data.stats.max_health
+
+			params["name"] = effect_data.get("name", "增益")
+			params["description"] = effect_data.get("description", "提升属性")
+			params["duration"] = effect_data.get("duration", 5.0)
+			params["value"] = value
+			params["buff_type"] = buff_type
+			params["stats"] = effect_data.stats
+
+			return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, params["source"], self, params)
+
+	return null
 
 # 移除效果
 func remove_effect(effect_id: String) -> void:
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.effect_manager:
+		# 使用新的效果系统
+		game_manager.effect_manager.remove_effect(effect_id)
+		return
+
+	# 兼容旧系统
 	# 先尝试使用状态效果管理器
 	if status_effect_manager:
 		status_effect_manager.remove_effect(effect_id)
 
-	# 兼容旧系统
+	# 查找旧系统效果
 	var index = -1
 
 	# 查找效果
@@ -963,9 +1098,18 @@ func reset() -> void:
 	# 重置效果
 	active_effects.clear()
 
-	# 清除状态效果管理器中的所有效果
-	if status_effect_manager:
-		status_effect_manager.clear_all_effects()
+	# 清除状态效果管理器中的所有效果 - 已移除
+	# if status_effect_manager:
+	# 	status_effect_manager.clear_all_effects()
+
+	# 清除新系统中的所有效果
+	var game_manager = get_node_or_null("/root/GameManager")
+	if game_manager and game_manager.effect_manager:
+		# 清除与该棋子相关的所有效果
+		for effect_id in game_manager.effect_manager.active_logical_effects.keys():
+			var effect = game_manager.effect_manager.active_logical_effects[effect_id]
+			if effect.target == self:
+				game_manager.effect_manager.remove_effect(effect_id)
 
 	# 更新显示
 	_update_health_bar()
@@ -1158,8 +1302,7 @@ func _initialize_state_machine() -> void:
 
 # 初始化状态效果管理器
 func _initialize_status_effect_manager() -> void:
-	# 创建状态效果管理器实例
-	# 暂时注释掉，等待StatusEffectManager类的实现
+	# 不再创建旧的状态效果管理器，使用新的效果系统
 	# status_effect_manager = StatusEffectManager.new(self)
 
 	# 设置控制抗性（根据星级提升）
@@ -1252,130 +1395,116 @@ func _trigger_elemental_effect(target: ChessPiece) -> void:
 
 # 应用火元素效果
 func _apply_fire_effect(target: ChessPiece) -> void:
-	# 创建持续伤害效果
-	var effect_data = {
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
+	# 创建持续伤害效果参数
+	var params = {
 		"id": "fire_effect_" + str(randi()),
 		"name": "火元素",
 		"description": "每秒造成伤害",
 		"duration": 3.0,
-		"damage_per_second": attack_damage * 0.1,
-		"damage_type": "magical",
-		"source": self,
-		"tick_interval": 1.0,
-		"ticks_remaining": 3
+		"value": attack_damage * 0.1,
+		"damage_type": "fire",
+		"dot_type": DotEffect.DotType.BURNING
 	}
 
-	# 添加效果
-	target.add_effect(effect_data)
-
-	# 创建定时器处理持续伤害
-	var timer = get_tree().create_timer(1.0)
-	timer.timeout.connect(_on_fire_effect_tick.bind(target, effect_data))
+	# 使用特效管理器创建效果
+	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(1.0, 0.3, 0.1, 0.5))
 
-# 火元素效果计时器
+# 火元素效果计时器 - 已由新系统处理
 func _on_fire_effect_tick(target: ChessPiece, effect_data: Dictionary) -> void:
-	# 检查目标是否有效
-	if not is_instance_valid(target) or target.current_state == ChessState.DEAD:
-		return
-
-	# 检查效果是否还存在
-	var effect_exists = false
-	for effect in target.active_effects:
-		if effect.id == effect_data.id:
-			effect_exists = true
-			break
-
-	if not effect_exists:
-		return
-
-	# 造成伤害
-	target.take_damage(effect_data.damage_per_second, effect_data.damage_type, effect_data.source)
-
-	# 减少剩余计时器
-	effect_data.ticks_remaining -= 1
-
-	# 如果还有剩余计时器，创建新的定时器
-	if effect_data.ticks_remaining > 0:
-		var timer = get_tree().create_timer(effect_data.tick_interval)
-		timer.timeout.connect(_on_fire_effect_tick.bind(target, effect_data))
+	# 此方法保留仅用于兼容旧系统
+	pass
 
 # 应用冰元素效果
 func _apply_ice_effect(target: ChessPiece) -> void:
-	# 创建减速效果
-	var effect_data = {
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
+	# 创建减速效果参数
+	var params = {
 		"id": "ice_effect_" + str(randi()),
 		"name": "冰元素",
 		"description": "减速目标",
 		"duration": 3.0,
-		"stats": {
-			"attack_speed": -0.2,
-			"move_speed": -50.0
-		}
+		"value": 0.2,  # 减速值
+		"debuff_type": DebuffEffect.DebuffType.SPEED
 	}
 
-	# 添加效果
-	target.add_effect(effect_data)
+	# 使用特效管理器创建效果
+	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(0.2, 0.6, 1.0, 0.5))
 
 # 应用雷元素效果
 func _apply_lightning_effect(target: ChessPiece) -> void:
-	# 创建眼晕效果
-	var effect_data = {
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
+	# 创建眼晕效果参数
+	var params = {
 		"id": "lightning_effect_" + str(randi()),
 		"name": "雷元素",
 		"description": "眼晕目标",
 		"duration": 1.5,
-		"is_stun": true
+		"status_type": StatusEffect.StatusType.STUN
 	}
 
-	# 添加效果
-	target.add_effect(effect_data)
-
-	# 切换目标状态为眼晕
-	target.change_state(ChessState.STUNNED)
+	# 使用特效管理器创建效果
+	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(1.0, 1.0, 0.2, 0.5))
 
 # 应用土元素效果
 func _apply_earth_effect(target: ChessPiece) -> void:
-	# 创建降低护甲效果
-	var effect_data = {
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
+
+	# 创建降低护甲效果参数
+	var params = {
 		"id": "earth_effect_" + str(randi()),
 		"name": "土元素",
 		"description": "降低目标护甲",
 		"duration": 4.0,
-		"stats": {
-			"armor": -15.0
-		}
+		"value": 15.0,  # 护甲减少值
+		"debuff_type": DebuffEffect.DebuffType.DEFENSE
 	}
 
-	# 添加效果
-	target.add_effect(effect_data)
+	# 使用特效管理器创建效果
+	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(0.6, 0.4, 0.2, 0.5))
 
 # 播放元素效果
 func _play_elemental_effect(target: ChessPiece, color: Color) -> void:
-	# 创建特效
-	var effect = ColorRect.new()
-	effect.color = color
-	effect.size = Vector2(50, 50)
-	effect.position = Vector2(-25, -25)
+	# 获取特效管理器
+	var game_manager = get_node_or_null("/root/GameManager")
+	if not game_manager or not game_manager.effect_manager:
+		return
 
-	# 添加到目标
-	target.add_child(effect)
+	# 创建视觉特效参数
+	var params = {
+		"color": color,
+		"duration": 0.8
+	}
 
-	# 创建消失动画
-	var tween = create_tween()
-	tween.tween_property(effect, "modulate", Color(1, 1, 1, 0), 0.8)
-	tween.tween_callback(effect.queue_free)
+	# 使用特效管理器创建特效
+	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.BUFF, target, params)
 
 # ===== 状态处理函数 =====
 
@@ -1434,9 +1563,9 @@ func _on_state_moving_process(delta: float) -> void:
 	var direction = (target.global_position - global_position).normalized()
 	global_position += direction * move_speed * delta
 
-	# 如果有状态效果管理器，处理移动时的效果（如流血）
-	if status_effect_manager:
-		status_effect_manager.process_movement_effects()
+	# 如果有状态效果管理器，处理移动时的效果（如流血） - 已由新的效果系统处理
+	# if status_effect_manager:
+	# 	status_effect_manager.process_movement_effects()
 
 	# 检查是否到达攻击范围
 	var distance = global_position.distance_to(target.global_position)
@@ -1548,10 +1677,13 @@ func _on_state_dead_process(delta: float) -> void:
 
 # 检查是否嘲讽中
 func is_taunting() -> bool:
-	# 检查状态效果管理器
-	if status_effect_manager:
-		return status_effect_manager.has_effect(StatusEffectManager.StatusEffectType.TAUNT)
-	return false
+	# 检查是否被嘲讽
+	return taunted_by != null and is_instance_valid(taunted_by) and taunted_by.current_state != ChessState.DEAD
+
+# 检查是否眩晕中
+func is_stunned() -> bool:
+	# 检查当前状态是否为眩晕
+	return current_state == ChessState.STUNNED
 
 # 播放升星特效
 func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increases: Dictionary) -> void:
