@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8yvxr1yvqnx8"]
+[gd_scene load_steps=2 format=3 uid="uid://c8yvxr13yvqnx8"]
 
-[ext_resource type="Script" path="res://scenes/test/battle_test.gd" id="1_yjnkl"]
-[ext_resource type="PackedScene" uid="uid://c4m7yjvxk5v7t" path="res://scenes/board/chess_board.tscn" id="2_yjnkl"]
+[ext_resource type="Script" uid="uid://olflft3ujr6c" path="res://scenes/test/battle_test.gd" id="1_yjnkl"]
 
 [node name="BattleTest" type="Control"]
 layout_mode = 3
@@ -12,7 +11,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_yjnkl")
 
-[node name="ChessBoard" parent="." instance=ExtResource("2_yjnkl")]
+[node name="ChessBoard" parent="."]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5

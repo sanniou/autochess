@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7ql"]
 
-[ext_resource type="Script" path="res://scenes/test/environment_test.gd" id="1_yvmqe"]
+[ext_resource type="Script"  path="res://scenes/test/environment_test.gd" id="1_yvmqe"]
 
 [node name="EnvironmentTest" type="Control"]
 layout_mode = 3

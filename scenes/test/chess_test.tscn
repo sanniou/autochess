@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1yvqnbx"]
+[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1y2vqnbx"]
 
-[ext_resource type="Script" path="res://scenes/test/chess_test.gd" id="1_yvnbx"]
+[ext_resource type="Script" uid="uid://da0unaxqy1ecd" path="res://scenes/test/chess_test.gd" id="1_yvnbx"]
 
 [node name="ChessTest" type="Control"]
 layout_mode = 3

@@ -31,10 +31,6 @@ var themes = ["default", "dark", "light", "fantasy", "sci-fi"]
 func _ready():
     # 获取UI管理器
     ui_manager = get_node_or_null("/root/GameManager/UIManager")
-    if not ui_manager:
-        # 创建临时UI管理器
-        ui_manager = UIManager.new()
-        add_child(ui_manager)
     
     # 连接按钮信号
     show_popup_button.pressed.connect(_on_show_popup_button_pressed)

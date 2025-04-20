@@ -1,6 +1,42 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1yvqnbx"]
+[gd_scene load_steps=5 format=3 uid="uid://c8yvxr1yvqn2bx"]
 
-[ext_resource type="Script" path="res://scenes/test/shop_test.gd" id="1_yvnbx"]
+[ext_resource type="Script" uid="uid://b3djnqhls4x66" path="res://scenes/test/shop_test.gd" id="1_yvnbx"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.15, 0.15, 0.15, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.5)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.1, 0.1, 0.1, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.5)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+bg_color = Color(0.1, 0.1, 0.1, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.5)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
 
 [node name="ShopTest" type="Control"]
 layout_mode = 3
@@ -11,158 +47,271 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_yvnbx")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="Panel" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.2, 0.2, 0.2, 1)
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 
-[node name="Title" type="Label" parent="."]
+[node name="ShopContainer" type="Control" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_top = 20.0
-offset_right = 100.0
-offset_bottom = 60.0
-grow_horizontal = 2
-theme_override_font_sizes/font_size = 24
-text = "商店测试场景"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="ShopPanel" type="Panel" parent="."]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -500.0
-offset_top = -250.0
-offset_right = 500.0
-offset_bottom = 250.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="ShopTitle" type="Label" parent="ShopPanel"]
+[node name="ToggleButtonContainer" type="Control" parent="."]
 layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -100.0
-offset_top = 10.0
-offset_right = 100.0
-offset_bottom = 36.0
-grow_horizontal = 2
-text = "商店"
-horizontal_alignment = 1
-
-[node name="ItemsContainer" type="GridContainer" parent="ShopPanel"]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -450.0
-offset_top = -200.0
-offset_right = 450.0
-offset_bottom = 200.0
-grow_horizontal = 2
-grow_vertical = 2
-columns = 3
-
-[node name="PlayerInfo" type="Panel" parent="."]
-layout_mode = 0
-offset_left = 20.0
-offset_top = 80.0
-offset_right = 220.0
-offset_bottom = 180.0
-
-[node name="GoldLabel" type="Label" parent="PlayerInfo"]
-layout_mode = 1
-anchors_preset = 5
-anchor_left = 0.5
-anchor_right = 0.5
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
 offset_left = -50.0
 offset_top = 10.0
-offset_right = 50.0
-offset_bottom = 36.0
+offset_right = -10.0
+offset_bottom = 50.0
+grow_horizontal = 0
+
+[node name="ToggleButton" type="Button" parent="ToggleButtonContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
-text = "金币: 100"
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "≡"
+tooltip_text = "切换测试面板 (Shift+T)"
+
+[node name="TestPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -250.0
+offset_right = 0.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_2")
+
+[node name="CloseButton" type="Button" parent="TestPanel"]
+layout_mode = 0
+offset_left = 220.0
+offset_top = 10.0
+offset_right = 240.0
+offset_bottom = 40.0
+focus_mode = 0
+text = "X"
+tooltip_text = "关闭测试面板"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TestPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="TestPanel/VBoxContainer"]
+layout_mode = 2
+text = "测试功能"
 horizontal_alignment = 1
 
-[node name="AddGoldButton" type="Button" parent="PlayerInfo"]
+[node name="HSeparator" type="HSeparator" parent="TestPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="AddGoldButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 60.0
+offset_right = 180.0
+offset_bottom = 91.0
+text = "增加金币 (+50)"
+
+[node name="UpgradeLevelButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 100.0
+offset_right = 180.0
+offset_bottom = 131.0
+text = "提升等级"
+
+[node name="UpgradeShopButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 140.0
+offset_right = 180.0
+offset_bottom = 171.0
+text = "升级商店"
+
+[node name="ApplyDiscountButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 180.0
+offset_right = 180.0
+offset_bottom = 211.0
+text = "应用折扣"
+
+[node name="TriggerBlackMarketButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 220.0
+offset_right = 180.0
+offset_bottom = 251.0
+text = "触发黑市商人"
+
+[node name="TriggerMysteryShopButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 260.0
+offset_right = 180.0
+offset_bottom = 291.0
+text = "触发神秘商店"
+
+[node name="TriggerEquipmentShopButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 300.0
+offset_right = 180.0
+offset_bottom = 331.0
+text = "触发装备商店"
+
+[node name="AddRelicButton" type="Button" parent="TestPanel"]
+layout_mode = 2
+offset_left = 20.0
+offset_top = 340.0
+offset_right = 180.0
+offset_bottom = 371.0
+text = "添加随机遗物"
+
+[node name="ToggleTestPanelButton" type="Button" parent="TestPanel"]
 layout_mode = 1
 anchors_preset = 7
 anchor_left = 0.5
 anchor_top = 1.0
 anchor_right = 0.5
 anchor_bottom = 1.0
-offset_left = -50.0
-offset_top = -40.0
-offset_right = 50.0
-offset_bottom = -10.0
+offset_left = -100.0
+offset_top = -50.0
+offset_right = 100.0
+offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 0
-text = "增加金币"
+text = "隐藏测试面板"
 
-[node name="ButtonPanel" type="Panel" parent="."]
+[node name="TestDataPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 11
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -500.0
+offset_top = 0.0
+offset_right = -250.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_3")
+visible = false
+
+[node name="TitleLabel" type="Label" parent="TestDataPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 10.0
+offset_bottom = 36.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 18
+text = "测试数据面板"
+horizontal_alignment = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="TestDataPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="TestDataPanel/VBoxContainer"]
+layout_mode = 2
+text = "测试数据"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="TestDataPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="PlayerInfoContainer" type="VBoxContainer" parent="TestDataPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 60.0
+offset_bottom = 200.0
+grow_horizontal = 2
+
+[node name="PlayerLevelLabel" type="Label" parent="TestDataPanel/PlayerInfoContainer"]
+layout_mode = 2
+text = "玩家等级: 1"
+
+[node name="PlayerGoldLabel" type="Label" parent="TestDataPanel/PlayerInfoContainer"]
+layout_mode = 2
+text = "玩家金币: 100"
+
+[node name="PlayerHealthLabel" type="Label" parent="TestDataPanel/PlayerInfoContainer"]
+layout_mode = 2
+text = "玩家生命: 100/100"
+
+[node name="ShopInfoContainer" type="VBoxContainer" parent="TestDataPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 200.0
+offset_bottom = 300.0
+grow_horizontal = 2
+
+[node name="ShopDiscountLabel" type="Label" parent="TestDataPanel/ShopInfoContainer"]
+layout_mode = 2
+text = "商店折扣: 100%"
+
+[node name="ShopTypeLabel" type="Label" parent="TestDataPanel/ShopInfoContainer"]
+layout_mode = 2
+text = "商店类型: 普通商店"
+
+[node name="PurchasedItemsContainer" type="VBoxContainer" parent="TestDataPanel"]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -100.0
+offset_left = 10.0
+offset_top = -300.0
+offset_right = -10.0
+offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="ButtonPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 2
-alignment = 1
-
-[node name="RefreshButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+[node name="Label" type="Label" parent="TestDataPanel/PurchasedItemsContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "刷新商店"
+text = "已购买物品"
+horizontal_alignment = 1
 
-[node name="UpgradeTierButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="TestDataPanel/PurchasedItemsContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "提升商店等级"
 
-[node name="DiscountButton" type="Button" parent="ButtonPanel/HBoxContainer"]
+[node name="PurchasedItemsList" type="ItemList" parent="TestDataPanel/PurchasedItemsContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-text = "应用折扣"
-
-[node name="ResetButton" type="Button" parent="ButtonPanel/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "重置"
-
-[node name="BackButton" type="Button" parent="ButtonPanel/HBoxContainer"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "返回"
-
-[connection signal="pressed" from="PlayerInfo/AddGoldButton" to="." method="_on_add_gold_button_pressed"]
-[connection signal="pressed" from="ButtonPanel/HBoxContainer/RefreshButton" to="." method="_on_refresh_button_pressed"]
-[connection signal="pressed" from="ButtonPanel/HBoxContainer/UpgradeTierButton" to="." method="_on_upgrade_tier_button_pressed"]
-[connection signal="pressed" from="ButtonPanel/HBoxContainer/DiscountButton" to="." method="_on_discount_button_pressed"]
-[connection signal="pressed" from="ButtonPanel/HBoxContainer/ResetButton" to="." method="_on_reset_button_pressed"]
-[connection signal="pressed" from="ButtonPanel/HBoxContainer/BackButton" to="." method="_on_back_button_pressed"]
+size_flags_vertical = 3
+auto_height = true

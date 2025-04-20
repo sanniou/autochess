@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj9d"]
+[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgkad"]
 
-[ext_resource type="Script" path="res://scenes/test/resource_manager_test.gd" id="1_yjnwc"]
+[ext_resource type="Script" uid="uid://dulo1m758hytd" path="res://scenes/test/resource_manager_test.gd" id="1_yjnwc"]
 
 [node name="ResourceManagerTest" type="Control"]
 layout_mode = 3

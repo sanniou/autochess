@@ -22,10 +22,7 @@ func _ready():
 	$ActionButtons/RefreshButton.pressed.connect(_on_refresh_button_pressed)
 	$ActionButtons/BackButton.pressed.connect(_on_back_button_pressed)
 	
-	# 获取GameManager引用
-	var game_manager = get_node("/root/GameManager")
-	if game_manager:
-		manager_system = game_manager.manager_system
+	manager_system = GameManager.manager_system
 		
 	# 加载管理器列表
 	_load_manager_list()
@@ -37,11 +34,6 @@ func _ready():
 func _load_manager_list():
 	# 清空列表
 	manager_list.clear()
-	
-	# 如果管理器系统不可用，显示错误
-	if not manager_system:
-		manager_list.add_item("无法获取管理器系统")
-		return
 	
 	# 获取所有管理器名称
 	var manager_names = manager_system.get_all_manager_names()
@@ -62,16 +54,9 @@ func _clear_manager_info():
 
 # 显示管理器信息
 func _show_manager_info(manager_name: String):
-	# 如果管理器系统不可用，显示错误
-	if not manager_system:
-		manager_info.text = "无法获取管理器系统"
-		return
 	
 	# 获取管理器
 	var manager = manager_system.get_manager(manager_name)
-	if not manager:
-		manager_info.text = "无法获取管理器: " + manager_name
-		return
 	
 	# 构建信息文本
 	var info_text = "管理器: " + manager_name + "\n\n"
@@ -169,13 +154,9 @@ func _on_initialize_button_pressed():
 
 # 重置按钮处理
 func _on_reset_button_pressed():
-	if not selected_manager or not manager_system:
-		return
 	
 	# 获取管理器
 	var manager = manager_system.get_manager(selected_manager)
-	if not manager:
-		return
 	
 	# 重置管理器
 	var success = false
@@ -193,13 +174,9 @@ func _on_reset_button_pressed():
 
 # 清理按钮处理
 func _on_cleanup_button_pressed():
-	if not selected_manager or not manager_system:
-		return
 	
 	# 获取管理器
 	var manager = manager_system.get_manager(selected_manager)
-	if not manager:
-		return
 	
 	# 清理管理器
 	var success = false

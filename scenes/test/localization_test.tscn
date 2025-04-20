@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj8w"]
 
-[ext_resource type="Script" path="res://scenes/test/localization_test.gd" id="1_yjnvv"]
+[ext_resource type="Script" uid="uid://ck3pl2qe721c6" path="res://scenes/test/localization_test.gd" id="1_yjnvv"]
 
 [node name="LocalizationTest" type="Control"]
 layout_mode = 3

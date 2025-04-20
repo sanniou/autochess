@@ -39,11 +39,7 @@ var total_load_time = 0
 func _ready():
     # 获取资源管理器
     resource_manager = get_node_or_null("/root/ResourceManager")
-    if not resource_manager:
-        # 创建临时资源管理器
-        resource_manager = ResourceManager.new()
-        add_child(resource_manager)
-    
+
     # 连接按钮信号
     load_resources_button.pressed.connect(_on_load_resources_button_pressed)
     unload_resources_button.pressed.connect(_on_unload_resources_button_pressed)

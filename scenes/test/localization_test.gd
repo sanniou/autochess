@@ -27,7 +27,7 @@ var common_keys = [
 # 初始化
 func _ready():
     # 获取本地化管理器
-    localization_manager = get_node("/root/LocalizationManager")
+    localization_manager = LocalizationManager
 
     # 连接按钮信号
     translate_button.pressed.connect(_on_translate_button_pressed)

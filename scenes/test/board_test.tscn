@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7qk"]
 
-[ext_resource type="PackedScene" uid="uid://c8qvt5qjkuv7q" path="res://scenes/chess_board/chess_board.tscn" id="1_yvmqe"]
-[ext_resource type="Script" path="res://scenes/test/board_test.gd" id="2_n3m4p"]
+[ext_resource type="PackedScene"  path="res://scenes/test/ability_test.tscn" id="1_yvmqe"]
+[ext_resource type="Script"  path="res://scenes/test/board_test.gd" id="2_n3m4p"]
 
 [node name="BoardTest" type="Control"]
 layout_mode = 3

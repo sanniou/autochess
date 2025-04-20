@@ -20,8 +20,8 @@ var merge_selection: Array = []
 # 初始化
 func _ready():
 	# 获取管理器
-	chess_factory = get_node("/root/GameManager/ChessFactory")
-	synergy_manager = get_node("/root/GameManager/SynergyManager")
+	chess_factory = GameManager.chess_factory
+	synergy_manager = GameManager.synergy_manager
 
 	# 连接信号
 	EventBus.connect("chess_piece_upgraded", _on_chess_piece_upgraded)

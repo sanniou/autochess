@@ -162,32 +162,29 @@ func test_base_manager() -> void:
 func test_game_manager() -> void:
 	print("测试 GameManager...")
 	
-	# 获取 GameManager
-	var game_manager = get_node("/root/GameManager")
-	
 	# 测试获取管理器
-	var scene_manager = game_manager.get_manager("SceneManager")
+	var scene_manager = GameManager.get_manager("SceneManager")
 	test_results["game_manager_get_manager"] = scene_manager != null
 	
 	# 测试检查管理器是否存在
-	var has_manager = game_manager.has_manager("SceneManager")
+	var has_manager = GameManager.has_manager("SceneManager")
 	test_results["game_manager_has_manager"] = has_manager
 	
 	# 测试获取管理器注册表
-	var registry = game_manager.manager_registry
+	var registry = GameManager.manager_registry
 	test_results["game_manager_get_registry"] = registry != null
 	
 	# 测试获取游戏状态
-	var game_state = game_manager.current_state
+	var game_state = GameManager.current_state
 	test_results["game_manager_get_state"] = game_state != null
 	
 	# 测试暂停游戏
-	game_manager.pause_game()
-	test_results["game_manager_pause_game"] = game_manager.is_paused
+	GameManager.pause_game()
+	test_results["game_manager_pause_game"] = GameManager.is_paused
 	
 	# 测试恢复游戏
-	game_manager.resume_game()
-	test_results["game_manager_resume_game"] = not game_manager.is_paused
+	GameManager.resume_game()
+	test_results["game_manager_resume_game"] = not GameManager.is_paused
 
 # 输出测试结果
 func print_test_results() -> void:

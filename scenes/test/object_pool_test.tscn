@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj9c"]
+[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgkac"]
 
-[ext_resource type="Script" path="res://scenes/test/object_pool_test.gd" id="1_yjnwb"]
+[ext_resource type="Script" uid="uid://kmpqggjwu12r" path="res://scenes/test/object_pool_test.gd" id="1_yjnwb"]
 
 [node name="ObjectPoolTest" type="Control"]
 layout_mode = 3

@@ -2,200 +2,254 @@ extends Control
 ## 商店测试场景
 ## 用于测试商店系统的功能
 
-# 商店管理器
-var shop_manager: ShopManager
-
-# 配置管理器
-var config_manager: ConfigManager
-
-# 玩家金币
-var player_gold: int = 100
-
-# 商店等级
-var shop_tier: int = 1
-
-# 是否应用折扣
-var has_discount: bool = false
+# 当前玩家
+var current_player:Player = null
 
 # 初始化
 func _ready():
-	# 获取管理器
-	shop_manager = get_node("/root/GameManager/ShopManager")
-	config_manager = get_node("/root/GameManager/ConfigManager")
-	
-	# 连接信号
-	EventBus.connect("shop_item_purchased", _on_shop_item_purchased)
-	
-	# 刷新商店
-	_refresh_shop()
-	
-	# 更新玩家信息
-	_update_player_info()
+	# 初始化测试玩家
+	_initialize_test_player()
 
-# 刷新商店
-func _refresh_shop() -> void:
-	# 清空商店物品
-	for child in $ShopPanel/ItemsContainer.get_children():
-		child.queue_free()
-	
-	# 生成商店物品
-	var shop_items = shop_manager.generate_shop_items(shop_tier, has_discount)
-	
-	# 添加物品到商店
-	for item in shop_items:
-		var item_panel = _create_shop_item_panel(item)
-		$ShopPanel/ItemsContainer.add_child(item_panel)
+	# 加载商店场景
+	var shop_scene = load("res://scenes/shop/shop_scene.tscn").instantiate()
+	$ShopContainer.add_child(shop_scene)
 
-# 创建商店物品面板
-func _create_shop_item_panel(item: Dictionary) -> Control:
-	# 创建物品面板
-	var panel = Panel.new()
-	panel.custom_minimum_size = Vector2(280, 200)
-	
-	# 创建物品名称标签
-	var name_label = Label.new()
-	name_label.text = item.name
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.position = Vector2(10, 10)
-	name_label.size = Vector2(260, 30)
-	panel.add_child(name_label)
-	
-	# 创建物品类型标签
-	var type_label = Label.new()
-	type_label.text = "类型: " + item.type
-	type_label.position = Vector2(10, 50)
-	type_label.size = Vector2(260, 20)
-	panel.add_child(type_label)
-	
-	# 创建物品描述标签
-	var desc_label = Label.new()
-	desc_label.text = item.description
-	desc_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_label.position = Vector2(10, 80)
-	desc_label.size = Vector2(260, 60)
-	panel.add_child(desc_label)
-	
-	# 创建物品价格标签
-	var price_label = Label.new()
-	price_label.text = "价格: " + str(item.price) + " 金币"
-	price_label.position = Vector2(10, 150)
-	price_label.size = Vector2(260, 20)
-	panel.add_child(price_label)
-	
-	# 创建购买按钮
-	var buy_button = Button.new()
-	buy_button.text = "购买"
-	buy_button.position = Vector2(180, 150)
-	buy_button.size = Vector2(80, 30)
-	buy_button.pressed.connect(_on_buy_button_pressed.bind(item))
-	panel.add_child(buy_button)
-	
-	return panel
+	# 连接测试按钮信号
+	$TestPanel/AddGoldButton.pressed.connect(_on_add_gold_button_pressed)
+	$TestPanel/UpgradeLevelButton.pressed.connect(_on_upgrade_level_button_pressed)
+	$TestPanel/UpgradeShopButton.pressed.connect(_on_upgrade_shop_button_pressed)
+	$TestPanel/ApplyDiscountButton.pressed.connect(_on_apply_discount_button_pressed)
+	$TestPanel/TriggerBlackMarketButton.pressed.connect(_on_trigger_black_market_button_pressed)
+	$TestPanel/TriggerMysteryShopButton.pressed.connect(_on_trigger_mystery_shop_button_pressed)
+	$TestPanel/TriggerEquipmentShopButton.pressed.connect(_on_trigger_equipment_shop_button_pressed)
+	$TestPanel/AddRelicButton.pressed.connect(_on_add_relic_button_pressed)
+	$TestPanel/ToggleTestPanelButton.pressed.connect(_on_toggle_test_panel_button_pressed)
+	$TestPanel/CloseButton.pressed.connect(_on_close_button_pressed)
+	$ToggleButtonContainer/ToggleButton.pressed.connect(_on_toggle_button_pressed)
 
-# 更新玩家信息
-func _update_player_info() -> void:
-	$PlayerInfo/GoldLabel.text = "金币: " + str(player_gold)
+	# 默认隐藏测试面板
+	$TestPanel.visible = false
 
-# 购买按钮处理
-func _on_buy_button_pressed(item: Dictionary) -> void:
-	# 检查金币是否足够
-	if player_gold < item.price:
-		# 显示金币不足提示
-		var dialog = AcceptDialog.new()
-		dialog.title = "购买失败"
-		dialog.dialog_text = "金币不足!"
-		add_child(dialog)
-		dialog.popup_centered()
-		return
-	
-	# 扣除金币
-	player_gold -= item.price
-	
-	# 更新玩家信息
-	_update_player_info()
-	
-	# 发送购买信号
-	EventBus.economy.emit_event("shop_item_purchased", [item])
-	
-	# 显示购买成功提示
-	var dialog = AcceptDialog.new()
-	dialog.title = "购买成功"
-	dialog.dialog_text = "成功购买: " + item.name
-	add_child(dialog)
-	dialog.popup_centered()
+	# 更新测试数据显示
+	_update_test_data_display()
 
-# 商店物品购买事件处理
-func _on_shop_item_purchased(item: Dictionary) -> void:
-	# 根据物品类型处理
-	match item.type:
-		"equipment":
-			print("获得装备: ", item.id)
-		"chess_piece":
-			print("获得棋子: ", item.id)
-		"relic":
-			print("获得遗物: ", item.id)
-		"consumable":
-			print("获得消耗品: ", item.id)
-		_:
-			print("获得未知物品: ", item.id)
+	# 连接事件
+	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
+	EventBus.economy.connect_event("shop_refreshed", _on_shop_refreshed)
 
-# 增加金币按钮处理
+	# 设置快捷键
+	set_process_input(true)
+
+# 初始化测试玩家
+func _initialize_test_player() -> void:
+	# 创建测试玩家
+	GameManager.player_manager.initialize_player("ShopTest")
+	current_player = GameManager.player_manager.get_current_player()
+
+	# 设置初始金币和等级
+	if current_player:
+		current_player.gold = 100
+		current_player.level = 1
+		current_player.current_health = 100
+		current_player.max_health = 100
+
+# 更新测试数据显示
+func _update_test_data_display() -> void:
+	if current_player:
+		$TestDataPanel/PlayerInfoContainer/PlayerLevelLabel.text = "玩家等级: " + str(current_player.level)
+		$TestDataPanel/PlayerInfoContainer/PlayerGoldLabel.text = "玩家金币: " + str(current_player.gold)
+		$TestDataPanel/PlayerInfoContainer/PlayerHealthLabel.text = "玩家生命: " + str(current_player.current_health) + "/" + str(current_player.max_health)
+
+	var shop_params = GameManager.shop_manager.get_shop_params()
+	$TestDataPanel/ShopInfoContainer/ShopDiscountLabel.text = "商店折扣: " + str(int(shop_params.discount_rate * 100)) + "%"
+
+	var shop_type = "普通商店"
+	if shop_params.is_black_market:
+		shop_type = "黑市商人"
+	elif shop_params.is_mystery_shop:
+		shop_type = "神秘商店"
+	elif shop_params.is_equipment_shop:
+		shop_type = "装备商店"
+
+	$TestDataPanel/ShopInfoContainer/ShopTypeLabel.text = "商店类型: " + shop_type
+
+	# 更新已购买物品列表
+	_update_purchased_items_list()
+
+# 更新已购买物品列表
+func _update_purchased_items_list() -> void:
+	$TestDataPanel/PurchasedItemsContainer/PurchasedItemsList.clear()
+
+	if current_player:
+		# 添加棋子
+		for piece in current_player.chess_pieces:
+			$TestDataPanel/PurchasedItemsContainer/PurchasedItemsList.add_item("棋子: " + piece.id)
+
+		# 添加装备
+		for equipment in current_player.equipments:
+			$TestDataPanel/PurchasedItemsContainer/PurchasedItemsList.add_item("装备: " + equipment.id)
+
+		# 添加遗物
+		for relic in GameManager.relic_manager.get_player_relics():
+			$TestDataPanel/PurchasedItemsContainer/PurchasedItemsList.add_item("遗物: " + relic.id)
+
+# 输入处理
+func _input(event: InputEvent) -> void:
+	# 快捷键处理
+	if event is InputEventKey and event.pressed:
+		match event.keycode:
+			KEY_G:  # 增加金币
+				if event.shift_pressed:
+					_on_add_gold_button_pressed()
+			KEY_L:  # 提升等级
+				if event.shift_pressed:
+					_on_upgrade_level_button_pressed()
+			KEY_R:  # 刷新商店
+				if event.shift_pressed:
+					GameManager.shop_manager.refresh_shop(true)
+			KEY_T:  # 切换测试面板
+				if event.shift_pressed:
+					_toggle_panels()
+
+# 测试按钮处理
 func _on_add_gold_button_pressed() -> void:
-	# 增加金币
-	player_gold += 50
-	
-	# 更新玩家信息
-	_update_player_info()
+	if current_player:
+		current_player.add_gold(50)
+		_update_test_data_display()
 
-# 刷新商店按钮处理
-func _on_refresh_button_pressed() -> void:
-	# 刷新商店
-	_refresh_shop()
+func _on_upgrade_level_button_pressed() -> void:
+	if current_player:
+		current_player.add_exp(current_player.get_exp_required_for_next_level())
+		_update_test_data_display()
 
-# 提升商店等级按钮处理
-func _on_upgrade_tier_button_pressed() -> void:
-	# 提升商店等级
-	shop_tier = min(shop_tier + 1, 3)
-	
+func _on_upgrade_shop_button_pressed() -> void:
+	var shop_params = GameManager.shop_manager.get_shop_params()
+
+	# 修改商店参数
+	shop_params.max_chess_items = min(shop_params.max_chess_items + 1, 8)
+	shop_params.max_equipment_items = min(shop_params.max_equipment_items + 1, 6)
+
+	# 设置商店参数
+	GameManager.shop_manager.set_shop_params(shop_params)
+
 	# 刷新商店
-	_refresh_shop()
-	
+	GameManager.shop_manager.refresh_shop(true)
+
+	# 更新测试数据显示
+	_update_test_data_display()
+
 	# 显示提示
-	var dialog = AcceptDialog.new()
-	dialog.title = "商店升级"
-	dialog.dialog_text = "商店等级提升至: " + str(shop_tier)
-	add_child(dialog)
-	dialog.popup_centered()
+	EventBus.debug.emit_event("debug_message", ["商店升级成功", 0])
 
-# 应用折扣按钮处理
-func _on_discount_button_pressed() -> void:
+func _on_apply_discount_button_pressed() -> void:
+	var shop_params = GameManager.shop_manager.get_shop_params()
+
 	# 切换折扣状态
-	has_discount = !has_discount
-	
+	if shop_params.discount_rate == 1.0:
+		GameManager.shop_manager.apply_discount(0.8)
+	else:
+		GameManager.shop_manager.apply_discount(1.0)
+
 	# 刷新商店
-	_refresh_shop()
-	
+	GameManager.shop_manager.refresh_shop(true)
+
+	# 更新测试数据显示
+	_update_test_data_display()
+
 	# 显示提示
-	var dialog = AcceptDialog.new()
-	dialog.title = "折扣状态"
-	dialog.dialog_text = "折扣状态: " + ("已启用" if has_discount else "已禁用")
-	add_child(dialog)
-	dialog.popup_centered()
+	var discount_text = "折扣已" + ("启用" if shop_params.discount_rate != 1.0 else "禁用")
+	EventBus.debug.emit_event("debug_message", [discount_text, 0])
 
-# 重置按钮处理
-func _on_reset_button_pressed() -> void:
-	# 重置商店
-	shop_tier = 1
-	has_discount = false
-	player_gold = 100
-	
+func _on_trigger_black_market_button_pressed() -> void:
+	# 触发黑市商人
+	GameManager.shop_manager._trigger_black_market()
+
 	# 刷新商店
-	_refresh_shop()
-	
-	# 更新玩家信息
-	_update_player_info()
+	GameManager.shop_manager.refresh_shop(true)
 
-# 返回按钮处理
-func _on_back_button_pressed() -> void:
-	# 返回主菜单
-	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
+	# 更新测试数据显示
+	_update_test_data_display()
+
+	# 显示提示
+	EventBus.debug.emit_event("debug_message", ["黑市商人已触发", 0])
+
+func _on_trigger_mystery_shop_button_pressed() -> void:
+	# 触发神秘商店
+	GameManager.shop_manager._trigger_mystery_shop()
+
+	# 刷新商店
+	GameManager.shop_manager.refresh_shop(true)
+
+	# 更新测试数据显示
+	_update_test_data_display()
+
+	# 显示提示
+	EventBus.debug.emit_event("debug_message", ["神秘商店已触发", 0])
+
+func _on_trigger_equipment_shop_button_pressed() -> void:
+	# 触发装备商店
+	GameManager.shop_manager._trigger_equipment_shop()
+
+	# 刷新商店
+	GameManager.shop_manager.refresh_shop(true)
+
+	# 更新测试数据显示
+	_update_test_data_display()
+
+	# 显示提示
+	EventBus.debug.emit_event("debug_message", ["装备商店已触发", 0])
+
+func _on_add_relic_button_pressed() -> void:
+	# 获取随机遗物
+	var relic_id = GameManager.relic_manager.get_random_relic()
+
+	if relic_id != "":
+		# 获取遗物
+		var relic = GameManager.relic_manager.acquire_relic(relic_id, current_player)
+
+		if relic:
+			# 更新测试数据显示
+			_update_test_data_display()
+
+			# 显示提示
+			EventBus.debug.emit_event("debug_message", ["已添加遗物: " + relic.display_name, 0])
+	else:
+		# 显示提示
+		EventBus.debug.emit_event("debug_message", ["没有可用的遗物", 1])
+
+func _on_toggle_test_panel_button_pressed() -> void:
+	# 切换测试面板显示状态
+	_toggle_panels()
+
+# 切换测试面板和数据面板的显示状态
+func _toggle_panels() -> void:
+	# 切换测试面板显示状态
+	var show_panels = !$TestPanel.visible
+	$TestPanel.visible = show_panels
+	$TestDataPanel.visible = show_panels
+
+	# 更新按钮文本
+	if show_panels:
+		$TestPanel/ToggleTestPanelButton.text = "隐藏测试面板"
+	else:
+		$TestPanel/ToggleTestPanelButton.text = "显示测试面板"
+
+# 关闭按钮点击事件
+func _on_close_button_pressed() -> void:
+	# 隐藏测试面板
+	$TestPanel.visible = false
+	$TestDataPanel.visible = false
+
+# 切换按钮点击事件
+func _on_toggle_button_pressed() -> void:
+	# 切换测试面板显示状态
+	_toggle_panels()
+
+# 事件处理
+func _on_item_purchased(item_data: Dictionary) -> void:
+	# 更新测试数据显示
+	_update_test_data_display()
+
+func _on_shop_refreshed() -> void:
+	# 更新测试数据显示
+	_update_test_data_display()

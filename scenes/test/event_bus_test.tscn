@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj8u"]
 
-[ext_resource type="Script" path="res://scenes/test/event_bus_test.gd" id="1_yjnvt"]
+[ext_resource type="Script" uid="uid://dyofgbr37n0v7" path="res://scenes/test/event_bus_test.gd" id="1_yjnvt"]
 
 [node name="EventBusTest" type="Control"]
 layout_mode = 3

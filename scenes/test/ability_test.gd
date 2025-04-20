@@ -49,13 +49,9 @@ func _initialize_test_area() -> void:
 
 ## 加载棋子类型
 func _load_piece_types() -> void:
-	# 获取配置管理器
-	var config_manager = get_node("/root/ConfigManager")
-	if not config_manager:
-		return
 
 	# 加载所有棋子配置
-	var chess_configs = config_manager.get_all_chess_pieces()
+	var chess_configs = ConfigManager.get_all_chess_pieces()
 
 	# 添加到选项菜单
 	for chess_id in chess_configs:
@@ -67,18 +63,9 @@ func _load_piece_types() -> void:
 
 ## 创建棋子
 func _create_piece(piece_id: String, position: Vector2i) -> void:
-	# 获取游戏管理器
-	var game_manager = get_node("/root/GameManager")
-	if not game_manager:
-		return
-
-	# 获取棋子工厂
-	var chess_factory = game_manager.chess_factory
-	if not chess_factory:
-		return
 
 	# 创建棋子
-	var piece = chess_factory.create_chess_piece(piece_id)
+	var piece = GameManager.chess_factory.create_chess_piece(piece_id)
 	if not piece:
 		return
 

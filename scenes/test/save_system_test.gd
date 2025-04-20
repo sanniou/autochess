@@ -19,7 +19,7 @@ var selected_slot = ""
 # 初始化
 func _ready():
     # 获取存档管理器
-    save_manager = get_node("/root/SaveManager")
+    save_manager = SaveManager
     
     # 连接按钮信号
     save_button.pressed.connect(_on_save_button_pressed)

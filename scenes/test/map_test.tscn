@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1yvqnbx"]
+[gd_scene load_steps=2 format=3 uid="uid://c28yvxr1yvqnbx"]
 
-[ext_resource type="Script" path="res://scenes/test/map_test.gd" id="1_yvnbx"]
+[ext_resource type="Script" uid="uid://bt5wkhavygknx" path="res://scenes/test/map_test.gd" id="1_yvnbx"]
 
 [node name="MapTest" type="Control"]
 layout_mode = 3

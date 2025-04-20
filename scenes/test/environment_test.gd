@@ -25,7 +25,7 @@ var effect_settings = {
 # 初始化
 func _ready():
 	# 获取环境特效管理器
-	environment_effect_manager = get_node("/root/GameManager/EnvironmentEffectManager")
+	environment_effect_manager = GameManager.environment_effect_manager
 	
 	# 连接信号
 	environment_effect_manager.environment_effect_started.connect(_on_environment_effect_started)

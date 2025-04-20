@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgj8v"]
 
-[ext_resource type="Script" path="res://scenes/test/save_system_test.gd" id="1_yjnvu"]
+[ext_resource type="Script" uid="uid://b0fnlwuvr6jtf" path="res://scenes/test/save_system_test.gd" id="1_yjnvu"]
 
 [node name="SaveSystemTest" type="Control"]
 layout_mode = 3

@@ -2,20 +2,11 @@ extends Control
 ## 事件测试场景
 ## 用于测试各种事件的效果
 
-# 事件管理器
-var event_manager: EventManager
-
-# 配置管理器
-var config_manager: ConfigManager
-
 # 选中的事件
 var selected_event: Event = null
 
 # 初始化
 func _ready():
-	# 获取管理器
-	event_manager = get_node("/root/GameManager/EventManager")
-	config_manager = get_node("/root/GameManager/ConfigManager")
 	
 	# 连接信号
 	EventBus.connect("event_option_selected", _on_event_option_selected)
@@ -37,7 +28,7 @@ func _load_event_list() -> void:
 			child.queue_free()
 	
 	# 获取所有事件配置
-	var event_configs = event_manager.get_all_event_configs()
+	var event_configs = ConfigManager.get_all_events()
 	
 	# 添加事件到列表
 	for id in event_configs:
@@ -48,20 +39,20 @@ func _load_event_list() -> void:
 		container.add_child(item)
 
 # 创建事件项
-func _create_event_item(id: String, config: Dictionary) -> Control:
+func _create_event_item(id: String, config: EventConfig) -> Control:
 	# 创建容器
 	var item = HBoxContainer.new()
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	
 	# 创建事件名称标签
 	var name_label = Label.new()
-	name_label.text = config.title
+	name_label.text = config.get_title()
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	item.add_child(name_label)
 	
 	# 创建事件类型标签
 	var type_label = Label.new()
-	type_label.text = config.type
+	type_label.text = config.get_event_type()
 	type_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	item.add_child(type_label)
 	
@@ -88,7 +79,7 @@ func _clear_event_display() -> void:
 # 事件选择处理
 func _on_event_selected(id: String) -> void:
 	# 创建事件
-	selected_event = event_manager.create_event(id)
+	selected_event = GameManager.event_manager._create_event(id)
 	
 	# 显示事件
 	_display_event(selected_event)
@@ -205,7 +196,7 @@ func _on_test_event_button_pressed() -> void:
 # 随机事件按钮处理
 func _on_random_event_button_pressed() -> void:
 	# 创建随机事件
-	var random_event = event_manager.create_random_event()
+	var random_event = GameManager.event_manager.create_random_event()
 	
 	# 设置选中事件
 	selected_event = random_event

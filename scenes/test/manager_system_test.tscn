@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8q6y8j7r7n0x"]
 
-[ext_resource type="Script" path="res://scenes/test/manager_system_test.gd" id="1_2y3vx"]
+[ext_resource type="Script" uid="uid://bydhq3a1ywccm" path="res://scenes/test/manager_system_test.gd" id="1_2y3vx"]
 
 [node name="ManagerSystemTest" type="Control"]
 layout_mode = 3
