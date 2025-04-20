@@ -43,12 +43,8 @@ func initialize() -> void:
 
 	# 尝试获取单例
 	localization_manager = get_node_or_null("/root/LocalizationManager")
-	if not localization_manager:
-		EventBus.debug.emit_event("debug_message", ["无法获取LocalizationManager单例", 1])
 
 	font_manager = get_node_or_null("/root/FontManager")
-	if not font_manager:
-		EventBus.debug.emit_event("debug_message", ["无法获取FontManager单例", 1])
 
 	_initialized = true
 	EventBus.debug.emit_event("debug_message", ["Utils 初始化完成", 0])

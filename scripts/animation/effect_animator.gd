@@ -36,10 +36,6 @@ var effect_queue = []
 # 是否正在播放
 var is_playing = false
 
-# 引用
-@onready var resource_manager = get_node("/root/ResourceManager")
-@onready var object_pool = get_node("/root/ObjectPool")
-
 # 对象池名称
 const PARTICLE_POOL_NAME = "effect_particles"
 const SPRITE_POOL_NAME = "effect_sprites"
@@ -57,29 +53,25 @@ func _init(container) -> void:
 # 准备完成
 func _ready() -> void:
 	# 初始化对象池
-	_initialize_object_pools()
+	_initialize_ObjectPools()
 
 ## 初始化对象池
-func _initialize_object_pools() -> void:
-	# 检查对象池是否可用
-	if not object_pool:
-		push_error("无法获取对象池引用")
-		return
+func _initialize_ObjectPools() -> void:
 
 	# 创建粒子特效池
 	var particle_scene = load("res://scenes/effects/particle_effect.tscn")
 	if particle_scene:
-		object_pool.create_pool(PARTICLE_POOL_NAME, particle_scene, 20, 10, MAX_PARTICLE_EFFECTS)
+		ObjectPool.create_pool(PARTICLE_POOL_NAME, particle_scene, 20, 10, MAX_PARTICLE_EFFECTS)
 
 	# 创建精灵特效池
 	var sprite_scene = load("res://scenes/effects/sprite_effect.tscn")
 	if sprite_scene:
-		object_pool.create_pool(SPRITE_POOL_NAME, sprite_scene, 20, 10, MAX_SPRITE_EFFECTS)
+		ObjectPool.create_pool(SPRITE_POOL_NAME, sprite_scene, 20, 10, MAX_SPRITE_EFFECTS)
 
 	# 创建容器特效池
 	var container_scene = load("res://scenes/effects/effect_container.tscn")
 	if container_scene:
-		object_pool.create_pool(CONTAINER_POOL_NAME, container_scene, 10, 5, MAX_CONTAINER_EFFECTS)
+		ObjectPool.create_pool(CONTAINER_POOL_NAME, container_scene, 10, 5, MAX_CONTAINER_EFFECTS)
 
 # 播放粒子特效
 func play_particle_effect(position: Vector2, effect_name: String, duration: float, params: Dictionary = {}) -> String:
@@ -112,8 +104,7 @@ func play_particle_effect(position: Vector2, effect_name: String, duration: floa
 
 	# 从对象池获取粒子特效
 	var particles = null
-	if object_pool:
-		particles = object_pool.get_object(PARTICLE_POOL_NAME)
+	particles = ObjectPool.get_object(PARTICLE_POOL_NAME)
 
 	# 如果对象池无法提供实例，则创建新实例
 	if not particles:
@@ -138,14 +129,9 @@ func play_particle_effect(position: Vector2, effect_name: String, duration: floa
 	if params.texture:
 		if typeof(params.texture) == TYPE_STRING:
 			# 使用资源管理器加载纹理，避免重复加载
-			if resource_manager:
-				var texture = resource_manager.get_texture(params.texture)
-				if texture:
-					particles.texture = texture
-			else:
-					var texture = load(params.texture)
-					if texture:
-						particles.texture = texture
+			var texture = ResourceManager.get_texture(params.texture)
+			if texture:
+				particles.texture = texture
 		else:
 			particles.texture = params.texture
 
@@ -161,7 +147,7 @@ func play_particle_effect(position: Vector2, effect_name: String, duration: floa
 		"start_time": Time.get_ticks_msec(),
 		"state": AnimationState.PLAYING,
 		"auto_remove": params.auto_remove,
-		"from_pool": particles != null and object_pool != null
+		"from_pool": particles != null and ObjectPool != null
 	}
 
 	# 添加到活动特效
@@ -661,8 +647,8 @@ func _cleanup_effect(effect_id: String) -> void:
 				effect_data.node.scale = Vector2.ONE
 
 				# 如果来自对象池，则返回到池
-				if effect_data.has("from_pool") and effect_data.from_pool and object_pool:
-					object_pool.release_object(PARTICLE_POOL_NAME, effect_data.node)
+				if effect_data.has("from_pool") and effect_data.from_pool and ObjectPool:
+					ObjectPool.release_object(PARTICLE_POOL_NAME, effect_data.node)
 				else:
 					# 否则销毁节点
 					effect_data.node.queue_free()
@@ -679,8 +665,8 @@ func _cleanup_effect(effect_id: String) -> void:
 				effect_data.node.rotation = 0
 
 				# 如果来自对象池，则返回到池
-				if effect_data.has("from_pool") and effect_data.from_pool and object_pool:
-					object_pool.release_object(SPRITE_POOL_NAME, effect_data.node)
+				if effect_data.has("from_pool") and effect_data.from_pool and ObjectPool:
+					ObjectPool.release_object(SPRITE_POOL_NAME, effect_data.node)
 				else:
 					# 否则销毁节点
 					effect_data.node.queue_free()
@@ -698,8 +684,8 @@ func _cleanup_effect(effect_id: String) -> void:
 					effect_data.node.get_parent().remove_child(effect_data.node)
 
 				# 如果来自对象池，则返回到池
-				if effect_data.has("from_pool") and effect_data.from_pool and object_pool:
-					object_pool.release_object(CONTAINER_POOL_NAME, effect_data.node)
+				if effect_data.has("from_pool") and effect_data.from_pool and ObjectPool:
+					ObjectPool.release_object(CONTAINER_POOL_NAME, effect_data.node)
 				else:
 					# 否则销毁节点
 					effect_data.node.queue_free()

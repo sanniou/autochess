@@ -110,9 +110,7 @@ func play_attack_animation(attacker, target, params: Dictionary = {}) -> String:
 
 	# 播放攻击音效
 	if params.sound_name != "":
-		if has_node("/root/AudioManager"):
-			var audio_manager = get_node("/root/AudioManager")
-			audio_manager.play_sfx(params.sound_name)
+		AudioManager.play_sfx(params.sound_name)
 
 	# 发送动画开始信号
 	animation_started.emit(animation_id)
@@ -477,9 +475,7 @@ func play_damage_animation(target, damage_amount: float, damage_type: String, pa
 
 	# 播放受伤音效
 	if params.sound_name != "":
-		if has_node("/root/AudioManager"):
-			var audio_manager = get_node("/root/AudioManager")
-			audio_manager.play_sfx(params.sound_name)
+		AudioManager.play_sfx(params.sound_name)
 
 	# 动画完成时回调
 	tween.tween_callback(func():
@@ -594,9 +590,7 @@ func play_death_animation(target, params: Dictionary = {}) -> String:
 
 	# 播放死亡音效
 	if params.sound_name != "":
-		if has_node("/root/AudioManager"):
-			var audio_manager = get_node("/root/AudioManager")
-			audio_manager.play_sfx(params.sound_name)
+		AudioManager.play_sfx(params.sound_name)
 
 	# 动画完成时回调
 	tween.tween_callback(func():
@@ -761,9 +755,7 @@ func play_movement_animation(piece, start_pos: Vector2, end_pos: Vector2, params
 
 	# 播放移动音效
 	if params.sound_name != "":
-		if has_node("/root/AudioManager"):
-			var audio_manager = get_node("/root/AudioManager")
-			audio_manager.play_sfx(params.sound_name)
+		AudioManager.play_sfx(params.sound_name)
 
 	# 动画完成时回调
 	tween.tween_callback(func():
@@ -773,7 +765,7 @@ func play_movement_animation(piece, start_pos: Vector2, end_pos: Vector2, params
 
 		# 完成动画
 		_on_animation_completed(animation_data.id)
-	).set_delay(params.bounce ? 0.3 : 0.0)
+	).set_delay(0.3 if params.bounce else 0.0)
 
 	# 发送动画开始信号
 	animation_started.emit(animation_id)
@@ -928,9 +920,7 @@ func play_effect_animation(position: Vector2, effect_name: String, params: Dicti
 
 	# 播放特效音效
 	if params.sound_name != "":
-		if has_node("/root/AudioManager"):
-			var audio_manager = get_node("/root/AudioManager")
-			audio_manager.play_sfx(params.sound_name)
+		AudioManager.play_sfx(params.sound_name)
 
 	# 创建定时器完成动画
 	var timer = get_tree().create_timer(params.duration)
