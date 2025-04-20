@@ -7,6 +7,7 @@ class_name ChessManager
 signal chess_created(chess_piece)
 signal chess_released(chess_piece)
 signal chess_merged(pieces, upgraded_piece)
+signal chess_config_loaded(config_id)
 
 # 棋子实例缓存 {棋子ID: 棋子实例}
 var _chess_cache: Dictionary = {}
@@ -15,49 +16,56 @@ var _chess_cache: Dictionary = {}
 var _shop_inventory: Array = []
 
 # 棋子场景路径
-const CHESS_PIECE_SCENE = "res://scenes/chess/chess_piece.tscn"
+const CHESS_PIECE_ENTITY_SCENE = "res://scenes/game/chess/chess_piece_entity.tscn"
 
-# 棋子类型映射
-var _chess_piece_types = {}
+# 棋子配置缓存
+var _chess_configs: Dictionary = {}
 
-# 对象池
-var _chess_pool = null
+# 棋子工厂
+var chess_factory: ChessPieceFactory = null
 
-# 初始化
-func _ready() -> void:
+# 重写初始化方法
+func _do_initialize() -> void:
+	# 设置管理器名称
+	manager_name = "ChessManager"
+
+	# 添加依赖
+	add_dependency("ConfigManager")
+
 	# 连接事件
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
-			EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
+	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
 
-	# 注册棋子类型
-	_register_chess_types()
+	# 创建棋子工厂
+	chess_factory = ChessPieceFactory.new()
+	add_child(chess_factory)
 
-	# 初始化对象池
-	_initialize_pool()
+	# 加载棋子配置
+	_load_chess_configs()
 
-## 注册棋子类型
-func _register_chess_types() -> void:
-	# 从配置中加载棋子类型
+	# 预热对象池
+	chess_factory.warm_pool(10)
+
+	_log_info("棋子管理器初始化完成")
+
+## 加载棋子配置
+func _load_chess_configs() -> void:
+	# 从配置管理器获取棋子配置
 	var chess_configs = ConfigManager.get_all_chess_pieces()
 
+	# 清空现有配置
+	_chess_configs.clear()
+
+	# 加载所有棋子配置
 	for chess_id in chess_configs:
 		var chess_model = chess_configs[chess_id] as ChessPieceConfig
-		_chess_piece_types[chess_id] = chess_model.get_data()
+		_chess_configs[chess_id] = chess_model.get_data()
 
-## 初始化对象池
-func _initialize_pool() -> void:
-	# 获取对象池引用
-	_chess_pool = ObjectPool
-
-	# 创建棋子对象池
-	var chess_scene = load(CHESS_PIECE_SCENE)
-	_chess_pool.create_pool("chess_pieces", chess_scene, 10, 5, 50)
+		# 发送配置加载信号
+		chess_config_loaded.emit(chess_id)
 
 # 获取棋子实例
-func get_chess(chess_id: String) -> ChessPiece:
+func get_chess(chess_id: String) -> ChessPieceEntity:
 	# 先从缓存查找
 	if _chess_cache.has(chess_id):
 		return _chess_cache[chess_id]
@@ -71,69 +79,78 @@ func get_chess(chess_id: String) -> ChessPiece:
 	return chess_piece
 
 ## 创建棋子
-func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: bool = true) -> ChessPiece:
-	# 检查棋子类型是否存在
-	if not _chess_piece_types.has(chess_id):
-		_log_warning("未知的棋子类型: " + chess_id)
+func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: bool = true) -> ChessPieceEntity:
+	# 检查棋子配置是否存在
+	if not _chess_configs.has(chess_id):
+		_log_warning("未知的棋子配置: " + chess_id)
 		return null
 
 	# 获取棋子数据
-	var chess_data = _chess_piece_types[chess_id].duplicate()
+	var chess_data = _chess_configs[chess_id].duplicate()
 
 	# 设置星级和所属
-	chess_data["star_level"] = star_level
+	chess_data["level"] = star_level
 	chess_data["is_player_piece"] = is_player_piece
 
-	# 从对象池获取棋子实例
-	var chess_piece = null
-	if _chess_pool:
-		chess_piece = _chess_pool.get_object("chess_pieces")
+	# 使用棋子工厂创建棋子
+	var chess_piece = chess_factory.create_from_config(chess_id, is_player_piece)
 
-	# 如果对象池无法提供实例，直接实例化
-	if not chess_piece:
-		var chess_scene = load(CHESS_PIECE_SCENE)
-		if chess_scene:
-			chess_piece = chess_scene.instantiate()
-		else:
-			_log_warning("无法加载棋子场景: " + CHESS_PIECE_SCENE)
-			return null
+	# 设置棋子等级
+	if chess_piece:
+		chess_piece.set_level(star_level)
 
-	# 初始化棋子
-	chess_piece.initialize(chess_data)
-
-	# 发送创建信号
-	chess_created.emit(chess_piece)
+		# 发送创建信号
+		chess_created.emit(chess_piece)
 
 	return chess_piece
 
 # 释放棋子实例
-func release_chess(chess_piece: ChessPiece) -> void:
+func release_chess(chess_piece: ChessPieceEntity) -> void:
 	if chess_piece:
+		# 获取棋子ID
 		var chess_id = chess_piece.id
-		if _chess_cache.has(chess_id):
+
+		# 从缓存中移除
+		if not chess_id.is_empty() and _chess_cache.has(chess_id):
 			_chess_cache.erase(chess_id)
 
+		# 释放棋子
 		release_chess_piece(chess_piece)
+
+		# 发送释放信号
 		chess_released.emit(chess_piece)
 
-## 释放棋子回对象池
-func release_chess_piece(chess_piece: ChessPiece) -> void:
-	if _chess_pool and chess_piece:
-		_chess_pool.release_object("chess_pieces", chess_piece)
+## 释放棋子
+func release_chess_piece(chess_piece: ChessPieceEntity) -> void:
+	if not chess_piece:
+		return
+
+	# 使用棋子工厂回收棋子
+	chess_factory.recycle_chess_piece(chess_piece)
 
 ## 合并棋子升级
-func merge_chess_pieces(pieces: Array) -> ChessPiece:
+func merge_chess_pieces(pieces: Array) -> ChessPieceEntity:
 	if pieces.size() < 3:
 		_log_warning("合并棋子需要至少3个相同棋子")
 		return null
 
 	# 检查棋子是否相同
-	var first_piece = pieces[0]
-	var chess_id = first_piece.get_id()
-	var star_level = first_piece.get_property("star_level")
+	var first_piece = pieces[0] as ChessPieceEntity
+	if not first_piece:
+		_log_warning("无法识别的棋子类型")
+		return null
 
+	var chess_id = first_piece.id
+	var star_level = first_piece.get_level()
+	var is_player = first_piece.is_player_piece
+
+	# 检查所有棋子是否相同
 	for piece in pieces:
-		if piece.get_id() != chess_id or piece.get_property("star_level") != star_level:
+		var chess_piece = piece as ChessPieceEntity
+		if not chess_piece:
+			continue
+
+		if chess_piece.id != chess_id or chess_piece.get_level() != star_level:
 			_log_warning("合并棋子必须是相同类型和星级")
 			return null
 
@@ -146,14 +163,14 @@ func merge_chess_pieces(pieces: Array) -> ChessPiece:
 	var position = first_piece.global_position
 
 	# 创建升级后的棋子
-	var upgraded_piece = create_chess_piece(chess_id, star_level + 1, first_piece.get_property("is_player_piece"))
+	var upgraded_piece = create_chess_piece(chess_id, star_level + 1, is_player)
 
 	# 设置升级后棋子的位置
 	upgraded_piece.global_position = position
 
 	# 释放原棋子
 	for piece in pieces:
-		release_chess(piece)
+		release_chess(piece as ChessPieceEntity)
 
 	# 发送合并完成信号
 	chess_merged.emit(pieces, upgraded_piece)
@@ -255,20 +272,65 @@ func _on_game_state_changed(_old_state: int, new_state: int) -> void:
 func _log_warning(warning_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
+# 重写重置方法
+func _do_reset() -> void:
+	# 清空缓存
+	_chess_cache.clear()
+	_shop_inventory.clear()
+	_chess_configs.clear()
+
+	# 重新加载棋子配置
+	_load_chess_configs()
+
+	# 重置棋子工厂
+	if chess_factory:
+		chess_factory.clear_pool()
+		chess_factory.warm_pool(10)
+
+	_log_info("棋子管理器重置完成")
+
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 清理棋子缓存
 	for chess_id in _chess_cache:
 		var chess_piece = _chess_cache[chess_id]
 		if chess_piece:
-			GameManager.chess_factory.release_chess_piece(chess_piece)
+			release_chess_piece(chess_piece)
 
 	_chess_cache.clear()
 	_shop_inventory.clear()
 
+	# 清理棋子工厂
+	if chess_factory:
+		chess_factory.clear_pool()
+		chess_factory.queue_free()
+		chess_factory = null
+
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
-			EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+	EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
+	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+
+	_log_info("棋子管理器清理完成")
+
+# 获取棋子配置
+func get_chess_config(chess_id: String) -> Dictionary:
+	if _chess_configs.has(chess_id):
+		return _chess_configs[chess_id].duplicate()
+	return {}
+
+# 获取所有棋子配置
+func get_all_chess_configs() -> Dictionary:
+	return _chess_configs.duplicate()
+
+# 获取指定等级的棋子配置
+func get_chess_configs_by_tier(tier: int) -> Array:
+	var result = []
+
+	for chess_id in _chess_configs:
+		var config = _chess_configs[chess_id]
+		if config.get("tier", 1) == tier:
+			result.append(chess_id)
+
+	return result
+
+

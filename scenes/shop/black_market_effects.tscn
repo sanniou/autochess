@@ -1,0 +1,69 @@
+[gd_scene load_steps=6 format=3 uid="uid://c8qj2y6yvx3yjb3"]
+
+[ext_resource type="Script" path="res://scenes/shop/black_market_effects.gd" id="1_yjnqm"]
+
+[sub_resource type="Gradient" id="Gradient_1"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(0, 0, 0, 0, 0.5, 0.2, 0, 0.2, 0, 0, 0, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_1"]
+gradient = SubResource("Gradient_1")
+width = 256
+height = 256
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(1, 0.5)
+
+[sub_resource type="Curve" id="Curve_1"]
+_data = [Vector2(0, 0), 0.0, 1.0, 0, 1, Vector2(0.5, 0.5), 0.0, 0.0, 0, 0, Vector2(1, 0), -1.0, 0.0, 1, 0]
+point_count = 3
+
+[sub_resource type="Gradient" id="Gradient_2"]
+offsets = PackedFloat32Array(0, 0.5, 1)
+colors = PackedColorArray(1, 0.5, 0, 0, 1, 0.5, 0, 0.7, 1, 0.5, 0, 0)
+
+[node name="BlackMarketEffects" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_yjnqm")
+
+[node name="BackgroundOverlay" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_1")
+
+[node name="SmokeParticles" type="CPUParticles2D" parent="."]
+position = Vector2(640, 600)
+amount = 20
+lifetime = 3.0
+preprocess = 2.0
+speed_scale = 0.5
+randomness = 0.2
+lifetime_randomness = 0.2
+emission_shape = 3
+emission_rect_extents = Vector2(640, 10)
+direction = Vector2(0, -1)
+spread = 20.0
+gravity = Vector2(0, -20)
+initial_velocity_min = 30.0
+initial_velocity_max = 50.0
+scale_amount_min = 50.0
+scale_amount_max = 100.0
+scale_amount_curve = SubResource("Curve_1")
+color_ramp = SubResource("Gradient_2")
+
+[node name="FlickerTimer" type="Timer" parent="."]
+wait_time = 0.1
+autostart = true
+
+[connection signal="timeout" from="FlickerTimer" to="." method="_on_flicker_timer_timeout"]

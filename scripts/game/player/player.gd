@@ -238,7 +238,7 @@ func on_battle_loss(damage: int) -> void:
 		add_gold(5)  # 破产补助
 
 # 添加棋子
-func add_chess_piece(piece: ChessPiece) -> bool:
+func add_chess_piece(piece: ChessPieceEntity) -> bool:
 	# 检查是否已达到人口上限
 	if get_current_population() >= get_population_limit() and bench_pieces.size() >= 9:
 		return false
@@ -252,7 +252,7 @@ func add_chess_piece(piece: ChessPiece) -> bool:
 	return true
 
 # 移除棋子
-func remove_chess_piece(piece: ChessPiece) -> bool:
+func remove_chess_piece(piece: ChessPieceEntity) -> bool:
 	if chess_pieces.has(piece):
 		chess_pieces.erase(piece)
 		return true
@@ -264,7 +264,7 @@ func remove_chess_piece(piece: ChessPiece) -> bool:
 	return false
 
 # 出售棋子
-func sell_chess_piece(piece: ChessPiece) -> bool:
+func sell_chess_piece(piece: ChessPieceEntity) -> bool:
 	if remove_chess_piece(piece):
 		# 返还金币
 		add_gold(piece.cost * piece.star_level)
@@ -442,7 +442,18 @@ func load_from_save_data(data: Dictionary) -> void:
 					var piece = _find_chess_piece_by_id(equip_data.equipped_to)
 					if piece:
 						# 装备到棋子上
-						piece.equip_item(equipment)
+						# 根据装备类型选择槽位
+						var slot = 0  # 默认使用武器槽
+						if equipment.has("type"):
+							match equipment.type:
+								"weapon":
+									slot = 0  # EquipmentComponent.EquipmentSlot.WEAPON
+								"armor":
+									slot = 1  # EquipmentComponent.EquipmentSlot.ARMOR
+								"accessory":
+									slot = 2  # EquipmentComponent.EquipmentSlot.ACCESSORY
+
+						piece.equip_item(equipment, slot)
 
 	# 加载遗物数据
 	if data.has("relics") and relic_manager:
@@ -454,7 +465,7 @@ func load_from_save_data(data: Dictionary) -> void:
 				relics.append(relic)
 
 # 根据ID查找棋子
-func _find_chess_piece_by_id(piece_id: String) -> ChessPiece:
+func _find_chess_piece_by_id(piece_id: String) -> ChessPieceEntity:
 	# 在场上棋子中查找
 	for piece in chess_pieces:
 		if piece.id == piece_id:

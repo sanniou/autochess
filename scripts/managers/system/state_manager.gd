@@ -451,3 +451,64 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置状态
+	reset_state()
+
+	_log_info("状态管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	_disconnect_event_bus()
+
+	# 清理状态存储
+	if state_store:
+		state_store.queue_free()
+		state_store = null
+
+	_log_info("状态管理器清理完成")
+
+# 断开事件总线
+func _disconnect_event_bus() -> void:
+	# 断开游戏事件
+	EventBus.game.disconnect_event("game_started", _on_game_started)
+	EventBus.game.disconnect_event("game_ended", _on_game_ended)
+	EventBus.game.disconnect_event("game_paused", _on_game_paused)
+	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+
+	# 断开玩家事件
+	EventBus.game.disconnect_event("player_health_changed", _on_player_health_changed)
+	EventBus.game.disconnect_event("player_level_changed", _on_player_level_changed)
+	EventBus.game.disconnect_event("player_died", _on_player_died)
+
+	# 断开棋盘事件
+	EventBus.board.disconnect_event("board_initialized", _on_board_initialized)
+	EventBus.board.disconnect_event("piece_placed", _on_piece_placed)
+	EventBus.board.disconnect_event("piece_removed", _on_piece_removed)
+	EventBus.board.disconnect_event("piece_moved", _on_piece_moved)
+	EventBus.board.disconnect_event("board_locked", _on_board_locked)
+
+	# 断开战斗事件
+	EventBus.battle.disconnect_event("battle_started", _on_battle_started)
+	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+
+	# 断开经济事件
+	EventBus.economy.disconnect_event("gold_changed", _on_gold_changed)
+
+	# 断开地图事件
+	EventBus.map.disconnect_event("map_generated", _on_map_generated)
+	EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+
+	# 断开UI事件
+	EventBus.ui.disconnect_event("ui_screen_changed", _on_ui_screen_changed)
+	EventBus.ui.disconnect_event("show_notification", _on_show_notification)
+
+	# 断开设置事件
+	EventBus.ui.disconnect_event("language_changed", _on_language_changed)
+
+	# 断开成就事件
+	EventBus.achievement.disconnect_event("achievement_unlocked", _on_achievement_unlocked)
+	EventBus.achievement.disconnect_event("achievement_progress_updated", _on_achievement_progress_updated)

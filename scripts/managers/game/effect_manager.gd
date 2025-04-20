@@ -22,19 +22,19 @@ enum VisualEffectType {
 
 # 特效场景路径
 var effect_scenes = {
-	VisualEffectType.TELEPORT_DISAPPEAR: "res://scripts/game/effects/visuals/teleport_effect.tscn",
-	VisualEffectType.TELEPORT_APPEAR: "res://scripts/game/effects/visuals/teleport_effect.tscn",
-	VisualEffectType.DAMAGE: "res://scripts/game/effects/visuals/damage_visual.tscn",
-	VisualEffectType.HEAL: "res://scripts/game/effects/visuals/heal_visual.tscn",
-	VisualEffectType.BUFF: "res://scripts/game/effects/visuals/buff_visual.tscn",
-	VisualEffectType.DEBUFF: "res://scripts/game/effects/visuals/debuff_visual.tscn",
-	VisualEffectType.STUN: "res://scripts/game/effects/visuals/debuff_visual.tscn", # 使用debuff特效
-	VisualEffectType.LEVEL_UP: "res://scripts/game/effects/visuals/buff_visual.tscn", # 使用buff特效
-	VisualEffectType.DEATH: "res://scripts/game/effects/visuals/teleport_effect.tscn", # 使用传送消失特效
-	VisualEffectType.AREA_DAMAGE: "res://scripts/game/effects/visuals/area_damage_visual.tscn",
-	VisualEffectType.SUMMON: "res://scripts/game/effects/visuals/summon_visual.tscn",
-	VisualEffectType.CHAIN: "res://scripts/game/effects/visuals/damage_visual.tscn", # 使用伤害特效
-	VisualEffectType.DOT: "res://scripts/game/effects/visuals/debuff_visual.tscn" # 使用减益特效
+	VisualEffectType.TELEPORT_DISAPPEAR: "res://scenes/effects/teleport_effect_visual.tscn",
+	VisualEffectType.TELEPORT_APPEAR: "res://scenes/effects/teleport_effect_visual.tscn",
+	VisualEffectType.DAMAGE: "res://scenes/effects/damage_effect_visual.tscn",
+	VisualEffectType.HEAL: "res://scenes/effects/heal_effect_visual.tscn",
+	VisualEffectType.BUFF: "res://scenes/effects/buff_effect_visual.tscn",
+	VisualEffectType.DEBUFF: "res://scenes/effects/debuff_effect_visual.tscn",
+	VisualEffectType.STUN: "res://scenes/effects/debuff_effect_visual.tscn", # 使用debuff特效
+	VisualEffectType.LEVEL_UP: "res://scenes/effects/buff_effect_visual.tscn", # 使用buff特效
+	VisualEffectType.DEATH: "res://scenes/effects/teleport_effect_visual.tscn", # 使用传送消失特效
+	VisualEffectType.AREA_DAMAGE: "res://scenes/effects/area_damage_effect_visual.tscn",
+	VisualEffectType.SUMMON: "res://scenes/effects/summon_effect_visual.tscn",
+	VisualEffectType.CHAIN: "res://scenes/effects/damage_effect_visual.tscn", # 使用伤害特效
+	VisualEffectType.DOT: "res://scenes/effects/debuff_effect_visual.tscn" # 使用减益特效
 }
 
 # 特效颜色
@@ -248,29 +248,12 @@ func get_effect_color(effect_type: String) -> Color:
 		_:
 			return effect_colors.get(effect_type, Color(1, 1, 1, 0.5))
 
-# 重置管理器
-func reset() -> bool:
-	# 清理所有活动特效
-	for effect in active_effects:
-		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
-			effect.queue_free()
 
-	active_effects.clear()
-
-	# 清理所有逻辑效果
-	for effect_id in active_logical_effects:
-		var effect = active_logical_effects[effect_id]
-		effect.remove()
-
-	active_logical_effects.clear()
-
-	print("特效管理器已重置")
-	return true
 
 # 战斗结束处理
 func _on_battle_ended(winner_team: int) -> void:
 	# 重置管理器
-	reset()
+	_do_reset()
 
 # 添加效果
 func add_effect(effect: BaseEffect) -> void:
@@ -285,136 +268,284 @@ func add_effect(effect: BaseEffect) -> void:
 	if effect.duration > 0:
 		active_logical_effects[effect.id] = effect
 
+# 创建效果
+func create_effect(effect_type: int, target: Node2D, params: Dictionary = {}):
+	# 使用战斗管理器的效果管理器创建效果
+	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+		# 创建效果数据
+		var effect_data = {}
+
+		match effect_type:
+			BaseEffect.EffectType.STAT:
+				# 创建增益效果数据
+				var buff_type = params.get("buff_type", "attack")
+				var buff_value = params.get("buff_value", 10.0)
+				var duration = params.get("duration", 5.0)
+
+				# 创建属性字典
+				var stats = {}
+				match buff_type:
+					"attack":
+						stats["attack_damage"] = buff_value
+					"defense":
+						stats["armor"] = buff_value
+						stats["magic_resist"] = buff_value
+					"speed":
+						stats["attack_speed"] = buff_value
+						stats["move_speed"] = buff_value * 10.0
+					"health":
+						stats["max_health"] = buff_value
+					"spell":
+						stats["spell_power"] = buff_value
+					"crit":
+						stats["crit_chance"] = buff_value
+						stats["crit_damage"] = buff_value * 0.5
+
+				# 创建效果数据
+				effect_data = {
+					"effect_type": BattleEffect.EffectType.STAT_MOD,
+					"name": "增益: " + buff_type,
+					"description": "增加" + buff_type + "属性" + str(buff_value),
+					"duration": duration,
+					"stats": stats,
+					"is_percentage": false,
+					"tags": ["buff"]
+				}
+
+				# 创建视觉效果
+				create_visual_effect(VisualEffectType.BUFF, target, {
+					"color": get_effect_color(buff_type),
+					"duration": duration
+				})
+
+			BaseEffect.EffectType.STATUS:
+				# 创建状态效果数据
+				var status_type = params.get("status_type", "stun")
+				var duration = params.get("duration", 2.0)
+
+				# 获取状态类型
+				var status_type_value = StatusEffect.StatusType.STUN
+				match status_type:
+					"stun":
+						status_type_value = StatusEffect.StatusType.STUN
+					"silence":
+						status_type_value = StatusEffect.StatusType.SILENCE
+					"disarm":
+						status_type_value = StatusEffect.StatusType.DISARM
+					"root":
+						status_type_value = StatusEffect.StatusType.ROOT
+					"taunt":
+						status_type_value = StatusEffect.StatusType.TAUNT
+					"frozen":
+						status_type_value = StatusEffect.StatusType.FROZEN
+
+				# 创建效果数据
+				effect_data = {
+					"effect_type": BattleEffect.EffectType.STATUS,
+					"name": "状态: " + status_type,
+					"description": "施加" + status_type + "状态",
+					"duration": duration,
+					"status_type": status_type_value,
+					"tags": ["status", "debuff"]
+				}
+
+				# 创建视觉效果
+				create_visual_effect(VisualEffectType.STUN, target, {
+					"color": get_effect_color(status_type),
+					"duration": duration
+				})
+
+			BaseEffect.EffectType.DOT:
+				# 创建持续伤害效果数据
+				var dot_type = params.get("dot_type", "burning")
+				var damage_per_second = params.get("damage_per_second", 10.0)
+				var duration = params.get("duration", 5.0)
+				var damage_type = params.get("damage_type", "magical")
+
+				# 获取DOT类型
+				var dot_type_value = DotEffect.DotType.BURNING
+				match dot_type:
+					"burning":
+						dot_type_value = DotEffect.DotType.BURNING
+					"poisoned":
+						dot_type_value = DotEffect.DotType.POISONED
+					"bleeding":
+						dot_type_value = DotEffect.DotType.BLEEDING
+
+				# 创建效果数据
+				effect_data = {
+					"effect_type": BattleEffect.EffectType.DOT,
+					"name": "持续伤害: " + dot_type,
+					"description": "每秒造成" + str(damage_per_second) + "点" + damage_type + "伤害",
+					"duration": duration,
+					"dot_type": dot_type_value,
+					"damage_per_second": damage_per_second,
+					"damage_type": damage_type,
+					"tick_interval": 1.0,
+					"tags": ["dot", "debuff"]
+				}
+
+				# 创建视觉效果
+				create_visual_effect(VisualEffectType.DOT, target, {
+					"color": get_effect_color(damage_type),
+					"duration": duration,
+					"dot_type": dot_type
+				})
+
+			BaseEffect.EffectType.DAMAGE:
+				# 创建伤害效果数据
+				var damage_value = params.get("value", 10.0)
+				var damage_type = params.get("damage_type", "magical")
+				var is_critical = params.get("is_critical", false)
+				var is_dodgeable = params.get("is_dodgeable", true)
+
+				# 创建效果数据
+				effect_data = {
+					"effect_type": BattleEffect.EffectType.DAMAGE,
+					"name": "伤害: " + damage_type,
+					"description": "造成" + str(damage_value) + "点" + damage_type + "伤害",
+					"value": damage_value,
+					"damage_type": damage_type,
+					"is_critical": is_critical,
+					"is_dodgeable": is_dodgeable,
+					"tags": ["damage"]
+				}
+
+				# 创建视觉效果
+				create_visual_effect(VisualEffectType.DAMAGE, target, {
+					"damage_type": damage_type,
+					"damage_amount": damage_value
+				})
+
+			BaseEffect.EffectType.HEAL:
+				# 创建治疗效果数据
+				var heal_value = params.get("value", 10.0)
+
+				# 创建效果数据
+				effect_data = {
+					"effect_type": BattleEffect.EffectType.HEAL,
+					"name": "治疗",
+					"description": "恢复" + str(heal_value) + "点生命值",
+					"value": heal_value,
+					"tags": ["heal"]
+				}
+
+				# 创建视觉效果
+				create_visual_effect(VisualEffectType.HEAL, target, {
+					"heal_amount": heal_value
+				})
+
+		# 应用效果
+		if not effect_data.is_empty():
+			return GameManager.battle_manager.effect_manager.apply_effect(effect_data, null, target)
+
+	# 如果不能使用新系统，使用旧系统
+	return create_and_add_effect(effect_type, null, target, params)
+
 # 移除效果
-func remove_effect(effect_id: String) -> void:
-	# 检查效果是否存在
-	if not active_logical_effects.has(effect_id):
-		return
+func remove_effect(effect_id_or_effect) -> void:
+	# 如果是效果对象
+	if effect_id_or_effect is BattleEffect:
+		# 使用战斗管理器的效果管理器移除效果
+		if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+			GameManager.battle_manager.effect_manager.remove_effect(effect_id_or_effect)
+			return
 
-	# 获取效果
-	var effect = active_logical_effects[effect_id]
+	# 如果是效果 ID
+	if effect_id_or_effect is String:
+		# 检查效果是否存在
+		if not active_logical_effects.has(effect_id_or_effect):
+			return
 
-	# 移除效果
-	effect.remove()
+		# 获取效果
+		var effect = active_logical_effects[effect_id_or_effect]
 
-	# 从活动效果列表中移除
-	active_logical_effects.erase(effect_id)
+		# 如果是新效果系统的效果
+		if effect is BattleEffect:
+			# 使用战斗管理器的效果管理器移除效果
+			if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+				GameManager.battle_manager.effect_manager.remove_effect(effect)
+				# 从活动效果列表中移除
+				active_logical_effects.erase(effect_id_or_effect)
+			return
+
+		# 如果是旧效果系统的效果
+		if effect is BaseEffect:
+			# 移除效果
+			effect.remove()
+
+			# 从活动效果列表中移除
+			active_logical_effects.erase(effect_id_or_effect)
 
 # 创建并添加效果
 func create_and_add_effect(effect_type: int, source = null, target = null, params: Dictionary = {}) -> BaseEffect:
-	# 根据效果类型创建不同的效果
-	var effect = null
+	# 尝试使用新的效果系统
+	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+		# 迁移效果数据
+		var migrated_data = EffectMigrationTool.migrate_effect_data(params)
+		migrated_data["effect_type"] = EffectMigrationTool._convert_effect_type(effect_type)
 
-	match effect_type:
-		BaseEffect.EffectType.STAT:
-			# 创建属性效果
-			effect = StatEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("duration", 0.0),
-				params.get("stats", {}),
-				source,
-				target,
-				params.get("is_debuff", false)
-			)
+		# 使用战斗管理器的效果管理器创建效果
+		var battle_effect = GameManager.battle_manager.effect_manager.apply_effect(migrated_data, source, target)
+		if battle_effect:
+			return battle_effect
 
-		BaseEffect.EffectType.STATUS:
-			# 创建状态效果
-			effect = StatusEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("duration", 0.0),
-				params.get("status_type", StatusEffect.StatusType.STUN),
-				source,
-				target
-			)
+	# 如果不能使用新系统，使用旧系统
+	# 注意：这部分代码应该不会被执行，因为我们已经完全迁移到新系统
+	print("WARNING: 尝试使用旧效果系统，这不应该发生")
+	return null
 
-		BaseEffect.EffectType.DAMAGE:
-			# 创建伤害效果
-			effect = DamageEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("value", 0.0),
-				params.get("damage_type", "magical"),
-				source,
-				target
-			)
+# 重写重置方法
+func _do_reset() -> void:
+	# 清理所有活动特效
+	for effect in active_effects:
+		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
+			effect.queue_free()
 
-			# 设置暴击和闪避
-			if effect:
-				effect.is_critical = params.get("is_critical", false)
-				effect.is_dodgeable = params.get("is_dodgeable", true)
+	active_effects.clear()
 
-		BaseEffect.EffectType.HEAL:
-			# 创建治疗效果
-			effect = HealEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("value", 0.0),
-				source,
-				target
-			)
+	# 清理所有逻辑效果
+	for effect_id in active_logical_effects:
+		var effect = active_logical_effects[effect_id]
+		if effect is BaseEffect:
+			effect.remove()
+		elif effect is BattleEffect:
+			if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+				GameManager.battle_manager.effect_manager.remove_effect(effect)
 
-		BaseEffect.EffectType.DOT:
-			# 创建持续伤害效果
-			effect = DotEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("duration", 0.0),
-				params.get("value", 0.0),
-				params.get("damage_type", "magical"),
-				params.get("dot_type", DotEffect.DotType.BURNING),
-				source,
-				target
-			)
+	active_logical_effects.clear()
 
-			# 设置伤害间隔
-			if effect:
-				effect.tick_interval = params.get("tick_interval", 1.0)
+	# 重置战斗管理器的效果管理器
+	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+		GameManager.battle_manager.effect_manager.remove_all_battle_effects()
 
-		BaseEffect.EffectType.VISUAL:
-			# 创建视觉效果
-			effect = VisualEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("duration", 1.0),
-				params.get("visual_type", VisualEffect.VisualType.PARTICLE),
-				params.get("visual_path", ""),
-				source,
-				target
-			)
+	_log_info("特效管理器重置完成")
 
-		BaseEffect.EffectType.MOVEMENT:
-			# 创建移动效果
-			effect = MovementEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("movement_type", MovementEffect.MovementType.KNOCKBACK),
-				params.get("distance", 1.0),
-				source,
-				target
-			)
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
 
-		BaseEffect.EffectType.SOUND:
-			# 创建音效效果
-			effect = SoundEffect.new(
-				params.get("id", ""),
-				params.get("name", ""),
-				params.get("description", ""),
-				params.get("sound_path", ""),
-				source,
-				target
-			)
+	# 清理所有活动特效
+	for effect in active_effects:
+		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
+			effect.queue_free()
 
-	# 如果创建了效果，添加到管理器
-	if effect:
-		add_effect(effect)
+	active_effects.clear()
 
-	return effect
+	# 清理所有逻辑效果
+	for effect_id in active_logical_effects:
+		var effect = active_logical_effects[effect_id]
+		if effect is BaseEffect:
+			effect.remove()
+		elif effect is BattleEffect:
+			if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+				GameManager.battle_manager.effect_manager.remove_effect(effect)
+
+	active_logical_effects.clear()
+
+	# 清理战斗管理器的效果管理器
+	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
+		GameManager.battle_manager.effect_manager.remove_all_battle_effects()
+
+	_log_info("特效管理器清理完成")

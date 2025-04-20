@@ -7,7 +7,7 @@ class_name AreaDamageAbility
 var radius: float = 2.0  # 伤害半径（格子数）
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置伤害类型和半径
@@ -24,7 +24,7 @@ func _execute_effect(target = null) -> void:
 
 	# 获取中心位置（如果有目标使用目标位置，否则使用自身位置）
 	var center_pos = owner.board_position
-	if target and target is ChessPiece:
+	if target and target is ChessPieceEntity:
 		center_pos = target.board_position
 
 	# 使用目标选择器获取范围内的所有敌人

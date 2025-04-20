@@ -525,3 +525,29 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 关闭当前连接
+	close_connection()
+
+	# 重置重连尝试
+	_reconnect_attempts = 0
+	_reconnect_timer = 0.0
+	_ping_timer = 0.0
+
+	_log_info("网络管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 关闭连接
+	close_connection()
+
+	# 断开信号连接
+	multiplayer.peer_connected.disconnect(_on_peer_connected)
+	multiplayer.peer_disconnected.disconnect(_on_peer_disconnected)
+	multiplayer.connected_to_server.disconnect(_on_connected_to_server)
+	multiplayer.connection_failed.disconnect(_on_connection_failed)
+	multiplayer.server_disconnected.disconnect(_on_server_disconnected)
+
+	_log_info("网络管理器清理完成")

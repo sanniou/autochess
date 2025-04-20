@@ -436,3 +436,37 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置同步计时器
+	_sync_timer = 0.0
+	_full_sync_timer = 0.0
+
+	# 清空状态历史
+	_state_history.clear()
+
+	# 清空预测状态
+	_predicted_states.clear()
+
+	_log_info("同步管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开信号连接
+	if network_manager != null:
+		network_manager.data_received.disconnect(_on_data_received)
+		network_manager.connection_established.disconnect(_on_connection_established)
+		network_manager.connection_closed.disconnect(_on_connection_closed)
+
+	# 清空状态历史
+	_state_history.clear()
+
+	# 清空预测状态
+	_predicted_states.clear()
+
+	# 重置引用
+	network_manager = null
+	game_state_manager = null
+
+	_log_info("同步管理器清理完成")

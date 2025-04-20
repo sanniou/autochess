@@ -42,17 +42,17 @@ func _do_initialize() -> void:
 	manager_name = "TutorialManager"
 	# 添加依赖
 	add_dependency("SaveManager")
-	
+
 	# 原 _ready 函数的内容
 	# 加载教程配置
 	_load_tutorial_configs()
-	
+
 	# 连接信号
 	_connect_signals()
-	
+
 	# 加载教程数据
 	_load_tutorial_data()
-	
+
 # 加载教程配置
 func _load_tutorial_configs() -> void:
 	tutorial_configs = ConfigManager.get_all_tutorials()
@@ -582,3 +582,32 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置教程进度
+	reset_tutorial_progress()
+
+	# 重新加载教程配置
+	_load_tutorial_configs()
+
+	_log_info("教程管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+	EventBus.tutorial.disconnect_event("start_tutorial", start_tutorial)
+	EventBus.tutorial.disconnect_event("skip_tutorial", skip_tutorial)
+	EventBus.tutorial.disconnect_event("complete_tutorial", complete_tutorial)
+
+	# 停止当前激活的教程
+	if active_tutorial != "":
+		_stop_active_tutorial()
+
+	# 清空教程数据
+	tutorial_configs.clear()
+	completed_tutorials.clear()
+	skipped_tutorials.clear()
+
+	_log_info("教程管理器清理完成")

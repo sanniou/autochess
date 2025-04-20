@@ -4,7 +4,7 @@ class_name HealAbility
 ## 治疗目标
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置目标类型

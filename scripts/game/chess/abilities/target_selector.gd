@@ -34,11 +34,11 @@ var min_range: float = 0.0                     # 最小范围
 var max_targets: int = 1                       # 最大目标数量
 var ignore_invisible: bool = true              # 是否忽略隐形单位
 var ignore_invulnerable: bool = true           # 是否忽略无敌单位
-var owner: ChessPiece = null                   # 所有者
+var owner: ChessPieceEntity = null                   # 所有者
 
 # 初始化
-func _init(p_owner: ChessPiece = null, p_strategy: int = SelectionStrategy.NEAREST, 
-		p_target_type: int = TargetType.ENEMY, p_max_range: float = 10.0, 
+func _init(p_owner: ChessPieceEntity = null, p_strategy: int = SelectionStrategy.NEAREST,
+		p_target_type: int = TargetType.ENEMY, p_max_range: float = 10.0,
 		p_min_range: float = 0.0, p_max_targets: int = 1) -> void:
 	owner = p_owner
 	strategy = p_strategy
@@ -51,46 +51,46 @@ func _init(p_owner: ChessPiece = null, p_strategy: int = SelectionStrategy.NEARE
 func select_targets() -> Array:
 	if not owner:
 		return []
-	
+
 	# 获取棋盘管理器
 	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return []
-	
+
 	# 获取所有棋子
 	var all_pieces = board_manager.pieces
-	
+
 	# 筛选符合条件的目标
 	var valid_targets = []
 	for piece in all_pieces:
 		# 检查目标类型
 		if not _is_valid_target_type(piece):
 			continue
-		
+
 		# 检查目标状态
 		if not _is_valid_target_state(piece):
 			continue
-		
+
 		# 检查距离
 		var distance = owner.board_position.distance_to(piece.board_position)
 		if distance < min_range or distance > max_range:
 			continue
-		
+
 		# 添加到有效目标列表
 		valid_targets.append(piece)
-	
+
 	# 如果没有有效目标，返回空数组
 	if valid_targets.size() == 0:
 		return []
-	
+
 	# 根据策略排序目标
 	_sort_targets(valid_targets)
-	
+
 	# 返回指定数量的目标
 	return valid_targets.slice(0, min(max_targets, valid_targets.size()))
 
 # 检查目标类型是否有效
-func _is_valid_target_type(piece: ChessPiece) -> bool:
+func _is_valid_target_type(piece: ChessPieceEntity) -> bool:
 	match target_type:
 		TargetType.ENEMY:
 			return piece.is_player_piece != owner.is_player_piece
@@ -103,80 +103,80 @@ func _is_valid_target_type(piece: ChessPiece) -> bool:
 	return false
 
 # 检查目标状态是否有效
-func _is_valid_target_state(piece: ChessPiece) -> bool:
+func _is_valid_target_state(piece: ChessPieceEntity) -> bool:
 	# 检查是否死亡
 	if piece.current_state == ChessPiece.ChessState.DEAD:
 		return false
-	
+
 	# 检查是否隐形
 	if ignore_invisible and piece.is_invisible:
 		return false
-	
+
 	# 检查是否无敌
 	if ignore_invulnerable and piece.is_invulnerable:
 		return false
-	
+
 	return true
 
 # 根据策略排序目标
 func _sort_targets(targets: Array) -> void:
 	match strategy:
 		SelectionStrategy.NEAREST:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return owner.board_position.distance_to(a.board_position) < owner.board_position.distance_to(b.board_position))
-		
+
 		SelectionStrategy.FURTHEST:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return owner.board_position.distance_to(a.board_position) > owner.board_position.distance_to(b.board_position))
-		
+
 		SelectionStrategy.LOWEST_HEALTH:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return a.current_health < b.current_health)
-		
+
 		SelectionStrategy.HIGHEST_HEALTH:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return a.current_health > b.current_health)
-		
+
 		SelectionStrategy.LOWEST_ARMOR:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return a.armor < b.armor)
-		
+
 		SelectionStrategy.HIGHEST_ARMOR:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return a.armor > b.armor)
-		
+
 		SelectionStrategy.LOWEST_MAGIC_RESIST:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return a.magic_resist < b.magic_resist)
-		
+
 		SelectionStrategy.HIGHEST_MAGIC_RESIST:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return a.magic_resist > b.magic_resist)
-		
+
 		SelectionStrategy.HIGHEST_DAMAGE:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return a.attack_damage > b.attack_damage)
-		
+
 		SelectionStrategy.RANDOM:
 			targets.shuffle()
-		
+
 		SelectionStrategy.CLUSTERED:
-			targets.sort_custom(func(a, b): 
+			targets.sort_custom(func(a, b):
 				return _count_nearby_pieces(a) > _count_nearby_pieces(b))
 
 # 计算周围的棋子数量
-func _count_nearby_pieces(piece: ChessPiece, radius: float = 2.0) -> int:
+func _count_nearby_pieces(piece: ChessPieceEntity, radius: float = 2.0) -> int:
 	var count = 0
 	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return 0
-	
+
 	for other in board_manager.pieces:
 		if other != piece and other.current_state != ChessPiece.ChessState.DEAD:
 			var distance = piece.board_position.distance_to(other.board_position)
 			if distance <= radius:
 				count += 1
-	
+
 	return count
 
 # 从字符串创建目标类型

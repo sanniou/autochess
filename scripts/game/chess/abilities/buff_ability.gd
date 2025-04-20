@@ -8,7 +8,7 @@ var buff_type: String = "attack"  # 增益类型(attack/defense/speed)
 var buff_value: float = 0.0       # 增益值
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置增益类型和值

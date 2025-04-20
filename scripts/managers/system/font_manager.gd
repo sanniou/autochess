@@ -1,4 +1,5 @@
 extends "res://scripts/managers/core/base_manager.gd"
+class_name FontManager
 ## 字体管理器
 ## 负责管理游戏中的字体资源和文本样式
 
@@ -311,3 +312,32 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清空字体缓存
+	font_cache.clear()
+	current_language_fonts.clear()
+
+	# 重新加载默认字体
+	_load_default_fonts()
+
+	_log_info("字体管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.localization.disconnect_event("language_changed", _on_language_changed)
+	EventBus.localization.disconnect_event("request_font", _on_request_font)
+
+	# 清空字体缓存
+	font_cache.clear()
+	current_language_fonts.clear()
+
+	# 重置默认字体
+	default_font_regular = null
+	default_font_bold = null
+	default_font_italic = null
+	default_font_bold_italic = null
+
+	_log_info("字体管理器清理完成")

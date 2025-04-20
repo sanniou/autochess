@@ -1,7 +1,7 @@
 extends "res://scripts/managers/core/base_manager.gd"
 class_name EquipmentManager
 ## 装备管理器
-## 管理所有装备的创建、合成和商店逻辑
+## 管理所有装备的创建和合成
 
 # 引入常量
 const GameConsts = preload("res://scripts/constants/game_constants.gd")
@@ -10,12 +10,10 @@ const EffectConsts = preload("res://scripts/constants/effect_constants.gd")
 # 装备实例缓存 {装备ID: 装备实例}
 var _equipment_cache: Dictionary = {}
 
-# 商店库存 (存储装备实例的ID)
-var _shop_inventory: Array = []
-
 # 引用
 @onready var tier_manager: EquipmentTierManager = EquipmentTierManager.new()
 @onready var combine_system: EquipmentCombineSystem = EquipmentCombineSystem.new()
+@onready var effect_system: EquipmentEffectSystem = EquipmentEffectSystem.new()
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -25,15 +23,16 @@ func _do_initialize() -> void:
 	# 添加依赖
 	add_dependency("ConfigManager")
 
-	# 原 _ready 函数的内容
 	# 添加装备拉格管理器
 	add_child(tier_manager)
 
 	# 添加装备合成系统
 	add_child(combine_system)
 
+	# 添加装备效果系统
+	add_child(effect_system)
+
 	# 连接信号
-	EventBus.economy.connect_event("shop_refresh_requested", _on_shop_refresh_requested)
 	EventBus.equipment.connect_event("equipment_combine_requested", _on_equipment_combine_requested)
 
 	_log_info("装备管理器初始化完成")
@@ -65,89 +64,7 @@ func get_equipments(equipment_ids: Array) -> Array:
 			result.append(equipment)
 	return result
 
-# 刷新商店库存
-func refresh_shop_inventory(count: int = 5, player_level: int = 1, shop_tier: int = 1):
-	# 清空当前库存
-	_shop_inventory.clear()
 
-	# 根据玩家等级获取可生成的装备
-	var available_equipments = ConfigManager.get_equipments_by_rarity(get_available_rarities(player_level))
-
-	# 随机选择装备
-	for i in range(count):
-		if available_equipments.is_empty():
-			break
-
-		var random_index = randi() % available_equipments.size()
-		var base_equipment_config = available_equipments[random_index]
-
-		# 决定装备品质
-		var selected_tier = _select_equipment_tier(player_level, shop_tier)
-
-		# 创建装备实例
-		var equipment = generate_random_equipment(base_equipment_config.get_id(), selected_tier)
-		if equipment:
-			# 将装备实例的ID添加到库存中
-			_shop_inventory.append(equipment.id)
-			# 确保装备实例已经缓存
-			_equipment_cache[equipment.id] = equipment
-
-	# 发送商店刷新信号
-	EventBus.economy.emit_event("shop_inventory_updated", [_shop_inventory])
-
-# 选择装备品质
-func _select_equipment_tier(player_level: int, shop_tier: int) -> int:
-	# 品质概率表
-	var tier_chances = {
-		EquipmentTierManager.EquipmentTier.NORMAL: 0.5,
-		EquipmentTierManager.EquipmentTier.MAGIC: 0.3,
-		EquipmentTierManager.EquipmentTier.RARE: 0.15,
-		EquipmentTierManager.EquipmentTier.EPIC: 0.04,
-		EquipmentTierManager.EquipmentTier.LEGENDARY: 0.01
-	}
-
-	# 根据玩家等级和商店等级调整品质概率
-	var level_factor = min(player_level / 10.0, 1.0)  # 玩家等级因子，最高10级
-	var shop_factor = min(shop_tier / 3.0, 1.0)  # 商店等级因子，最高3级
-
-	# 调整概率
-	tier_chances[EquipmentTierManager.EquipmentTier.NORMAL] -= 0.3 * (level_factor + shop_factor) / 2.0
-	tier_chances[EquipmentTierManager.EquipmentTier.MAGIC] += 0.1 * (level_factor + shop_factor) / 2.0
-	tier_chances[EquipmentTierManager.EquipmentTier.RARE] += 0.1 * (level_factor + shop_factor) / 2.0
-	tier_chances[EquipmentTierManager.EquipmentTier.EPIC] += 0.07 * (level_factor + shop_factor) / 2.0
-	tier_chances[EquipmentTierManager.EquipmentTier.LEGENDARY] += 0.03 * (level_factor + shop_factor) / 2.0
-
-	# 确保概率合理
-	for tier in tier_chances:
-		tier_chances[tier] = max(0.0, min(tier_chances[tier], 1.0))
-
-	# 随机选择品质
-	var selected_tier = EquipmentTierManager.EquipmentTier.NORMAL
-	var rand = randf()
-	var cumulative_chance = 0.0
-
-	for tier in tier_chances:
-		cumulative_chance += tier_chances[tier]
-		if rand <= cumulative_chance:
-			selected_tier = tier
-			break
-
-	return selected_tier
-
-# 获取当前商店库存
-func get_shop_inventory() -> Array:
-	return _shop_inventory.duplicate()
-
-# 购买装备
-func purchase_equipment(equipment_id: String) -> Equipment:
-	if not equipment_id in _shop_inventory:
-		return null
-
-	# 从库存移除
-	_shop_inventory.erase(equipment_id)
-
-	# 返回装备实例
-	return get_equipment(equipment_id)
 
 # 合成装备
 func combine_equipments(equipment1: Equipment, equipment2: Equipment) -> Equipment:
@@ -160,13 +77,7 @@ func combine_equipments(equipment1: Equipment, equipment2: Equipment) -> Equipme
 
 	return result_equipment
 
-# 根据玩家等级获取可用稀有度
-func get_available_rarities(player_level: int) -> Array:
-	return GameConsts.get_rarities_by_level(player_level)
 
-# 商店刷新请求处理
-func _on_shop_refresh_requested(player_level: int, shop_tier: int = 1):
-	refresh_shop_inventory(5, player_level, shop_tier)
 
 # 装备合成请求处理
 func _on_equipment_combine_requested(equipment1: Equipment, equipment2: Equipment):
@@ -207,11 +118,7 @@ func can_combine_equipments(equipment1: Equipment, equipment2: Equipment) -> boo
 func get_possible_combinations(equipment: Equipment) -> Array:
 	return combine_system.get_possible_combinations(equipment)
 
-# 重置管理器
-func reset():
-	_equipment_cache.clear()
-	_shop_inventory.clear()
-	_log_info("装备管理器重置完成")
+
 
 # 重写清理方法
 func _do_cleanup() -> void:
@@ -219,14 +126,12 @@ func _do_cleanup() -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
-			EventBus.economy.disconnect_event("shop_refresh_requested", _on_shop_refresh_requested)
 			EventBus.equipment.disconnect_event("equipment_combine_requested", _on_equipment_combine_requested)
 
 	# 清理装备缓存
 	_equipment_cache.clear()
-	_shop_inventory.clear()
 
-	# 清理装备拉格管理器和合成系统
+	# 清理装备拉格管理器、合成系统和效果系统
 	if tier_manager:
 		tier_manager.queue_free()
 		tier_manager = null
@@ -235,13 +140,16 @@ func _do_cleanup() -> void:
 		combine_system.queue_free()
 		combine_system = null
 
+	if effect_system:
+		effect_system.queue_free()
+		effect_system = null
+
 	_log_info("装备管理器清理完成")
 
 # 重写重置方法
 func _do_reset() -> void:
 	# 清理装备缓存
 	_equipment_cache.clear()
-	_shop_inventory.clear()
 
 	_log_info("装备管理器重置完成")
 

@@ -366,3 +366,27 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置为默认主题
+	load_theme(DEFAULT_THEME)
+
+	# 重置主题类型
+	current_theme_type = ThemeType.LIGHT
+
+	_log_info("主题管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开信号连接
+	EventBus.ui.disconnect_event("theme_changed", _on_theme_changed)
+
+	# 清空主题缓存
+	theme_cache.clear()
+
+	# 重置主题
+	if get_tree() and get_tree().root:
+		get_tree().root.theme = null
+
+	_log_info("主题管理器清理完成")

@@ -6,7 +6,7 @@ class_name DamageAbility
 # 注意：使用基类中定义的 damage_type 属性
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置伤害类型

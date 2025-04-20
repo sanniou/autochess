@@ -87,7 +87,7 @@ func register_cell(cell: BoardCell, is_bench: bool) -> void:
 			cells[y][x] = cell
 
 # 添加棋子
-func add_piece(piece: ChessPiece, is_bench: bool) -> void:
+func add_piece(piece: ChessPieceEntity, is_bench: bool) -> void:
 	if is_bench:
 		if not bench_pieces.has(piece):
 			bench_pieces.append(piece)
@@ -96,14 +96,14 @@ func add_piece(piece: ChessPiece, is_bench: bool) -> void:
 			pieces.append(piece)
 
 # 移除棋子
-func remove_piece(piece: ChessPiece, is_bench: bool) -> void:
+func remove_piece(piece: ChessPieceEntity, is_bench: bool) -> void:
 	if is_bench:
 		bench_pieces.erase(piece)
 	else:
 		pieces.erase(piece)
 
 # 放置棋子
-func place_piece(piece: ChessPiece, cell_pos: Vector2i) -> bool:
+func place_piece(piece: ChessPieceEntity, cell_pos: Vector2i) -> bool:
 	if not is_valid_cell(cell_pos):
 		return false
 
@@ -114,11 +114,17 @@ func place_piece(piece: ChessPiece, cell_pos: Vector2i) -> bool:
 	return false
 
 # 移动棋子
-func move_piece(piece: ChessPiece, target_pos: Vector2i) -> bool:
+func move_piece(piece: ChessPieceEntity, target_pos: Vector2i) -> bool:
 	if not is_valid_cell(target_pos):
 		return false
 
-	var from_cell = get_cell(piece.board_position)
+	# 获取棋子的棋盘位置
+	var board_position = Vector2i(-1, -1)
+	var target_component = piece.get_component("TargetComponent")
+	if target_component:
+		board_position = target_component.get_board_position()
+
+	var from_cell = get_cell(board_position)
 	var to_cell = get_cell(target_pos)
 
 	if from_cell and to_cell and from_cell.remove_piece():
@@ -126,7 +132,7 @@ func move_piece(piece: ChessPiece, target_pos: Vector2i) -> bool:
 	return false
 
 # 获取棋子
-func get_piece_at(pos: Vector2i) -> ChessPiece:
+func get_piece_at(pos: Vector2i):
 	if is_valid_cell(pos):
 		return get_cell(pos).current_piece
 	return null
@@ -171,20 +177,20 @@ func get_ally_pieces(is_player: bool) -> Array:
 	return allies
 
 # 从对象池获取棋子
-func get_piece_from_pool(piece_id: String) -> ChessPiece:
+func get_piece_from_pool(piece_id: String) -> ChessPieceEntity:
 	# 使用棋子工厂创建棋子
-	var chess_factory = get_manager("ChessFactory")
+	var chess_manager = get_manager("ChessManager")
 
-	var piece = chess_factory.create_chess_piece(piece_id)
+	var piece = chess_manager.create_chess_piece(piece_id)
 	if piece:
 		piece.show()
 	return piece
 
 # 回收棋子到对象池
-func return_piece_to_pool(piece: ChessPiece):
-	var chess_factory = get_manager("ChessFactory")
+func return_piece_to_pool(piece: ChessPieceEntity):
+	var chess_manager = get_manager("ChessManager")
 
-	chess_factory.release_chess_piece(piece)
+	chess_manager.release_chess(piece)
 
 # 获取移动范围
 func get_movement_range(start_pos: Vector2i, move_range: int) -> Array:
@@ -213,12 +219,28 @@ func get_movement_range(start_pos: Vector2i, move_range: int) -> Array:
 	return reachable
 
 # 获取攻击目标
-func find_attack_target(piece: ChessPiece) -> ChessPiece:
-	var cell = get_cell(piece.board_position)
-	var range_cells = cell.get_attack_range_cells(self, piece.attack_range)
+func find_attack_target(piece: ChessPieceEntity):
+	# 获取棋子的棋盘位置
+	var board_position = Vector2i(-1, -1)
+	var attack_range = 1.0
+	var is_player_piece = piece.is_player_piece
+
+	var target_component = piece.get_component("TargetComponent")
+	if target_component:
+		board_position = target_component.get_board_position()
+
+	var attribute_component = piece.get_component("AttributeComponent")
+	if attribute_component:
+		attack_range = attribute_component.get_attribute("attack_range", 1.0)
+
+	var cell = get_cell(board_position)
+	if not cell:
+		return null
+
+	var range_cells = cell.get_attack_range_cells(self, attack_range)
 
 	for target_cell in range_cells:
-		if target_cell.has_enemy_piece(piece.is_player_piece):
+		if target_cell.has_enemy_piece(is_player_piece):
 			return target_cell.current_piece
 
 	return null
@@ -321,7 +343,7 @@ func _weighted_random_effect() -> String:
 	return SPECIAL_EFFECTS.keys()[0]
 
 # 升级棋子
-func upgrade_piece(piece_id: String) -> ChessPiece:
+func upgrade_piece(piece_id: String) -> ChessPieceEntity:
 	# 查找相同类型和星级的棋子
 	var same_pieces = []
 
@@ -369,7 +391,7 @@ func upgrade_piece(piece_id: String) -> ChessPiece:
 	return upgraded_piece
 
 # 查找棋子所在的格子
-func _find_cell_with_piece(piece: ChessPiece) -> BoardCell:
+func _find_cell_with_piece(piece: ChessPieceEntity) -> BoardCell:
 	# 检查棋盘格子
 	for row in cells:
 		for cell in row:
@@ -384,7 +406,7 @@ func _find_cell_with_piece(piece: ChessPiece) -> BoardCell:
 	return null
 
 # 尝试合成棋子
-func try_combine_pieces(piece: ChessPiece) -> bool:
+func try_combine_pieces(piece: ChessPieceEntity) -> bool:
 	# 如果棋子已经是最高星级，不能合成
 	if piece.star_level >= 3:
 		return false

@@ -9,7 +9,7 @@ var chain_range: float = 3.0  # 连锁范围（格子数）
 var damage_reduction: float = 0.2  # 每次连锁的伤害衰减
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置伤害类型和连锁参数
@@ -101,7 +101,7 @@ func _execute_effect(target = null) -> void:
 		delay_timer.queue_free()
 
 # 查找下一个连锁目标
-func _find_next_chain_target(current_target: ChessPiece, hit_targets: Array) -> ChessPiece:
+func _find_next_chain_target(current_target: ChessPieceEntity, hit_targets: Array) -> ChessPieceEntity:
 
 	var board_manager = GameManager.board_manager
 
@@ -127,7 +127,7 @@ func _find_next_chain_target(current_target: ChessPiece, hit_targets: Array) -> 
 	return enemies[0].piece
 
 # 播放连锁特效
-func _play_chain_visual_effect(from_target: ChessPiece, to_target: ChessPiece) -> void:
+func _play_chain_visual_effect(from_target: ChessPieceEntity, to_target: ChessPieceEntity) -> void:
 	# 创建一个临时节点来放置特效
 	var effect_node = Node2D.new()
 	effect_node.position = from_target.position

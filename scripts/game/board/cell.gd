@@ -12,7 +12,7 @@ signal cell_exited(cell)    # 格子离开信号
 
 # 格子属性
 var grid_position: Vector2i = Vector2i.ZERO  # 格子坐标
-var current_piece: ChessPiece = null        # 当前棋子
+var current_piece = null                    # 当前棋子
 var is_highlighted: bool = false            # 是否高亮
 var is_playable: bool = true                # 是否可放置棋子
 var cell_type: String = "normal"            # 格子类型(normal/spawn/blocked/bench/special)
@@ -45,14 +45,33 @@ func _initialize_visuals():
 	label.visible = false
 
 # 放置棋子
-func place_piece(piece: ChessPiece) -> bool:
+func place_piece(piece) -> bool:
+	# 检查棋子类型
+	if not (piece is ChessPieceEntity or piece is ChessPieceEntity):
+		push_error("无法识别的棋子类型")
+		return false
+
 	if not is_playable or current_piece != null:
 		return false
 
 	current_piece = piece
-	piece.board_position = grid_position
-	piece.position = position
-	piece.is_player_piece = (cell_type == "spawn")  # 出生点棋子属于玩家
+
+	# 设置棋子的棋盘位置
+	if piece is ChessPieceEntity:
+		piece.board_position = grid_position
+		piece.position = position
+		piece.is_player_piece = (cell_type == "spawn")  # 出生点棋子属于玩家
+	#elif piece is ChessPieceAdapter:
+		#piece.board_position = grid_position
+		#piece.position = position
+		#piece.is_player_piece = (cell_type == "spawn")
+	elif piece is ChessPieceEntity:
+		var target_component = piece.get_component("TargetComponent")
+		if target_component:
+			target_component.set_board_position(grid_position)
+
+		piece.position = position
+		piece.is_player_piece = (cell_type == "spawn")
 
 	# 应用格子特殊效果
 	if not special_effect.is_empty():
@@ -65,13 +84,22 @@ func place_piece(piece: ChessPiece) -> bool:
 	return true
 
 # 移除棋子
-func remove_piece() -> ChessPiece:
+func remove_piece():
 	if current_piece == null:
 		return null
 
 	var piece = current_piece
 	current_piece = null
-	piece.board_position = Vector2i(-1, -1)
+
+	# 设置棋子的棋盘位置
+	if piece is ChessPieceEntity:
+		piece.board_position = Vector2i(-1, -1)
+	#elif piece is ChessPieceAdapter:
+		#piece.board_position = Vector2i(-1, -1)
+	elif piece is ChessPieceEntity:
+		var target_component = piece.get_component("TargetComponent")
+		if target_component:
+			target_component.set_board_position(Vector2i(-1, -1))
 
 	# 移除格子特殊效果
 	if not special_effect.is_empty():
@@ -244,11 +272,37 @@ func get_attack_range_cells(board_manager, range: int) -> Array:
 
 # 判断是否有敌方棋子
 func has_enemy_piece(is_player: bool) -> bool:
-	return current_piece != null and current_piece.is_player_piece != is_player
+	if current_piece == null:
+		return false
+
+	var is_player_piece = false
+
+	# 检查棋子类型
+	if current_piece is ChessPieceEntity:
+		is_player_piece = current_piece.is_player_piece
+	#elif current_piece is ChessPieceAdapter:
+		#is_player_piece = current_piece.is_player_piece
+	elif current_piece is ChessPieceEntity:
+		is_player_piece = current_piece.is_player_piece
+
+	return is_player_piece != is_player
 
 # 判断是否有友方棋子
 func has_ally_piece(is_player: bool) -> bool:
-	return current_piece != null and current_piece.is_player_piece == is_player
+	if current_piece == null:
+		return false
+
+	var is_player_piece = false
+
+	# 检查棋子类型
+	if current_piece is ChessPieceEntity:
+		is_player_piece = current_piece.is_player_piece
+	#elif current_piece is ChessPieceAdapter:
+		#is_player_piece = current_piece.is_player_piece
+	elif current_piece is ChessPieceEntity:
+		is_player_piece = current_piece.is_player_piece
+
+	return is_player_piece == is_player
 
 # 设置特殊效果
 func set_special_effect(effect: String, value: float = 0.0):
@@ -275,7 +329,17 @@ func clear_special_effect():
 	_update_special_effect()
 
 # 应用格子效果
-func _apply_cell_effect(piece: ChessPiece):
+func _apply_cell_effect(piece):
+	# 检查棋子类型
+	if piece is ChessPieceEntity:
+		_apply_cell_effect_to_chess_piece(piece)
+	#elif piece is ChessPieceAdapter:
+		#_apply_cell_effect_to_adapter(piece)
+	elif piece is ChessPieceEntity:
+		_apply_cell_effect_to_entity(piece)
+
+# 应用格子效果到旧棋子
+func _apply_cell_effect_to_chess_piece(piece: ChessPieceEntity):
 	match special_effect:
 		"attack_buff":
 			piece.attack_damage += effect_value
@@ -290,8 +354,75 @@ func _apply_cell_effect(piece: ChessPiece):
 			# 持续伤害区域，在战斗系统中处理
 			pass
 
+# 应用格子效果到适配器
+#func _apply_cell_effect_to_adapter(piece: ChessPieceAdapter):
+	#match special_effect:
+		#"attack_buff":
+			#piece.attack_damage += effect_value
+		#"health_buff":
+			#piece.max_health += effect_value
+			#piece.current_health += effect_value
+		#"armor_buff":
+			#piece.armor += effect_value
+		#"speed_buff":
+			#piece.attack_speed += effect_value
+		#"damage_zone":
+			## 持续伤害区域，在战斗系统中处理
+			#pass
+
+# 应用格子效果到新棋子实体
+func _apply_cell_effect_to_entity(piece: ChessPieceEntity):
+	# 获取属性组件
+	var attribute_component = piece.get_component("AttributeComponent")
+	if not attribute_component:
+		return
+
+	match special_effect:
+		"attack_buff":
+			attribute_component.add_attribute_modifier("attack_damage", {
+				"value": effect_value,
+				"type": "add",
+				"duration": -1,  # 永久修改器
+				"source": "cell_effect"
+			})
+		"health_buff":
+			attribute_component.add_attribute_modifier("max_health", {
+				"value": effect_value,
+				"type": "add",
+				"duration": -1,
+				"source": "cell_effect"
+			})
+			attribute_component.add_health(effect_value)
+		"armor_buff":
+			attribute_component.add_attribute_modifier("armor", {
+				"value": effect_value,
+				"type": "add",
+				"duration": -1,
+				"source": "cell_effect"
+			})
+		"speed_buff":
+			attribute_component.add_attribute_modifier("attack_speed", {
+				"value": effect_value,
+				"type": "add",
+				"duration": -1,
+				"source": "cell_effect"
+			})
+		"damage_zone":
+			# 持续伤害区域，在战斗系统中处理
+			pass
+
 # 移除格子效果
-func _remove_cell_effect(piece: ChessPiece):
+func _remove_cell_effect(piece):
+	# 检查棋子类型
+	if piece is ChessPieceEntity:
+		_remove_cell_effect_from_chess_piece(piece)
+	#elif piece is ChessPieceAdapter:
+		#_remove_cell_effect_from_adapter(piece)
+	elif piece is ChessPieceEntity:
+		_remove_cell_effect_from_entity(piece)
+
+# 移除格子效果从旧棋子
+func _remove_cell_effect_from_chess_piece(piece: ChessPieceEntity):
 	match special_effect:
 		"attack_buff":
 			piece.attack_damage -= effect_value
@@ -302,6 +433,29 @@ func _remove_cell_effect(piece: ChessPiece):
 			piece.armor -= effect_value
 		"speed_buff":
 			piece.attack_speed -= effect_value
+
+# 移除格子效果从适配器
+#func _remove_cell_effect_from_adapter(piece: ChessPieceAdapter):
+	#match special_effect:
+		#"attack_buff":
+			#piece.attack_damage -= effect_value
+		#"health_buff":
+			#piece.max_health -= effect_value
+			#piece.current_health = min(piece.current_health, piece.max_health)
+		#"armor_buff":
+			#piece.armor -= effect_value
+		#"speed_buff":
+			#piece.attack_speed -= effect_value
+
+# 移除格子效果从新棋子实体
+func _remove_cell_effect_from_entity(piece: ChessPieceEntity):
+	# 获取属性组件
+	var attribute_component = piece.get_component("AttributeComponent")
+	if not attribute_component:
+		return
+
+	# 移除所有来自格子效果的修改器
+	attribute_component.remove_modifiers_by_source("cell_effect")
 
 # 更新特殊效果视觉
 func _update_special_effect():

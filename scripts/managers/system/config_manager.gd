@@ -58,11 +58,6 @@ const CONFIG_MODEL_CLASSES = {
 # 是否处于调试模式
 var debug_mode = false
 
-# 初始化
-func _ready() -> void:
-	# 初始化管理器
-	initialize()
-
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
@@ -498,6 +493,27 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清空配置缓存
+	config_cache.clear()
+
+	# 重新加载所有配置
+	load_all_configs()
+
+	_log_info("配置管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	if debug_mode:
+		EventBus.debug.disconnect_event("debug_command_executed", _on_debug_command_executed)
+
+	# 清空配置缓存
+	config_cache.clear()
+
+	_log_info("配置管理器清理完成")
 
 ## 获取装备合成配方
 func get_equipment_recipes() -> Array:

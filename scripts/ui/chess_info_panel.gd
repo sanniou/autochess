@@ -12,7 +12,7 @@ extends Control
 @onready var equipment_container = $VBoxContainer/EquipmentContainer
 
 # 当前显示的棋子
-var current_piece: ChessPiece = null
+var current_piece: ChessPieceEntity = null
 
 func _ready():
 	# 初始隐藏面板
@@ -23,7 +23,7 @@ func _ready():
 	EventBus.chess.connect_event("hide_chess_info", _on_hide_chess_info)
 
 ## 显示棋子信息
-func _on_show_chess_info(piece: ChessPiece) -> void:
+func _on_show_chess_info(piece: ChessPieceEntity) -> void:
 	if not piece:
 		return
 	
@@ -61,7 +61,7 @@ func _on_hide_chess_info() -> void:
 	current_piece = null
 
 ## 更新面板内容
-func _update_panel_content(piece: ChessPiece) -> void:
+func _update_panel_content(piece: ChessPieceEntity) -> void:
 	# 更新基本信息
 	name_label.text = piece.piece_name
 	type_label.text = "%s - %s" % [piece.piece_type, piece.rarity]
@@ -96,7 +96,7 @@ func _update_star_display(star_level: int) -> void:
 		star_container.add_child(star)
 
 ## 更新属性显示
-func _update_stats_display(piece: ChessPiece) -> void:
+func _update_stats_display(piece: ChessPieceEntity) -> void:
 	# 清除现有属性
 	for child in stats_container.get_children():
 		child.queue_free()
@@ -130,7 +130,7 @@ func _add_stat_row(stat_name: String, stat_value: String) -> void:
 	stats_container.add_child(hbox)
 
 ## 更新技能显示
-func _update_abilities_display(piece: ChessPiece) -> void:
+func _update_abilities_display(piece: ChessPieceEntity) -> void:
 	# 清除现有技能
 	for child in abilities_container.get_children():
 		child.queue_free()
@@ -163,7 +163,7 @@ func _update_abilities_display(piece: ChessPiece) -> void:
 		abilities_container.add_child(no_ability)
 
 ## 更新协同效果显示
-func _update_synergies_display(piece: ChessPiece) -> void:
+func _update_synergies_display(piece: ChessPieceEntity) -> void:
 	# 清除现有协同效果
 	for child in synergies_container.get_children():
 		child.queue_free()
@@ -197,7 +197,7 @@ func _update_synergies_display(piece: ChessPiece) -> void:
 		synergies_container.add_child(no_synergy)
 
 ## 更新装备显示
-func _update_equipment_display(piece: ChessPiece) -> void:
+func _update_equipment_display(piece: ChessPieceEntity) -> void:
 	# 清除现有装备
 	for child in equipment_container.get_children():
 		child.queue_free()

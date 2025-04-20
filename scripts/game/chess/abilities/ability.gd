@@ -21,10 +21,10 @@ var effects: Array = []            # 技能效果列表
 var damage_type: String = "magical" # 伤害类型(physical/magical/true/fire/ice/lightning/poison)
 
 # 技能所有者
-var owner: ChessPiece = null
+var owner: ChessPieceEntity = null
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	# 设置技能属性
 	id = ability_data.get("id", "")
 	name = ability_data.get("name", "")
@@ -78,7 +78,7 @@ func can_activate() -> bool:
 	if owner == null:
 		return false
 
-	if owner.current_state == ChessPiece.ChessState.DEAD:
+	if owner.current_state == StateMachineComponent.ChessState.DEAD:
 		return false
 
 	if owner.current_mana < mana_cost:
@@ -90,7 +90,7 @@ func can_activate() -> bool:
 	return true
 
 # 获取技能目标
-func get_target() -> ChessPiece:
+func get_target() -> ChessPieceEntity:
 	if owner == null:
 		return null
 
@@ -159,7 +159,7 @@ func _execute_effect(target = null) -> void:
 	_play_ability_effect(targets)
 
 # 应用效果
-func _apply_effects(target: ChessPiece) -> void:
+func _apply_effects(target: ChessPieceEntity) -> void:
 	# 如果没有自定义效果，使用默认效果
 	if effects.size() == 0:
 		# 创建伤害效果参数
@@ -203,7 +203,7 @@ func _play_ability_sound() -> void:
 	EventBus.audio.emit_event("play_sound", ["ability_cast", owner.global_position])
 
 # 播放目标效果
-func _play_target_effect(target: ChessPiece) -> void:
+func _play_target_effect(target: ChessPieceEntity) -> void:
 	if not target or not is_instance_valid(target):
 		return
 

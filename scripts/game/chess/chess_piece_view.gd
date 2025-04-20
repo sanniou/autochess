@@ -33,7 +33,7 @@ signal animation_finished(animation_name)
 func _ready():
 	# 初始化视觉组件
 	_initialize_visuals()
-	
+
 	# 连接信号
 	if animation_player:
 		animation_player.animation_finished.connect(_on_animation_finished)
@@ -45,13 +45,13 @@ func _initialize_visuals() -> void:
 		effect_container = Node2D.new()
 		effect_container.name = "EffectContainer"
 		add_child(effect_container)
-	
+
 	# 创建星级指示器
 	if not star_indicator:
 		star_indicator = Node2D.new()
 		star_indicator.name = "StarIndicator"
 		add_child(star_indicator)
-	
+
 	# 创建生命值条
 	if not health_bar:
 		health_bar = ProgressBar.new()
@@ -62,7 +62,7 @@ func _initialize_visuals() -> void:
 		health_bar.size = Vector2(60, 8)
 		health_bar.position = Vector2(-30, -40)
 		add_child(health_bar)
-	
+
 	# 创建法力值条
 	if not mana_bar:
 		mana_bar = ProgressBar.new()
@@ -75,16 +75,16 @@ func _initialize_visuals() -> void:
 		add_child(mana_bar)
 
 # 初始化
-func initialize(data: ChessPieceData) -> void:
+func initialize(data: Dictionary) -> void:
 	# 设置精灵纹理
 	_load_sprite_texture(data.id)
-	
+
 	# 更新星级
 	update_star_level(data.star_level)
-	
+
 	# 更新生命值条
 	update_health_bar(data.current_health, data.max_health)
-	
+
 	# 更新法力值条
 	update_mana_bar(data.current_mana, data.max_mana)
 
@@ -92,10 +92,10 @@ func initialize(data: ChessPieceData) -> void:
 func _load_sprite_texture(piece_id: String) -> void:
 	if not sprite:
 		return
-	
+
 	# 构建纹理路径
 	var texture_path = "res://assets/images/chess/" + piece_id + ".png"
-	
+
 	# 加载纹理
 	if ResourceLoader.exists(texture_path):
 		sprite.texture = load(texture_path)
@@ -107,32 +107,32 @@ func _load_sprite_texture(piece_id: String) -> void:
 func update_star_level(star_level: int) -> void:
 	if not star_indicator:
 		return
-	
+
 	# 清除现有星星
 	for child in star_indicator.get_children():
 		child.queue_free()
-	
+
 	# 添加新星星
 	for i in range(star_level):
 		var star = Sprite2D.new()
 		star.texture = load("res://assets/images/ui/star.png")
 		star.position = Vector2(i * 15 - (star_level - 1) * 7.5, -50)
 		star.scale = Vector2(0.5, 0.5)
-		
+
 		# 设置星星颜色
 		if star_level <= config.star_colors.size():
 			star.modulate = config.star_colors[star_level - 1]
-		
+
 		star_indicator.add_child(star)
 
 # 更新生命值条
 func update_health_bar(current_health: float, max_health: float) -> void:
 	if not health_bar:
 		return
-	
+
 	health_bar.max_value = max_health
 	health_bar.value = current_health
-	
+
 	# 根据生命值百分比设置颜色
 	var health_percent = current_health / max_health
 	if health_percent > 0.7:
@@ -146,7 +146,7 @@ func update_health_bar(current_health: float, max_health: float) -> void:
 func update_mana_bar(current_mana: float, max_mana: float) -> void:
 	if not mana_bar:
 		return
-	
+
 	mana_bar.max_value = max_mana
 	mana_bar.value = current_mana
 	mana_bar.modulate = config.mana_bar_color
@@ -155,7 +155,7 @@ func update_mana_bar(current_mana: float, max_mana: float) -> void:
 func play_animation(animation_name: String) -> void:
 	if not animation_player:
 		return
-	
+
 	# 检查动画是否存在
 	if animation_player.has_animation(animation_name):
 		animation_player.play(animation_name)
@@ -179,11 +179,11 @@ func play_animation(animation_name: String) -> void:
 func _play_idle_animation() -> void:
 	if not sprite:
 		return
-	
+
 	# 重置精灵状态
 	sprite.modulate = Color(1, 1, 1, 1)
 	sprite.rotation = 0
-	
+
 	# 创建轻微浮动动画
 	var tween = create_tween()
 	tween.tween_property(sprite, "position:y", -2, 1.0)
@@ -194,10 +194,10 @@ func _play_idle_animation() -> void:
 func _play_move_animation() -> void:
 	if not sprite:
 		return
-	
+
 	# 设置移动状态
 	sprite.modulate = Color(0.8, 1.0, 0.8, 1)
-	
+
 	# 创建轻微摇摆动画
 	var tween = create_tween()
 	tween.tween_property(sprite, "rotation", 0.1, 0.3)
@@ -208,10 +208,10 @@ func _play_move_animation() -> void:
 func _play_attack_animation() -> void:
 	if not sprite:
 		return
-	
+
 	# 重置精灵状态
 	sprite.modulate = Color(1, 1, 1, 1)
-	
+
 	# 创建攻击动画
 	var tween = create_tween()
 	tween.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.1)
@@ -222,10 +222,10 @@ func _play_attack_animation() -> void:
 func _play_cast_animation() -> void:
 	if not sprite:
 		return
-	
+
 	# 设置施法状态
 	sprite.modulate = Color(0.8, 0.8, 1.0, 1)
-	
+
 	# 创建施法动画
 	var tween = create_tween()
 	tween.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.2)
@@ -239,10 +239,10 @@ func _play_cast_animation() -> void:
 func _play_stunned_animation() -> void:
 	if not sprite:
 		return
-	
+
 	# 设置眩晕状态
 	sprite.modulate = Color(0.7, 0.7, 0.7, 1)
-	
+
 	# 创建眩晕动画
 	var tween = create_tween()
 	tween.tween_property(sprite, "rotation", 0.3, 0.2)
@@ -253,10 +253,10 @@ func _play_stunned_animation() -> void:
 func _play_death_animation() -> void:
 	if not sprite:
 		return
-	
+
 	# 设置死亡状态
 	sprite.modulate = Color(0.5, 0.5, 0.5, 0.5)
-	
+
 	# 创建死亡动画
 	var tween = create_tween()
 	tween.tween_property(sprite, "scale", Vector2(0.8, 0.8), 0.5)

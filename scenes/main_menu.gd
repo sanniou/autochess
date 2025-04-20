@@ -214,14 +214,14 @@ func _on_performance_test_button_pressed():
 	_play_button_sound()
 	_transition_to_scene("res://scenes/test/performance_test.tscn")
 
-# 测试菜单按钮处理
-func _on_test_menu_button_pressed():
+# 测试中心按钮处理
+func _on_test_hub_button_pressed():
 	# 如果正在执行动画，忽略点击
 	if _is_animating:
 		return
 
 	_play_button_sound()
-	_transition_to_scene("res://scenes/test/test_menu.tscn")
+	_transition_to_scene("res://scenes/test/test_hub.tscn")
 
 # 设置按钮处理
 func _on_settings_button_pressed():

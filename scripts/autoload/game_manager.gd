@@ -77,6 +77,7 @@ var tutorial_manager: TutorialManager = null
 var ability_factory: AbilityFactory = null
 var relic_ui_manager: RelicUiManager = null
 var effect_manager: EffectManager = null
+var test_manager: TestManager = null
 
 # 初始化
 func _ready() -> void:
@@ -154,7 +155,7 @@ func _register_all_managers() -> void:
 	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd")
 	_register_manager("CurseManager", "res://scripts/managers/game/curse_manager.gd")
 	_register_manager("StoryManager", "res://scripts/managers/game/story_manager.gd")
-	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager.gd")
+	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager_new.gd")
 
 	# 注册其他管理器
 	_register_manager("UIAnimator", "res://scripts/managers/ui/ui_animator.gd")
@@ -169,6 +170,9 @@ func _register_all_managers() -> void:
 	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd")
 	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd")
 	# ChessFactory 已被 ChessManager 替代
+
+	# 注册测试管理器
+	_register_manager("TestManager", "res://scripts/managers/test/test_manager.gd")
 
 ## 注册单个管理器
 func _register_manager(manager_name: String, script_path: String) -> void:
@@ -229,6 +233,7 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"AbilityFactory": ability_factory = manager_instance
 		"RelicUIManager": relic_ui_manager = manager_instance
 		"EffectManager": effect_manager = manager_instance
+		"TestManager": test_manager = manager_instance
 
 ## 改变游戏状态
 func change_state(new_state: int) -> void:

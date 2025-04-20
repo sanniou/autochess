@@ -647,3 +647,31 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清除所有动画
+	clear_animations()
+
+	# 重置动画队列
+	for type in animation_queues.keys():
+		animation_queues[type].clear()
+		is_playing[type] = false
+
+	_log_info("动画管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.game.disconnect_event("game_paused", _on_game_paused)
+
+	# 清除所有动画
+	clear_animations()
+
+	# 清空数据
+	active_animations.clear()
+	for type in animation_queues.keys():
+		animation_queues[type].clear()
+		is_playing[type] = false
+
+	_log_info("动画管理器清理完成")

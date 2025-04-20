@@ -19,18 +19,18 @@ var triggered_story_events = []  # 已触发的剧情事件ID列表
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "StoryManager"
-	
+
 	# 原 _ready 函数的内容
 	# 连接信号
 	EventBus.event.connect_event("event_completed", _on_event_completed)
-	
+
 # 设置剧情标记
 func set_flag(flag_name: String, value = true) -> void:
 	story_flags[flag_name] = value
-	
+
 	# 发送剧情标记设置信号
 	EventBus.debug.emit_event("debug_message", ["设置剧情标记: " + flag_name + " = " + str(value), 0])
-	
+
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
 
@@ -43,10 +43,10 @@ func get_flag(flag_name: String, default_value = false) -> Variant:
 # 设置剧情分支
 func set_branch(branch_name: String, path: String) -> void:
 	story_branches[branch_name] = path
-	
+
 	# 发送剧情分支设置信号
 	EventBus.debug.emit_event("debug_message", ["设置剧情分支: " + branch_name + " = " + path, 0])
-	
+
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
 
@@ -59,10 +59,10 @@ func get_branch(branch_name: String, default_path: String = "") -> String:
 # 增加剧情进度
 func advance_story(amount: int = 1) -> void:
 	story_progress += amount
-	
+
 	# 发送剧情进度更新信号
 	EventBus.debug.emit_event("debug_message", ["剧情进度更新: " + str(story_progress), 0])
-	
+
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
 
@@ -83,7 +83,7 @@ func mark_story_event_triggered(event_id: String) -> void:
 func _check_story_triggers() -> void:
 	# 检查主线剧情触发
 	_check_main_story_triggers()
-	
+
 	# 检查分支剧情触发
 	_check_branch_story_triggers()
 
@@ -92,24 +92,24 @@ func _check_main_story_triggers() -> void:
 	var event_manager = GameManager.event_manager
 	if not event_manager:
 		return
-	
+
 	# 根据剧情进度触发对应事件
 	match story_progress:
 		3:
 			if not is_story_event_triggered("story_introduction"):
 				event_manager.trigger_event("story_introduction")
 				mark_story_event_triggered("story_introduction")
-		
+
 		6:
 			if not is_story_event_triggered("story_first_challenge"):
 				event_manager.trigger_event("story_first_challenge")
 				mark_story_event_triggered("story_first_challenge")
-		
+
 		10:
 			if not is_story_event_triggered("story_midpoint"):
 				event_manager.trigger_event("story_midpoint")
 				mark_story_event_triggered("story_midpoint")
-		
+
 		15:
 			if not is_story_event_triggered("story_final_challenge"):
 				event_manager.trigger_event("story_final_challenge")
@@ -120,22 +120,22 @@ func _check_branch_story_triggers() -> void:
 	var event_manager = GameManager.event_manager
 	if not event_manager:
 		return
-	
+
 	# 检查力量之路分支
 	if get_flag("chose_power") and not is_story_event_triggered("story_power_path"):
 		event_manager.trigger_event("story_power_path")
 		mark_story_event_triggered("story_power_path")
-	
+
 	# 检查智慧之路分支
 	if get_flag("chose_wisdom") and not is_story_event_triggered("story_wisdom_path"):
 		event_manager.trigger_event("story_wisdom_path")
 		mark_story_event_triggered("story_wisdom_path")
-	
+
 	# 检查财富之路分支
 	if get_flag("chose_wealth") and not is_story_event_triggered("story_wealth_path"):
 		event_manager.trigger_event("story_wealth_path")
 		mark_story_event_triggered("story_wealth_path")
-	
+
 	# 检查特殊组合
 	if get_flag("chose_power") and get_flag("found_ancient_artifact") and not is_story_event_triggered("story_power_artifact"):
 		event_manager.trigger_event("story_power_artifact")
@@ -161,23 +161,17 @@ func save_story_state() -> Dictionary:
 func load_story_state(save_data: Dictionary) -> void:
 	if save_data.has("story_flags"):
 		story_flags = save_data.story_flags.duplicate()
-	
+
 	if save_data.has("story_branches"):
 		story_branches = save_data.story_branches.duplicate()
-	
+
 	if save_data.has("story_progress"):
 		story_progress = save_data.story_progress
-	
+
 	if save_data.has("triggered_story_events"):
 		triggered_story_events = save_data.triggered_story_events.duplicate()
 
-# 重置管理器
-func reset() -> bool:
-	story_flags.clear()
-	story_branches.clear()
-	story_progress = 0
-	triggered_story_events.clear()
-	return true
+
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:
@@ -192,3 +186,25 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	story_flags.clear()
+	story_branches.clear()
+	story_progress = 0
+	triggered_story_events.clear()
+
+	_log_info("剧情管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.event.disconnect_event("event_completed", _on_event_completed)
+
+	# 清空剧情数据
+	story_flags.clear()
+	story_branches.clear()
+	story_progress = 0
+	triggered_story_events.clear()
+
+	_log_info("剧情管理器清理完成")

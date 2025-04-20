@@ -1,14 +1,10 @@
-extends "res://scripts/config/config_model.gd"
+extends ConfigModel
 class_name SynergyConfig
 ## 羁绊配置模型
-## 提供羁绊配置数据的访问和验证
+## 用于验证和管理羁绊配置数据
 
-# 获取配置类型
-func _get_config_type() -> String:
-	return "synergy"
-
-# 获取默认架构
-func _get_default_schema() -> Dictionary:
+# 获取默认模式
+func get_default_schema() -> Dictionary:
 	return {
 		"id": {
 			"type": "string",
@@ -25,15 +21,20 @@ func _get_default_schema() -> Dictionary:
 			"required": true,
 			"description": "羁绊描述"
 		},
-		"icon_path": {
-			"type": "string",
-			"required": false,
-			"description": "羁绊图标路径"
-		},
 		"type": {
 			"type": "string",
+			"required": true,
+			"description": "羁绊类型（职业、种族、特殊）"
+		},
+		"icon_path": {
+			"type": "string",
+			"required": true,
+			"description": "羁绊图标路径"
+		},
+		"color": {
+			"type": "string",
 			"required": false,
-			"description": "羁绊类型(class/race/special)"
+			"description": "羁绊颜色（十六进制）"
 		},
 		"thresholds": {
 			"type": "array[dictionary]",
@@ -45,53 +46,30 @@ func _get_default_schema() -> Dictionary:
 					"required": true,
 					"description": "激活所需棋子数量"
 				},
-
+				"description": {
+					"type": "string",
+					"required": true,
+					"description": "阈值描述"
+				},
 				"effects": {
 					"type": "array[dictionary]",
 					"required": true,
-					"description": "阈值效果数组",
+					"description": "阈值效果",
 					"schema": {
+						"id": {
+							"type": "string",
+							"required": true,
+							"description": "效果ID"
+						},
 						"type": {
 							"type": "string",
 							"required": true,
 							"description": "效果类型"
 						},
-						"stats": {
-							"type": "dictionary",
-							"required": false,
-							"description": "效果属性修改",
-							"schema": {
-								"attack_damage": {
-									"type": "float",
-									"required": false,
-									"description": "攻击力"
-								},
-								"attack_speed": {
-									"type": "float",
-									"required": false,
-									"description": "攻击速度"
-								},
-								"armor": {
-									"type": "float",
-									"required": false,
-									"description": "护甲"
-								},
-								"magic_resist": {
-									"type": "float",
-									"required": false,
-									"description": "魔抗"
-								},
-								"spell_power": {
-									"type": "float",
-									"required": false,
-									"description": "法术强度"
-								}
-							}
-						},
-						"is_percentage": {
-							"type": "bool",
-							"required": false,
-							"description": "是否为百分比值"
+						"description": {
+							"type": "string",
+							"required": true,
+							"description": "效果描述"
 						}
 					}
 				}
@@ -128,34 +106,49 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 				last_count = threshold.count
 
 			# 验证阈值效果
-
-			# 验证 effects 数组
-			if not threshold.has("effects") or not threshold.effects is Array:
-				validation_errors.append("阈值必须有有效的效果数组")
+			if not threshold.has("effects"):
+				validation_errors.append("阈值必须有效果数组")
+			elif not threshold.effects is Array:
+				validation_errors.append("阈值效果必须是数组")
+			elif threshold.effects.is_empty():
+				validation_errors.append("阈值效果数组不能为空")
 			else:
+				# 验证每个效果
 				for effect in threshold.effects:
 					if not effect is Dictionary:
 						validation_errors.append("效果必须是字典")
 						continue
 
+					# 验证效果ID
+					if not effect.has("id") or not effect.id is String or effect.id.is_empty():
+						validation_errors.append("效果必须有有效的ID")
+
 					# 验证效果类型
 					if not effect.has("type") or not effect.type is String or effect.type.is_empty():
 						validation_errors.append("效果必须有有效的类型")
+					else:
+						# 根据效果类型验证必要字段
+						match effect.type:
+							"attribute":
+								if not effect.has("attribute") or not effect.attribute is String or effect.attribute.is_empty():
+									validation_errors.append("属性效果必须指定属性名称")
+								if not effect.has("value") or (not effect.value is int and not effect.value is float):
+									validation_errors.append("属性效果必须指定数值")
+								if not effect.has("operation") or not effect.operation is String or effect.operation.is_empty():
+									validation_errors.append("属性效果必须指定操作类型")
+							"ability":
+								if not effect.has("ability_id") or not effect.ability_id is String or effect.ability_id.is_empty():
+									validation_errors.append("技能效果必须指定技能ID")
+							"special":
+								if not effect.has("special_id") or not effect.special_id is String or effect.special_id.is_empty():
+									validation_errors.append("特殊效果必须指定特殊ID")
 
-					# 验证效果统计
-					if effect.has("stats") and effect.stats is Dictionary:
-						for stat_name in effect.stats:
-							var stat_value = effect.stats[stat_name]
-
-							if not (stat_value is int or stat_value is float):
-								validation_errors.append("统计值必须是数字: " + stat_name)
-
-					# 验证是否为百分比
-					if effect.has("is_percentage") and not effect.is_percentage is bool:
-						validation_errors.append("is_percentage必须是布尔值")
+# 获取羁绊ID
+func get_id() -> String:
+	return data.get("id", "")
 
 # 获取羁绊名称
-func get_synergy_name() -> String:
+func get_name() -> String:
 	return data.get("name", "")
 
 # 获取羁绊描述
@@ -170,6 +163,10 @@ func get_type() -> String:
 func get_icon_path() -> String:
 	return data.get("icon_path", "")
 
+# 获取羁绊颜色
+func get_color() -> String:
+	return data.get("color", "#FFFFFF")
+
 # 获取羁绊阈值
 func get_thresholds() -> Array:
 	return data.get("thresholds", [])
@@ -177,13 +174,14 @@ func get_thresholds() -> Array:
 # 获取特定数量的阈值
 func get_threshold_for_count(count: int) -> Dictionary:
 	var thresholds = get_thresholds()
+	var matching_threshold = {}
 
 	for threshold in thresholds:
 		if threshold.has("count") and threshold.count <= count:
-			if threshold == thresholds.back() or thresholds[thresholds.find(threshold) + 1].count > count:
-				return threshold
+			if matching_threshold.is_empty() or threshold.count > matching_threshold.count:
+				matching_threshold = threshold
 
-	return {}
+	return matching_threshold
 
 # 获取所有阈值数量
 func get_all_threshold_counts() -> Array:
@@ -215,6 +213,10 @@ func get_effects_for_threshold(count: int) -> Array:
 		return threshold.effects
 
 	return []
+
+# 获取特定等级的效果
+func get_effects_for_level(level: int) -> Array:
+	return get_effects_for_threshold(level)
 
 # 检查是否为职业羁绊
 func is_class_synergy() -> bool:

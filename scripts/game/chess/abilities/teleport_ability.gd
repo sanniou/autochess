@@ -9,7 +9,7 @@ var teleport_range: float = 4.0     # 传送范围（格子数）
 var damage_radius: float = 1.0      # 伤害半径（格子数）
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置传送属性
@@ -53,7 +53,7 @@ func _execute_effect(target = null) -> void:
 	_play_effect(target)
 
 # 查找传送位置
-func _find_teleport_position(target: ChessPiece, board_manager) -> Vector2i:
+func _find_teleport_position(target: ChessPieceEntity, board_manager) -> Vector2i:
 	# 获取目标位置
 	var target_pos = target.board_position
 
@@ -136,7 +136,7 @@ func _play_appear_effect() -> void:
 	tween.tween_property(owner, "modulate:a", 1, 0.3)
 
 # 播放伤害特效
-func _play_damage_effect(target: ChessPiece) -> void:
+func _play_damage_effect(target: ChessPieceEntity) -> void:
 	# 创建伤害特效
 	var params = {
 		"damage_type": damage_type,
@@ -147,7 +147,7 @@ func _play_damage_effect(target: ChessPiece) -> void:
 	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
 
 # 播放技能特效
-func _play_effect(target: ChessPiece) -> void:
+func _play_effect(target: ChessPieceEntity) -> void:
 	# 创建技能特效
 	var params = {
 		"damage_type": damage_type,

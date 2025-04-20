@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgkal"]
+
+[ext_resource type="Script" path="res://scenes/test/synergy_test_new.gd" id="1_yjnwk"]
+
+[node name="SynergyTestNew" type="Node"]
+script = ExtResource("1_yjnwk")

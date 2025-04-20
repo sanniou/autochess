@@ -12,7 +12,7 @@ var summon_damage_percent: float = 0.5  # 召唤物伤害百分比
 var summoned_pieces: Array = []   # 已召唤的棋子
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置召唤属性
@@ -108,7 +108,7 @@ func _get_empty_cells_around(position: Vector2i, board_manager) -> Array:
 	return empty_cells
 
 # 创建默认召唤物
-func _create_default_summon() -> ChessPiece:
+func _create_default_summon() -> ChessPieceEntity:
 	# 创建一个基础棋子作为召唤物
 	var summon = ChessPiece.new()
 
@@ -132,7 +132,7 @@ func _create_default_summon() -> ChessPiece:
 	return summon
 
 # 移除召唤物
-func _remove_summon(summon: ChessPiece) -> void:
+func _remove_summon(summon: ChessPieceEntity) -> void:
 	if is_instance_valid(summon) and summon.current_state != ChessPiece.ChessState.DEAD:
 		# 播放消失特效
 		_play_despawn_effect(summon)
@@ -155,7 +155,7 @@ func _on_owner_died() -> void:
 	_clear_summons()
 
 # 播放召唤特效
-func _play_summon_effect(summon: ChessPiece) -> void:
+func _play_summon_effect(summon: ChessPieceEntity) -> void:
 
 	# 创建召唤特效参数
 	var params = {
@@ -171,7 +171,7 @@ func _play_summon_effect(summon: ChessPiece) -> void:
 	)
 
 # 播放消失特效
-func _play_despawn_effect(summon: ChessPiece) -> void:
+func _play_despawn_effect(summon: ChessPieceEntity) -> void:
 
 	# 创建消失特效参数
 	var params = {
@@ -187,7 +187,7 @@ func _play_despawn_effect(summon: ChessPiece) -> void:
 	)
 
 # 播放技能特效
-func _play_effect(target: ChessPiece) -> void:
+func _play_effect(target: ChessPieceEntity) -> void:
 	# 创建增益特效参数
 	var params = {
 		"color": GameManager.effect_manager.get_effect_color("buff"),

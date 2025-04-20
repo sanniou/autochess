@@ -21,12 +21,12 @@ var type: int = EffectType.DAMAGE  # 效果类型
 var value: float = 0.0             # 效果值
 var duration: float = 0.0          # 持续时间
 var delay: float = 0.0             # 延迟时间
-var source: ChessPiece = null      # 效果来源
-var target: ChessPiece = null      # 效果目标
+var source: ChessPieceEntity = null      # 效果来源
+var target: ChessPieceEntity = null      # 效果目标
 
 # 初始化
 func _init(p_type: int = EffectType.DAMAGE, p_value: float = 0.0, p_duration: float = 0.0,
-		p_delay: float = 0.0, p_source: ChessPiece = null, p_target: ChessPiece = null) -> void:
+		p_delay: float = 0.0, p_source: ChessPieceEntity = null, p_target: ChessPieceEntity = null) -> void:
 	type = p_type
 	value = p_value
 	duration = p_duration
@@ -40,7 +40,7 @@ func apply() -> void:
 	pass
 
 # 创建效果
-static func create(effect_data: Dictionary, source: ChessPiece, target: ChessPiece) -> AbilityEffect:
+static func create(effect_data: Dictionary, source: ChessPieceEntity, target: ChessPieceEntity) -> AbilityEffect:
 	# 获取效果类型
 	var effect_type = effect_data.get("type", "damage")
 

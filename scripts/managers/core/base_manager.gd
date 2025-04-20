@@ -216,3 +216,7 @@ func _log_info(message: String) -> void:
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus and EventBus.has_method("emit_event"):
 			EventBus.debug.emit_event("debug_message", [message, 0])
+
+# 记录调试信息
+func _log_debug(debug_message: String) -> void:
+	EventBus.debug.emit_event("debug_message", [debug_message, 0])

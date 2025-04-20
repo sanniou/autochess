@@ -26,28 +26,28 @@ var relic_manager = null
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "RelicUiManager"
-	
+
 	# 原 _ready 函数的内容
 	# 获取遗物管理器引用
 	relic_manager = get_node_or_null("/root/GameManager/RelicManager")
-		
+
 	# 连接信号
 	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
 	EventBus.relic.connect_event("show_relic_info", _on_show_relic_info)
 	EventBus.relic.connect_event("hide_relic_info", _on_hide_relic_info)
 	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
-	
+
 	## 显示遗物面板
 func show_relic_panel() -> void:
 	# 如果面板已存在，直接显示
 	if relic_panel and is_instance_valid(relic_panel):
 		relic_panel.visible = true
 		return
-	
+
 	# 创建遗物面板
 	relic_panel = RELIC_PANEL_SCENE.instantiate()
 	add_child(relic_panel)
-	
+
 	# 初始化面板
 	relic_panel.visible = true
 
@@ -64,11 +64,11 @@ func show_relic_tooltip(relic_data, position: Vector2) -> void:
 		relic_tooltip.position = position
 		relic_tooltip.visible = true
 		return
-	
+
 	# 创建遗物提示
 	relic_tooltip = RELIC_TOOLTIP_SCENE.instantiate()
 	add_child(relic_tooltip)
-	
+
 	# 设置数据和位置
 	relic_tooltip.set_relic_data(relic_data)
 	relic_tooltip.position = position
@@ -84,10 +84,10 @@ func play_relic_acquisition_animation(relic_data) -> void:
 	# 创建遗物获取动画
 	var acquisition_anim = RELIC_ACQUISITION_SCENE.instantiate()
 	add_child(acquisition_anim)
-	
+
 	# 设置遗物数据
 	acquisition_anim.set_relic_data(relic_data)
-	
+
 	# 播放动画
 	acquisition_anim.play_animation()
 
@@ -95,7 +95,7 @@ func play_relic_acquisition_animation(relic_data) -> void:
 func _on_relic_acquired(relic_data) -> void:
 	# 播放获取动画
 	play_relic_acquisition_animation(relic_data)
-	
+
 	# 更新遗物面板
 	if relic_panel and is_instance_valid(relic_panel):
 		relic_panel._initialize_relic_list()
@@ -104,7 +104,7 @@ func _on_relic_acquired(relic_data) -> void:
 func _on_show_relic_info(relic_data) -> void:
 	# 显示遗物面板
 	show_relic_panel()
-	
+
 	# 显示遗物详细信息
 	if relic_panel and is_instance_valid(relic_panel):
 		relic_panel._on_show_relic_info(relic_data)
@@ -143,3 +143,36 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 隐藏遗物面板
+	hide_relic_panel()
+
+	# 隐藏遗物提示
+	hide_relic_tooltip()
+
+	_log_info("遗物UI管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开信号连接
+	EventBus.relic.disconnect_event("relic_acquired", _on_relic_acquired)
+	EventBus.relic.disconnect_event("show_relic_info", _on_show_relic_info)
+	EventBus.relic.disconnect_event("hide_relic_info", _on_hide_relic_info)
+	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+
+	# 清理遗物面板
+	if relic_panel and is_instance_valid(relic_panel):
+		relic_panel.queue_free()
+		relic_panel = null
+
+	# 清理遗物提示
+	if relic_tooltip and is_instance_valid(relic_tooltip):
+		relic_tooltip.queue_free()
+		relic_tooltip = null
+
+	# 重置遗物管理器引用
+	relic_manager = null
+
+	_log_info("遗物UI管理器清理完成")

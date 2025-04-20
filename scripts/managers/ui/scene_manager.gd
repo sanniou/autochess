@@ -41,10 +41,7 @@ var loading_thread: Thread = null
 # 引用
 var ui_manager = null
 
-# 初始化
-func _ready() -> void:
-	# 初始化管理器
-	initialize()
+
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -343,3 +340,34 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重置场景状态
+	current_state = SceneManagerState.IDLE
+
+	# 清空场景历史记录
+	scene_history.clear()
+
+	# 清空场景缓存
+	clear_scene_cache()
+
+	_log_info("场景管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.ui.disconnect_event("transition_midpoint", _on_transition_midpoint)
+
+	# 清空场景历史记录
+	scene_history.clear()
+
+	# 清空场景缓存
+	clear_scene_cache()
+
+	# 终止加载线程
+	if loading_thread and loading_thread.is_started():
+		loading_thread.wait_to_finish()
+		loading_thread = null
+
+	_log_info("场景管理器清理完成")

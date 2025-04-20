@@ -262,3 +262,22 @@ func _do_reset() -> void:
 	# 清空列表
 	loaded_huds.clear()
 	visible_huds.clear()
+
+	_log_info("HUD管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开信号连接
+	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+
+	# 卸载所有HUD
+	unload_all_huds()
+
+	# 清空列表
+	loaded_huds.clear()
+	visible_huds.clear()
+
+	# 重置HUD容器引用
+	hud_container = null
+
+	_log_info("HUD管理器清理完成")

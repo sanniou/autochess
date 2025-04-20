@@ -86,11 +86,11 @@ class BattleEvents:
 	const BATTLE_ROUND_ENDED = "battle_round_ended"        # (round_number)
 
 	# 战斗行为
-	const DAMAGE_DEALT = "damage_dealt"                    # (source: ChessPiece, target: ChessPiece, amount: float, damage_type: String)
-	const HEAL_RECEIVED = "heal_received"                  # (target: ChessPiece, amount: float, source: ChessPiece|null) - 治疗目标、治疗量、治疗来源
-	const ABILITY_USED = "ability_used"                    # (piece: ChessPiece, ability_data: Dictionary)
-	const ABILITY_EFFECT_APPLIED = "ability_effect_applied"  # (source: ChessPiece, target: ChessPiece, effect_type: String, effect_value: float)
-	const UNIT_DIED = "unit_died"                          # (unit: ChessPiece) - 死亡的棋子单位
+	const DAMAGE_DEALT = "damage_dealt"                    # (source: ChessPieceEntity, target: ChessPieceEntity, amount: float, damage_type: String)
+	const HEAL_RECEIVED = "heal_received"                  # (target: ChessPieceEntity, amount: float, source: ChessPiece|null) - 治疗目标、治疗量、治疗来源
+	const ABILITY_USED = "ability_used"                    # (piece: ChessPieceEntity, ability_data: Dictionary)
+	const ABILITY_EFFECT_APPLIED = "ability_effect_applied"  # (source: ChessPieceEntity, target: ChessPieceEntity, effect_type: String, effect_value: float)
+	const UNIT_DIED = "unit_died"                          # (unit: ChessPieceEntity) - 死亡的棋子单位
 
 	# 战斗控制
 	const BATTLE_SPEED_CHANGED = "battle_speed_changed"    # (speed_multiplier)

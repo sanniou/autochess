@@ -27,7 +27,7 @@ func _ready() -> void:
 	add_child(_config_loader)
 
 # 创建技能
-func create_ability(ability_data: Dictionary, owner_piece: ChessPiece) -> Ability:
+func create_ability(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> Ability:
 	# 获取技能类型
 	var ability_type = ability_data.get("type", "damage")
 
@@ -41,7 +41,7 @@ func create_ability(ability_data: Dictionary, owner_piece: ChessPiece) -> Abilit
 	return ability
 
 # 从配置创建技能
-func create_ability_from_config(ability_id: String, owner_piece: ChessPiece) -> Ability:
+func create_ability_from_config(ability_id: String, owner_piece: ChessPieceEntity) -> Ability:
 	# 获取技能配置
 	var ability_config = _config_loader.get_ability_config(ability_id)
 	if ability_config.is_empty():

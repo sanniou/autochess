@@ -337,12 +337,12 @@ func _check_completionist_achievement() -> void:
 		unlock_achievement("completionist")
 
 # 棋子创建事件处理
-func _on_chess_piece_created(piece: ChessPiece) -> void:
+func _on_chess_piece_created(piece: ChessPieceEntity) -> void:
 	# 检查"棋子大师"成就
 	_check_chess_master_achievement(piece)
 
 # 棋子升级事件处理
-func _on_chess_piece_upgraded(piece: ChessPiece, old_star: int, new_star: int) -> void:
+func _on_chess_piece_upgraded(piece: ChessPieceEntity, old_star: int, new_star: int) -> void:
 	# 检查"三星收藏家"成就
 	if new_star == 3:
 		increment_achievement_progress("three_star_collector")
@@ -458,7 +458,7 @@ func _on_game_completed(victory: bool) -> void:
 		unlock_achievement("speed_run")
 
 # 检查"棋子大师"成就
-func _check_chess_master_achievement(new_piece: ChessPiece = null) -> void:
+func _check_chess_master_achievement(new_piece: ChessPieceEntity = null) -> void:
 	# 获取棋子管理器
 	var chess_manager = GameManager.chess_manager
 	if chess_manager == null:
@@ -573,6 +573,37 @@ func _log_warning(warning_message: String) -> void:
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
+# 重写重置方法
+func _do_reset() -> void:
+	# 清空成就进度
+	achievement_progress.clear()
+
+	# 清空已解锁的成就
+	unlocked_achievements.clear()
+
+	# 重新加载成就配置
+	_load_achievement_configs()
+
+	_log_info("成就管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.chess.disconnect_event("chess_piece_created", _on_chess_piece_created)
+	EventBus.chess.disconnect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
+	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+	EventBus.event.disconnect_event("event_completed", _on_event_completed)
+	EventBus.relic.disconnect_event("relic_acquired", _on_relic_acquired)
+	EventBus.economy.disconnect_event("gold_changed", _on_gold_changed)
+	EventBus.chess.disconnect_event("synergy_activated", _on_synergy_activated)
+	EventBus.game.disconnect_event("game_ended", _on_game_completed)
+
+	# 清空成就数据
+	achievement_configs.clear()
+	achievement_progress.clear()
+	unlocked_achievements.clear()
+
+	_log_info("成就管理器清理完成")
 # 检查统计相关成就
 func check_stat_achievement(stat_name: String, value) -> void:
 	# 根据统计名称检查不同的成就

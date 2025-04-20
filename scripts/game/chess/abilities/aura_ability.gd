@@ -10,7 +10,7 @@ var aura_radius: float = 2.0      # 光环半径（格子数）
 var affected_pieces: Array = []   # 受影响的棋子
 
 # 初始化技能
-func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
+func initialize(ability_data: Dictionary, owner_piece: ChessPieceEntity) -> void:
 	super.initialize(ability_data, owner_piece)
 
 	# 设置光环类型和值
@@ -188,7 +188,7 @@ func _play_aura_effect() -> void:
 	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.BUFF, owner, params)
 
 # 播放单体特效
-func _play_effect(target: ChessPiece) -> void:
+func _play_effect(target: ChessPieceEntity) -> void:
 	# 创建增益特效
 	var params = {
 		"buff_type": aura_type

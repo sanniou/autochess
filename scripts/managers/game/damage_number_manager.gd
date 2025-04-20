@@ -96,14 +96,14 @@ var _font: Font = null
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "DamageNumberManager"
-	
+
 	# 原 _ready 函数的内容
 	# 加载默认字体
 	_font = ThemeDB.fallback_font
-	
+
 	# 连接信号
 	_connect_signals()
-	
+
 # 连接信号
 func _connect_signals() -> void:
 	# 连接伤害信号
@@ -196,7 +196,7 @@ func create_floating_text(position: Vector2, text: String, type: TextType) -> vo
 	add_child(damage_number)
 
 # 伤害事件处理
-func _on_damage_dealt(source: ChessPiece, target: ChessPiece, amount: float, damage_type: String) -> void:
+func _on_damage_dealt(source: ChessPieceEntity, target: ChessPieceEntity, amount: float, damage_type: String) -> void:
 	# 检查是否是暴击
 	var is_crit = false
 	if source and source.has_meta("last_attack_was_crit"):
@@ -211,12 +211,12 @@ func _on_damage_dealt(source: ChessPiece, target: ChessPiece, amount: float, dam
 		show_damage(target.global_position, amount, damage_type, false)
 
 # 治疗事件处理
-func _on_heal_received(target: ChessPiece, amount: float, source = null) -> void:
+func _on_heal_received(target: ChessPieceEntity, amount: float, source = null) -> void:
 	# 显示治疗数字
 	show_heal(target.global_position, amount)
 
 # 状态效果添加事件处理
-func _on_status_effect_added(target: ChessPiece, effect_id: String, effect_data: Dictionary) -> void:
+func _on_status_effect_added(target: ChessPieceEntity, effect_id: String, effect_data: Dictionary) -> void:
 	# 检查效果类型
 	var effect_type = TextType.BUFF
 	if effect_data.has("is_debuff") and effect_data.is_debuff:
@@ -231,19 +231,19 @@ func _on_status_effect_added(target: ChessPiece, effect_id: String, effect_data:
 	create_floating_text(target.global_position, effect_name, effect_type)
 
 # 状态效果抵抗事件处理
-func _on_status_effect_resisted(target: ChessPiece, effect_id: String) -> void:
+func _on_status_effect_resisted(target: ChessPieceEntity, effect_id: String) -> void:
 	# 显示抵抗文本
 	create_floating_text(target.global_position, "", TextType.RESIST)
 
 # 法力值变化事件处理
-func _on_mana_changed(piece: ChessPiece, old_value: float, new_value: float, source: String) -> void:
+func _on_mana_changed(piece: ChessPieceEntity, old_value: float, new_value: float, source: String) -> void:
 	# 只处理获得法力的情况
 	if new_value > old_value and source != "init":
 		var amount = new_value - old_value
 		create_floating_text(piece.global_position, str(int(amount)), TextType.MANA_GAIN)
 
 # 棋子升级事件处理
-func _on_chess_piece_upgraded(piece: ChessPiece, new_level: int) -> void:
+func _on_chess_piece_upgraded(piece: ChessPieceEntity, new_level: int) -> void:
 	# 显示升级文本
 	create_floating_text(piece.global_position, "", TextType.LEVEL_UP)
 
@@ -266,3 +266,29 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 移除所有伤害数字
+	for child in get_children():
+		if child.is_in_group("damage_numbers"):
+			child.queue_free()
+
+	_log_info("伤害数字管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开信号连接
+	EventBus.battle.disconnect_event("damage_dealt", _on_damage_dealt)
+	EventBus.battle.disconnect_event("heal_received", _on_heal_received)
+	EventBus.status_effect.disconnect_event("status_effect_added", _on_status_effect_added)
+	EventBus.status_effect.disconnect_event("status_effect_resisted", _on_status_effect_resisted)
+	EventBus.battle.disconnect_event("mana_changed", _on_mana_changed)
+	EventBus.chess.disconnect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
+
+	# 移除所有伤害数字
+	for child in get_children():
+		if child.is_in_group("damage_numbers"):
+			child.queue_free()
+
+	_log_info("伤害数字管理器清理完成")

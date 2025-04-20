@@ -1,50 +1,53 @@
-extends "res://scripts/game/chess/states/chess_state.gd"
+extends "res://scripts/game/chess/states/base_chess_state.gd"
 class_name IdleState
 ## 棋子空闲状态
 ## 处理棋子在空闲时的行为
 
-# 状态名称
+# 初始化
 func _init():
 	state_name = "idle"
+	state_description = "棋子处于空闲状态，会自动回复法力值并寻找目标"
 
 # 进入状态
 func enter() -> void:
+	super.enter()
+
 	# 重置攻击计时器
-	if owner.data:
-		owner.data.attack_timer = 0.0
-	
+	set_state_data("attack_timer", 0.0)
+
 	# 播放空闲动画
-	owner.play_animation("idle")
+	if owner and owner.has_method("play_animation"):
+		owner.play_animation("idle")
+
+# 退出状态
+func exit() -> void:
+	super.exit()
 
 # 物理更新
 func physics_process(delta: float) -> void:
-	# 自动回蓝
-	if owner.data:
-		owner.gain_mana(delta * 5.0, "passive")  # 每秒回复5点法力值
-	
-	# 检查状态转换
-	var next_state = check_transitions()
-	if next_state != "":
-		owner.state_machine.change_state(next_state)
+	super.physics_process(delta)
 
-# 检查状态转换
-func check_transitions() -> String:
-	# 如果被眩晕，切换到眩晕状态
-	if owner.is_stunned():
-		return "stunned"
-	
-	# 如果死亡，切换到死亡状态
-	if owner.is_dead():
-		return "dead"
-	
-	# 如果有目标，切换到移动或攻击状态
-	if owner.has_target():
-		var target = owner.get_target()
-		if target:
-			var distance = owner.get_distance_to_target(target)
-			if distance <= owner.get_attack_range():
-				return "attacking"
-			else:
-				return "moving"
-	
-	return ""
+	# 自动回蓝
+	if owner and owner.has_method("gain_mana"):
+		owner.gain_mana(delta * 5.0, "passive")  # 每秒回复5点法力值
+
+	# 更新攻击计时器
+	var attack_timer = get_state_data_item("attack_timer", 0.0)
+	attack_timer += delta
+	set_state_data("attack_timer", attack_timer)
+
+	# 检查是否可以攻击
+	if owner and owner.has_method("get_attribute") and owner.has_method("has_target"):
+		if owner.has_target():
+			var attack_speed = owner.get_attribute("attack_speed")
+			if attack_speed <= 0:
+				attack_speed = 0.1  # 防止除以零
+
+			if attack_timer >= 1.0 / attack_speed:
+				set_state_data("attack_timer", 0.0)
+				_perform_attack()
+
+# 执行攻击
+func _perform_attack() -> void:
+	if owner and owner.has_method("perform_attack"):
+		owner.perform_attack()

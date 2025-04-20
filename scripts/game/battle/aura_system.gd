@@ -19,7 +19,7 @@ enum AuraShape {
 
 # 光环数据结构
 class AuraData:
-	var source: ChessPiece           # 光环来源
+	var source: ChessPieceEntity           # 光环来源
 	var type: int = AuraType.BUFF    # 光环类型
 	var shape: int = AuraShape.CIRCLE # 光环形状
 	var range: float = 1.0           # 光环范围
@@ -32,7 +32,7 @@ class AuraData:
 	var synergy_required: String = "" # 所需羁绊
 	var synergy_level: int = 0        # 羁绊等级
 
-	func _init(source_piece: ChessPiece, aura_id: String, aura_type: int, aura_shape: int, aura_range: float, aura_effects: Array):
+	func _init(source_piece: ChessPieceEntity, aura_id: String, aura_type: int, aura_shape: int, aura_range: float, aura_effects: Array):
 		source = source_piece
 		id = aura_id
 		type = aura_type
@@ -84,7 +84,7 @@ func update_aura(aura: AuraData) -> void:
 			aura.affected_pieces.append(piece)
 
 # 添加光环
-func add_aura(source: ChessPiece, aura_id: String, aura_type: int, aura_shape: int, aura_range: float, aura_effects: Array) -> AuraData:
+func add_aura(source: ChessPieceEntity, aura_id: String, aura_type: int, aura_shape: int, aura_range: float, aura_effects: Array) -> AuraData:
 	# 检查是否已存在相同ID的光环
 	for aura in active_auras:
 		if aura.id == aura_id and aura.source == source:
@@ -125,7 +125,7 @@ func add_aura(source: ChessPiece, aura_id: String, aura_type: int, aura_shape: i
 	return new_aura
 
 # 移除光环
-func remove_aura(source: ChessPiece, aura_id: String) -> void:
+func remove_aura(source: ChessPieceEntity, aura_id: String) -> void:
 	for i in range(active_auras.size() - 1, -1, -1):
 		var aura = active_auras[i]
 		if aura.id == aura_id and aura.source == source:
@@ -139,7 +139,7 @@ func remove_aura(source: ChessPiece, aura_id: String) -> void:
 			break
 
 # 移除棋子的所有光环
-func remove_all_auras_from_piece(piece: ChessPiece) -> void:
+func remove_all_auras_from_piece(piece: ChessPieceEntity) -> void:
 	for i in range(active_auras.size() - 1, -1, -1):
 		var aura = active_auras[i]
 		if aura.source == piece:
@@ -227,7 +227,7 @@ func _get_cells_in_column(center_cell: BoardCell) -> Array:
 	return result
 
 # 检查是否可以影响棋子
-func _can_affect_piece(aura: AuraData, piece: ChessPiece) -> bool:
+func _can_affect_piece(aura: AuraData, piece: ChessPieceEntity) -> bool:
 	# 不能影响自己
 	if piece == aura.source:
 		return false
@@ -244,7 +244,7 @@ func _can_affect_piece(aura: AuraData, piece: ChessPiece) -> bool:
 	return false
 
 # 应用光环效果
-func _apply_aura_effects(aura: AuraData, piece: ChessPiece) -> void:
+func _apply_aura_effects(aura: AuraData, piece: ChessPieceEntity) -> void:
 	for effect in aura.effects:
 		var effect_copy = effect.duplicate()
 		effect_copy.id = "aura_%s_%s" % [aura.id, piece.get_instance_id()]
@@ -254,7 +254,7 @@ func _apply_aura_effects(aura: AuraData, piece: ChessPiece) -> void:
 		piece.add_effect(effect_copy)
 
 # 移除光环效果
-func _remove_aura_effects(aura: AuraData, piece: ChessPiece) -> void:
+func _remove_aura_effects(aura: AuraData, piece: ChessPieceEntity) -> void:
 	var effect_id = "aura_%s_%s" % [aura.id, piece.get_instance_id()]
 	piece.remove_effect(effect_id)
 
@@ -272,12 +272,12 @@ func _clear_all_aura_effects() -> void:
 			aura.visual_effect = null
 
 # 棋子移动事件处理
-func _on_chess_piece_moved(_piece: ChessPiece, _from_pos: Vector2i, _to_pos: Vector2i) -> void:
+func _on_chess_piece_moved(_piece: ChessPieceEntity, _from_pos: Vector2i, _to_pos: Vector2i) -> void:
 	# 更新所有光环
 	update_all_auras()
 
 # 棋子死亡事件处理
-func _on_unit_died(piece: ChessPiece) -> void:
+func _on_unit_died(piece: ChessPieceEntity) -> void:
 	# 移除死亡棋子的所有光环
 	remove_all_auras_from_piece(piece)
 

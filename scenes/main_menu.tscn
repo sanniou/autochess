@@ -212,11 +212,11 @@ size_flags_vertical = 3
 theme_override_font_sizes/font_size = 24
 text = "性能测试"
 
-[node name="TestMenuButton" type="Button" parent="ButtonContainer"]
+[node name="TestHubButton" type="Button" parent="ButtonContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 24
-text = "测试菜单"
+text = "测试中心"
 
 [node name="SettingsButton" type="Button" parent="ButtonContainer"]
 layout_mode = 2
@@ -286,7 +286,7 @@ vertical_alignment = 1
 [connection signal="pressed" from="ButtonContainer/ShopTestButton" to="." method="_on_shop_test_button_pressed"]
 [connection signal="pressed" from="ButtonContainer/EnvironmentTestButton" to="." method="_on_environment_test_button_pressed"]
 [connection signal="pressed" from="ButtonContainer/PerformanceTestButton" to="." method="_on_performance_test_button_pressed"]
-[connection signal="pressed" from="ButtonContainer/TestMenuButton" to="." method="_on_test_menu_button_pressed"]
+[connection signal="pressed" from="ButtonContainer/TestHubButton" to="." method="_on_test_hub_button_pressed"]
 [connection signal="pressed" from="ButtonContainer/SettingsButton" to="." method="_on_settings_button_pressed"]
 [connection signal="pressed" from="ButtonContainer/SkinsButton" to="." method="_on_skins_button_pressed"]
 [connection signal="pressed" from="ButtonContainer/QuitButton" to="." method="_on_quit_button_pressed"]

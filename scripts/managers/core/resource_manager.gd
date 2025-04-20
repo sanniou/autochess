@@ -1,4 +1,5 @@
 extends "res://scripts/managers/core/base_manager.gd"
+class_name ResourceManager
 ## 资源管理器
 ## 负责游戏资源的加载和缓存
 
@@ -265,3 +266,25 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 清空缓存
+	clear_cache()
+
+	# 重置加载状态
+	_loading_complete = false
+	_loading_progress = 0.0
+
+	_log_info("资源管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 清空缓存
+	clear_cache()
+
+	# 重置加载状态
+	_loading_complete = false
+	_loading_progress = 0.0
+
+	_log_info("资源管理器清理完成")

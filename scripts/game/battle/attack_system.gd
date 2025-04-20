@@ -52,7 +52,7 @@ func _ready():
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
 
 # 处理攻击
-func process_attack(attacker: ChessPiece, defender: ChessPiece) -> Dictionary:
+func process_attack(attacker: ChessPieceEntity, defender: ChessPieceEntity) -> Dictionary:
 	# 检查攻击者和防御者是否有效
 	if not is_instance_valid(attacker) or not is_instance_valid(defender):
 		return {}
@@ -71,7 +71,7 @@ func process_attack(attacker: ChessPiece, defender: ChessPiece) -> Dictionary:
 	return damage_result
 
 # 检查是否可以攻击
-func can_attack(attacker: ChessPiece, defender: ChessPiece) -> bool:
+func can_attack(attacker: ChessPieceEntity, defender: ChessPieceEntity) -> bool:
 	# 检查攻击者和防御者状态
 	if attacker.current_state == ChessPiece.ChessState.DEAD or defender.current_state == ChessPiece.ChessState.DEAD:
 		return false
@@ -94,7 +94,7 @@ func can_attack(attacker: ChessPiece, defender: ChessPiece) -> bool:
 	return true
 
 # 计算伤害
-func calculate_damage(attacker: ChessPiece, defender: ChessPiece, damage_type: int = DamageType.PHYSICAL, base_damage: float = -1) -> Dictionary:
+func calculate_damage(attacker: ChessPieceEntity, defender: ChessPieceEntity, damage_type: int = DamageType.PHYSICAL, base_damage: float = -1) -> Dictionary:
 	var result = {
 		"attacker": attacker,
 		"defender": defender,
@@ -170,7 +170,7 @@ func calculate_damage(attacker: ChessPiece, defender: ChessPiece, damage_type: i
 	return result
 
 # 应用伤害
-func apply_damage(attacker: ChessPiece, defender: ChessPiece, damage_result: Dictionary) -> void:
+func apply_damage(attacker: ChessPieceEntity, defender: ChessPieceEntity, damage_result: Dictionary) -> void:
 	# 如果未命中，不造成伤害
 	if not damage_result.is_hit:
 		# 触发闪避效果
@@ -220,7 +220,7 @@ func apply_damage(attacker: ChessPiece, defender: ChessPiece, damage_result: Dic
 	EventBus.battle.emit_event("damage_dealt", [attacker, defender, actual_damage, damage_type_str])
 
 # 触发攻击效果
-func _trigger_attack_effects(attacker: ChessPiece, defender: ChessPiece, damage_result: Dictionary) -> void:
+func _trigger_attack_effects(attacker: ChessPieceEntity, defender: ChessPieceEntity, damage_result: Dictionary) -> void:
 	# 处理攻击者的效果
 	for effect in attacker.active_effects:
 		if effect.has("trigger") and effect.trigger == "on_attack":
@@ -229,7 +229,7 @@ func _trigger_attack_effects(attacker: ChessPiece, defender: ChessPiece, damage_
 				_apply_effect(effect, attacker, defender)
 
 # 触发受伤效果
-func _trigger_damage_effects(defender: ChessPiece, attacker: ChessPiece, damage_result: Dictionary) -> void:
+func _trigger_damage_effects(defender: ChessPieceEntity, attacker: ChessPieceEntity, damage_result: Dictionary) -> void:
 	# 处理防御者的效果
 	for effect in defender.active_effects:
 		if effect.has("trigger") and effect.trigger == "on_damaged":
@@ -238,7 +238,7 @@ func _trigger_damage_effects(defender: ChessPiece, attacker: ChessPiece, damage_
 				_apply_effect(effect, defender, attacker)
 
 # 触发闪避效果
-func _trigger_dodge_effects(defender: ChessPiece, attacker: ChessPiece) -> void:
+func _trigger_dodge_effects(defender: ChessPieceEntity, attacker: ChessPieceEntity) -> void:
 	# 处理防御者的效果
 	for effect in defender.active_effects:
 		if effect.has("trigger") and effect.trigger == "on_dodge":
@@ -247,7 +247,7 @@ func _trigger_dodge_effects(defender: ChessPiece, attacker: ChessPiece) -> void:
 				_apply_effect(effect, defender, attacker)
 
 # 应用状态效果
-func _apply_status_effects(target: ChessPiece, effects: Array) -> void:
+func _apply_status_effects(target: ChessPieceEntity, effects: Array) -> void:
 	# 应用所有状态效果
 	for effect in effects:
 		# 根据状态类型确定状态效果类型
@@ -287,7 +287,7 @@ func _apply_status_effects(target: ChessPiece, effects: Array) -> void:
 		GameManager.battle_manager.apply_status_effect(effect.source, target, status_type, effect.duration, effect.value)
 
 # 应用效果
-func _apply_effect(effect: Dictionary, source: ChessPiece, target: ChessPiece) -> void:
+func _apply_effect(effect: Dictionary, source: ChessPieceEntity, target: ChessPieceEntity) -> void:
 
 
 	# 根据效果类型应用不同效果

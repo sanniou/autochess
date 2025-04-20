@@ -1,4 +1,5 @@
 extends "res://scripts/managers/core/base_manager.gd"
+class_name TestConfigManager
 ## 配置管理器测试脚本
 ## 用于测试配置管理器是否能正确加载配置文件
 
@@ -64,3 +65,11 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	_log_info("测试配置管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	_log_info("测试配置管理器清理完成")

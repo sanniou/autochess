@@ -135,7 +135,7 @@ func add_exp(amount: int) -> bool:
 ## 购买棋子
 ## @param piece_id 棋子ID
 ## @return 购买的棋子实例，如果购买失败则返回 null
-func purchase_chess_piece(piece_id: String) -> ChessPiece:
+func purchase_chess_piece(piece_id: String) -> ChessPieceEntity:
 	if current_player == null:
 		_log_warning("无法购买棋子：当前玩家未初始化")
 		return null
@@ -175,7 +175,7 @@ func purchase_chess_piece(piece_id: String) -> ChessPiece:
 ## 出售棋子
 ## @param piece 要出售的棋子
 ## @return 是否出售成功
-func sell_chess_piece(piece: ChessPiece) -> bool:
+func sell_chess_piece(piece: ChessPieceEntity) -> bool:
 	if current_player == null:
 		_log_warning("无法出售棋子：当前玩家未初始化")
 		return false
@@ -244,7 +244,7 @@ func _on_game_started() -> void:
 ## 棋子创建事件处理
 ## @param piece 创建的棋子
 ## @return void
-func _on_chess_piece_created(piece: ChessPiece) -> void:
+func _on_chess_piece_created(piece: ChessPieceEntity) -> void:
 	if piece == null:
 		return
 

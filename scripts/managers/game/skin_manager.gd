@@ -420,3 +420,30 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 重写重置方法
+func _do_reset() -> void:
+	# 重新加载皮肤配置
+	_load_skin_configs()
+
+	# 重新加载已解锁的皮肤
+	_load_unlocked_skins()
+
+	# 重新加载选中的皮肤
+	_load_selected_skins()
+
+	_log_info("皮肤管理器重置完成")
+
+# 重写清理方法
+func _do_cleanup() -> void:
+	# 断开事件连接
+	EventBus.skin.disconnect_event("skin_changed", _on_skin_changed)
+	EventBus.skin.disconnect_event("skin_unlocked", _on_skin_unlocked)
+	EventBus.save.disconnect_event("game_loaded", _on_game_loaded)
+
+	# 清空皮肤数据
+	chess_skins.clear()
+	board_skins.clear()
+	ui_skins.clear()
+
+	_log_info("皮肤管理器清理完成")
