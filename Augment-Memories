@@ -1,26 +1,20 @@
 # General Preferences
 - User prefers communication in Chinese.
-- Godot 4.4.1
-- 应用 AngularJS commit 规范
-- 修改代码的时候必须先对原文件和相关模块完全的掌握，不应该粗暴的完全替换原文件。
-- 带着重构优化的目光审视相关代码，以最优解重构模块，不需要考虑兼容问题，如果有保护性的兼容代码请修改掉，不要使用注释相关功能的方式来逃避问题。
-- 分步进行修改。
-- 优先使用已有文件，如果判断已有文件不合理可以直接修改/删除/替换。不要随意新建相同功能的新文件/函数，以免造成混乱。
-- 不合理的或者有更好实现的模块请直接用最优解重构，不需要考虑兼容问题，重构完成后检查api的变化，修复其他引用此模块的地方。
-- 我们生成代码的时候，提前考虑好性能、可扩展性、可配置、解耦、模块化的实现。代码要提前关注可能与其他系统的交互,预设交互空间（比如难度、皮肤、多语言-目前只需要中文、成就统计、遗物影响、事件影响、插件系统以及其它系统）
-- 当涉及到无法生成的文件的时候，请使用虚拟文件占位（或者godot 是否会有一些公共素材？）。
-- 新增/删除/重构功能时判断此项目是否真的需要这些需修改？在合适的范围内做减法。
-- 完成模块开发后，在最后再次确认是否有遗漏，确认无误后更新 README.md，以规划下一步的开发工作。
-- User prefers to delete deprecated .gd files rather than just marking them as deprecated.
+- 用户希望语法遵守 Godot 的规范。
+- 用户希望应用 AngularJS commit 规范
+- 用户希望分析代码应该足够激进，优先考虑代码质量和最优设计
+- 用户希望修改代码的时候必须先对原文件和相关模块完全的掌握，不应该遗漏待实现的功能。
+- 用户希望带着重构优化的目光审视你所看到的代码。
+- 用户希望编程时不需要考虑兼容问题，如果有保护性的兼容代码请修改掉，不要添加无谓的空判断，这样只会隐藏问题。
+- 用户希望不要使用注释相关功能的方式来逃避问题。
+- 用户希望新建功能模块的时候，请先分析项目中是否有可用的 Utils 和模块，如果判断已有文件不合理可以直接修改/删除/替换。不要随意新建相同功能的新文件/函数，以免造成混乱。不要随意新建相同功能的新文件/函数，以免造成混乱。
+- 用户希望生成代码的时候，提前考虑好性能、可扩展、可配置、解耦、模块化的实现。代码要提前关注可能与其他系统的交互,预设交互空间（比如难度、皮肤、多语言-目前只需要中文、成就统计、遗物影响、事件影响、插件系统以及其它系统）
+- 用户希望当涉及到无法生成的文件的时候，请使用虚拟文件占位（或者godot 是否会有一些公共素材可以使用）。
+- 新增用户希望/删除/重构功能时判断此项目是否真的需要这些需修改？在合适的范围内做减法。
 - 用户希望检查并清理项目中的矛盾、重复和未使用的部分，保持代码库的整洁。
-- User prefers to delete original files when moving them to new locations rather than just copying them.
 - 用户关心配置模型类在项目中的实际使用情况。
-- User prefers to execute migration plans without using compatibility layers, directly deleting the old system.
 - 用户偏好直接执行代码迁移而不需要创建迁移指南。
-
-# Optimization and Refactoring
-- User wants to address the issue of scattered state management in the codebase.
-- 用户希望从功能、UI和代码质量等多个方向优化和重构代码，特别关注主页面的合理性。
-- 用户偏好通过合并功能并删除重复模块来提高代码质量，保持代码简洁。
-- 用户希望检查并规范化项目中的所有文件，包括network、sync、animation和test-config等模块，确保它们符合统一的目录结构规范。
-- 用户希望优化事件系统和配置数据加载管理，减少重复和分散。
+- 用户希望先分析代码合理性，考虑最优架构重构，然后再开始编码实现。
+- 用户希望基于用户体验、视觉效果、项目架构再次回顾是否还有可优化点。
+- User prefers high quality code without defensive programming, doesn't want to handle exceptional cases, and wants to remove unreasonable designs and code.
+- User prefers thorough analysis of user experience, visual effects, and project architecture before implementation.
