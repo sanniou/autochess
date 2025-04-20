@@ -48,7 +48,32 @@ func _get_default_schema() -> Dictionary:
 		"steps": {
 			"type": "array[dictionary]",
 			"required": true,
-			"description": "教程步骤"
+			"description": "教程步骤",
+			"schema": {
+				"title": {
+					"type": "string",
+					"required": true,
+					"description": "步骤标题"
+				},
+				"content": {
+					"type": "string",
+					"required": true,
+					"description": "步骤内容"
+				},
+				"image_path": {
+					"type": "string",
+					"required": false,
+					"description": "步骤图片路径"
+				},
+				"actions": {
+					"type": "array[dictionary]",
+					"required": false,
+					"description": "步骤操作",
+					"check_schema": false
+					}
+					}
+		
+		
 		}
 	}
 

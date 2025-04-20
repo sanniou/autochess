@@ -29,42 +29,37 @@ func apply() -> void:
 	if not target or not is_instance_valid(target):
 		return
 
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建视觉特效
-	var effect_type = game_manager.effect_manager.VisualEffectType.BUFF
+	var effect_type = GameManager.effect_manager.VisualEffectType.BUFF
 	var params = {}
 
 	# 根据视觉效果类型设置参数
 	match visual_type:
 		VisualType.PARTICLE:
-			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
+			effect_type = GameManager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
-			params["color"] = game_manager.effect_manager.get_effect_color("buff")
+			params["color"] = GameManager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 		VisualType.SPRITE:
-			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
+			effect_type = GameManager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
-			params["color"] = game_manager.effect_manager.get_effect_color("buff")
+			params["color"] = GameManager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 			params["visual_path"] = visual_path
 		VisualType.ANIMATION:
-			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
+			effect_type = GameManager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
-			params["color"] = game_manager.effect_manager.get_effect_color("buff")
+			params["color"] = GameManager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 			params["visual_path"] = visual_path
 		_:
-			effect_type = game_manager.effect_manager.VisualEffectType.BUFF
+			effect_type = GameManager.effect_manager.VisualEffectType.BUFF
 			params["buff_type"] = "visual"
-			params["color"] = game_manager.effect_manager.get_effect_color("buff")
+			params["color"] = GameManager.effect_manager.get_effect_color("buff")
 			params["duration"] = duration
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(effect_type, target, params)
+	GameManager.effect_manager.create_visual_effect(effect_type, target, params)
 
 	# 发送效果应用信号
 	EventBus.battle.emit_event("ability_effect_applied", [source, target, "visual", 0])

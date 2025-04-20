@@ -53,7 +53,7 @@ func select_targets() -> Array:
 		return []
 	
 	# 获取棋盘管理器
-	var board_manager = owner.get_node("/root/GameManager/BoardManager")
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return []
 	
@@ -167,7 +167,7 @@ func _sort_targets(targets: Array) -> void:
 # 计算周围的棋子数量
 func _count_nearby_pieces(piece: ChessPiece, radius: float = 2.0) -> int:
 	var count = 0
-	var board_manager = owner.get_node("/root/GameManager/BoardManager")
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return 0
 	

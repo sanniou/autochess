@@ -113,22 +113,17 @@ func _create_visual_effect() -> void:
 	if not target or not is_instance_valid(target):
 		return
 
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color(damage_type),
+		"color": GameManager.effect_manager.get_effect_color(damage_type),
 		"duration": duration,
 		"damage_type": damage_type,
 		"dot_type": dot_type
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.DOT,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.DOT,
 		target,
 		params
 	)

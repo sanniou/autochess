@@ -20,6 +20,13 @@ var timer: float = 0.0
 var is_player_turn: bool = true
 var battle_result: Dictionary = {}
 
+# 事件标志
+var prepare_phase_event_sent: bool = false
+var fighting_phase_event_sent: bool = false
+
+# 事件定义
+var Events = null
+
 # 战斗双方棋子
 var player_pieces = []  # 玩家棋子
 var enemy_pieces = []   # 敌方棋子
@@ -63,21 +70,29 @@ func _do_initialize() -> void:
 	add_dependency("BoardManager")
 	add_dependency("PlayerManager")
 	add_dependency("EffectManager")
+	add_dependency("StatsManager")
 
 	# 加载事件定义
-	var Events = load("res://scripts/events/event_definitions.gd")
+	Events = load("res://scripts/events/event_definitions.gd")
 
 	# 连接信号 - 使用规范的事件连接方式和常量
 	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_STARTED, _on_battle_started)
 	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_ENDED, _on_battle_ended)
+	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED, _on_battle_preparing_phase_started)
+	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_FIGHTING_PHASE_STARTED, _on_battle_fighting_phase_started)
 	EventBus.battle.connect_event(Events.BattleEvents.UNIT_DIED, _on_unit_died)
 	EventBus.battle.connect_event(Events.BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
 	EventBus.battle.connect_event(Events.BattleEvents.HEAL_RECEIVED, _on_heal_received)
 	EventBus.battle.connect_event(Events.BattleEvents.ABILITY_USED, _on_ability_used)
 
+	# 重置事件标志
+	prepare_phase_event_sent = false
+	fighting_phase_event_sent = false
+
 	_log_info("战斗管理器初始化完成")
 
 func _process(delta):
+	# 检查当前状态并调用相应的更新函数
 	match current_state:
 		BattleState.PREPARE:
 			_update_prepare_phase(delta)
@@ -88,6 +103,7 @@ func _process(delta):
 
 # 开始战斗
 func start_battle(player_team: Array = [], enemy_team: Array = []):
+	set_process(true)
 	# 设置战斗状态
 	current_state = BattleState.PREPARE
 	timer = prepare_time
@@ -118,8 +134,14 @@ func start_battle(player_team: Array = [], enemy_team: Array = []):
 	_reset_battle_stats()
 
 	# 发送战斗开始信号
-	var Events = load("res://scripts/events/event_definitions.gd")
 	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_STARTED, [])
+
+	# 重置事件标志
+	prepare_phase_event_sent = false
+	fighting_phase_event_sent = false
+
+	# 发送准备阶段开始信号
+	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED, [])
 
 	_log_info("战斗开始")
 
@@ -131,38 +153,68 @@ func end_battle(victory: bool = false):
 	# 计算战斗结果
 	_calculate_battle_result(victory)
 
+	# 更新统计数据
+	var stats_manager = GameManager.stats_manager
+	if stats_manager:
+		stats_manager.increment_stat("battles_played")
+		if victory:
+			stats_manager.increment_stat("battles_won")
+		else:
+			stats_manager.increment_stat("battles_lost")
+
+		# 更新战斗统计
+		stats_manager.increment_stat("total_damage_dealt", battle_stats.player_damage_dealt)
+		stats_manager.increment_stat("total_damage_taken", battle_stats.enemy_damage_dealt)
+		stats_manager.increment_stat("total_healing", battle_stats.player_healing)
+
 	# 发送战斗结束信号
-	var Events = load("res://scripts/events/event_definitions.gd")
 	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_ENDED, [battle_result])
 
 	# 清理战场
 	_cleanup_battle()
-
+	set_process(false)
 	_log_info("战斗结束，胜利：" + str(victory))
 
 # 更新准备阶段
 func _update_prepare_phase(delta):
-	timer -= delta
-	if timer <= 0:
-		current_state = BattleState.BATTLE
-		timer = battle_time
+	# 如果是第一帧且标志未设置，触发准备阶段开始事件
+	if timer == prepare_time and not prepare_phase_event_sent:
+		# 设置标志防止重复触发
+		prepare_phase_event_sent = true
 
+		# 发送准备阶段开始事件
+		EventBus.battle.emit_event(Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED, [])
+		_log_info("准备阶段开始")
+
+	# 更新计时器
+	timer -= delta
+
+	# 检查准备阶段是否结束
+	if timer <= 0:
 		# 开始战斗阶段
 		_start_battle_phase()
 
 # 更新战斗阶段
 func _update_battle_phase(delta):
-	# 应用战斗速度
-	var adjusted_delta = delta * battle_speed
-
+	# 更新计时器和战斗时间
 	timer -= delta  # 计时器使用原始时间
 	battle_stats.battle_duration += delta
+
+	# 首先检查战斗是否结束
+	if _check_battle_end():
+		# 计算胜利条件
+		var victory = _calculate_victory_condition()
+		end_battle(victory)
+		return
 
 	# 检查战斗超时
 	if timer <= 0:
 		# 超时判负
 		end_battle(false)
 		return
+
+	# 应用战斗速度
+	var adjusted_delta = delta * battle_speed
 
 	# 更新所有棋子状态
 	_update_chess_pieces(adjusted_delta)
@@ -171,18 +223,19 @@ func _update_battle_phase(delta):
 	if ai_controller:
 		ai_controller.update(adjusted_delta, enemy_pieces)
 
-	# 检查战斗是否结束
-	if _check_battle_end():
-		# 计算胜利条件
-		var victory = _calculate_victory_condition()
-		end_battle(victory)
-
 # 更新结算阶段
 func _update_result_phase(delta):
 	timer -= delta
 	if timer <= 0:
 		# 战斗完全结束
 		current_state = BattleState.PREPARE
+		timer = prepare_time
+
+		# 重置事件标志
+		prepare_phase_event_sent = false
+		fighting_phase_event_sent = false
+
+		_log_info("结算阶段结束，准备进入下一回合")
 
 # 开始战斗阶段
 func _start_battle_phase():
@@ -193,9 +246,6 @@ func _start_battle_phase():
 
 	# 设置所有棋子为战斗状态
 	var board_manager = get_manager("BoardManager")
-	if not board_manager:
-		_log_error("无法获取棋盘管理器")
-		return
 
 	var pieces = board_manager.pieces
 	for piece in pieces:
@@ -217,14 +267,23 @@ func _start_battle_phase():
 		# 切换到空闲状态
 		piece.state_machine.change_state("idle")
 
-	_log_info("战斗阶段开始")
+	# 发送战斗阶段开始事件，使用标志防止重复触发
+	if not fighting_phase_event_sent:
+		fighting_phase_event_sent = true
+		EventBus.battle.emit_event(Events.BattleEvents.BATTLE_FIGHTING_PHASE_STARTED, [])
+		_log_info("战斗阶段开始")
+
+# 战斗阶段开始事件处理
+func _on_battle_fighting_phase_started():
+	_log_info("Battle fighting phase started")
+
+	# 切换到战斗阶段
+	current_state = BattleState.BATTLE
+	timer = battle_time
 
 # 更新棋子状态
 func _update_chess_pieces(delta):
 	var board_manager = get_manager("BoardManager")
-	if not board_manager:
-		_log_error("无法获取棋盘管理器")
-		return
 
 	var pieces = board_manager.pieces
 
@@ -307,12 +366,14 @@ func _process_attack(piece, delta):
 # 检查战斗是否结束
 func _check_battle_end() -> bool:
 	var board_manager = get_manager("BoardManager")
-	if not board_manager:
-		_log_error("无法获取棋盘管理器")
-		return false
 
-	var player_pieces = board_manager.get_ally_pieces(is_player_turn)
-	var enemy_pieces = board_manager.get_enemy_pieces(is_player_turn)
+	# 获取当前棋盘上的棋子状态
+	var current_player_pieces = board_manager.get_ally_pieces(is_player_turn)
+	var current_enemy_pieces = board_manager.get_enemy_pieces(is_player_turn)
+
+	# 更新类成员变量，保持最新状态
+	player_pieces = current_player_pieces
+	enemy_pieces = current_enemy_pieces
 
 	return player_pieces.is_empty() or enemy_pieces.is_empty()
 
@@ -377,7 +438,7 @@ func _calculate_battle_result(victory: bool):
 	if victory:
 		# 根据难度和回合计算奖励
 		gold_reward = 5 + current_round + difficulty
-		exp_reward = 2 + current_round / 2
+		exp_reward = 2 + float(current_round) / 2.0
 
 		# 根据战斗统计调整奖励
 		var performance_bonus = 0
@@ -462,14 +523,21 @@ func _calculate_battle_result(victory: bool):
 
 # 战斗开始事件处理
 func _on_battle_started():
-	print("Battle started")
+	_log_info("Battle started event received")
 
-	# 切换到战斗阶段
-	current_state = BattleState.BATTLE
-	timer = battle_time
+	# 注意：我们不再在这里切换到战斗阶段
+	# 而是等待 BATTLE_FIGHTING_PHASE_STARTED 事件
 
 	# 初始化棋子状态
 	_initialize_chess_pieces()
+
+# 准备阶段开始事件处理
+func _on_battle_preparing_phase_started():
+	_log_info("Battle preparing phase started")
+
+	# 确保当前状态为准备阶段
+	current_state = BattleState.PREPARE
+	timer = prepare_time
 
 # 战斗结束事件处理
 func _on_battle_ended(result: Dictionary):
@@ -489,7 +557,6 @@ func set_battle_speed(speed: float) -> void:
 			piece.set_animation_speed(battle_speed)
 
 	# 发送战斗速度变化信号
-	var Events = load("res://scripts/events/event_definitions.gd")
 	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_SPEED_CHANGED, [battle_speed])
 
 	_log_info("战斗速度设置为：" + str(battle_speed))
@@ -548,9 +615,10 @@ func _do_cleanup() -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
-			var Events = load("res://scripts/events/event_definitions.gd")
 			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_STARTED, _on_battle_started)
 			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_ENDED, _on_battle_ended)
+			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED, _on_battle_preparing_phase_started)
+			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_FIGHTING_PHASE_STARTED, _on_battle_fighting_phase_started)
 			EventBus.battle.disconnect_event(Events.BattleEvents.UNIT_DIED, _on_unit_died)
 			EventBus.battle.disconnect_event(Events.BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
 			EventBus.battle.disconnect_event(Events.BattleEvents.HEAL_RECEIVED, _on_heal_received)
@@ -606,7 +674,7 @@ func _calculate_victory_condition() -> bool:
 	return false
 
 # 伤害事件处理
-func _on_damage_dealt(source, target, amount: float, damage_type: String) -> void:
+func _on_damage_dealt(source, _target, amount: float, _damage_type: String) -> void:
 	# 更新战斗统计
 	if source and source.is_player_piece:
 		# 玩家造成伤害
@@ -617,7 +685,7 @@ func _on_damage_dealt(source, target, amount: float, damage_type: String) -> voi
 			battle_stats.enemy_damage_dealt += amount
 
 # 治疗事件处理
-func _on_heal_received(target, amount: float, source = null) -> void:
+func _on_heal_received(target, amount: float, _source = null) -> void:
 	# 更新战斗统计
 	if target and target.is_player_piece:
 		# 玩家治疗
@@ -628,7 +696,7 @@ func _on_heal_received(target, amount: float, source = null) -> void:
 			battle_stats.enemy_healing += amount
 
 # 技能使用事件处理
-func _on_ability_used(piece, ability_data: Dictionary) -> void:
+func _on_ability_used(_piece, _ability_data: Dictionary) -> void:
 	# 更新战斗统计
 	battle_stats.abilities_used += 1
 
@@ -646,8 +714,8 @@ func _process_battle_rewards(result: Dictionary):
 
 	# 处理经验奖励
 	if rewards.has("exp"):
-		var exp = rewards["exp"]
-		EventBus.economy.emit_event("exp_gained", [exp])
+		var exp_reward = rewards["exp"]
+		EventBus.economy.emit_event("exp_gained", [exp_reward])
 
 	# 处理装备奖励
 	if rewards.has("equipment") and rewards["equipment"]:
@@ -719,9 +787,6 @@ func apply_dot_effect(source, target, dot_type: int, damage_per_second: float, d
 
 	# 获取特效管理器
 	var effect_manager = get_manager("EffectManager")
-	if not effect_manager:
-		_log_error("无法获取效果管理器")
-		return false
 
 	# 创建持续伤害效果参数
 	var params = {
@@ -745,11 +810,6 @@ func apply_status_effect(source, target, status_type: int, duration: float, valu
 	if not target or not is_instance_valid(target) or target.current_state == target.ChessState.DEAD:
 		return false
 
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return false
-
 	# 创建状态效果参数
 	var params = {
 		"id": "status_" + str(randi()) + "_" + str(Time.get_ticks_msec()),
@@ -761,7 +821,7 @@ func apply_status_effect(source, target, status_type: int, duration: float, valu
 	}
 
 	# 使用特效管理器创建状态效果
-	var effect = game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, source, target, params)
+	var effect = GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, source, target, params)
 
 	# 返回是否成功创建效果
 	return effect != null
@@ -769,11 +829,6 @@ func apply_status_effect(source, target, status_type: int, duration: float, valu
 # 应用属性效果
 func apply_stat_effect(source, target, stats: Dictionary, duration: float, is_debuff: bool = false) -> bool:
 	if not target or not is_instance_valid(target) or target.current_state == target.ChessState.DEAD:
-		return false
-
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
 		return false
 
 	# 创建属性效果参数
@@ -787,7 +842,7 @@ func apply_stat_effect(source, target, stats: Dictionary, duration: float, is_de
 	}
 
 	# 使用特效管理器创建属性效果
-	var effect = game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, source, target, params)
+	var effect = GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, source, target, params)
 
 	# 返回是否成功创建效果
 	return effect != null

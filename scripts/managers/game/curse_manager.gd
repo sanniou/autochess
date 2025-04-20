@@ -180,7 +180,7 @@ func _on_battle_started() -> void:
 
 # 应用镜像诅咒效果
 func _apply_mirror_curse() -> void:
-	var board_manager = get_node("/root/GameManager/BoardManager")
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return
 	
@@ -206,7 +206,7 @@ func _apply_mirror_curse() -> void:
 
 # 应用贪婪诅咒效果
 func _apply_greed_curse(old_amount: int, new_amount: int) -> void:
-	var player_manager = get_node("/root/GameManager/PlayerManager")
+	var player_manager = GameManager.player_manager
 	if not player_manager:
 		return
 	
@@ -223,7 +223,7 @@ func _apply_greed_curse(old_amount: int, new_amount: int) -> void:
 
 # 应用虚弱诅咒效果
 func _apply_weakness_curse() -> void:
-	var board_manager = get_node("/root/GameManager/BoardManager")
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return
 	
@@ -241,7 +241,7 @@ func _apply_weakness_curse() -> void:
 
 # 移除虚弱诅咒效果
 func _remove_weakness_curse() -> void:
-	var board_manager = get_node("/root/GameManager/BoardManager")
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return
 	
@@ -259,7 +259,7 @@ func _remove_weakness_curse() -> void:
 
 # 应用脆弱诅咒效果
 func _apply_fragility_curse() -> void:
-	var board_manager = get_node("/root/GameManager/BoardManager")
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return
 	
@@ -278,7 +278,7 @@ func _apply_fragility_curse() -> void:
 
 # 移除脆弱诅咒效果
 func _remove_fragility_curse() -> void:
-	var board_manager = get_node("/root/GameManager/BoardManager")
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return
 	
@@ -302,7 +302,7 @@ func _remove_fragility_curse() -> void:
 func _apply_confusion_curse() -> void:
 	# 25%概率触发
 	if randf() < 0.25:
-		var board_manager = get_node("/root/GameManager/BoardManager")
+		var board_manager = GameManager.board_manager
 		if not board_manager:
 			return
 		

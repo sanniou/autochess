@@ -81,30 +81,24 @@ func _apply_stat_change(stat_name: String, stat_value: float) -> void:
 func _create_visual_effect() -> void:
 	if not target or not is_instance_valid(target):
 		return
-
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 选择特效类型和颜色
-	var effect_type = game_manager.effect_manager.VisualEffectType.BUFF
+	var effect_type = GameManager.effect_manager.VisualEffectType.BUFF
 	var effect_name = "buff"
 
 	if is_debuff:
-		effect_type = game_manager.effect_manager.VisualEffectType.DEBUFF
+		effect_type = GameManager.effect_manager.VisualEffectType.DEBUFF
 		effect_name = "debuff"
 
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color(effect_name),
+		"color": GameManager.effect_manager.get_effect_color(effect_name),
 		"duration": duration,
 		"buff_type": effect_name if not is_debuff else "",
 		"debuff_type": effect_name if is_debuff else ""
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
+	GameManager.effect_manager.create_visual_effect(
 		effect_type,
 		target,
 		params

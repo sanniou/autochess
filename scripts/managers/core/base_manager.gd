@@ -25,7 +25,7 @@ var _dependencies: Array[String] = []
 var _error: String = ""
 
 # 管理器访问器
-var _manager_accessor = null
+var _manager_accessor: ManagerAccessor = null
 
 # 初始化方法
 func initialize() -> bool:
@@ -187,10 +187,6 @@ func get_status() -> Dictionary:
 
 # 获取管理器
 func get_manager(manager_name: String):
-	if not _manager_accessor:
-		_log_error("管理器访问器未初始化")
-		return null
-
 	return _manager_accessor.get_manager(manager_name)
 
 # 记录错误信息

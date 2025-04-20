@@ -3,34 +3,13 @@ class_name ManagerAccessor
 ## 管理器访问器
 ## 提供统一的管理器访问接口，简化管理器获取过程
 
-# 游戏管理器引用
-var _game_manager = null
-
-# 初始化
-func _init():
-	# 等待一帧，确保GameManager已经初始化
-	await Engine.get_main_loop().process_frame
-	
-	# 获取GameManager引用
-	_game_manager = Engine.get_singleton("GameManager")
-	
-	if not _game_manager:
-		push_error("无法获取GameManager引用")
-
 # 获取管理器
-func get_manager(manager_name: String):
-	if not _game_manager:
-		push_error("GameManager未初始化")
-		return null
-		
-	return _game_manager.get_manager(manager_name)
+func get_manager(manager_name: String):		
+	return GameManager.get_manager(manager_name)
 
 # 检查管理器是否存在
-func has_manager(manager_name: String) -> bool:
-	if not _game_manager:
-		return false
-		
-	return _game_manager.has_manager(manager_name)
+func has_manager(manager_name: String) -> bool:		
+	return GameManager.has_manager(manager_name)
 
 # 以下是常用管理器的快捷访问方法
 

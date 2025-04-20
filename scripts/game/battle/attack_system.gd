@@ -44,8 +44,6 @@ class StatusEffect:
 		source = effect_source
 		id = "effect_" + str(randi()) + "_" + effect_type + "_" + str(Time.get_ticks_msec())  # 生成唯一ID
 
-# 引用
-@onready var board_manager = get_node("/root/GameManager/BoardManager")
 
 # 初始化
 func _ready():
@@ -250,11 +248,6 @@ func _trigger_dodge_effects(defender: ChessPiece, attacker: ChessPiece) -> void:
 
 # 应用状态效果
 func _apply_status_effects(target: ChessPiece, effects: Array) -> void:
-	# 获取战斗管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.battle_manager:
-		return
-
 	# 应用所有状态效果
 	for effect in effects:
 		# 根据状态类型确定状态效果类型
@@ -269,7 +262,7 @@ func _apply_status_effects(target: ChessPiece, effects: Array) -> void:
 			"slowed":
 				# 减速效果使用属性效果
 				var stats = {"move_speed": -target.move_speed * effect.value}
-				game_manager.battle_manager.apply_stat_effect(effect.source, target, stats, effect.duration, true)
+				GameManager.battle_manager.apply_stat_effect(effect.source, target, stats, effect.duration, true)
 				continue
 			"disarmed":
 				status_type = StatusEffect.StatusType.DISARM
@@ -277,28 +270,25 @@ func _apply_status_effects(target: ChessPiece, effects: Array) -> void:
 				status_type = StatusEffect.StatusType.TAUNT
 			"burning":
 				# 燃烧效果使用持续伤害效果
-				game_manager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.BURNING, effect.value, effect.duration, "fire")
+				GameManager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.BURNING, effect.value, effect.duration, "fire")
 				continue
 			"poisoned":
 				# 中毒效果使用持续伤害效果
-				game_manager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.POISONED, effect.value, effect.duration, "poison")
+				GameManager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.POISONED, effect.value, effect.duration, "poison")
 				continue
 			"frozen":
 				status_type = StatusEffect.StatusType.FROZEN
 			"bleeding":
 				# 流血效果使用持续伤害效果
-				game_manager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.BLEEDING, effect.value, effect.duration, "physical")
+				GameManager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.BLEEDING, effect.value, effect.duration, "physical")
 				continue
 
 		# 应用状态效果
-		game_manager.battle_manager.apply_status_effect(effect.source, target, status_type, effect.duration, effect.value)
+		GameManager.battle_manager.apply_status_effect(effect.source, target, status_type, effect.duration, effect.value)
 
 # 应用效果
 func _apply_effect(effect: Dictionary, source: ChessPiece, target: ChessPiece) -> void:
-	# 获取战斗管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.battle_manager:
-		return
+
 
 	# 根据效果类型应用不同效果
 	if effect.has("type"):
@@ -307,38 +297,38 @@ func _apply_effect(effect: Dictionary, source: ChessPiece, target: ChessPiece) -
 				# 额外伤害
 				if effect.has("value"):
 					var damage_type = effect.get("damage_type", "physical")
-					game_manager.battle_manager.apply_damage(source, target, effect.value, damage_type)
+					GameManager.battle_manager.apply_damage(source, target, effect.value, damage_type)
 
 			"heal":
 				# 治疗效果
 				if effect.has("value"):
-					game_manager.battle_manager.apply_heal(source, target, effect.value)
+					GameManager.battle_manager.apply_heal(source, target, effect.value)
 
 			"stun":
 				# 眩晕效果
 				if effect.has("duration"):
-					game_manager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.STUN, effect.duration)
+					GameManager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.STUN, effect.duration)
 
 			"silence":
 				# 沉默效果
 				if effect.has("duration"):
-					game_manager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.SILENCE, effect.duration)
+					GameManager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.SILENCE, effect.duration)
 
 			"slow":
 				# 减速效果
 				if effect.has("value") and effect.has("duration"):
 					var stats = {"move_speed": -target.move_speed * effect.value}
-					game_manager.battle_manager.apply_stat_effect(source, target, stats, effect.duration, true)
+					GameManager.battle_manager.apply_stat_effect(source, target, stats, effect.duration, true)
 
 			"disarm":
 				# 缴械效果
 				if effect.has("duration"):
-					game_manager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.DISARM, effect.duration)
+					GameManager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.DISARM, effect.duration)
 
 			"taunt":
 				# 嘲讽效果
 				if effect.has("duration"):
-					game_manager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.TAUNT, effect.duration)
+					GameManager.battle_manager.apply_status_effect(source, target, StatusEffect.StatusType.TAUNT, effect.duration)
 
 # 战斗开始事件处理
 func _on_battle_started() -> void:

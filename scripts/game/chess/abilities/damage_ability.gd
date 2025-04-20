@@ -3,8 +3,7 @@ class_name DamageAbility
 ## 伤害技能
 ## 对目标造成伤害
 
-# 伤害类型
-var damage_type: String = "magical"  # 伤害类型(physical/magical)
+# 注意：使用基类中定义的 damage_type 属性
 
 # 初始化技能
 func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
@@ -22,17 +21,13 @@ func _execute_effect(target = null) -> void:
 	if target == null:
 		return
 
-	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
-	if game_manager and game_manager.effect_manager:
-		# 创建伤害特效
-		var params = {
-			"damage_type": damage_type,
-			"damage_amount": damage
-		}
-
-		# 使用特效管理器创建特效
-		game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
+	# 创建伤害特效
+	var params = {
+		"damage_type": damage_type,
+		"damage_amount": damage
+	}
+	# 使用特效管理器创建特效
+	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
 
 	# 直接造成伤害
 	target.take_damage(damage, damage_type, owner)

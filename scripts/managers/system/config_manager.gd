@@ -9,7 +9,7 @@ extends "res://scripts/managers/core/base_manager.gd"
 const ConfigModel = preload("res://scripts/config/config_model.gd")
 const ChessPieceConfig = preload("res://scripts/config/models/chess_piece_config.gd")
 const EquipmentConfig = preload("res://scripts/config/models/equipment_config.gd")
-const MapNodeConfig = preload("res://scripts/config/models/map_node_config.gd")
+const MapConfig = preload("res://scripts/config/models/map_config.gd")
 const RelicConfig = preload("res://scripts/config/models/relic_config.gd")
 const SynergyConfig = preload("res://scripts/config/models/synergy_config.gd")
 const EventConfig = preload("res://scripts/config/models/event_config.gd")
@@ -28,7 +28,7 @@ var config_cache = {}
 const CONFIG_PATH = {
 	"chess_pieces": "res://config/chess_pieces.json",
 	"equipment": "res://config/equipment.json",
-	"map_nodes": "res://config/map_nodes.json",
+	"map_config": "res://config/map_config.json",  # 添加新的地图配置类型
 	"relics": "res://config/relics/relics.json",
 	"synergies": "res://config/synergies.json",
 	"events": "res://config/events/events.json",
@@ -45,7 +45,7 @@ const CONFIG_DIR = "res://config/"
 const CONFIG_MODEL_CLASSES = {
 	"chess_pieces": "res://scripts/config/models/chess_piece_config.gd",
 	"equipment": "res://scripts/config/models/equipment_config.gd",
-	"map_nodes": "res://scripts/config/models/map_node_config.gd",
+	"map_config": "res://scripts/config/models/map_config.gd",
 	"relics": "res://scripts/config/models/relic_config.gd",
 	"synergies": "res://scripts/config/models/synergy_config.gd",
 	"events": "res://scripts/config/models/event_config.gd",
@@ -205,7 +205,13 @@ func get_config_model(config_type: String, config_id: String) -> ConfigModel:
 		EventBus.debug.emit_event("debug_message", ["获取配置模型失败: 配置类型不存在 - " + config_type, 2])
 		return null
 
-	# 获取配置数据
+	# 获取配置模型类
+	var model_class = config_models.get(config_type)
+	if not model_class:
+		EventBus.debug.emit_event("debug_message", ["获取配置模型失败: 配置模型类不存在 - " + config_type, 2])
+		return null
+
+		# 获取配置数据
 	var config_data = config_cache[config_type]
 
 	# 检查配置ID是否存在
@@ -213,14 +219,8 @@ func get_config_model(config_type: String, config_id: String) -> ConfigModel:
 		EventBus.debug.emit_event("debug_message", ["获取配置模型失败: 配置ID不存在 - " + config_type + "." + config_id, 2])
 		return null
 
-	# 获取配置模型类
-	var model_class = config_models.get(config_type)
-	if not model_class:
-		EventBus.debug.emit_event("debug_message", ["获取配置模型失败: 配置模型类不存在 - " + config_type, 2])
-		return null
-
 	# 创建配置模型
-	return model_class.new(config_id, config_data[config_id])
+	return model_class.new(config_id,config_data[config_id])
 
 ## 获取所有配置项
 func get_all_config_items(config_type: String) -> Dictionary:
@@ -382,13 +382,13 @@ func get_equipment_config(equipment_id: String) -> EquipmentConfig:
 func get_all_equipment() -> Dictionary:
 	return get_all_config_models("equipment")
 
-## 获取地图节点配置
-func get_map_node_config(node_id: String) -> MapNodeConfig:
-	return get_config_model("map_nodes", node_id) as MapNodeConfig
+## 获取地图配置
+func get_map_config() -> MapConfig:
+	return get_config_model("map_config", "map_config") as MapConfig
 
-## 获取所有地图节点配置
-func get_all_map_nodes() -> Dictionary:
-	return get_all_config_models("map_nodes")
+## 获取地图配置数据
+func get_map_config_data() -> Dictionary:
+	return get_all_config_items("map_config")
 
 ## 获取遗物配置
 func get_relic_config(relic_id: String) -> RelicConfig:
@@ -478,7 +478,9 @@ func get_equipments_by_rarity(rarities: Array) -> Array[EquipmentConfig]:
 
 	for equipment_id in all_equipment:
 		var equipment = all_equipment[equipment_id] as EquipmentConfig
-		if rarities.has(equipment.get_rarity()):
+		var rarity = equipment.get_rarity()
+
+		if rarities.has(rarity):
 			result.append(equipment)
 
 	return result

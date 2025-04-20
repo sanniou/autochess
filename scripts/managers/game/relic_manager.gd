@@ -3,6 +3,11 @@ class_name RelicManager
 ## 遗物管理器
 ## 负责遗物的获取、激活和效果触发
 
+# 引入常量
+const GameConsts = preload("res://scripts/constants/game_constants.gd")
+const EffectConsts = preload("res://scripts/constants/effect_constants.gd")
+const RelicConsts = preload("res://scripts/constants/relic_constants.gd")
+
 # 遗物相关常量
 const MAX_RELICS = 6  # 最大遗物数量
 const RELIC_SCENE = preload("res://scenes/relic/relic.tscn")  # 遗物场景
@@ -11,9 +16,6 @@ const RELIC_SCENE = preload("res://scenes/relic/relic.tscn")  # 遗物场景
 var player_relics: Array = []  # 玩家拥有的遗物
 var available_relics: Array = []  # 可获取的遗物池
 var relic_factory = {}  # 遗物工厂，用于创建不同类型的遗物
-
-# 引用
-@onready var config_manager = get_node("/root/ConfigManager")
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -37,12 +39,23 @@ func _do_initialize() -> void:
 	# 初始化遗物工厂
 func _initialize_relic_factory() -> void:
 	# 加载所有遗物配置
-	var relics_config = config_manager.get_all_relics()
+	var relics_config = ConfigManager.get_all_relics()
 
 	# 创建遗物工厂
 	for relic_id in relics_config:
 		var relic_model = relics_config[relic_id] as RelicConfig
-		relic_factory[relic_id] = relic_model.get_data()
+		if relic_model:
+			# 获取完整数据
+			var relic_data = relic_model.get_data()
+
+			# 确保触发条件字段存在
+			if not relic_data.has("trigger_conditions"):
+				relic_data["trigger_conditions"] = {}
+
+			# 存储到工厂
+			relic_factory[relic_id] = relic_data
+		else:
+			_log_warning("无法加载遗物配置: " + relic_id)
 
 # 初始化可获取的遗物池
 func _initialize_available_relics() -> void:
@@ -91,11 +104,15 @@ func _create_relic(relic_id: String) -> Relic:
 		return null
 
 	# 获取遗物数据
-	var relic_data = relic_factory[relic_id]
+	var relic_data = relic_factory[relic_id].duplicate(true) # 深度复制以避免修改原始数据
 
 	# 创建遗物实例
 	var relic_instance = RELIC_SCENE.instantiate()
 	add_child(relic_instance)
+
+	# 确保触发条件字段存在
+	if not relic_data.has("trigger_conditions"):
+		relic_data["trigger_conditions"] = {}
 
 	# 初始化遗物
 	relic_instance.initialize(relic_data)
@@ -213,7 +230,7 @@ func get_relic_data(relic_id: String) -> Dictionary:
 		return relic_factory[relic_id].duplicate()
 	else:
 		# 尝试从配置管理器获取
-		var relic_model = config_manager.get_relic_config(relic_id)
+		var relic_model = ConfigManager.get_relic_config(relic_id)
 		if relic_model:
 			return relic_model.get_data()
 	return {}
@@ -222,12 +239,12 @@ func get_relic_data(relic_id: String) -> Dictionary:
 func _on_battle_ended(result: Dictionary) -> void:
 	# 如果战斗胜利，触发战斗胜利效果
 	if result.is_victory:
-		trigger_relic_effect("on_battle_victory", result)
+		trigger_relic_effect(EffectConsts.TRIGGER_TYPE_NAMES[EffectConsts.TriggerType.ON_BATTLE_VICTORY], result)
 	else:
-		trigger_relic_effect("on_battle_defeat", result)
+		trigger_relic_effect(EffectConsts.TRIGGER_TYPE_NAMES[EffectConsts.TriggerType.ON_BATTLE_DEFEAT], result)
 
 	# 触发战斗结束效果
-	trigger_relic_effect("on_battle_end", result)
+	trigger_relic_effect(EffectConsts.TRIGGER_TYPE_NAMES[EffectConsts.TriggerType.ON_BATTLE_END], result)
 
 # 事件完成事件处理
 func _on_event_completed(event_data: Dictionary, result_data: Dictionary) -> void:
@@ -236,7 +253,7 @@ func _on_event_completed(event_data: Dictionary, result_data: Dictionary) -> voi
 		"event": event_data,
 		"result": result_data
 	}
-	trigger_relic_effect("on_event_completed", context)
+	trigger_relic_effect(EffectConsts.TRIGGER_TYPE_NAMES[EffectConsts.TriggerType.ON_EVENT_COMPLETED], context)
 
 # 地图节点选择事件处理
 func _on_map_node_selected(node_data: Dictionary) -> void:
@@ -245,7 +262,7 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 		_handle_treasure_node(node_data)
 
 	# 触发地图节点选择效果
-	trigger_relic_effect("on_map_node_selected", {"node": node_data})
+	trigger_relic_effect(EffectConsts.TRIGGER_TYPE_NAMES[EffectConsts.TriggerType.ON_MAP_NODE_SELECTED], {"node": node_data})
 
 # 处理宝藏节点
 func _handle_treasure_node(node_data: Dictionary) -> void:

@@ -28,16 +28,10 @@ func apply() -> void:
 	if damage_type == "magical" and source and is_instance_valid(source):
 		actual_damage += source.spell_power
 
-	# 获取战斗管理器
-	var game_manager = target.get_node_or_null("/root/GameManager")
 	var final_damage = 0.0
 
-	if game_manager and game_manager.battle_manager and game_manager.battle_manager.has_method("apply_damage"):
-		# 使用战斗管理器应用伤害
-		final_damage = game_manager.battle_manager.apply_damage(source, target, actual_damage, damage_type, is_critical, is_dodgeable)
-	else:
-		# 直接应用伤害
-		final_damage = target.take_damage(actual_damage, damage_type, source)
+	# 使用战斗管理器应用伤害
+	final_damage = GameManager.battle_manager.apply_damage(source, target, actual_damage, damage_type, is_critical, is_dodgeable)
 
 	# 创建视觉效果
 	_create_visual_effect(final_damage)
@@ -52,15 +46,9 @@ func apply() -> void:
 func _create_visual_effect(damage_amount: float) -> void:
 	if not target or not is_instance_valid(target):
 		return
-
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color(damage_type),
+		"color": GameManager.effect_manager.get_effect_color(damage_type),
 		"duration": 1.0,
 		"damage_type": damage_type,
 		"damage_amount": damage_amount,
@@ -68,8 +56,8 @@ func _create_visual_effect(damage_amount: float) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.DAMAGE,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.DAMAGE,
 		target,
 		params
 	)

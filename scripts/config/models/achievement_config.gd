@@ -53,7 +53,14 @@ func _get_default_schema() -> Dictionary:
 		"rewards": {
 			"type": "dictionary",
 			"required": false,
-			"description": "成就奖励"
+			"description": "成就奖励",
+			"schema": {
+				"gold": {
+					"type": "int",
+					"required": false,
+					"description": "金币奖励"
+				}
+		}
 		}
 	}
 

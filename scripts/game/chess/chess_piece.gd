@@ -3,8 +3,6 @@ class_name ChessPiece
 ## 棋子基类
 ## 定义棋子的基本属性和行为
 
-@onready var EventBus = get_node("/root/EventBus")
-
 # 信号
 signal health_changed(old_value, new_value)
 signal mana_changed(old_value, new_value)
@@ -220,10 +218,6 @@ func upgrade() -> void:
 
 	# 提升控制抗性
 	control_resistance += 0.05  # 每星级提升控制抗性加5%
-
-	# 重新初始化状态效果管理器
-	if status_effect_manager:
-		_initialize_status_effect_manager()
 
 	# 更新视觉效果
 	_update_visuals()
@@ -503,22 +497,17 @@ func _perform_ability() -> void:
 
 # 播放技能特效
 func _play_ability_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("magical"),
+		"color": GameManager.effect_manager.get_effect_color("magical"),
 		"duration": 0.5,
 		"damage_type": "magical",
 		"damage_amount": ability_damage + spell_power
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.DAMAGE,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.DAMAGE,
 		target,
 		params
 	)
@@ -713,55 +702,30 @@ func unequip_item(slot: String) -> Equipment:
 
 # 添加效果
 func add_effect(effect_data) -> void:
-	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
 
 	# 检查是否为新的效果系统
 	if effect_data is BaseEffect:
-		# 使用新的效果系统
-		if game_manager and game_manager.effect_manager:
-			# 设置目标
-			effect_data.target = self
+		# 设置目标
+		effect_data.target = self
 
-			# 添加效果
-			game_manager.effect_manager.add_effect(effect_data)
-		else:
-			# 直接应用效果
-			effect_data.target = self
-			effect_data.apply()
+		# 添加效果
+		GameManager.effect_manager.add_effect(effect_data)
 	else:
 		# 兼容旧系统，将字典效果转换为新的效果系统
-		if game_manager and game_manager.effect_manager:
-			# 使用特效管理器创建效果
-			var effect = _convert_dict_to_effect(effect_data)
-
-			# 如果转换成功，添加效果
-			if effect:
-				# 设置目标
-				effect.target = self
-
-				# 添加效果
-				game_manager.effect_manager.add_effect(effect)
-			else:
-				# 旧系统兼容处理
-				# 添加效果
-				active_effects.append(effect_data)
-
-				# 应用效果
-				_apply_effect(effect_data)
-
-				# 如果效果有持续时间，设置定时器
-				if effect_data.has("duration") and effect_data.duration > 0:
-					var timer = get_tree().create_timer(effect_data.duration)
-					timer.timeout.connect(_on_effect_timeout.bind(effect_data))
+		# 使用特效管理器创建效果
+		var effect = _convert_dict_to_effect(effect_data)
+		# 如果转换成功，添加效果
+		if effect:
+			# 设置目标
+			effect.target = self
+			# 添加效果
+			GameManager.effect_manager.add_effect(effect)
 		else:
 			# 旧系统兼容处理
 			# 添加效果
 			active_effects.append(effect_data)
-
 			# 应用效果
 			_apply_effect(effect_data)
-
 			# 如果效果有持续时间，设置定时器
 			if effect_data.has("duration") and effect_data.duration > 0:
 				var timer = get_tree().create_timer(effect_data.duration)
@@ -769,11 +733,6 @@ func add_effect(effect_data) -> void:
 
 # 将字典转换为效果对象
 func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
-	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return null
-
 	# 创建效果ID
 	var effect_id = effect_data.get("id", "effect_" + str(randi()))
 
@@ -795,7 +754,7 @@ func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
 		params["duration"] = effect_data.get("duration", 2.0)
 		params["status_type"] = StatusEffect.StatusType.STUN
 
-		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+		return GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
 
 	elif effect_data.has("is_silence") and effect_data.is_silence:
 		# 创建沉默效果
@@ -804,7 +763,7 @@ func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
 		params["duration"] = effect_data.get("duration", 3.0)
 		params["status_type"] = StatusEffect.StatusType.SILENCE
 
-		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+		return GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
 
 	elif effect_data.has("is_disarm") and effect_data.is_disarm:
 		# 创建缴械效果
@@ -813,7 +772,7 @@ func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
 		params["duration"] = effect_data.get("duration", 3.0)
 		params["status_type"] = StatusEffect.StatusType.DISARM
 
-		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+		return GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
 
 	elif effect_data.has("is_frozen") and effect_data.is_frozen:
 		# 创建冰冻效果
@@ -822,7 +781,7 @@ func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
 		params["duration"] = effect_data.get("duration", 2.0)
 		params["status_type"] = StatusEffect.StatusType.FROZEN
 
-		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
+		return GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, params["source"], self, params)
 
 	elif effect_data.has("damage_per_second"):
 		# 创建持续伤害效果
@@ -852,7 +811,7 @@ func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
 		if effect_data.has("tick_interval"):
 			params["tick_interval"] = effect_data.tick_interval
 
-		return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, params["source"], self, params)
+		return GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, params["source"], self, params)
 
 	elif effect_data.has("stats"):
 		# 检查是增益还是减益
@@ -888,7 +847,7 @@ func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
 			params["debuff_type"] = debuff_type
 			params["stats"] = effect_data.stats
 
-			return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, params["source"], self, params)
+			return GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, params["source"], self, params)
 		else:
 			# 创建增益效果
 			var buff_type = BuffEffect.BuffType.ATTACK
@@ -915,47 +874,15 @@ func _convert_dict_to_effect(effect_data: Dictionary) -> BaseEffect:
 			params["buff_type"] = buff_type
 			params["stats"] = effect_data.stats
 
-			return game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, params["source"], self, params)
+			return GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, params["source"], self, params)
 
 	return null
 
 # 移除效果
 func remove_effect(effect_id: String) -> void:
-	# 获取特效管理器
-	var game_manager = get_node_or_null("/root/GameManager")
-	if game_manager and game_manager.effect_manager:
-		# 使用新的效果系统
-		game_manager.effect_manager.remove_effect(effect_id)
-		return
+	# 使用新的效果系统
+	GameManager.effect_manager.remove_effect(effect_id)
 
-	# 兼容旧系统
-	# 先尝试使用状态效果管理器
-	if status_effect_manager:
-		status_effect_manager.remove_effect(effect_id)
-
-	# 查找旧系统效果
-	var index = -1
-
-	# 查找效果
-	for i in range(active_effects.size()):
-		if active_effects[i].id == effect_id:
-			index = i
-			break
-
-	if index == -1:
-		return
-
-	# 移除效果
-	var effect_data = active_effects[index]
-	active_effects.remove_at(index)
-
-	# 重置属性并重新应用其他效果
-	_reset_stats()
-	for effect in active_effects:
-		_apply_effect(effect)
-
-	# 更新视觉效果
-	_update_effect_visuals()
 
 # 获取当前装备
 func get_equipped_items() -> Array:
@@ -1102,14 +1029,11 @@ func reset() -> void:
 
 	# 清除状态效果 - 由效果系统处理
 
-	# 清除效果系统中的所有效果
-	var game_manager = Engine.get_singleton("GameManager")
-	if game_manager and game_manager.effect_manager:
-		# 清除与该棋子相关的所有效果
-		for effect_id in game_manager.effect_manager.active_logical_effects.keys():
-			var effect = game_manager.effect_manager.active_logical_effects[effect_id]
-			if effect.target == self:
-				game_manager.effect_manager.remove_effect(effect_id)
+	# 清除与该棋子相关的所有效果
+	for effect_id in GameManager.effect_manager.active_logical_effects.keys():
+		var effect = GameManager.effect_manager.active_logical_effects[effect_id]
+		if effect.target == self:
+			GameManager.effect_manager.remove_effect(effect_id)
 
 	# 更新显示
 	_update_health_bar()
@@ -1218,10 +1142,6 @@ func _update_equipment_visuals() -> void:
 
 # 添加装备视觉效果
 func _add_equipment_visual(equipment: Equipment, offset: Vector2, color: Color) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 
 	# 创建一个节点来放置装备效果
 	var equipment_node = Node2D.new()
@@ -1231,26 +1151,21 @@ func _add_equipment_visual(equipment: Equipment, offset: Vector2, color: Color) 
 
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color(equipment.type),
+		"color": GameManager.effect_manager.get_effect_color(equipment.type),
 		"duration": 1.6,  # 总时间为两个周期
 		"buff_type": equipment.type,
 		"loop": true  # 循环效果
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.BUFF,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
 		equipment_node,
 		params
 	)
 
 # 更新效果视觉效果
 func _update_effect_visuals() -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 清除现有效果视觉
 	for child in effect_container.get_children():
 		if not child.has_meta("equipment_visual"):
@@ -1267,24 +1182,24 @@ func _update_effect_visuals() -> void:
 
 			# 获取效果类型
 			var effect_type = effect.get("type", "buff")
-			var visual_type = game_manager.effect_manager.VisualEffectType.BUFF
+			var visual_type = GameManager.effect_manager.VisualEffectType.BUFF
 
 			# 根据效果类型选择视觉特效类型
 			if effect_type in ["burning", "bleeding", "poisoned"]:
-				visual_type = game_manager.effect_manager.VisualEffectType.DOT
+				visual_type = GameManager.effect_manager.VisualEffectType.DOT
 			elif effect_type in ["stun", "silence", "disarm", "frozen"]:
-				visual_type = game_manager.effect_manager.VisualEffectType.DEBUFF
+				visual_type = GameManager.effect_manager.VisualEffectType.DEBUFF
 
 			# 创建视觉特效参数
 			var params = {
-				"color": game_manager.effect_manager.get_effect_color(effect_type),
+				"color": GameManager.effect_manager.get_effect_color(effect_type),
 				"duration": 1.0,
 				"buff_type": effect_type,
 				"loop": true  # 循环效果
 			}
 
 			# 使用特效管理器创建特效
-			game_manager.effect_manager.create_visual_effect(
+			GameManager.effect_manager.create_visual_effect(
 				visual_type,
 				effect_node,
 				params
@@ -1370,14 +1285,9 @@ func _on_attack(target: ChessPiece, damage: float, is_crit: bool) -> void:
 	if is_crit:
 		critical_hit.emit(target, damage)
 
-		# 获取特效管理器
-		var game_manager = Engine.get_singleton("GameManager")
-		if not game_manager or not game_manager.effect_manager:
-			return
-
 		# 创建视觉特效参数
 		var params = {
-			"color": game_manager.effect_manager.get_effect_color("physical"),
+			"color": GameManager.effect_manager.get_effect_color("physical"),
 			"duration": 0.5,
 			"damage_type": "physical",
 			"damage_amount": damage,
@@ -1385,8 +1295,8 @@ func _on_attack(target: ChessPiece, damage: float, is_crit: bool) -> void:
 		}
 
 		# 使用特效管理器创建特效
-		game_manager.effect_manager.create_visual_effect(
-			game_manager.effect_manager.VisualEffectType.DAMAGE,
+		GameManager.effect_manager.create_visual_effect(
+			GameManager.effect_manager.VisualEffectType.DAMAGE,
 			target,
 			params
 		)
@@ -1394,21 +1304,16 @@ func _on_attack(target: ChessPiece, damage: float, is_crit: bool) -> void:
 # 闪避效果
 func _on_dodge(attacker = null) -> void:
 	# 处理闪避效果
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("dodge"),
+		"color": GameManager.effect_manager.get_effect_color("dodge"),
 		"duration": 0.5,
 		"buff_type": "dodge"
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.BUFF,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
 		self,
 		params
 	)
@@ -1451,11 +1356,6 @@ func _trigger_elemental_effect(target: ChessPiece) -> void:
 
 # 应用火元素效果
 func _apply_fire_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建持续伤害效果参数
 	var params = {
 		"id": "fire_effect_" + str(randi()),
@@ -1468,7 +1368,7 @@ func _apply_fire_effect(target: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, self, target, params)
+	GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DOT, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(1.0, 0.3, 0.1, 0.5))
@@ -1480,10 +1380,6 @@ func _on_fire_effect_tick(target: ChessPiece, effect_data: Dictionary) -> void:
 
 # 应用冰元素效果
 func _apply_ice_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 
 	# 创建减速效果参数
 	var params = {
@@ -1496,17 +1392,13 @@ func _apply_ice_effect(target: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, self, target, params)
+	GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(0.2, 0.6, 1.0, 0.5))
 
 # 应用雷元素效果
 func _apply_lightning_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 
 	# 创建眼晕效果参数
 	var params = {
@@ -1518,18 +1410,13 @@ func _apply_lightning_effect(target: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, self, target, params)
+	GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STATUS, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(1.0, 1.0, 0.2, 0.5))
 
 # 应用土元素效果
 func _apply_earth_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建降低护甲效果参数
 	var params = {
 		"id": "earth_effect_" + str(randi()),
@@ -1541,17 +1428,13 @@ func _apply_earth_effect(target: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, self, target, params)
+	GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.STAT, self, target, params)
 
 	# 播放效果
 	_play_elemental_effect(target, Color(0.6, 0.4, 0.2, 0.5))
 
 # 播放元素效果
 func _play_elemental_effect(target: ChessPiece, color: Color) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 
 	# 创建视觉特效参数
 	var params = {
@@ -1561,8 +1444,8 @@ func _play_elemental_effect(target: ChessPiece, color: Color) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.BUFF,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
 		target,
 		params
 	)
@@ -1746,10 +1629,6 @@ func is_stunned() -> bool:
 
 # 播放升星特效
 func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increases: Dictionary) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 
 	# 创建升星特效容器
 	var upgrade_effect = Node2D.new()
@@ -1764,8 +1643,8 @@ func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increas
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.LEVEL_UP,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.LEVEL_UP,
 		upgrade_effect,
 		params
 	)

@@ -8,8 +8,6 @@ class_name EquipmentCombineSystem
 # 2. 不同基础装备可以合成新的装备（根据合成配方）
 # 3. 高品质装备可以用于合成特殊装备
 
-# 引用
-@onready var equipment_manager = get_node("/root/GameManager/EquipmentManager")
 
 # 合成配方 {[装备ID1, 装备ID2]: 结果装备ID}
 var _combine_recipes = {}
@@ -115,8 +113,8 @@ func _can_combine_same_base(equipment1: Equipment, equipment2: Equipment) -> boo
 		return false
 
 	# 品质必须相同
-	var tier1 = equipment_manager.get_tier_from_equipment_id(equipment1.id)
-	var tier2 = equipment_manager.get_tier_from_equipment_id(equipment2.id)
+	var tier1 = GameManager.equipment_manager.get_tier_from_equipment_id(equipment1.id)
+	var tier2 = GameManager.equipment_manager.get_tier_from_equipment_id(equipment2.id)
 
 	if tier1 != tier2:
 		return false
@@ -136,13 +134,13 @@ func _combine_same_base(equipment1: Equipment, equipment2: Equipment) -> Equipme
 	var base_id = _get_base_id(equipment1.id)
 
 	# 获取当前品质
-	var current_tier = equipment_manager.get_tier_from_equipment_id(equipment1.id)
+	var current_tier = GameManager.equipment_manager.get_tier_from_equipment_id(equipment1.id)
 
 	# 计算新品质
 	var new_tier = current_tier + 1
 
 	# 创建新装备
-	return equipment_manager.generate_random_equipment(base_id, new_tier)
+	return GameManager.equipment_manager.generate_random_equipment(base_id, new_tier)
 
 # 检查两个装备是否可以通过配方合成
 func _can_combine_by_recipe(equipment1: Equipment, equipment2: Equipment) -> bool:
@@ -186,7 +184,7 @@ func _combine_by_recipe(equipment1: Equipment, equipment2: Equipment) -> Equipme
 		return null
 
 	# 创建结果装备
-	var result = equipment_manager.get_equipment(result_id)
+	var result = GameManager.equipment_manager.get_equipment(result_id)
 	if result == null:
 		print("Error: Failed to create equipment with ID: " + result_id)
 
@@ -209,7 +207,7 @@ func get_possible_combinations(equipment: Equipment) -> Array:
 	# 获取所有装备
 	var all_equipments = []
 	for id in ConfigManager.get_all_equipment_ids():
-		all_equipments.append(equipment_manager.get_equipment(id))
+		all_equipments.append(GameManager.equipment_manager.get_equipment(id))
 
 	# 检查每个装备是否可以与当前装备合成
 	for other in all_equipments:
@@ -231,13 +229,13 @@ func preview_combine_result(equipment1: Equipment, equipment2: Equipment) -> Equ
 		var base_id = _get_base_id(equipment1.id)
 
 		# 获取当前品质
-		var current_tier = equipment_manager.get_tier_from_equipment_id(equipment1.id)
+		var current_tier = GameManager.equipment_manager.get_tier_from_equipment_id(equipment1.id)
 
 		# 计算新品质
 		var new_tier = current_tier + 1
 
 		# 创建新装备
-		return equipment_manager.generate_random_equipment(base_id, new_tier)
+		return GameManager.equipment_manager.generate_random_equipment(base_id, new_tier)
 
 	# 尝试配方合成
 	if _can_combine_by_recipe(equipment1, equipment2):
@@ -250,6 +248,6 @@ func preview_combine_result(equipment1: Equipment, equipment2: Equipment) -> Equ
 		var result_id = _combine_recipes[key_str]
 
 		# 创建结果装备
-		return equipment_manager.get_equipment(result_id)
+		return GameManager.equipment_manager.get_equipment(result_id)
 
 	return null

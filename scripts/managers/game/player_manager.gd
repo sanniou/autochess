@@ -25,12 +25,6 @@ var current_opponent: Player = null
 # 当前玩家状态
 var current_state: PlayerState = PlayerState.IDLE
 
-# 引用
-@onready var config_manager: ConfigManager = get_node("/root/ConfigManager")
-@onready var chess_factory = get_node("/root/GameManager/ChessFactory")
-@onready var equipment_manager = get_node("/root/GameManager/EquipmentManager")
-@onready var relic_manager = get_node("/root/GameManager/RelicManager")
-
 ## 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
@@ -147,7 +141,7 @@ func purchase_chess_piece(piece_id: String) -> ChessPiece:
 		return null
 
 	# 获取棋子配置
-	var piece_config = config_manager.get_chess_piece(piece_id)
+	var piece_config = ConfigManager.get_chess_piece_config(piece_id)
 	if piece_config == null:
 		_log_warning("无法购买棋子：未找到棋子配置 %s" % piece_id)
 		return null
@@ -158,7 +152,7 @@ func purchase_chess_piece(piece_id: String) -> ChessPiece:
 		return null
 
 	# 创建棋子实例
-	var piece = chess_factory.create_chess_piece(piece_id)
+	var piece = GameManager.chess_factory.create_chess_piece(piece_id)
 	if piece == null:
 		_log_warning("无法购买棋子：创建棋子实例失败 %s" % piece_id)
 		return null
@@ -195,87 +189,6 @@ func sell_chess_piece(piece: ChessPiece) -> bool:
 		_log_info("玩家出售棋子: %s, 获得: %d 金币" % [piece.id, piece.cost * piece.star_level])
 
 	return result
-
-## 购买装备
-## @param equipment_id 装备ID
-## @return 购买的装备实例，如果购买失败则返回 null
-func purchase_equipment(equipment_id: String) -> Equipment:
-	if current_player == null:
-		_log_warning("无法购买装备：当前玩家未初始化")
-		return null
-
-	# 获取装备配置
-	var equipment_config = config_manager.get_equipment(equipment_id)
-	if equipment_config == null:
-		_log_warning("无法购买装备：未找到装备配置 %s" % equipment_id)
-		return null
-
-	# 检查金币是否足够
-	var cost = equipment_config.get("cost", 3)  # 使用配置中的价格，默认为3金币
-	if current_player.gold < cost:
-		_log_warning("无法购买装备：金币不足 (需要 %d, 当前 %d)" % [cost, current_player.gold])
-		return null
-
-	# 获取装备实例
-	var equipment = equipment_manager.get_equipment(equipment_id)
-	if equipment == null:
-		_log_warning("无法购买装备：获取装备实例失败 %s" % equipment_id)
-		return null
-
-	# 扣除金币
-	if current_player.spend_gold(cost):
-		# 添加到玩家装备列表
-		if current_player.add_equipment(equipment):
-			_log_info("玩家购买装备: %s, 花费: %d 金币" % [equipment_id, cost])
-			# 发送装备购买信号
-			EventBus.economy.emit_event("equipment_purchased", [equipment, cost])
-			return equipment
-		else:
-			_log_warning("无法购买装备：添加装备到玩家失败")
-			# 退还金币
-			current_player.add_gold(cost)
-
-	return null
-
-## 购买经验
-## @param amount 要购买的经验值数量
-## @param cost 购买经验的金币成本
-## @return 是否购买成功
-func purchase_exp(amount: int = 4, cost: int = 4) -> bool:
-	if current_player == null:
-		_log_warning("无法购买经验：当前玩家未初始化")
-		return false
-
-	var result = current_player.buy_exp(amount, cost)
-	if result:
-		_log_info("玩家购买经验: %d, 花费: %d 金币" % [amount, cost])
-		EventBus.economy.emit_event("exp_purchased", [amount, cost])
-	else:
-		_log_warning("购买经验失败: 金币不足 (需要 %d, 当前 %d)" % [cost, current_player.gold])
-
-	return result
-
-## 刷新商店
-## @param cost 刷新商店的金币成本
-## @return 是否刷新成功
-func refresh_shop(cost: int = 2) -> bool:
-	if current_player == null:
-		_log_warning("无法刷新商店：当前玩家未初始化")
-		return false
-
-	# 检查金币是否足够
-	if current_player.gold < cost:
-		_log_warning("无法刷新商店：金币不足 (需要 %d, 当前 %d)" % [cost, current_player.gold])
-		return false
-
-	# 扣除金币
-	if current_player.spend_gold(cost):
-		_log_info("玩家刷新商店, 花费: %d 金币" % cost)
-		# 发送商店刷新请求信号
-		EventBus.economy.emit_event("shop_refresh_requested", [current_player.level])
-		return true
-
-	return false
 
 ## 回合开始处理
 ## @return void

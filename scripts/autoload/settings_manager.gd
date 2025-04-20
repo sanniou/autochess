@@ -99,13 +99,11 @@ func save_settings(settings: Dictionary = {}) -> void:
 # 应用设置
 func apply_settings() -> void:
 	# 应用音频设置
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.set_master_volume(current_settings.audio.master_volume)
-		audio_manager.set_music_volume(current_settings.audio.music_volume)
-		audio_manager.set_sfx_volume(current_settings.audio.sfx_volume)
-	else:
-		EventBus.debug.emit_event("debug_message", ["无法获取AudioManager引用", 1])
+	
+	var audio_manager = AudioManager
+	audio_manager.set_master_volume(current_settings.audio.master_volume)
+	audio_manager.set_music_volume(current_settings.audio.music_volume)
+	audio_manager.set_sfx_volume(current_settings.audio.sfx_volume)
 
 	# 应用显示设置
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if current_settings.display.fullscreen else DisplayServer.WINDOW_MODE_WINDOWED)

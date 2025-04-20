@@ -272,11 +272,6 @@ func _find_taunting_targets(targets: Array) -> Array:
 		# 检查目标是否有嘲讽效果
 		if target.has_method("is_taunting") and target.is_taunting():
 			taunting_targets.append(target)
-		# 检查目标的状态效果管理器
-		elif target.has_node("StatusEffectManager"):
-			var status_manager = target.get_node("StatusEffectManager")
-			if status_manager.has_effect(StatusEffectManager.StatusEffectType.TAUNT):
-				taunting_targets.append(target)
 
 	return taunting_targets
 

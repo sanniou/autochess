@@ -393,10 +393,10 @@ func load_from_save_data(data: Dictionary) -> void:
 	relics.clear()
 
 	# 获取必要的管理器
-	var chess_factory = get_node("/root/GameManager/ChessFactory")
-	var equipment_manager = get_node("/root/GameManager/EquipmentManager")
-	var relic_manager = get_node("/root/GameManager/RelicManager")
-	var board_manager = get_node("/root/GameManager/BoardManager")
+	var chess_factory = GameManager.chess_factory
+	var equipment_manager = GameManager.equipment_manager
+	var relic_manager = GameManager.relic_manager
+	var board_manager = GameManager.board_manager
 
 	# 加载棋子数据
 	if data.has("chess_pieces") and chess_factory:

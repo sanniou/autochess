@@ -10,55 +10,205 @@ func _get_config_type() -> String:
 # 获取默认架构
 func _get_default_schema() -> Dictionary:
 	return {
-		"id": {
-			"type": "string",
-			"required": true,
-			"description": "事件ID"
-		},
-		"title": {
-			"type": "string",
-			"required": true,
-			"description": "事件标题"
-		},
-		"description": {
-			"type": "string",
-			"required": true,
-			"description": "事件描述"
-		},
-		"image_path": {
-			"type": "string",
-			"required": false,
-			"description": "事件图片路径"
-		},
-		"event_type": {
-			"type": "string",
-			"required": true,
-			"description": "事件类型"
-		},
-		"weight": {
+  "id": {
+	"type": "string",
+	"required": true,
+	"description": "事件ID"
+  },
+  "title": {
+	"type": "string",
+	"required": true,
+	"description": "事件标题"
+  },
+  "description": {
+	"type": "string",
+	"required": true,
+	"description": "事件描述"
+  },
+  "image_path": {
+	"type": "string",
+	"required": false,
+	"description": "事件图片路径"
+  },
+  "event_type": {
+	"type": "string",
+	"required": true,
+	"description": "事件类型"
+  },
+  "weight": {
+	"type": "int",
+	"required": false,
+	"description": "事件权重"
+  },
+  "is_one_time": {
+	"type": "bool",
+	"required": false,
+	"description": "是否为一次性事件"
+  },
+  "choices": {
+	"type": "array[dictionary]",
+	"required": true,
+	"description": "事件选项",
+	"schema": {
+	  "text": {
+		"type": "string",
+		"required": true,
+		"description": "选项文本"
+	  },
+	  "requirements": {
+		"type": "dictionary",
+		"required": false,
+		"description": "选项要求",
+		"schema": {
+		  "gold": {
 			"type": "int",
 			"required": false,
-			"description": "事件权重"
-		},
-		"is_one_time": {
-			"type": "bool",
+			"description": "金币要求"
+		  },
+		  "has_item": {
+			"type": "string",
 			"required": false,
-			"description": "是否为一次性事件"
-		},
-		"choices": {
+			"description": "物品要求"
+		  },
+		  "health": {
+			"type": "int",
+			"required": false,
+			"description": "生命值要求"
+		  },
+		  "level": {
+			"type": "int",
+			"required": false,
+			"description": "等级要求"
+		  },
+		  "synergy": {
+			"type": "dictionary",
+			"required": false,
+			"description": "羁绊要求",
+			"schema": {
+			  "id": {
+				"type": "string",
+				"required": true,
+				"description": "羁绊ID"
+			  },
+			  "count": {
+				"type": "int",
+				"required": true,
+				"description": "羁绊数量"
+			  }
+			}
+		  },
+		  "chess_piece": {
+			"type": "dictionary",
+			"required": false,
+			"description": "棋子要求",
+			"schema": {
+			  "id": {
+				"type": "string",
+				"required": true,
+				"description": "棋子ID"
+			  },
+			  "count": {
+				"type": "int",
+				"required": true,
+				"description": "棋子数量"
+			  }
+			}
+		  },
+		  "map_depth": {
+			"type": "int",
+			"required": false,
+			"description": "地图深度要求"
+		  },
+		  "relic": {
+			"type": "dictionary",
+			"required": false,
+			"description": "遗物要求",
+			"schema": {
+			  "id": {
+				"type": "string",
+				"required": true,
+				"description": "遗物ID"
+			  }
+			}
+		  },
+		  "effects": {
 			"type": "array[dictionary]",
-			"required": true,
-			"description": "事件选项"
+			"required": false,
+			"description": "选项效果",
+			"schema": {
+			  "type": {
+				"type": "string",
+				"required": true,
+				"description": "效果类型"
+			  },
+			  "description": {
+				"type": "string",
+				"required": false,
+				"description": "效果描述"
+			  },
+			  "trigger": {
+				"type": "string",
+				"required": false,
+				"description": "触发条件"
+			  },
+			  "value": {
+				"type": "int",
+				"required": false,
+				"description": "效果值"
+			  },
+			  "Stats": {
+				"type": "dictionary",
+				"required": false,
+				"description": "效果属性修改",
+				"schema": {
+				  "attack_damage": {
+					"type": "float",
+					"required": false,
+					"description": "攻击力"
+				  },
+				  "attack_speed": {
+					"type": "float",
+					"required": false,
+					"description": "攻击速度"
+				  },
+				  "armor": {
+					"type": "float",
+					"required": false,
+					"description": "护甲"
+				  },
+				  "magic_resist": {
+					"type": "float",
+					"required": false,
+					"description": "魔抗"
+				  },
+				  "spell_power": {
+					"type": "float",
+					"required": false,
+					"description": "法术强度"
+				  }
+				}
+			  },
+			  "operation": {
+				"type": "string",
+				"required": false,
+				"description": "效果操作"
+			  }
+			}
+		  }
 		}
+	  }
 	}
+  }
+}
+
 
 # 验证自定义规则
 func _validate_custom_rules(config_data: Dictionary) -> void:
 	# 验证事件类型
 	if config_data.has("event_type"):
-		var valid_types = ["normal", "shop", "battle", "treasure"]
+		var valid_types = ["normal", "shop", "battle", "treasure","curse","story"]
 		if not valid_types.has(config_data.event_type):
-			validation_errors.append("事件类型必须是有效的类型: " + ", ".join(valid_types))
+			validation_errors.append(config_data.event_type+ " 事件类型必须是有效的类型: " + ", ".join(valid_types))
 	
 	# 验证事件权重
 	if config_data.has("weight") and config_data.weight < 0:
@@ -86,7 +236,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 					match req_type:
 						"gold":
 							if not req_value is int or req_value < 0:
-								validation_errors.append("金币要求必须是非负整数")
+								validation_errors.append("金币要求必须是非负整数:"+str(req_value))
 						"has_item":
 							if not req_value is String or req_value.is_empty():
 								validation_errors.append("物品要求必须是有效的字符串")
@@ -115,7 +265,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 					if not effect.has("type") or not effect.type is String or effect.type.is_empty():
 						validation_errors.append("效果必须有有效的类型")
 					else:
-						var valid_types = ["gold", "health", "relic", "item", "chess_piece"]
+						var valid_types = ["gold", "health", "relic", "item", "shop", "chess_piece"]
 						if not valid_types.has(effect.type):
 							validation_errors.append("效果类型必须是有效的类型: " + ", ".join(valid_types))
 					
@@ -125,7 +275,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 					else:
 						var valid_operations = ["add", "subtract", "buff", "remove"]
 						if not valid_operations.has(effect.operation):
-							validation_errors.append("效果操作必须是有效的操作: " + ", ".join(valid_operations))
+							validation_errors.append(effect.operation + "效果操作必须是有效的操作: " + ", ".join(valid_operations))
 					
 					# 验证效果值
 					if effect.has("value"):

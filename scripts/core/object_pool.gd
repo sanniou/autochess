@@ -1,7 +1,6 @@
 extends Node
 ## 对象池
 ## 用于管理和重用游戏对象，提高性能
-@onready var EventBus: Node = get_node("/root/EventBus")
 # 信号
 signal pool_created(pool_name, initial_size)
 signal pool_cleared(pool_name)

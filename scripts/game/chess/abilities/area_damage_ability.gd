@@ -3,8 +3,7 @@ class_name AreaDamageAbility
 ## 区域伤害技能
 ## 对范围内的敌人造成伤害
 
-# 伤害类型
-var damage_type: String = "magical"  # 伤害类型(physical/magical/true)
+# 注意：使用基类中定义的 damage_type 属性
 var radius: float = 2.0  # 伤害半径（格子数）
 
 # 初始化技能
@@ -20,12 +19,8 @@ func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
 
 # 执行技能效果
 func _execute_effect(target = null) -> void:
-	# 获取棋盘管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.board_manager:
-		return
 
-	var board_manager = game_manager.board_manager
+	var board_manager = GameManager.board_manager
 
 	# 获取中心位置（如果有目标使用目标位置，否则使用自身位置）
 	var center_pos = owner.board_position
@@ -52,22 +47,20 @@ func _execute_effect(target = null) -> void:
 		var actual_damage = damage * damage_multiplier
 
 		# 获取特效管理器
-		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.effect_manager:
-			# 创建伤害特效参数
-			var params = {
-				"color": game_manager.effect_manager.get_effect_color(damage_type),
-				"duration": 0.5,
-				"damage_type": damage_type,
-				"damage_amount": actual_damage
-			}
 
-			# 使用特效管理器创建特效
-			game_manager.effect_manager.create_visual_effect(
-				game_manager.effect_manager.VisualEffectType.DAMAGE,
-				enemy,
-				params
-			)
+		# 创建伤害特效参数
+		var params = {
+			"color": GameManager.effect_manager.get_effect_color(damage_type),
+			"duration": 0.5,
+			"damage_type": damage_type,
+			"damage_amount": actual_damage
+		}
+		# 使用特效管理器创建特效
+		GameManager.effect_manager.create_visual_effect(
+			GameManager.effect_manager.VisualEffectType.DAMAGE,
+			enemy,
+			params
+		)
 
 		# 直接造成伤害
 		enemy.take_damage(actual_damage, damage_type, owner)
@@ -80,12 +73,8 @@ func _execute_effect(target = null) -> void:
 
 # 播放区域特效
 func _play_area_visual_effect(center_pos: Vector2i, radius: float) -> void:
-	# 获取棋盘管理器和特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.board_manager or not game_manager.effect_manager:
-		return
 
-	var board_manager = game_manager.board_manager
+	var board_manager = GameManager.board_manager
 
 	# 计算特效位置
 	var effect_pos = Vector2(
@@ -100,15 +89,15 @@ func _play_area_visual_effect(center_pos: Vector2i, radius: float) -> void:
 
 	# 创建区域伤害特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color(damage_type),
+		"color": GameManager.effect_manager.get_effect_color(damage_type),
 		"duration": 2.0,
 		"damage_type": damage_type,
 		"radius": radius * board_manager.cell_size.x  # 转换为像素单位
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.AREA_DAMAGE,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.AREA_DAMAGE,
 		effect_node,
 		params
 	)
@@ -127,11 +116,6 @@ func _play_area_visual_effect(center_pos: Vector2i, radius: float) -> void:
 
 # 播放技能特效
 func _play_ability_effect(targets: Array) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 播放技能音效
 	_play_ability_sound()
 
@@ -139,15 +123,15 @@ func _play_ability_effect(targets: Array) -> void:
 	for target in targets:
 		# 创建视觉特效参数
 		var params = {
-			"color": game_manager.effect_manager.get_effect_color(damage_type),
+			"color": GameManager.effect_manager.get_effect_color(damage_type),
 			"duration": 0.5,
 			"damage_type": damage_type,
 			"damage_amount": damage
 		}
 
 		# 使用特效管理器创建特效
-		game_manager.effect_manager.create_visual_effect(
-			game_manager.effect_manager.VisualEffectType.DAMAGE,
+		GameManager.effect_manager.create_visual_effect(
+			GameManager.effect_manager.VisualEffectType.DAMAGE,
 			target,
 			params
 		)

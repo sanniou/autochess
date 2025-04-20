@@ -7,7 +7,7 @@ class_name StateManager
 var state_store = null
 
 # 状态定义
-var state_definitions = null
+var game_state_class = null
 
 # 状态动作
 var state_actions = null
@@ -16,30 +16,33 @@ var state_actions = null
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "StateManager"
-	
+
+	# 添加依赖
+	add_dependency("StatsManager")
+
 	# 加载状态定义
-	state_definitions = load("res://scripts/state/state_definitions.gd")
-	
+	game_state_class = load("res://scripts/state/game_state.gd")
+
 	# 加载状态动作
 	state_actions = load("res://scripts/state/state_actions.gd")
-	
+
 	# 创建状态存储
 	state_store = load("res://scripts/state/state_store.gd").new()
 	add_child(state_store)
-	
+
 	# 初始化状态
 	_initialize_state()
-	
+
 	# 连接事件总线
 	_connect_event_bus()
-	
+
 	EventBus.debug.emit_event("debug_message", ["状态管理器初始化完成", 0])
 
 ## 初始化状态
 func _initialize_state() -> void:
 	# 加载保存的状态
 	var saved_state = _load_saved_state()
-	
+
 	if not saved_state.is_empty():
 		state_store.load_state(saved_state)
 	else:
@@ -52,37 +55,38 @@ func _connect_event_bus() -> void:
 	EventBus.game.connect_event("game_started", _on_game_started)
 	EventBus.game.connect_event("game_ended", _on_game_ended)
 	EventBus.game.connect_event("game_paused", _on_game_paused)
-	
+	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+
 	# 连接玩家事件
 	EventBus.game.connect_event("player_health_changed", _on_player_health_changed)
 	EventBus.game.connect_event("player_level_changed", _on_player_level_changed)
 	EventBus.game.connect_event("player_died", _on_player_died)
-	
+
 	# 连接棋盘事件
 	EventBus.board.connect_event("board_initialized", _on_board_initialized)
 	EventBus.board.connect_event("piece_placed", _on_piece_placed)
 	EventBus.board.connect_event("piece_removed", _on_piece_removed)
 	EventBus.board.connect_event("piece_moved", _on_piece_moved)
 	EventBus.board.connect_event("board_locked", _on_board_locked)
-	
+
 	# 连接战斗事件
 	EventBus.battle.connect_event("battle_started", _on_battle_started)
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
-	
+
 	# 连接经济事件
 	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
-	
+
 	# 连接地图事件
 	EventBus.map.connect_event("map_generated", _on_map_generated)
 	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
-	
+
 	# 连接UI事件
 	EventBus.ui.connect_event("ui_screen_changed", _on_ui_screen_changed)
 	EventBus.ui.connect_event("show_notification", _on_show_notification)
-	
+
 	# 连接设置事件
 	EventBus.ui.connect_event("language_changed", _on_language_changed)
-	
+
 	# 连接成就事件
 	EventBus.achievement.connect_event("achievement_unlocked", _on_achievement_unlocked)
 	EventBus.achievement.connect_event("achievement_progress_updated", _on_achievement_progress_updated)
@@ -127,11 +131,11 @@ func save_state() -> void:
 ## 加载状态
 func load_state() -> bool:
 	var state_data = _load_saved_state()
-	
+
 	if state_data.is_empty():
 		_log_warning("加载状态失败：没有保存的状态")
 		return false
-	
+
 	return state_store.load_state(state_data)
 
 ## 从磁盘加载保存的状态
@@ -139,24 +143,24 @@ func _load_saved_state() -> Dictionary:
 	# 检查保存文件是否存在
 	if not FileAccess.file_exists("user://state.json"):
 		return {}
-	
+
 	# 打开文件
 	var file = FileAccess.open("user://state.json", FileAccess.READ)
 	if file == null:
 		_log_error("无法打开状态文件")
 		return {}
-	
+
 	# 读取文件内容
 	var json_text = file.get_as_text()
 	file.close()
-	
+
 	# 解析JSON
 	var json = JSON.new()
 	var error = json.parse(json_text)
 	if error != OK:
 		_log_error("解析状态文件失败: " + json.get_error_message())
 		return {}
-	
+
 	return json.get_data()
 
 ## 将状态保存到磁盘
@@ -166,14 +170,14 @@ func _save_state_to_disk(state_data: Dictionary) -> bool:
 	if file == null:
 		_log_error("无法打开状态文件进行写入")
 		return false
-	
+
 	# 将状态转换为JSON
 	var json_text = JSON.stringify(state_data)
-	
+
 	# 写入文件
 	file.store_string(json_text)
 	file.close()
-	
+
 	_log_info("状态已保存到磁盘")
 	return true
 
@@ -181,6 +185,8 @@ func _save_state_to_disk(state_data: Dictionary) -> bool:
 func create_action(action_type: String, params: Dictionary = {}) -> Object:
 	match action_type:
 		# 游戏状态动作
+		"SET_GAME_STATE":
+			return state_actions.GameActions.SetGameState.new(params.get("state", 0))
 		"SET_DIFFICULTY":
 			return state_actions.GameActions.SetDifficulty.new(params.get("difficulty", 1))
 		"SET_GAME_MODE":
@@ -195,7 +201,7 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.GameActions.SetPhase.new(params.get("phase", "preparation"))
 		"SET_SEED":
 			return state_actions.GameActions.SetSeed.new(params.get("seed_value", 0))
-		
+
 		# 玩家状态动作
 		"SET_HEALTH":
 			return state_actions.PlayerActions.SetHealth.new(params.get("health", 100))
@@ -215,7 +221,7 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.PlayerActions.RemoveRelic.new(params.get("relic_id", ""))
 		"RECORD_BATTLE_RESULT":
 			return state_actions.PlayerActions.RecordBattleResult.new(params.get("win", false))
-		
+
 		# 棋盘状态动作
 		"SET_BOARD_SIZE":
 			return state_actions.BoardActions.SetBoardSize.new(params.get("size", Vector2i(8, 8)))
@@ -233,7 +239,7 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.BoardActions.UpdateSynergy.new(params.get("synergy_id", ""), params.get("level", 0))
 		"CLEAR_BOARD":
 			return state_actions.BoardActions.ClearBoard.new()
-		
+
 		# 商店状态动作
 		"SET_SHOP_OPEN":
 			return state_actions.ShopActions.SetShopOpen.new(params.get("is_open", false))
@@ -247,7 +253,7 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.ShopActions.LockItem.new(params.get("item_index", 0), params.get("locked", false))
 		"SET_SHOP_TIER":
 			return state_actions.ShopActions.SetShopTier.new(params.get("tier", 1))
-		
+
 		# 地图状态动作
 		"SET_MAP":
 			return state_actions.MapActions.SetMap.new(params.get("map_data", {}))
@@ -259,7 +265,7 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.MapActions.SetAvailableNodes.new(params.get("nodes", []))
 		"SET_MAP_LEVEL":
 			return state_actions.MapActions.SetMapLevel.new(params.get("level", 1))
-		
+
 		# UI状态动作
 		"SET_SCREEN":
 			return state_actions.UIActions.SetScreen.new(params.get("screen", "main_menu"))
@@ -277,7 +283,7 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.UIActions.AddNotification.new(params.get("message", ""), params.get("type", "info"), params.get("duration", 3.0))
 		"CLEAR_NOTIFICATIONS":
 			return state_actions.UIActions.ClearNotifications.new()
-		
+
 		# 设置状态动作
 		"SET_VOLUME":
 			return state_actions.SettingsActions.SetVolume.new(params.get("volume_type", "master"), params.get("volume", 1.0))
@@ -293,13 +299,13 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.SettingsActions.SetParticleQuality.new(params.get("quality", 2))
 		"SET_UI_SCALE":
 			return state_actions.SettingsActions.SetUIScale.new(params.get("scale", 1.0))
-		
+
 		# 成就状态动作
 		"UNLOCK_ACHIEVEMENT":
 			return state_actions.AchievementActions.UnlockAchievement.new(params.get("achievement_id", ""))
 		"UPDATE_ACHIEVEMENT_PROGRESS":
 			return state_actions.AchievementActions.UpdateAchievementProgress.new(params.get("achievement_id", ""), params.get("progress", 0))
-		
+
 		# 统计状态动作
 		"RECORD_GAME_RESULT":
 			return state_actions.StatsActions.RecordGameResult.new(params.get("win", false))
@@ -315,7 +321,7 @@ func create_action(action_type: String, params: Dictionary = {}) -> Object:
 			return state_actions.StatsActions.RecordChessPiece3Star.new(params.get("piece_id", ""))
 		"RECORD_SYNERGY_ACTIVATED":
 			return state_actions.StatsActions.RecordSynergyActivated.new(params.get("synergy_id", ""))
-		
+
 		_:
 			_log_error("创建动作失败：未知的动作类型 - " + action_type)
 			return null
@@ -330,8 +336,20 @@ func _on_game_ended(win: bool) -> void:
 	dispatch(create_action("SET_GAME_OVER", {"is_game_over": true, "win": win}))
 	dispatch(create_action("RECORD_GAME_RESULT", {"win": win}))
 
+	# 使用 StatsManager 记录游戏结果
+	var stats_manager = GameManager.stats_manager
+	if stats_manager:
+		stats_manager.increment_stat("games_played")
+		if win:
+			stats_manager.increment_stat("games_won")
+		else:
+			stats_manager.increment_stat("games_lost")
+
 func _on_game_paused(is_paused: bool) -> void:
 	dispatch(create_action("SET_PAUSED", {"is_paused": is_paused}))
+
+func _on_game_state_changed(old_state: int, new_state: int) -> void:
+	dispatch(create_action("SET_GAME_STATE", {"state": new_state}))
 
 func _on_player_health_changed(old_health: int, new_health: int) -> void:
 	dispatch(create_action("SET_HEALTH", {"health": new_health}))
@@ -366,13 +384,35 @@ func _on_battle_started() -> void:
 func _on_battle_ended(result) -> void:
 	dispatch(create_action("SET_BATTLE_STATE", {"battle_in_progress": false, "battle_id": ""}))
 	dispatch(create_action("SET_PHASE", {"phase": "preparation"}))
-	dispatch(create_action("RECORD_BATTLE_RESULT", {"win": result == "win"}))
+	dispatch(create_action("RECORD_BATTLE_RESULT", {"win": result.is_victory}))
+
+	# 使用 StatsManager 记录战斗结果
+	var stats_manager = GameManager.stats_manager
+	if stats_manager:
+		stats_manager.increment_stat("battles_played")
+		if result.is_victory:
+			stats_manager.increment_stat("battles_won")
+		else:
+			stats_manager.increment_stat("battles_lost")
+
+		# 更新伤害和治疗统计
+		if result.has("player_damage_dealt"):
+			stats_manager.increment_stat("total_damage_dealt", result.player_damage_dealt)
+
+		if result.has("player_healing"):
+			stats_manager.increment_stat("total_healing", result.player_healing)
 
 func _on_gold_changed(old_value: int, new_value: int) -> void:
 	dispatch(create_action("SET_GOLD", {"gold": new_value}))
-	
+
 	if new_value > old_value:
-		dispatch(create_action("RECORD_GOLD_EARNED", {"amount": new_value - old_value}))
+		var amount = new_value - old_value
+		dispatch(create_action("RECORD_GOLD_EARNED", {"amount": amount}))
+
+		# 使用 StatsManager 记录金币获取
+		var stats_manager = GameManager.stats_manager
+		if stats_manager:
+			stats_manager.increment_stat("total_gold_earned", amount)
 
 func _on_map_generated() -> void:
 	# 获取地图数据

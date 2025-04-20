@@ -25,11 +25,6 @@ func _get_default_schema() -> Dictionary:
 			"required": true,
 			"description": "棋子描述"
 		},
-		"rarity": {
-			"type": "int",
-			"required": true,
-			"description": "棋子稀有度"
-		},
 		"cost": {
 			"type": "int",
 			"required": true,
@@ -73,7 +68,59 @@ func _get_default_schema() -> Dictionary:
 		"ability": {
 			"type": "dictionary",
 			"required": true,
-			"description": "棋子技能"
+			"description": "棋子技能",
+			"schema": {
+				"cooldown": {
+					"type": "float",
+					"required": true,
+					"description": "技能冷却"
+				},
+				"damage": {
+					"type": "float",
+					"required": false,
+					"description": "技能伤害"
+				},
+				"damage_radius": {
+					"type": "float",
+					"required": false,
+					"description": "技能伤害半径"
+				},
+				"damage_type": {
+					"type": "string",
+					"required": false,
+					"description": "技能伤害类型"
+				},
+				"description": {
+					"type": "string",
+					"required": true,
+					"description": "技能描述"
+				},
+				"name": {
+					"type": "string",
+					"required": true,
+					"description": "技能名称"
+				},
+				"piercing": {
+					"type": "bool",
+					"required": false,
+					"description": "是否击退"
+				},
+				"range": {
+					"type": "float",
+					"required": false,
+					"description": "技能范围"
+				},
+				"teleport_range": {
+					"type": "float",
+					"required": false,
+					"description": "技能传送范围"
+				},
+				"type": {
+					"type": "string",
+					"required": true,
+					"description": "技能类型"
+				}
+				
 		},
 		"synergies": {
 			"type": "array[string]",
@@ -96,12 +143,10 @@ func _get_default_schema() -> Dictionary:
 			"description": "棋子模型"
 		}
 	}
+}
 
 # 验证自定义规则
 func _validate_custom_rules(config_data: Dictionary) -> void:
-	# 验证稀有度范围
-	if config_data.has("rarity") and (config_data.rarity < 0 or config_data.rarity > 5):
-		validation_errors.append("稀有度必须在0-5之间")
 	
 	# 验证费用范围
 	if config_data.has("cost") and (config_data.cost < 1 or config_data.cost > 5):
@@ -149,10 +194,6 @@ func get_chess_name() -> String:
 # 获取棋子描述
 func get_description() -> String:
 	return data.get("description", "")
-
-# 获取棋子稀有度
-func get_rarity() -> int:
-	return data.get("rarity", 0)
 
 # 获取棋子费用
 func get_cost() -> int:

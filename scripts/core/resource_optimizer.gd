@@ -281,7 +281,7 @@ func _unload_low_priority_resources() -> void:
 		unload_resource(resources[i].path)
 	
 	if unload_count > 0:
-		EventBus.debug.emit_event("debug_message", ["已卸载 " + str(unload_count]) + " 个低优先级资源", 0)
+		EventBus.debug.emit_event("debug_message", ["已卸载 " + str(unload_count) + " 个低优先级资源", 0])
 
 ## 卸载未使用资源
 func _unload_unused_resources() -> void:
@@ -310,7 +310,7 @@ func _unload_unused_resources() -> void:
 		unload_resource(resources[i].path)
 	
 	if unload_count > 0:
-		EventBus.debug.emit_event("debug_message", ["已卸载 " + str(unload_count]) + " 个长时间未使用的资源", 0)
+		EventBus.debug.emit_event("debug_message", ["已卸载 " + str(unload_count) + " 个长时间未使用的资源", 0])
 
 ## 估计资源大小
 func _estimate_resource_size(resource: Resource, type: int) -> int:

@@ -8,7 +8,7 @@ signal node_selected(node_data)
 signal map_completed
 
 # 地图数据
-var map_data: Dictionary = {}
+var map_data: MapData
 var nodes: Dictionary = {}  # 节点ID到MapNode对象的映射
 var current_layer: int = 0
 var current_node: MapNode = null
@@ -22,16 +22,10 @@ var map_generator: MapGenerator
 var difficulty_level: int = 1
 var map_template: String = "standard"
 
-# 引用
-@onready var config_manager = get_node("/root/ConfigManager")
-@onready var game_manager = get_node("/root/GameManager")
-
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "MapManager"
-	# 添加依赖
-	add_dependency("ConfigManager")
 
 	# 原 _ready 函数的内容
 	# 创建地图生成器
@@ -82,7 +76,7 @@ func _initialize_nodes() -> void:
 	for layer_nodes in map_data.nodes:
 		for node_data in layer_nodes:
 			var node = MapNode.new()
-			node.initialize(node_data)
+			node.initialize(node_data,'',0,0)
 			nodes[node.id] = node
 
 	# 设置节点连接
@@ -187,10 +181,10 @@ func _start_battle(node: MapNode) -> void:
 	}
 
 	# 存储战斗参数
-	game_manager.battle_params = battle_params
+	GameManager.battle_params = battle_params
 
 	# 切换到战斗状态
-	game_manager.change_state(GameManager.GameState.BATTLE)
+	GameManager.change_state(GameManager.GameState.BATTLE)
 
 ## 开始精英战斗
 func _start_elite_battle(node: MapNode) -> void:
@@ -204,10 +198,10 @@ func _start_elite_battle(node: MapNode) -> void:
 	}
 
 	# 存储战斗参数
-	game_manager.battle_params = battle_params
+	GameManager.battle_params = battle_params
 
 	# 切换到战斗状态
-	game_manager.change_state(GameManager.GameState.BATTLE)
+	GameManager.change_state(GameManager.GameState.BATTLE)
 
 ## 开始Boss战斗
 func _start_boss_battle(node: MapNode) -> void:
@@ -222,10 +216,10 @@ func _start_boss_battle(node: MapNode) -> void:
 	}
 
 	# 存储战斗参数
-	game_manager.battle_params = battle_params
+	GameManager.battle_params = battle_params
 
 	# 切换到战斗状态
-	game_manager.change_state(GameManager.GameState.BATTLE)
+	GameManager.change_state(GameManager.GameState.BATTLE)
 
 ## 打开商店
 func _open_shop(node: MapNode) -> void:
@@ -236,10 +230,10 @@ func _open_shop(node: MapNode) -> void:
 	}
 
 	# 存储商店参数
-	game_manager.shop_params = shop_params
+	GameManager.shop_params = shop_params
 
 	# 切换到商店状态
-	game_manager.change_state(GameManager.GameState.SHOP)
+	GameManager.change_state(GameManager.GameState.SHOP)
 
 ## 触发事件
 func _trigger_event(node: MapNode) -> void:
@@ -250,10 +244,10 @@ func _trigger_event(node: MapNode) -> void:
 	}
 
 	# 存储事件参数
-	game_manager.event_params = event_params
+	GameManager.event_params = event_params
 
 	# 切换到事件状态
-	game_manager.change_state(GameManager.GameState.EVENT)
+	GameManager.change_state(GameManager.GameState.EVENT)
 
 ## 打开宝藏
 func _open_treasure(node: MapNode) -> void:
@@ -268,7 +262,7 @@ func _open_treasure(node: MapNode) -> void:
 ## 在节点休息
 func _rest_at_node(node: MapNode) -> void:
 	# 处理休息效果
-	var player_manager = get_node("/root/GameManager/PlayerManager")
+	var player_manager = GameManager.play_manager
 	if player_manager:
 		player_manager.heal_player(node.heal_amount)
 
@@ -279,9 +273,9 @@ func _rest_at_node(node: MapNode) -> void:
 
 ## 处理奖励
 func _process_rewards(rewards: Dictionary) -> void:
-	var player_manager = get_node("/root/GameManager/PlayerManager")
-	var equipment_manager = get_node("/root/GameManager/EquipmentManager")
-	var relic_manager = get_node("/root/GameManager/RelicManager")
+	var player_manager = GameManager.player_manager
+	var equipment_manager = GameManager.equipment_manager
+	var relic_manager = GameManager.relic_manager
 
 	# 处理金币奖励
 	if rewards.has("gold") and player_manager:
@@ -324,7 +318,7 @@ func _get_node_by_id(node_id: String) -> MapNode:
 	return null
 
 ## 获取当前地图数据
-func get_map_data() -> Dictionary:
+func get_map_data() -> MapData:
 	return map_data
 
 ## 获取当前节点
@@ -443,7 +437,7 @@ func _on_shop_exited() -> void:
 	pass
 
 ## 地图生成事件处理
-func _on_map_generated(data: Dictionary) -> void:
+func _on_map_generated(data: MapData) -> void:
 	map_data = data
 
 # 重写清理方法
@@ -491,13 +485,13 @@ func _trigger_mystery_node(node: MapNode) -> void:
 
 	# 创建一个新的节点数据
 	var mystery_node = MapNode.new()
-	mystery_node.initialize({
-		"id": node.id,
-		"layer": node.layer,
-		"position": node.position,
-		"type": random_type,
-		"visited": true
-	})
+	mystery_node.initialize(
+		node.id,
+		random_type,
+		 node.layer,
+		 node.position,
+		#"visited": true
+	)
 
 	# 根据随机类型设置额外属性
 	match random_type:
@@ -533,10 +527,10 @@ func _start_challenge(node: MapNode) -> void:
 	}
 
 	# 存储战斗参数
-	game_manager.battle_params = challenge_params
+	GameManager.battle_params = challenge_params
 
 	# 切换到战斗状态
-	game_manager.change_state(GameManager.GameState.BATTLE)
+	GameManager.change_state(GameManager.GameState.BATTLE)
 
 ## 打开祭坛
 func _open_altar(node: MapNode) -> void:
@@ -547,10 +541,10 @@ func _open_altar(node: MapNode) -> void:
 	}
 
 	# 存储祭坛参数
-	game_manager.altar_params = altar_params
+	GameManager.altar_params = altar_params
 
 	# 切换到祭坛状态
-	game_manager.change_state(GameManager.GameState.ALTAR)
+	GameManager.change_state(GameManager.GameState.ALTAR)
 
 ## 打开铁匠铺
 func _open_blacksmith(node: MapNode) -> void:
@@ -561,10 +555,10 @@ func _open_blacksmith(node: MapNode) -> void:
 	}
 
 	# 存储铁匠铺参数
-	game_manager.blacksmith_params = blacksmith_params
+	GameManager.blacksmith_params = blacksmith_params
 
 	# 切换到铁匠铺状态
-	game_manager.change_state(GameManager.GameState.BLACKSMITH)
+	GameManager.change_state(GameManager.GameState.BLACKSMITH)
 
 ## 计算战斗难度
 func _calculate_battle_difficulty(layer: int, is_elite: bool) -> float:

@@ -47,9 +47,6 @@ class AuraData:
 # 活跃的光环
 var active_auras: Array = []
 
-# 引用
-@onready var board_manager = get_node("/root/GameManager/BoardManager")
-
 # 初始化
 func _ready():
 	# 连接信号
@@ -331,27 +328,12 @@ func _initialize_auras() -> void:
 					aura.synergy_level = synergy_level
 
 					# 检查羁绊是否激活
-					var synergy_manager = get_node("/root/GameManager/SynergyManager")
-					if synergy_manager:
-						var active_level = synergy_manager.get_synergy_level(synergy_required)
-						aura.is_active = active_level >= synergy_level
+					var synergy_manager = GameManager.synergy_manager
+					var active_level = synergy_manager.get_synergy_level(synergy_required)
+					aura.is_active = active_level >= synergy_level
 
 # 创建光环视觉效果
 func _create_visual_effect() -> Node2D:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		# 如果没有特效管理器，创建基本的光环效果
-		var visual = Node2D.new()
-
-		# 创建光环精灵
-		var sprite = Sprite2D.new()
-		sprite.texture = preload("res://assets/images/vfx/aura_circle.png") # 光环纹理占位
-		sprite.modulate = Color(0.5, 0.8, 1.0, 0.3) # 默认蓝色光环
-		visual.add_child(sprite)
-
-		return visual
-
 	# 创建光环容器
 	var visual = Node2D.new()
 
@@ -364,8 +346,8 @@ func _create_visual_effect() -> Node2D:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.BUFF,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
 		visual,
 		params
 	)

@@ -31,9 +31,8 @@ func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
 # 执行技能效果
 func _execute_effect(target = null) -> void:
 	# 获取棋盘管理器和棋子工厂
-	var game_manager = owner.get_node("/root/GameManager")
-	var board_manager = game_manager.board_manager
-	var chess_factory = game_manager.chess_factory
+	var board_manager = GameManager.board_manager
+	var chess_factory = GameManager.chess_factory
 
 	if not board_manager or not chess_factory:
 		return
@@ -157,61 +156,48 @@ func _on_owner_died() -> void:
 
 # 播放召唤特效
 func _play_summon_effect(summon: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 
 	# 创建召唤特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("summon"),
+		"color": GameManager.effect_manager.get_effect_color("summon"),
 		"duration": 1.0
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.SUMMON,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.SUMMON,
 		summon,
 		params
 	)
 
 # 播放消失特效
 func _play_despawn_effect(summon: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 
 	# 创建消失特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("teleport"),
+		"color": GameManager.effect_manager.get_effect_color("teleport"),
 		"duration": 1.0
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
 		summon,
 		params
 	)
 
 # 播放技能特效
 func _play_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建增益特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("buff"),
+		"color": GameManager.effect_manager.get_effect_color("buff"),
 		"duration": 1.0,
 		"buff_type": "summon_ability"
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.BUFF,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
 		target,
 		params
 	)

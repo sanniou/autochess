@@ -11,7 +11,8 @@ enum EffectType {
 	HEAL,       # 治疗效果
 	DOT,        # 持续伤害效果
 	VISUAL,     # 纯视觉效果
-	SOUND       # 音效
+	SOUND,       # 音效
+	MOVEMENT,
 }
 
 # 基本属性
@@ -127,21 +128,5 @@ static func create_from_data(data: Dictionary, source = null, target = null) -> 
 
 # 创建效果实例
 static func create(effect_type: int, params: Dictionary = {}, source = null, target = null) -> BaseEffect:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		# 如果没有特效管理器，直接创建基础效果
-		return BaseEffect.new(
-			params.get("id", ""),
-			effect_type,
-			params.get("name", ""),
-			params.get("description", ""),
-			params.get("duration", 0.0),
-			params.get("value", 0.0),
-			source,
-			target,
-			params.get("is_debuff", false)
-		)
-
 	# 使用特效管理器创建效果
-	return game_manager.effect_manager.create_and_add_effect(effect_type, source, target, params)
+	return GameManager.effect_manager.create_and_add_effect(effect_type, source, target, params)

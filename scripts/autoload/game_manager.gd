@@ -39,16 +39,21 @@ var altar_params: Dictionary = {}
 var blacksmith_params: Dictionary = {}
 
 # 管理器系统
-var manager_system = null
+var manager_system: ManagerSystem = null
 
 # 系统管理器引用
+var state_manager: StateManager = null
+var network_manager: NetworkManager = null
+var sync_manager: SyncManager = null
+var stats_manager: StatsManager = null
+
 var map_manager: MapManager = null
 var player_manager: PlayerManager = null
 var board_manager: BoardManager = null
 var battle_manager: BattleManager = null
 var economy_manager: EconomyManager = null
 var shop_manager: ShopManager = null
-# var chess_manager: ChessManager = null
+var chess_manager: ChessManager = null
 var equipment_manager: EquipmentManager = null
 var relic_manager: RelicManager = null
 var event_manager: EventManager = null
@@ -72,7 +77,6 @@ var tutorial_manager: TutorialManager = null
 var ability_factory: AbilityFactory = null
 var relic_ui_manager: RelicUiManager = null
 var effect_manager: EffectManager = null
-var chess_factory: ChessFactory = null
 
 # 初始化
 func _ready() -> void:
@@ -127,9 +131,15 @@ func _register_all_managers() -> void:
 
 	# 注册核心管理器
 	# SceneManager 现在是 Autoload 节点
-	_register_manager("UIManager", "res://scripts/managers/ui/ui_manager.gd")
+	_register_manager("UIManager", "res://scripts/ui/ui_manager.gd")
 	_register_manager("ThemeManager", "res://scripts/managers/ui/theme_manager.gd")
 	_register_manager("HUDManager", "res://scripts/managers/ui/hud_manager.gd")
+
+	# 注册系统管理器
+	_register_manager("StateManager", "res://scripts/managers/system/state_manager.gd")
+	_register_manager("NetworkManager", "res://scripts/managers/system/network_manager.gd")
+	_register_manager("SyncManager", "res://scripts/managers/system/sync_manager.gd")
+	_register_manager("StatsManager", "res://scripts/managers/game/stats_manager.gd")
 
 	# 注册游戏系统管理器
 	_register_manager("MapManager", "res://scripts/managers/game/map_manager.gd")
@@ -138,6 +148,7 @@ func _register_all_managers() -> void:
 	_register_manager("BattleManager", "res://scripts/managers/game/battle_manager.gd")
 	_register_manager("EconomyManager", "res://scripts/managers/game/economy_manager.gd")
 	_register_manager("ShopManager", "res://scripts/managers/game/shop_manager.gd")
+	_register_manager("ChessManager", "res://scripts/managers/game/chess_manager.gd")
 	_register_manager("EquipmentManager", "res://scripts/managers/game/equipment_manager.gd")
 	_register_manager("RelicManager", "res://scripts/managers/game/relic_manager.gd")
 	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd")
@@ -157,7 +168,7 @@ func _register_all_managers() -> void:
 	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd")
 	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd")
 	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd")
-	_register_manager("ChessFactory", "res://scripts/game/chess/chess_factory.gd")
+	# ChessFactory 已被 ChessManager 替代
 
 ## 注册单个管理器
 func _register_manager(manager_name: String, script_path: String) -> void:
@@ -181,12 +192,20 @@ func _register_manager(manager_name: String, script_path: String) -> void:
 func _update_manager_reference(manager_name: String, manager_instance) -> void:
 	# 根据管理器名称更新对应的引用变量
 	match manager_name:
+		# 系统管理器
+		"StateManager": state_manager = manager_instance
+		"NetworkManager": network_manager = manager_instance
+		"SyncManager": sync_manager = manager_instance
+		"StatsManager": stats_manager = manager_instance
+
+		# 游戏管理器
 		"MapManager": map_manager = manager_instance
 		"PlayerManager": player_manager = manager_instance
 		"BoardManager": board_manager = manager_instance
 		"BattleManager": battle_manager = manager_instance
 		"EconomyManager": economy_manager = manager_instance
 		"ShopManager": shop_manager = manager_instance
+		"ChessManager": chess_manager = manager_instance
 		"EquipmentManager": equipment_manager = manager_instance
 		"RelicManager": relic_manager = manager_instance
 		"EventManager": event_manager = manager_instance
@@ -210,7 +229,6 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"AbilityFactory": ability_factory = manager_instance
 		"RelicUIManager": relic_ui_manager = manager_instance
 		"EffectManager": effect_manager = manager_instance
-		"ChessFactory": chess_factory = manager_instance
 
 ## 改变游戏状态
 func change_state(new_state: int) -> void:
@@ -219,6 +237,11 @@ func change_state(new_state: int) -> void:
 
 	var old_state = current_state
 	current_state = new_state
+
+	# 使用 StateManager 更新状态
+	if state_manager:
+		state_manager.dispatch(
+			state_manager.create_action("SET_GAME_STATE", {"state": new_state}))
 
 	# 处理状态退出逻辑
 	match old_state:
@@ -282,9 +305,6 @@ func start_new_game(difficulty: int = 1) -> void:
 func load_game(save_slot: String) -> bool:
 	# 获取存档管理器
 	var save_manager = get_node_or_null("/root/SaveManager")
-	if save_manager == null:
-		_log_error("无法获取存档管理器")
-		return false
 
 	# 加载存档
 	var success = save_manager.load_game(save_slot)
@@ -304,9 +324,6 @@ func load_game(save_slot: String) -> bool:
 func save_game(save_slot: String = "") -> bool:
 	# 获取存档管理器
 	var save_manager = get_node_or_null("/root/SaveManager")
-	if save_manager == null:
-		EventBus.debug.emit_event("debug_message", ["无法获取存档管理器", 2])
-		return false
 
 	# 保存游戏
 	var success = save_manager.save_game(save_slot)

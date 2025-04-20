@@ -43,16 +43,11 @@ var is_playing = {
 	AnimationType.EFFECT: false
 }
 
-# 引用
-@onready var resource_manager = get_node("/root/ResourceManager")
-
 # 初始化
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "AnimationManager"
-	# 添加依赖
-	add_dependency("ResourceManager")
 
 	# 原 _ready 函数的内容
 	# 连接信号

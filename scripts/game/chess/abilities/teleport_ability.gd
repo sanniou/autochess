@@ -4,7 +4,7 @@ class_name TeleportAbility
 ## 传送到目标位置并造成伤害
 
 # 传送相关属性
-var damage_type: String = "magical"  # 伤害类型(physical/magical/true)
+# 注意：使用基类中定义的 damage_type 属性
 var teleport_range: float = 4.0     # 传送范围（格子数）
 var damage_radius: float = 1.0      # 伤害半径（格子数）
 
@@ -27,7 +27,7 @@ func _execute_effect(target = null) -> void:
 		return
 
 	# 获取棋盘管理器
-	var board_manager = owner.get_node("/root/GameManager").board_manager
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return
 
@@ -110,36 +110,26 @@ func _deal_area_damage(center_pos: Vector2i, board_manager) -> void:
 
 # 播放消失特效
 func _play_disappear_effect() -> void:
-	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建消失特效
 	var params = {
 		"teleport_type": "disappear"
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.TELEPORT_DISAPPEAR, owner, params)
+	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.TELEPORT_DISAPPEAR, owner, params)
 
 	# 暂时隐藏所有者
 	owner.modulate.a = 0
 
 # 播放出现特效
 func _play_appear_effect() -> void:
-	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建出现特效
 	var params = {
 		"teleport_type": "appear"
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.TELEPORT_APPEAR, owner, params)
+	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.TELEPORT_APPEAR, owner, params)
 
 	# 显示所有者
 	var tween = owner.create_tween()
@@ -147,11 +137,6 @@ func _play_appear_effect() -> void:
 
 # 播放伤害特效
 func _play_damage_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建伤害特效
 	var params = {
 		"damage_type": damage_type,
@@ -159,15 +144,10 @@ func _play_damage_effect(target: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
+	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
 
 # 播放技能特效
 func _play_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建技能特效
 	var params = {
 		"damage_type": damage_type,
@@ -175,4 +155,4 @@ func _play_effect(target: ChessPiece) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.DAMAGE, target, params)
+	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)

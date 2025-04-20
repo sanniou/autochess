@@ -33,22 +33,16 @@ func _do_initialize() -> void:
 	add_dependency("UIManager")
 
 	# 获取HUD容器
-	var ui_manager = get_node("/root/GameManager/UIManager")
-	if ui_manager and ui_manager.has_method("get_hud_container"):
+	var ui_manager:UIManager = GameManager.get_manager("UIManager")
+	if ui_manager:
 		hud_container = ui_manager.get_hud_container()
 
-	if not hud_container:
-		# 如果没有找到HUD容器，创建一个
-		hud_container = Control.new()
-		hud_container.name = "HUDContainer"
-		hud_container.anchor_right = 1.0
-		hud_container.anchor_bottom = 1.0
-
-		# 添加到场景树
-		if ui_manager:
-			ui_manager.add_child(hud_container)
-		else:
-			add_child(hud_container)
+		if not hud_container:
+			_log_error("UIManager没有提供HUD容器")
+			return
+	else:
+		_log_error("UIManager不可用")
+		return
 
 	# 连接信号
 	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
@@ -232,7 +226,7 @@ func unload_all_huds() -> void:
 		unload_hud(hud_name)
 
 # 根据游戏状态加载相应的HUD
-func _on_game_state_changed(old_state: int, new_state: int) -> void:
+func _on_game_state_changed(_old_state: int, new_state: int) -> void:
 	# 根据游戏状态加载不同的HUD
 	match new_state:
 		GameManager.GameState.MAIN_MENU:
@@ -253,6 +247,12 @@ func _on_game_state_changed(old_state: int, new_state: int) -> void:
 		_:
 			# 默认HUD
 			load_hud("default_hud")
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	_error = error_message
+	EventBus.debug.emit_event("debug_message", [error_message, 2])
+	error_occurred.emit(error_message)
 
 # 重写重置方法
 func _do_reset() -> void:

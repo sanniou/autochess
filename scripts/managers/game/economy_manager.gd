@@ -37,9 +37,6 @@ var economy_params = {
 	"bankruptcy_protection": true  # 破产保护开关
 }
 
-# 引用
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
@@ -142,7 +139,7 @@ func load_economy_state(state: Dictionary) -> void:
 # 回合开始事件处理
 func _on_battle_round_started(round_number: int) -> void:
 	# 计算并发放回合收入
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if player:
 		# 计算回合收入
 		var income = calculate_round_income(player)
@@ -159,14 +156,14 @@ func _on_battle_round_started(round_number: int) -> void:
 # 商店刷新事件处理
 func _on_shop_refreshed() -> void:
 	# 记录刷新次数统计
-	var stats_manager = get_node("/root/GameManager/StatsManager")
+	var stats_manager = GameManager.stats_manager
 	if stats_manager:
 		stats_manager.increment_stat("shop_refreshes")
 
 # 物品购买事件处理
 func _on_item_purchased(item_data: Dictionary) -> void:
 	# 记录购买统计
-	var stats_manager = get_node("/root/GameManager/StatsManager")
+	var stats_manager = GameManager.stats_manager
 	if stats_manager:
 		stats_manager.increment_stat("items_purchased")
 
@@ -183,7 +180,7 @@ func _on_item_purchased(item_data: Dictionary) -> void:
 # 物品出售事件处理
 func _on_item_sold(item_data: Dictionary) -> void:
 	# 记录出售统计
-	var stats_manager = get_node("/root/GameManager/StatsManager")
+	var stats_manager = GameManager.stats_manager
 	if stats_manager:
 		stats_manager.increment_stat("items_sold")
 
@@ -200,7 +197,7 @@ func _apply_relic_effects_to_income(player: Player, base_income: int) -> int:
 	var modified_income = base_income
 
 	# 获取玩家遗物
-	var relic_manager = get_node("/root/GameManager/RelicManager")
+	var relic_manager = GameManager.relic_manager
 	if relic_manager == null or player == null:
 		return modified_income
 
@@ -224,22 +221,11 @@ func _apply_relic_effects_to_income(player: Player, base_income: int) -> int:
 # 加载难度设置
 func _load_difficulty_settings() -> void:
 	# 获取当前难度级别
-	var game_manager = get_node("/root/GameManager")
-	if game_manager == null:
-		_log_warning("GameManager 不存在，使用默认难度设置")
-		return
-
-	var difficulty_level = game_manager.difficulty_level
+	var difficulty_level = GameManager.difficulty_level
 	_log_info("当前难度级别: " + str(difficulty_level))
 
-	# 获取难度配置
-	var config_manager = get_node("/root/ConfigManager")
-	if config_manager == null:
-		_log_warning("ConfigManager 不存在，使用默认难度设置")
-		return
-
 	# 从配置管理器获取难度配置
-	var difficulty_data = config_manager.get_config_item("difficulty", str(difficulty_level))
+	var difficulty_data = ConfigManager.get_config_item("difficulty", str(difficulty_level))
 	if difficulty_data.is_empty():
 		_log_warning("难度配置不存在: " + str(difficulty_level) + "，使用默认难度设置")
 		return

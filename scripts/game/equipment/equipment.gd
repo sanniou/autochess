@@ -3,6 +3,10 @@ class_name Equipment
 ## 装备基类
 ## 定义装备的基本属性和行为
 
+# 引入常量
+const GameConsts = preload("res://scripts/constants/game_constants.gd")
+const EffectConsts = preload("res://scripts/constants/effect_constants.gd")
+
 # 信号
 signal equipped(character)  # 装备穿戴信号
 signal unequipped(character) # 装备卸下信号
@@ -13,7 +17,7 @@ var id: String = ""
 var display_name: String = ""
 var description: String = ""
 var type: String = ""  # weapon/armor/accessory
-var rarity: String = "" # common/rare/epic/legendary
+var rarity: int
 var icon: String = ""
 
 # 装备效果
@@ -32,7 +36,7 @@ func initialize(data: Dictionary):
 	description = data.description
 	type = data.type
 	rarity = data.rarity
-	icon = data.icon
+	icon = data.icon_path
 
 	if data.has("stats"):
 		stats = data.stats
@@ -150,8 +154,14 @@ func _apply_effects():
 		effect_data["source"] = self
 		effect_data["id"] = "equip_%s_%s" % [id, effect.type]
 
-		# 根据效果类型连接信号
-		match effect.trigger:
+		# 获取触发条件
+		var trigger = effect.get("trigger", "")
+		if trigger.is_empty() and effect.type != "passive":
+			# 如果没有指定触发条件，使用默认触发条件
+			trigger = EffectConsts.get_default_condition_for_trigger_name(effect.type)
+
+		# 根据触发条件连接信号
+		match trigger:
 			"attack":
 				current_owner.ability_activated.connect(_on_owner_attack.bind(effect_data))
 			"take_damage":
@@ -269,6 +279,23 @@ func get_combine_result(other_equipment: Equipment) -> String:
 				return recipe_id
 	return ""
 
+# 获取装备数据
+func get_data() -> Dictionary:
+	# 返回装备的完整数据
+	var data = {
+		"id": id,
+		"name": display_name,
+		"description": description,
+		"type": type,
+		"rarity": rarity,
+		"icon": icon,
+		"stats": stats.duplicate(),
+		"effects": effects.duplicate(),
+		"combine_recipes": combine_recipes.duplicate(),
+		"recipe": recipe.duplicate()
+	}
+	return data
+
 # 应用被动效果
 func _apply_passive_effect(effect_data: Dictionary) -> void:
 	if current_owner == null:
@@ -306,9 +333,9 @@ func _apply_passive_effect(effect_data: Dictionary) -> void:
 				_add_multi_attack_visual(effect_data.attacks)
 		"death_immunity":
 			# 死亡免疫效果
-			if effect_data.has("chance") and effect_data.has("cooldown") and effect_data.has("heal_percent"):
+			if effect_data.has("chance") and effect_data.has("cooldown_time") and effect_data.has("heal_percent"):
 				current_owner.set_meta("death_immunity_chance_" + id, effect_data.chance)
-				current_owner.set_meta("death_immunity_cooldown_" + id, effect_data.cooldown)
+				current_owner.set_meta("death_immunity_cooldown_" + id, effect_data.cooldown_time)
 				current_owner.set_meta("death_immunity_heal_" + id, effect_data.heal_percent)
 				current_owner.set_meta("death_immunity_ready_" + id, true)
 				_add_death_immunity_visual()

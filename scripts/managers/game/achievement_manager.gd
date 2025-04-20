@@ -16,10 +16,6 @@ var unlocked_achievements = {}
 # 成就进度
 var achievement_progress = {}
 
-# 引用
-@onready var config_manager = get_node("/root/ConfigManager")
-@onready var game_manager = get_node("/root/GameManager")
-
 # 初始化
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -41,7 +37,7 @@ func _do_initialize() -> void:
 
 # 加载成就配置
 func _load_achievement_configs() -> void:
-	achievement_configs = config_manager.get_all_achievements()
+	achievement_configs = ConfigManager.get_all_achievements()
 
 	# 初始化成就进度
 	for id in achievement_configs:
@@ -219,7 +215,7 @@ func claim_achievement_rewards(achievement_id: String) -> bool:
 # 应用成就奖励
 func _apply_achievement_rewards(rewards: Dictionary) -> void:
 	# 获取玩家管理器
-	var player_manager = game_manager.player_manager
+	var player_manager = GameManager.player_manager
 	if player_manager == null:
 		return
 
@@ -249,28 +245,27 @@ func _apply_achievement_rewards(rewards: Dictionary) -> void:
 		elif item_id.begins_with("equipment_"):
 			# 解锁装备
 			var equipment_id = item_id.substr(10)
-			var equipment_manager = game_manager.equipment_manager
+			var equipment_manager = GameManager.equipment_manager
 			if equipment_manager:
 				equipment_manager.unlock_equipment(equipment_id)
 
 		elif item_id.begins_with("relic_"):
 			# 解锁遗物
 			var relic_id = item_id.substr(6)
-			var relic_manager = game_manager.relic_manager
+			var relic_manager = GameManager.relic_manager
 			if relic_manager:
 				relic_manager.unlock_relic(relic_id)
 
 		elif item_id.begins_with("skin_"):
 			# 解锁皮肤
 			var skin_id = item_id.substr(5)
-			var skin_manager = game_manager.skin_manager
-			if skin_manager:
-				skin_manager.unlock_skin(skin_id)
+			var skin_manager = GameManager.skin_manager
+			skin_manager.unlock_skin(skin_id,rewards.skin_type)
 
 # 保存成就数据
 func _save_achievement_data() -> void:
 	# 获取存档管理器
-	var save_manager = get_node("/root/SaveManager")
+	var save_manager = SaveManager
 	if save_manager == null:
 		return
 
@@ -304,7 +299,7 @@ func _show_achievement_notification(achievement_id: String) -> void:
 	var achievement_data = achievement_configs[achievement_id]
 
 	# 获取UI管理器
-	var ui_manager = game_manager.ui_manager
+	var ui_manager = GameManager.ui_manager
 	if ui_manager == null:
 		return
 
@@ -382,13 +377,13 @@ func _on_battle_ended(result) -> void:
 			unlock_achievement("perfect_battle")
 
 		# 检查"连胜"成就
-		#var streak = game_manager.get_win_streak()
+		#var streak = GameManager.get_win_streak()
 		#if streak >= 5:
 			#unlock_achievement("win_streak")
 
 		# 检查"低血量胜利"成就
-		if game_manager.player_manager and game_manager.player_manager.get_current_player():
-			var player = game_manager.player_manager.get_current_player()
+		if GameManager.player_manager and GameManager.player_manager.get_current_player():
+			var player = GameManager.player_manager.get_current_player()
 			if player.health <= 10:
 				unlock_achievement("low_health_victory")
 
@@ -415,7 +410,7 @@ func _on_relic_acquired(relic: Dictionary) -> void:
 	increment_achievement_progress("relic_hunter")
 
 	# 检查单局游戏中获得的遗物数量
-	var relic_count = game_manager.relic_manager.get_player_relics().size()
+	var relic_count = GameManager.relic_manager.get_player_relics().size()
 	if relic_count >= 5:
 		unlock_achievement("relic_hunter")
 
@@ -439,7 +434,7 @@ func _on_game_completed(victory: bool) -> void:
 	unlock_achievement("first_victory")
 
 	# 检查"困难胜利"成就
-	var difficulty = game_manager.difficulty_level
+	var difficulty = GameManager.difficulty_level
 	if difficulty >= 3:
 		unlock_achievement("hard_victory")
 
@@ -449,7 +444,7 @@ func _on_game_completed(victory: bool) -> void:
 
 	# 如果有必要，可以从其他地方获取游戏时间
 	# 例如：从存档数据中获取游戏开始时间，然后计算持续时间
-	var save_manager = get_node("/root/SaveManager")
+	var save_manager = SaveManager
 	if save_manager != null:
 		var save_data = save_manager.get_save_data()
 		if save_data.has("game_start_time"):
@@ -465,12 +460,12 @@ func _on_game_completed(victory: bool) -> void:
 # 检查"棋子大师"成就
 func _check_chess_master_achievement(new_piece: ChessPiece = null) -> void:
 	# 获取棋子管理器
-	var chess_manager = game_manager.chess_manager
+	var chess_manager = GameManager.chess_manager
 	if chess_manager == null:
 		return
 
 	# 获取所有棋子配置
-	var all_chess_configs = config_manager.get_all_chess_pieces()
+	var all_chess_configs = ConfigManager.get_all_chess_pieces()
 
 	# 获取玩家拥有的棋子
 	var player_chess_pieces = chess_manager.get_all_player_chess_pieces()
@@ -498,7 +493,7 @@ func _check_chess_master_achievement(new_piece: ChessPiece = null) -> void:
 # 检查"羁绊大师"成就
 func _check_synergy_master_achievement() -> void:
 	# 获取羁绊管理器
-	var synergy_manager = game_manager.synergy_manager
+	var synergy_manager = GameManager.synergy_manager
 	if synergy_manager == null:
 		return
 
@@ -521,7 +516,7 @@ func _check_synergy_master_achievement() -> void:
 # 检查"满员"成就
 func _check_full_board_achievement() -> void:
 	# 获取棋盘管理器
-	var board_manager = game_manager.board_manager
+	var board_manager = GameManager.board_manager
 	if board_manager == null:
 		return
 
@@ -532,12 +527,12 @@ func _check_full_board_achievement() -> void:
 # 检查"装备收藏家"成就
 func _check_equipment_collector_achievement() -> void:
 	# 获取装备管理器
-	var equipment_manager = game_manager.equipment_manager
+	var equipment_manager = GameManager.equipment_manager
 	if equipment_manager == null:
 		return
 
 	# 获取所有稀有装备配置
-	var all_equipment_configs = config_manager.get_all_equipment()
+	var all_equipment_configs = ConfigManager.get_all_equipment()
 	var rare_equipment_ids = []
 
 	for id in all_equipment_configs:
@@ -577,3 +572,47 @@ func _log_warning(warning_message: String) -> void:
 # 记录信息
 func _log_info(info_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
+# 检查统计相关成就
+func check_stat_achievement(stat_name: String, value) -> void:
+	# 根据统计名称检查不同的成就
+	match stat_name:
+		"games_played":
+			if value >= 10:
+				unlock_achievement("play_10_games")
+			if value >= 50:
+				unlock_achievement("play_50_games")
+			if value >= 100:
+				unlock_achievement("play_100_games")
+
+		"games_won":
+			if value >= 5:
+				unlock_achievement("win_5_games")
+			if value >= 20:
+				unlock_achievement("win_20_games")
+			if value >= 50:
+				unlock_achievement("win_50_games")
+
+		"total_damage_dealt":
+			if value >= 10000:
+				unlock_achievement("deal_10000_damage")
+			if value >= 50000:
+				unlock_achievement("deal_50000_damage")
+
+		"total_gold_earned":
+			if value >= 5000:
+				unlock_achievement("earn_5000_gold")
+			if value >= 20000:
+				unlock_achievement("earn_20000_gold")
+
+		"chess_pieces_purchased":
+			if value >= 100:
+				unlock_achievement("buy_100_pieces")
+			if value >= 500:
+				unlock_achievement("buy_500_pieces")
+
+		"battles_won":
+			if value >= 50:
+				unlock_achievement("win_50_battles")
+			if value >= 200:
+				unlock_achievement("win_200_battles")

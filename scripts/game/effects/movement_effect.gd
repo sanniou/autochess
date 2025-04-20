@@ -159,13 +159,8 @@ func _play_movement_effect() -> void:
 	if not target or not is_instance_valid(target):
 		return
 
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 选择特效类型和颜色
-	var effect_type = game_manager.effect_manager.VisualEffectType.BUFF
+	var effect_type = GameManager.effect_manager.VisualEffectType.BUFF
 	var movement_name = ""
 
 	match movement_type:
@@ -174,7 +169,7 @@ func _play_movement_effect() -> void:
 		MovementType.PULL:
 			movement_name = "pull"
 		MovementType.TELEPORT:
-			effect_type = game_manager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR
+			effect_type = GameManager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR
 			movement_name = "teleport"
 		MovementType.SWAP:
 			movement_name = "swap"
@@ -183,13 +178,13 @@ func _play_movement_effect() -> void:
 
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color(movement_name),
+		"color": GameManager.effect_manager.get_effect_color(movement_name),
 		"duration": 0.5,
 		"buff_type": movement_name
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
+	GameManager.effect_manager.create_visual_effect(
 		effect_type,
 		target,
 		params

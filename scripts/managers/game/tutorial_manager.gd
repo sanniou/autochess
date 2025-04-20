@@ -35,20 +35,11 @@ var current_step = 0
 # 教程面板
 var tutorial_panel = null
 
-# 引用
-@onready var config_manager = get_node("/root/ConfigManager")
-@onready var game_manager = get_node("/root/GameManager")
-@onready var save_manager = get_node("/root/SaveManager")
-
 # 初始化
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "TutorialManager"
-	# 添加依赖
-	add_dependency("ConfigManager")
-	# 添加依赖
-	add_dependency("GameManager")
 	# 添加依赖
 	add_dependency("SaveManager")
 	
@@ -64,7 +55,7 @@ func _do_initialize() -> void:
 	
 # 加载教程配置
 func _load_tutorial_configs() -> void:
-	tutorial_configs = config_manager.get_all_tutorials()
+	tutorial_configs = ConfigManager.get_all_tutorials()
 
 # 连接信号
 func _connect_signals() -> void:
@@ -79,7 +70,7 @@ func _connect_signals() -> void:
 # 加载教程数据
 func _load_tutorial_data() -> void:
 	# 获取存档数据
-	var tutorial_data = save_manager.load_tutorial_data()
+	var tutorial_data = SaveManager.load_tutorial_data()
 
 	# 加载已完成的教程
 	if tutorial_data.has("completed_tutorials"):
@@ -98,7 +89,7 @@ func _save_tutorial_data() -> void:
 	}
 
 	# 保存教程数据
-	save_manager.save_tutorial_data(tutorial_data)
+	SaveManager.save_tutorial_data(tutorial_data)
 
 # 开始教程
 func start_tutorial(tutorial_id: String) -> bool:
@@ -335,7 +326,7 @@ func _stop_active_tutorial() -> void:
 # 显示教程面板
 func _show_tutorial_panel(tutorial_id: String) -> void:
 	# 获取UI管理器
-	var ui_manager = game_manager.ui_manager
+	var ui_manager = GameManager.ui_manager
 	if ui_manager == null:
 		return
 
@@ -348,7 +339,7 @@ func _show_tutorial_panel(tutorial_id: String) -> void:
 # 隐藏教程面板
 func _hide_tutorial_panel() -> void:
 	# 获取UI管理器
-	var ui_manager = game_manager.ui_manager
+	var ui_manager = GameManager.ui_manager
 	if ui_manager == null:
 		return
 
@@ -364,10 +355,10 @@ func _show_tutorial_step(step: int) -> void:
 		return
 
 	# 获取教程配置
-	var tutorial_config = tutorial_configs[active_tutorial]
+	var tutorial_config:TutorialConfig = tutorial_configs[active_tutorial]
 
 	# 检查步骤是否有效
-	if step < 0 or step >= tutorial_config.steps.size():
+	if step < 0 or step >= tutorial_config.get_step_count():
 		return
 
 	# 获取步骤数据
@@ -423,7 +414,7 @@ func _execute_step_actions(step_data: Dictionary) -> void:
 # 高亮UI元素
 func _highlight_ui_element(target_path: String, duration: float) -> void:
 	# 获取UI管理器
-	var ui_manager = game_manager.ui_manager
+	var ui_manager = GameManager.ui_manager
 	if ui_manager == null:
 		return
 
@@ -474,11 +465,9 @@ func _enable_ui_elements(target_paths: Array) -> void:
 # 等待事件
 func _wait_for_event(event_name: String, timeout: float) -> void:
 	# 连接事件
-	var event_bus = get_node("/root/EventBus")
-	if event_bus.has_signal(event_name):
-		var connection = event_bus.get_signal_connection_list(event_name)
-		if connection.is_empty():
-			event_bus.connect(event_name, func(): next_tutorial_step())
+	var connection = EventBus.get_signal_connection_list(event_name)
+	if connection.is_empty():
+		EventBus.connect(event_name, func(): next_tutorial_step())
 
 	# 如果有超时，设置超时定时器
 	if timeout > 0:

@@ -182,9 +182,8 @@ func _log_error(error_data: Dictionary) -> void:
 			push_error(message)
 	
 	# 记录到日志文件
-	if has_node("/root/DebugManager"):
-		var debug_manager = get_node("/root/DebugManager")
-		debug_manager.log_message(error_data.message, error_data.level)
+	var debug_manager = DebugManager
+	debug_manager.log_message(error_data.message, error_data.level)
 
 ## 记录崩溃
 func _log_crash(crash_data: Dictionary) -> void:
@@ -198,13 +197,12 @@ func _log_crash(crash_data: Dictionary) -> void:
 		push_error("  at " + str(frame))
 	
 	# 记录到日志文件
-	if has_node("/root/DebugManager"):
-		var debug_manager = get_node("/root/DebugManager")
-		debug_manager.log_message(message, 2)
-		
-		# 记录堆栈跟踪
-		for frame in crash_data.stack_trace:
-			debug_manager.log_message("  at " + str(frame), 2)
+	var debug_manager = DebugManager
+	debug_manager.log_message(message, 2)
+	
+	# 记录堆栈跟踪
+	for frame in crash_data.stack_trace:
+		debug_manager.log_message("  at " + str(frame), 2)
 
 ## 发送错误报告
 func _send_error_report(error_data: Dictionary) -> void:

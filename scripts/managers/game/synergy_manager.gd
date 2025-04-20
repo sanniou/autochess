@@ -116,16 +116,18 @@ func _activate_synergy(synergy: String, level: int) -> void:
 	if not config:
 		return
 
-	# 获取对应等级的效果
-	var effect = _get_synergy_effect(synergy, level)
-	if not effect:
+	# 获取对应等级的效果数组
+	var effects = _get_synergy_effects(synergy, level)
+	if effects.is_empty():
 		return
 
-	# 应用效果给所有符合条件的棋子
+	# 应用所有效果给符合条件的棋子
 	var all_pieces = _get_all_chess_pieces()
 	for piece in all_pieces:
 		if synergy in piece.synergies:
-			piece.add_effect(effect)
+			# 添加所有效果
+			for effect in effects:
+				piece.add_effect(effect)
 
 	# 显示羁绊激活效果
 	_show_synergy_activation_effect(synergy, level)
@@ -140,20 +142,24 @@ func _upgrade_synergy(synergy: String, old_level: int, new_level: int) -> void:
 		return
 
 	# 移除旧效果
-	var old_effect = _get_synergy_effect(synergy, old_level)
-	if old_effect:
+	var old_effects = _get_synergy_effects(synergy, old_level)
+	if not old_effects.is_empty():
 		var all_pieces = _get_all_chess_pieces()
 		for piece in all_pieces:
 			if synergy in piece.synergies:
-				piece.remove_effect(old_effect.id)
+				# 移除所有旧效果
+				for effect in old_effects:
+					piece.remove_effect(effect.id)
 
 	# 添加新效果
-	var new_effect = _get_synergy_effect(synergy, new_level)
-	if new_effect:
+	var new_effects = _get_synergy_effects(synergy, new_level)
+	if not new_effects.is_empty():
 		var all_pieces = _get_all_chess_pieces()
 		for piece in all_pieces:
 			if synergy in piece.synergies:
-				piece.add_effect(new_effect)
+				# 添加所有新效果
+				for effect in new_effects:
+					piece.add_effect(effect)
 
 	# 显示羁绊升级效果
 	_show_synergy_upgrade_effect(synergy, old_level, new_level)
@@ -168,20 +174,24 @@ func _downgrade_synergy(synergy: String, old_level: int, new_level: int) -> void
 		return
 
 	# 移除旧效果
-	var old_effect = _get_synergy_effect(synergy, old_level)
-	if old_effect:
+	var old_effects = _get_synergy_effects(synergy, old_level)
+	if not old_effects.is_empty():
 		var all_pieces = _get_all_chess_pieces()
 		for piece in all_pieces:
 			if synergy in piece.synergies:
-				piece.remove_effect(old_effect.id)
+				# 移除所有旧效果
+				for effect in old_effects:
+					piece.remove_effect(effect.id)
 
 	# 添加新效果
-	var new_effect = _get_synergy_effect(synergy, new_level)
-	if new_effect:
+	var new_effects = _get_synergy_effects(synergy, new_level)
+	if not new_effects.is_empty():
 		var all_pieces = _get_all_chess_pieces()
 		for piece in all_pieces:
 			if synergy in piece.synergies:
-				piece.add_effect(new_effect)
+				# 添加所有新效果
+				for effect in new_effects:
+					piece.add_effect(effect)
 
 	# 发送羁绊降级信号
 	EventBus.chess.emit_event("synergy_activated", [synergy, new_level])
@@ -193,12 +203,14 @@ func _deactivate_synergy(synergy: String, level: int) -> void:
 		return
 
 	# 移除效果
-	var effect = _get_synergy_effect(synergy, level)
-	if effect:
+	var effects = _get_synergy_effects(synergy, level)
+	if not effects.is_empty():
 		var all_pieces = _get_all_chess_pieces()
 		for piece in all_pieces:
 			if synergy in piece.synergies:
-				piece.remove_effect(effect.id)
+				# 移除所有效果
+				for effect in effects:
+					piece.remove_effect(effect.id)
 
 	# 显示羁绊失效效果
 	_show_synergy_deactivation_effect(synergy, level)
@@ -206,66 +218,75 @@ func _deactivate_synergy(synergy: String, level: int) -> void:
 	# 发送羁绊失效信号
 	EventBus.chess.emit_event("synergy_deactivated", [synergy])
 
-## 获取羁绊效果
-func _get_synergy_effect(synergy: String, level: int) -> Dictionary:
+## 获取羁绊效果数组
+func _get_synergy_effects(synergy: String, level: int) -> Array:
 	var config = _synergy_configs[synergy]
 	if not config:
-		return {}
+		return []
 
 	# 查找对应等级的效果
-	# 优先使用thresholds字段，如果不存在则尝试使用tiers字段（向后兼容）
-	var levels = config.thresholds if config.has("thresholds") and config.thresholds.size() > 0 else config.tiers if config.has("tiers") else []
-	for lvl in levels:
-		if lvl.level == level:
-			var effect = lvl.effect.duplicate(true)
-			effect.id = "synergy_%s_%d" % [synergy, level]
-			effect.synergy_id = synergy
-			effect.level = level
+	# 使用thresholds字段
+	var thresholds = config.thresholds if config.has("thresholds") else []
+	for threshold in thresholds:
+		if threshold.count == level:
+			var effects_array = []
 
-			# 根据效果类型进行处理
-			if effect.has("type"):
-				match effect.type:
-					"stat_boost":
-						# 属性提升效果
-						effect.is_passive = true
+			# 检查是否有effects数组
+			if threshold.has("effects") and threshold.effects is Array and not threshold.effects.is_empty():
+				# 处理所有效果
+				for i in range(threshold.effects.size()):
+					var effect_data = threshold.effects[i]
+					var effect = effect_data.duplicate(true)
+					effect.id = "synergy_%s_%d_%d" % [synergy, level, i]
+					effect.synergy_id = synergy
+					effect.level = level
 
-					"spell_amp":
-						# 法术增强效果
-						effect.is_passive = true
+					# 根据效果类型进行处理
+					if effect.has("type"):
+						match effect.type:
+							"stat_boost":
+								# 属性提升效果
+								effect.is_passive = true
 
-					"double_attack":
-						# 二次攻击效果
-						effect.is_passive = true
+							"spell_amp":
+								# 法术增强效果
+								effect.is_passive = true
 
-					"crit":
-						# 暴击效果
-						effect.is_passive = true
+							"double_attack":
+								# 二次攻击效果
+								effect.is_passive = true
 
-					"team_buff":
-						# 团队增益效果
-						effect.is_passive = true
+							"crit":
+								# 暴击效果
+								effect.is_passive = true
 
-					"cooldown_reduction":
-						# 冷却缩减效果
-						effect.is_passive = true
+							"team_buff":
+								# 团队增益效果
+								effect.is_passive = true
 
-					"dodge":
-						# 闪避效果
-						effect.is_passive = true
+							"cooldown_reduction":
+								# 冷却缩减效果
+								effect.is_passive = true
 
-					"summon_boost":
-						# 召唤物加成效果
-						effect.is_passive = true
-						effect.is_summon_boost = true
+							"dodge":
+								# 闪避效果
+								effect.is_passive = true
 
-					"elemental_effect":
-						# 元素效果
-						effect.is_passive = true
-						effect.is_elemental_effect = true
+							"summon_boost":
+								# 召唤物加成效果
+								effect.is_passive = true
+								effect.is_summon_boost = true
 
-			return effect
+							"elemental_effect":
+								# 元素效果
+								effect.is_passive = true
+								effect.is_elemental_effect = true
 
-	return {}
+					effects_array.append(effect)
+
+			return effects_array
+
+	return []
 
 ## 获取所有棋子
 func _get_all_chess_pieces() -> Array:

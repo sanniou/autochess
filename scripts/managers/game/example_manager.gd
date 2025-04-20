@@ -26,13 +26,7 @@ func _do_initialize() -> void:
 	_log_info("ExampleManager 初始化完成")
 
 # 初始化数据
-func _initialize_data() -> void:
-	# 获取配置管理器
-	var config_manager = get_manager("ConfigManager")
-	if not config_manager:
-		_log_error("无法获取配置管理器")
-		return
-		
+func _initialize_data() -> void:	
 	# 加载配置数据
 	example_data = {
 		"initialized": true,

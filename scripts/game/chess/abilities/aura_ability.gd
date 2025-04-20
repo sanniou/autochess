@@ -49,7 +49,7 @@ func _create_aura_effect() -> void:
 	aura.color = _get_aura_color()
 
 	# 获取棋盘管理器
-	var board_manager = owner.get_node("/root/GameManager").board_manager
+	var board_manager = GameManager.board_manager
 	if board_manager:
 		# 计算光环大小
 		var aura_size = aura_radius * 2 * board_manager.cell_size.x
@@ -75,7 +75,7 @@ func _create_aura_effect() -> void:
 # 应用光环效果
 func _apply_aura_effect() -> void:
 	# 获取棋盘管理器
-	var board_manager = owner.get_node("/root/GameManager").board_manager
+	var board_manager = GameManager.board_manager
 	if not board_manager:
 		return
 
@@ -178,36 +178,21 @@ func _get_aura_color() -> Color:
 
 # 播放光环特效
 func _play_aura_effect() -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
-	# 获取棋盘管理器
-	var board_manager = game_manager.board_manager
-	if not board_manager:
-		return
-
 	# 创建增益特效
 	var params = {
 		"buff_type": aura_type,
-		"radius": aura_radius * board_manager.cell_size.x  # 转换为像素单位
+		"radius": aura_radius * GameManager.board_manager.cell_size.x  # 转换为像素单位
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.BUFF, owner, params)
+	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.BUFF, owner, params)
 
 # 播放单体特效
 func _play_effect(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建增益特效
 	var params = {
 		"buff_type": aura_type
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(game_manager.effect_manager.VisualEffectType.BUFF, target, params)
+	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.BUFF, target, params)

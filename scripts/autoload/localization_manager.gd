@@ -94,9 +94,6 @@ enum TextDirection {
 	RIGHT_TO_LEFT
 }
 
-# 引用
-var config_manager = null
-
 # 初始化
 func _ready() -> void:
 	# 初始化管理器
@@ -117,11 +114,6 @@ func _do_initialize() -> void:
 
 ## 延迟初始化
 func _deferred_init() -> void:
-	# 获取引用
-	config_manager = get_node_or_null("/root/ConfigManager")
-	if not config_manager:
-		EventBus.debug.emit_event("debug_message", ["无法获取配置管理器引用", 1])
-		return
 
 	# 连接信号
 	EventBus.localization.connect_event("request_language_code", _on_request_language_code)
@@ -193,7 +185,7 @@ func load_language(language: int) -> void:
 		return
 
 	# 使用 ConfigManager 加载语言文件
-	var translation_data = config_manager.load_json(file_path)
+	var translation_data = ConfigManager.load_json(file_path)
 	if translation_data.is_empty():
 		EventBus.debug.emit_event("debug_message", ["无法加载语言文件: " + file_path, 2])
 
@@ -226,8 +218,24 @@ func change_language(language: int) -> void:
 	load_language(language)
 
 ## 获取翻译文本
-func translate(key: String, params: Array = []) -> String:
+func translate(key: String, params: Array = [], fallback_data: Dictionary = {}) -> String:
+	# 检查翻译是否存在
 	if not translations.has(key):
+		# 如果提供了回退数据，尝试使用回退数据
+		if not fallback_data.is_empty():
+			# 如果是棋子或装备的名称
+			if key.begins_with("game.chess.") or key.begins_with("game.equipment."):
+				# 如果是描述
+				if key.ends_with(".description") and fallback_data.has("description"):
+					return fallback_data.description
+				# 如果是名称
+				elif fallback_data.has("name"):
+					return fallback_data.name
+				# 如果没有名称，使用 ID
+				elif fallback_data.has("id"):
+					return fallback_data.id
+
+		# 记录翻译键不存在的警告
 		EventBus.debug.emit_event("debug_message", ["翻译键不存在: " + key, 1])
 		return key
 
@@ -385,7 +393,7 @@ func _create_empty_language_file(language_code: String) -> void:
 	}
 
 	# 使用 ConfigManager 保存语言文件
-	var result = config_manager.save_json(file_path, basic_translations)
+	var result = ConfigManager.save_json(file_path, basic_translations)
 	if result:
 		EventBus.debug.emit_event("debug_message", ["创建了基本语言文件: " + file_path, 1])
 	else:
@@ -426,7 +434,7 @@ func _preload_language(language: int) -> void:
 ## 线程加载语言文件
 func _load_language_thread(file_path: String, language_code: String) -> void:
 	# 使用 ConfigManager 加载语言文件
-	var translation_data = config_manager.load_json(file_path)
+	var translation_data = ConfigManager.load_json(file_path)
 	if not translation_data.is_empty():
 		# 将翻译数据存储到缓存
 		var cache_key = "translation_" + language_code

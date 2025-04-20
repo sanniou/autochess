@@ -27,18 +27,14 @@ func _execute_effect(target = null) -> void:
 	if target == null:
 		return
 
-	# 获取特效管理器
-	var game_manager = owner.get_node_or_null("/root/GameManager")
-	if game_manager and game_manager.effect_manager:
-		# 创建增益特效
-		var params = {
-			"buff_type": buff_type,
-			"buff_value": buff_value,
-			"duration": duration
-		}
-
-		# 使用特效管理器创建特效
-		game_manager.effect_manager.create_effect(game_manager.effect_manager.EffectType.BUFF, target, params)
+	# 创建增益特效
+	var params = {
+		"buff_type": buff_type,
+		"buff_value": buff_value,
+		"duration": duration
+	}
+	# 使用特效管理器创建特效
+	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.BUFF, target, params)
 
 	# 直接应用增益效果
 	# 创建效果数据

@@ -3,6 +3,11 @@ class_name Relic
 ## 遗物基类
 ## 定义遗物的基本属性和行为
 
+# 引入常量
+const GameConsts = preload("res://scripts/constants/game_constants.gd")
+const EffectConsts = preload("res://scripts/constants/effect_constants.gd")
+const RelicConsts = preload("res://scripts/constants/relic_constants.gd")
+
 # 信号
 signal effect_triggered(effect_data)
 signal activated
@@ -322,7 +327,7 @@ func _apply_gold_effect(effect: Dictionary, context: Dictionary = {}) -> void:
 
 # 应用商店效果
 func _apply_shop_effect(effect: Dictionary, _context: Dictionary = {}) -> void:
-	var shop_manager = get_node("/root/GameManager/ShopManager")
+	var shop_manager = GameManager.shop_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -336,7 +341,7 @@ func _apply_shop_effect(effect: Dictionary, _context: Dictionary = {}) -> void:
 
 # 应用羁绊效果
 func _apply_synergy_effect(effect: Dictionary, _context: Dictionary = {}) -> void:
-	var synergy_manager = get_node("/root/GameManager/SynergyManager")
+	var synergy_manager = GameManager.synergy_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -411,7 +416,7 @@ func _remove_stat_boost(effect: Dictionary, context: Dictionary = {}) -> void:
 
 # 移除商店效果
 func _remove_shop_effect(effect: Dictionary, _context: Dictionary = {}) -> void:
-	var shop_manager = get_node("/root/GameManager/ShopManager")
+	var shop_manager = GameManager.shop_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -421,7 +426,7 @@ func _remove_shop_effect(effect: Dictionary, _context: Dictionary = {}) -> void:
 
 # 移除羁绊效果
 func _remove_synergy_effect(effect: Dictionary, _context: Dictionary = {}) -> void:
-	var synergy_manager = get_node("/root/GameManager/SynergyManager")
+	var synergy_manager = GameManager.synergy_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -449,15 +454,7 @@ func _update_visuals() -> void:
 
 	# 设置图标颜色
 	var color = Color.WHITE
-	match rarity:
-		0: # 普通
-			color = Color(0.8, 0.8, 0.8, 1.0)
-		1: # 稀有
-			color = Color(0.2, 0.6, 1.0, 1.0)
-		2: # 史诗
-			color = Color(0.8, 0.4, 1.0, 1.0)
-		3: # 传说
-			color = Color(1.0, 0.8, 0.2, 1.0)
+	color = GameConsts.get_rarity_color(rarity)
 
 	sprite.modulate = color
 
@@ -498,6 +495,22 @@ func _remove_active_effect() -> void:
 	# 清除现有效果
 	for child in $EffectContainer.get_children():
 		child.queue_free()
+
+# 获取遗物数据
+func get_data() -> Dictionary:
+	# 返回遗物的完整数据
+	var data = {
+		"id": id,
+		"name": display_name,
+		"description": description,
+		"rarity": rarity,
+		"is_passive": is_passive,
+		"cooldown": cooldown,
+		"charges": charges,
+		"effects": effects.duplicate(),
+		"trigger_conditions": trigger_conditions.duplicate()
+	}
+	return data
 
 # 获取遗物信息
 func get_info() -> Dictionary:

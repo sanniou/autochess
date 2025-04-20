@@ -51,14 +51,30 @@ func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "SyncManager"
 
+	# 添加依赖
+	add_dependency("NetworkManager")
+	add_dependency("StateManager")
+
 	# 原 _ready 函数的内容
 	# 设置进程模式
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	# 进程
 func _process(delta: float) -> void:
-	# 检查是否有网络管理器
-	if network_manager == null or not network_manager.is_connected():
+	# 获取网络管理器
+	if network_manager == null:
+		network_manager = GameManager.get_manager("NetworkManager")
+		if network_manager == null:
+			return
+
+	# 获取状态管理器
+	if game_state_manager == null:
+		game_state_manager = GameManager.get_manager("StateManager")
+		if game_state_manager == null:
+			return
+
+	# 检查是否连接
+	if not network_manager.is_network_connected():
 		return
 
 	# 更新同步计时器

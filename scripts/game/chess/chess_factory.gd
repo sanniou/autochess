@@ -15,6 +15,9 @@ var _chess_pool = null
 # 技能工厂引用
 var ability_factory = null
 
+# 棋子实例缓存 {棋子ID: 棋子实例}
+var _chess_cache: Dictionary = {}
+
 # 初始化
 func _ready():
 	# 注册棋子类型
@@ -24,7 +27,7 @@ func _ready():
 	_initialize_pool()
 
 	# 获取技能工厂引用
-	ability_factory = get_node_or_null("/root/GameManager/AbilityFactory")
+	ability_factory = GameManager.ability_factory
 
 ## 注册棋子类型
 func _register_chess_types() -> void:
@@ -38,17 +41,11 @@ func _register_chess_types() -> void:
 ## 初始化对象池
 func _initialize_pool() -> void:
 	# 获取对象池引用
-	_chess_pool = get_node("/root/ObjectPool")
+	_chess_pool = ObjectPool
 
-	if _chess_pool:
-		# 创建棋子对象池
-		var chess_scene = load(CHESS_PIECE_SCENE)
-		if chess_scene:
-			_chess_pool.create_pool("chess_pieces", chess_scene, 10, 5, 50)
-		else:
-			push_error("无法加载棋子场景: " + CHESS_PIECE_SCENE)
-	else:
-		push_error("无法获取对象池引用")
+	# 创建棋子对象池
+	var chess_scene = load(CHESS_PIECE_SCENE)
+	_chess_pool.create_pool("chess_pieces", chess_scene, 10, 5, 50)
 
 ## 创建棋子
 func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: bool = true) -> ChessPiece:

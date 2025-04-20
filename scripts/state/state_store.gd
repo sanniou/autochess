@@ -4,7 +4,7 @@ class_name StateStore
 ## 集中管理应用状态，实现单向数据流
 
 # 状态定义
-var state_definitions = preload("res://scripts/state/state_definitions.gd")
+var game_state_class = preload("res://scripts/state/game_state.gd")
 
 # 状态动作
 var state_actions = preload("res://scripts/state/state_actions.gd")
@@ -30,11 +30,15 @@ var debug_mode: bool = false
 # 初始化
 func _init():
 	# 初始化状态
-	_state = state_definitions.create_app_state()
-	
+	_state = game_state_class.create_default_state()
+
+	# 验证初始状态
+	if not game_state_class.validate_state(_state):
+		push_error("初始状态验证失败")
+
 	# 设置调试模式
 	debug_mode = OS.is_debug_build()
-	
+
 	# 如果处于调试模式，启用历史记录
 	if debug_mode:
 		enable_history = true
@@ -52,22 +56,22 @@ func get_state_section(section: String) -> Dictionary:
 ## 获取特定状态值
 func get_state_value(path: String, default_value = null) -> Variant:
 	var parts = path.split(".")
-	
+
 	if parts.size() < 2:
 		_log_error("无效的状态路径: " + path)
 		return default_value
-	
+
 	var section = parts[0]
 	var key = parts[1]
-	
+
 	if not _state.has(section):
 		_log_error("状态部分不存在: " + section)
 		return default_value
-	
+
 	if not _state[section].has(key):
 		_log_error("状态键不存在: " + section + "." + key)
 		return default_value
-	
+
 	return _state[section][key]
 
 ## 分发动作
@@ -75,14 +79,14 @@ func dispatch(action) -> void:
 	# 记录动作
 	if debug_mode:
 		_log_info("分发动作: " + action.type)
-	
+
 	# 保存当前状态到历史记录
 	if enable_history:
 		_add_to_history(_state.duplicate(true), action.to_dictionary())
-	
+
 	# 根据动作类型更新状态
 	var new_state = _reduce(action)
-	
+
 	# 如果状态发生变化，通知订阅者
 	if new_state != _state:
 		_state = new_state
@@ -94,23 +98,23 @@ func subscribe(section: String, subscriber: Object, method: String) -> bool:
 	if section.is_empty() or not is_instance_valid(subscriber) or method.is_empty():
 		_log_error("订阅状态变更失败：无效的参数")
 		return false
-	
+
 	# 如果部分不存在，创建部分
 	if not _subscribers.has(section):
 		_subscribers[section] = []
-	
+
 	# 检查是否已经订阅
 	for sub in _subscribers[section]:
 		if sub.subscriber == subscriber and sub.method == method:
 			_log_warning("状态变更已经订阅：" + section)
 			return false
-	
+
 	# 订阅状态变更
 	_subscribers[section].append({
 		"subscriber": subscriber,
 		"method": method
 	})
-	
+
 	_log_info("订阅状态变更：" + section + " -> " + subscriber.get_class() + "." + method)
 	return true
 
@@ -120,12 +124,12 @@ func unsubscribe(section: String, subscriber: Object, method: String) -> bool:
 	if section.is_empty() or not is_instance_valid(subscriber) or method.is_empty():
 		_log_error("取消订阅状态变更失败：无效的参数")
 		return false
-	
+
 	# 如果部分不存在，返回失败
 	if not _subscribers.has(section):
 		_log_warning("取消订阅状态变更失败：部分不存在 - " + section)
 		return false
-	
+
 	# 查找并移除订阅者
 	for i in range(_subscribers[section].size()):
 		var sub = _subscribers[section][i]
@@ -133,7 +137,7 @@ func unsubscribe(section: String, subscriber: Object, method: String) -> bool:
 			_subscribers[section].remove_at(i)
 			_log_info("取消订阅状态变更：" + section + " -> " + subscriber.get_class() + "." + method)
 			return true
-	
+
 	_log_warning("取消订阅状态变更失败：订阅者不存在 - " + section)
 	return false
 
@@ -143,13 +147,13 @@ func unsubscribe_all(subscriber: Object) -> int:
 	if not is_instance_valid(subscriber):
 		_log_error("取消所有订阅失败：无效的目标对象")
 		return 0
-	
+
 	var count = 0
-	
+
 	# 遍历所有部分
 	for section in _subscribers.keys():
 		var i = 0
-		
+
 		# 查找并移除订阅者
 		while i < _subscribers[section].size():
 			if _subscribers[section][i].subscriber == subscriber:
@@ -157,10 +161,10 @@ func unsubscribe_all(subscriber: Object) -> int:
 				count += 1
 			else:
 				i += 1
-	
+
 	if count > 0:
 		_log_info("取消所有订阅：" + subscriber.get_class() + " - " + str(count) + " 个订阅")
-	
+
 	return count
 
 ## 获取状态历史
@@ -177,27 +181,33 @@ func set_max_history_size(size: int) -> void:
 	if size < 0:
 		_log_error("设置最大历史记录数失败：无效的大小")
 		return
-	
+
 	max_history_size = size
-	
+
 	# 如果当前历史记录超过最大大小，裁剪历史记录
 	while _history.size() > max_history_size:
 		_history.pop_front()
-	
+
 	_log_info("最大历史记录数已设置为：" + str(size))
 
 ## 启用历史记录
 func enable_history_recording(enable: bool = true) -> void:
 	enable_history = enable
-	
+
 	if not enable:
 		_history.clear()
-	
+
 	_log_info("历史记录已" + ("启用" if enable else "禁用"))
 
 ## 重置状态
 func reset_state() -> void:
-	_state = state_definitions.create_app_state()
+	_state = game_state_class.create_default_state()
+
+	# 验证重置后的状态
+	if not game_state_class.validate_state(_state):
+		_log_error("重置状态验证失败")
+		return
+
 	_notify_subscribers()
 	_log_info("状态已重置")
 
@@ -206,7 +216,13 @@ func load_state(state_data: Dictionary) -> bool:
 	if state_data.is_empty():
 		_log_error("加载状态失败：状态数据为空")
 		return false
-	
+
+	# 验证状态
+	if not game_state_class.validate_state(state_data):
+		_log_error("加载状态验证失败")
+		return false
+
+	# 创建新状态（不可变状态）
 	_state = state_data.duplicate(true)
 	_notify_subscribers()
 	_log_info("状态已加载")
@@ -224,10 +240,10 @@ func _add_to_history(state: Dictionary, action: Dictionary) -> void:
 		"action": action,
 		"timestamp": Time.get_unix_time_from_system()
 	}
-	
+
 	# 添加到历史记录
 	_history.append(history_record)
-	
+
 	# 如果历史记录超过最大大小，移除最旧的记录
 	while _history.size() > max_history_size:
 		_history.pop_front()
@@ -238,17 +254,24 @@ func _notify_subscribers() -> void:
 	for section in _subscribers.keys():
 		if _state.has(section):
 			var section_state = _state[section]
-			
+
 			for sub in _subscribers[section]:
 				if is_instance_valid(sub.subscriber):
 					sub.subscriber.call(sub.method, section_state)
 
 ## 根据动作更新状态
 func _reduce(action) -> Dictionary:
+	# 创建新状态（不可变状态）
 	var new_state = _state.duplicate(true)
-	
+
+	# 验证原始状态
+	if not game_state_class.validate_state(_state):
+		_log_error("原始状态验证失败")
+
 	match action.type:
 		# 游戏状态动作
+		"SET_GAME_STATE":
+			new_state.game.current_state = action.state
 		"SET_DIFFICULTY":
 			new_state.game.difficulty = action.difficulty
 		"SET_GAME_MODE":
@@ -270,7 +293,7 @@ func _reduce(action) -> Dictionary:
 			new_state.game.current_phase = action.phase
 		"SET_SEED":
 			new_state.game.seed_value = action.seed_value
-		
+
 		# 玩家状态动作
 		"SET_HEALTH":
 			new_state.player.health = action.health
@@ -288,12 +311,12 @@ func _reduce(action) -> Dictionary:
 			var level = 1
 			var exp_required = 2
 			var total_exp = action.experience
-			
+
 			while total_exp >= exp_required:
 				total_exp -= exp_required
 				level += 1
 				exp_required = 2 * level
-			
+
 			new_state.player.level = level
 		"CHANGE_EXPERIENCE":
 			new_state.player.experience += action.amount
@@ -301,12 +324,12 @@ func _reduce(action) -> Dictionary:
 			var level = 1
 			var exp_required = 2
 			var total_exp = new_state.player.experience
-			
+
 			while total_exp >= exp_required:
 				total_exp -= exp_required
 				level += 1
 				exp_required = 2 * level
-			
+
 			new_state.player.level = level
 		"ADD_RELIC":
 			if not new_state.player.relics.has(action.relic_id):
@@ -323,7 +346,7 @@ func _reduce(action) -> Dictionary:
 				new_state.player.lose_streak += 1
 				new_state.player.win_streak = 0
 				new_state.player.total_losses += 1
-		
+
 		# 棋盘状态动作
 		"SET_BOARD_SIZE":
 			new_state.board.size = Vector2i(action.size.x, action.size.y)
@@ -337,7 +360,7 @@ func _reduce(action) -> Dictionary:
 		"MOVE_PIECE":
 			var from_key = str(action.from_position.x) + "," + str(action.from_position.y)
 			var to_key = str(action.to_position.x) + "," + str(action.to_position.y)
-			
+
 			if new_state.board.pieces.has(from_key):
 				var piece_id = new_state.board.pieces[from_key]
 				new_state.board.pieces.erase(from_key)
@@ -356,7 +379,7 @@ func _reduce(action) -> Dictionary:
 				new_state.stats.synergies_activated[action.synergy_id] += 1
 		"CLEAR_BOARD":
 			new_state.board.pieces.clear()
-		
+
 		# 商店状态动作
 		"SET_SHOP_OPEN":
 			new_state.shop.is_open = action.is_open
@@ -368,7 +391,7 @@ func _reduce(action) -> Dictionary:
 			if action.item_index >= 0 and action.item_index < new_state.shop.current_items.size():
 				var item = new_state.shop.current_items[action.item_index]
 				new_state.shop.current_items.remove_at(action.item_index)
-				
+
 				# 如果是棋子，记录购买
 				if item.has("type") and item.type == "chess_piece":
 					if not new_state.stats.chess_pieces_bought.has(item.id):
@@ -384,7 +407,7 @@ func _reduce(action) -> Dictionary:
 						new_state.shop.locked_items.erase(action.item_index)
 		"SET_SHOP_TIER":
 			new_state.shop.shop_tier = action.tier
-		
+
 		# 地图状态动作
 		"SET_MAP":
 			new_state.map.current_map = action.map_data.duplicate()
@@ -397,7 +420,7 @@ func _reduce(action) -> Dictionary:
 			new_state.map.available_nodes = action.nodes.duplicate()
 		"SET_MAP_LEVEL":
 			new_state.map.map_level = action.level
-		
+
 		# UI状态动作
 		"SET_SCREEN":
 			new_state.ui.current_screen = action.screen
@@ -417,13 +440,13 @@ func _reduce(action) -> Dictionary:
 		"ADD_NOTIFICATION":
 			new_state.ui.notification_queue.append({
 				"message": action.message,
-				"type": action.type,
+				"type": action.notification_type,
 				"duration": action.duration,
 				"id": Time.get_unix_time_from_system()
 			})
 		"CLEAR_NOTIFICATIONS":
 			new_state.ui.notification_queue.clear()
-		
+
 		# 设置状态动作
 		"SET_VOLUME":
 			match action.volume_type:
@@ -445,14 +468,14 @@ func _reduce(action) -> Dictionary:
 			new_state.settings.particle_quality = action.quality
 		"SET_UI_SCALE":
 			new_state.settings.ui_scale = action.scale
-		
+
 		# 成就状态动作
 		"UNLOCK_ACHIEVEMENT":
 			if not new_state.achievements.unlocked_achievements.has(action.achievement_id):
 				new_state.achievements.unlocked_achievements[action.achievement_id] = Time.get_unix_time_from_system()
 		"UPDATE_ACHIEVEMENT_PROGRESS":
 			new_state.achievements.achievement_progress[action.achievement_id] = action.progress
-		
+
 		# 统计状态动作
 		"RECORD_GAME_RESULT":
 			new_state.stats.games_played += 1
@@ -481,38 +504,41 @@ func _reduce(action) -> Dictionary:
 			if not new_state.stats.synergies_activated.has(action.synergy_id):
 				new_state.stats.synergies_activated[action.synergy_id] = 0
 			new_state.stats.synergies_activated[action.synergy_id] += 1
-	
+
+	# 验证新状态
+	if not game_state_class.validate_state(new_state):
+		_log_error("新状态验证失败")
+		# 如果新状态无效，返回原始状态的副本
+		return _state.duplicate(true)
+
 	return new_state
 
 ## 记录错误信息
 func _log_error(message: String) -> void:
 	if debug_mode:
 		print("[StateStore] 错误: " + message)
-	
+
 	# 使用事件总线发送错误消息
-	if has_node("/root/EventBus"):
-		var event_bus = get_node("/root/EventBus")
-		if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
-			event_bus.debug.debug_message.emit(message, 2)
+	var event_bus = EventBus
+	if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
+		event_bus.debug.debug_message.emit(message, 2)
 
 ## 记录警告信息
 func _log_warning(message: String) -> void:
 	if debug_mode:
 		print("[StateStore] 警告: " + message)
-	
+
 	# 使用事件总线发送警告消息
-	if has_node("/root/EventBus"):
-		var event_bus = get_node("/root/EventBus")
-		if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
-			event_bus.debug.debug_message.emit(message, 1)
+	var event_bus = EventBus
+	if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
+		event_bus.debug.debug_message.emit(message, 1)
 
 ## 记录信息
 func _log_info(message: String) -> void:
 	if debug_mode:
 		print("[StateStore] 信息: " + message)
-	
+
 	# 使用事件总线发送信息消息
-	if has_node("/root/EventBus"):
-		var event_bus = get_node("/root/EventBus")
-		if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
-			event_bus.debug.debug_message.emit(message, 0)
+	var event_bus = EventBus
+	if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
+		event_bus.debug.debug_message.emit(message, 0)

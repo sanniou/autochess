@@ -114,11 +114,7 @@ func get_target():
 		return null
 	
 	# 从游戏管理器获取目标
-	var game_manager = Engine.get_singleton("GameManager")
-	if game_manager and game_manager.board_manager:
-		return game_manager.board_manager.get_piece_by_id(data.target_id)
-	
-	return null
+	return GameManager.board_manager.get_piece_by_id(data.target_id)	
 
 # 设置目标
 func set_target(target) -> void:
@@ -150,27 +146,18 @@ func get_attack_range() -> float:
 # 检查是否被眩晕
 func is_stunned() -> bool:
 	# 检查效果系统中的眩晕效果
-	var game_manager = Engine.get_singleton("GameManager")
-	if game_manager and game_manager.effect_manager:
-		return game_manager.effect_manager.has_effect(self, "stun")
-	
-	return false
+	return GameManager.effect_manager.has_effect(self, "stun")
+
 
 # 获取眩晕持续时间
 func get_stun_duration() -> float:
 	# 从效果系统获取眩晕持续时间
-	var game_manager = Engine.get_singleton("GameManager")
-	if game_manager and game_manager.effect_manager:
-		return game_manager.effect_manager.get_effect_duration(self, "stun")
-	
-	return 1.0  # 默认眩晕时间
+	return GameManager.effect_manager.get_effect_duration(self, "stun")
 
 # 清除眩晕
 func clear_stun() -> void:
 	# 从效果系统清除眩晕效果
-	var game_manager = Engine.get_singleton("GameManager")
-	if game_manager and game_manager.effect_manager:
-		game_manager.effect_manager.remove_effect_by_type(self, "stun")
+	GameManager.effect_manager.remove_effect_by_type(self, "stun")
 
 # 检查是否被冰冻
 func is_frozen() -> bool:
@@ -462,43 +449,38 @@ func _on_attack(target, damage: float, is_crit: bool) -> void:
 	if is_crit:
 		critical_hit.emit(target, damage)
 		
-		# 获取特效管理器
-		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.effect_manager:
-			# 创建视觉特效参数
-			var params = {
-				"color": game_manager.effect_manager.get_effect_color("physical"),
-				"duration": 0.5,
-				"damage_type": "physical",
-				"damage_amount": damage,
-				"is_critical": true
-			}
-			
-			# 使用特效管理器创建特效
-			game_manager.effect_manager.create_visual_effect(
-				game_manager.effect_manager.VisualEffectType.DAMAGE,
-				target,
-				params
-			)
+		# 创建视觉特效参数
+		var params = {
+			"color": GameManager.effect_manager.get_effect_color("physical"),
+			"duration": 0.5,
+			"damage_type": "physical",
+			"damage_amount": damage,
+			"is_critical": true
+		}
+		
+		# 使用特效管理器创建特效
+		GameManager.effect_manager.create_visual_effect(
+			GameManager.effect_manager.VisualEffectType.DAMAGE,
+			target,
+			params
+		)
 
 # 闪避效果
 func _on_dodge(attacker = null) -> void:
 	# 处理闪避效果
-	var game_manager = Engine.get_singleton("GameManager")
-	if game_manager and game_manager.effect_manager:
-		# 创建视觉特效参数
-		var params = {
-			"color": game_manager.effect_manager.get_effect_color("dodge"),
-			"duration": 0.5,
-			"buff_type": "dodge"
-		}
-		
-		# 使用特效管理器创建特效
-		game_manager.effect_manager.create_visual_effect(
-			game_manager.effect_manager.VisualEffectType.BUFF,
-			self,
-			params
-		)
+	# 创建视觉特效参数
+	var params = {
+		"color": GameManager.effect_manager.get_effect_color("dodge"),
+		"duration": 0.5,
+		"buff_type": "dodge"
+	}
+	
+	# 使用特效管理器创建特效
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
+		self,
+		params
+	)
 	
 	# 发送元素效果触发信号
 	elemental_effect_triggered.emit(attacker, "dodge")
@@ -543,12 +525,7 @@ func _trigger_elemental_effect(target) -> void:
 			_apply_earth_effect(target)
 
 # 应用火元素效果
-func _apply_fire_effect(target) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-	
+func _apply_fire_effect(target) -> void:	
 	# 创建燃烧效果
 	var params = {
 		"id": "burning_" + str(randi()),
@@ -561,8 +538,8 @@ func _apply_fire_effect(target) -> void:
 	}
 	
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_effect(
-		game_manager.effect_manager.EffectType.DOT,
+	GameManager.effect_manager.create_effect(
+		GameManager.effect_manager.EffectType.DOT,
 		self,
 		target,
 		params
@@ -573,10 +550,6 @@ func _apply_fire_effect(target) -> void:
 
 # 应用冰元素效果
 func _apply_ice_effect(target) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 	
 	# 创建减速效果
 	var params = {
@@ -591,8 +564,8 @@ func _apply_ice_effect(target) -> void:
 	}
 	
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_effect(
-		game_manager.effect_manager.EffectType.STAT,
+	GameManager.effect_manager.create_effect(
+		GameManager.effect_manager.EffectType.STAT,
 		self,
 		target,
 		params
@@ -603,10 +576,6 @@ func _apply_ice_effect(target) -> void:
 
 # 应用雷元素效果
 func _apply_lightning_effect(target) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 	
 	# 创建眩晕效果
 	var params = {
@@ -619,8 +588,8 @@ func _apply_lightning_effect(target) -> void:
 	}
 	
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_effect(
-		game_manager.effect_manager.EffectType.CONTROL,
+	GameManager.effect_manager.create_effect(
+		GameManager.effect_manager.EffectType.CONTROL,
 		self,
 		target,
 		params
@@ -631,11 +600,6 @@ func _apply_lightning_effect(target) -> void:
 
 # 应用土元素效果
 func _apply_earth_effect(target) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-	
 	# 创建护甲减少效果
 	var params = {
 		"id": "armor_reduction_" + str(randi()),
@@ -649,8 +613,8 @@ func _apply_earth_effect(target) -> void:
 	}
 	
 	# 使用特效管理器创建效果
-	game_manager.effect_manager.create_effect(
-		game_manager.effect_manager.EffectType.STAT,
+	GameManager.effect_manager.create_effect(
+		GameManager.effect_manager.EffectType.STAT,
 		self,
 		target,
 		params
@@ -661,10 +625,6 @@ func _apply_earth_effect(target) -> void:
 
 # 播放元素效果
 func _play_elemental_effect(target, color: Color) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
 	
 	# 创建视觉特效参数
 	var params = {
@@ -674,41 +634,31 @@ func _play_elemental_effect(target, color: Color) -> void:
 	}
 	
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.BUFF,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
 		target,
 		params
 	)
 
 # 播放技能特效
 func _play_ability_effect(target) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-	
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("magical"),
+		"color": GameManager.effect_manager.get_effect_color("magical"),
 		"duration": 0.5,
 		"damage_type": "magical",
 		"damage_amount": data.ability_damage + data.spell_power
 	}
 	
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.DAMAGE,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.DAMAGE,
 		target,
 		params
 	)
 
 # 播放升级特效
-func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increases: Dictionary) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-	
+func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increases: Dictionary) -> void:	
 	# 创建升级特效容器
 	var upgrade_effect = Node2D.new()
 	upgrade_effect.name = "UpgradeEffect"
@@ -717,14 +667,14 @@ func _play_upgrade_effect(old_star_level: int, new_star_level: int, stat_increas
 	
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("level_up"),
+		"color": GameManager.effect_manager.get_effect_color("level_up"),
 		"duration": 1.5,
 		"buff_type": "level_up"
 	}
 	
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.LEVEL_UP,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.LEVEL_UP,
 		upgrade_effect,
 		params
 	)

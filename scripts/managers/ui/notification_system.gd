@@ -29,10 +29,6 @@ var active_notifications: Dictionary = {}
 # 通知队列
 var notification_queue: Array = []
 
-# 引用
-@onready var ui_animator = get_node("/root/GameManager").ui_animator
-@onready var EventBus = get_node("/root/EventBus")
-
 # 初始化
 func _ready() -> void:
 	# 创建通知容器
@@ -95,13 +91,7 @@ func show_notification(message: String, notification_type: NotificationType = No
 	}
 	
 	# 播放显示动画
-	if ui_animator:
-		ui_animator.fade_in(notification_instance, 0.3)
-	else:
-		notification_instance.modulate.a = 0
-		var tween = create_tween()
-		tween.tween_property(notification_instance, "modulate:a", 1.0, 0.3)
-	
+	GameManager.ui_animator.fade_in(notification_instance, 0.3)
 	# 发送信号
 	notification_shown.emit(notification_id, NotificationType.keys()[notification_type])
 	
@@ -121,13 +111,8 @@ func hide_notification(notification_id: String) -> void:
 	var notification_instance = notification.instance
 	
 	# 播放隐藏动画
-	if ui_animator:
-		ui_animator.fade_out(notification_instance, 0.3)
-		await get_tree().create_timer(0.3).timeout
-	else:
-		var tween = create_tween()
-		tween.tween_property(notification_instance, "modulate:a", 0.0, 0.3)
-		await tween.finished
+	GameManager.ui_animator.fade_out(notification_instance, 0.3)
+	await get_tree().create_timer(0.3).timeout
 	
 	# 移除通知实例
 	notification_instance.queue_free()

@@ -18,6 +18,7 @@ var target_strategy: String = "nearest" # 目标选择策略(nearest/furthest/lo
 var max_targets: int = 1           # 最大目标数量
 var min_range: float = 0.0         # 最小范围
 var effects: Array = []            # 技能效果列表
+var damage_type: String = "magical" # 伤害类型(physical/magical/true/fire/ice/lightning/poison)
 
 # 技能所有者
 var owner: ChessPiece = null
@@ -37,6 +38,7 @@ func initialize(ability_data: Dictionary, owner_piece: ChessPiece) -> void:
 	target_strategy = ability_data.get("target_strategy", "nearest")
 	max_targets = ability_data.get("max_targets", 1)
 	min_range = ability_data.get("min_range", 0.0)
+	damage_type = ability_data.get("damage_type", "magical")
 
 	# 设置所有者
 	owner = owner_piece
@@ -158,11 +160,6 @@ func _execute_effect(target = null) -> void:
 
 # 应用效果
 func _apply_effects(target: ChessPiece) -> void:
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 如果没有自定义效果，使用默认效果
 	if effects.size() == 0:
 		# 创建伤害效果参数
@@ -175,7 +172,7 @@ func _apply_effects(target: ChessPiece) -> void:
 		}
 
 		# 使用特效管理器创建效果
-		game_manager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DAMAGE, owner, target, params)
+		GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DAMAGE, owner, target, params)
 	else:
 		# 应用自定义效果
 		for effect in effects:
@@ -210,22 +207,17 @@ func _play_target_effect(target: ChessPiece) -> void:
 	if not target or not is_instance_valid(target):
 		return
 
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color(damage_type),
+		"color": GameManager.effect_manager.get_effect_color(damage_type),
 		"duration": 1.0,
 		"damage_type": damage_type,
 		"damage_amount": damage
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.DAMAGE,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.DAMAGE,
 		target,
 		params
 	)
@@ -233,11 +225,6 @@ func _play_target_effect(target: ChessPiece) -> void:
 # 播放施法者效果
 func _play_caster_effect() -> void:
 	if not owner or not is_instance_valid(owner):
-		return
-
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
 		return
 
 	# 创建视觉特效参数
@@ -248,8 +235,8 @@ func _play_caster_effect() -> void:
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.BUFF,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.BUFF,
 		owner,
 		params
 	)

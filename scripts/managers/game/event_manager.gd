@@ -12,8 +12,6 @@ var current_event: Event = null  # 当前事件
 var completed_events: Array = []  # 已完成的事件ID列表
 var event_history: Array = []  # 事件历史记录
 
-# 引用
-@onready var config_manager = get_node("/root/ConfigManager")
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -32,7 +30,7 @@ func _do_initialize() -> void:
 # 初始化事件工厂
 func _initialize_event_factory() -> void:
 	# 加载所有事件配置
-	var events_config = config_manager.get_all_events()
+	var events_config = ConfigManager.get_all_events()
 
 	# 创建事件工厂
 	for event_id in events_config:
@@ -201,7 +199,7 @@ func get_event_data(event_id: String) -> Dictionary:
 		return event_factory[event_id].duplicate()
 	else:
 		# 尝试从配置管理器获取
-		var event_model = config_manager.get_event_config(event_id)
+		var event_model = ConfigManager.get_event_config(event_id)
 		if event_model:
 			return event_model.get_data()
 	return {}

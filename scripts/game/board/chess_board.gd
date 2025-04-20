@@ -18,20 +18,14 @@ var drag_start_cell: BoardCell = null
 var drag_offset: Vector2 = Vector2.ZERO
 var is_combining: bool = false  # 是否正在合成棋子
 
-# 引用
-@onready var board_manager = get_node("/root/GameManager/BoardManager")
 @onready var background = $Background
 @onready var bench_background = $BenchBackground
 
 # 初始化
 func _ready():
-	# 确保 BoardManager 已初始化
-	if not board_manager:
-		push_error("无法获取 BoardManager 引用")
-		return
-	
+
 	# 设置棋盘配置
-	board_manager.set_board_config(board_width, board_height, bench_size, use_special_cells)
+	GameManager.board_manager.set_board_config(board_width, board_height, bench_size, use_special_cells)
 	
 	# 创建棋盘视觉组件
 	_create_board_visuals()
@@ -77,7 +71,7 @@ func _create_board_visuals():
 			cell.piece_removed.connect(_on_piece_removed)
 			
 			# 注册到 BoardManager
-			board_manager.register_cell(cell, false)
+			GameManager.board_manager.register_cell(cell, false)
 	
 	# 创建备战区格子
 	var bench_y = board_height * cell_size.y + 20  # 备战区位置
@@ -97,16 +91,16 @@ func _create_board_visuals():
 		cell.piece_removed.connect(_on_bench_piece_removed)
 		
 		# 注册到 BoardManager
-		board_manager.register_cell(cell, true)
+		GameManager.board_manager.register_cell(cell, true)
 	
 	# 生成特殊格子
 	if use_special_cells:
-		board_manager.generate_special_cells()
+		GameManager.board_manager.generate_special_cells()
 
 # 连接信号
 func _connect_signals():
 	# 连接 BoardManager 信号
-	board_manager.board_reset.connect(_on_board_reset)
+	GameManager.board_manager.board_reset.connect(_on_board_reset)
 	
 	# 连接战斗信号
 	EventBus.battle.connect_event("battle_started", _on_battle_started)
@@ -120,7 +114,7 @@ func _on_cell_clicked(cell: BoardCell):
 		
 		# 尝试合成棋子
 		if not is_combining and cell.current_piece.star_level < 3:
-			board_manager.try_combine_pieces(cell.current_piece)
+			GameManager.board_manager.try_combine_pieces(cell.current_piece)
 	elif dragging_piece:
 		# 结束拖拽
 		end_drag_piece(cell)
@@ -163,22 +157,22 @@ func _on_cell_exited(cell: BoardCell):
 
 # 棋子放置处理
 func _on_piece_placed(piece: ChessPiece):
-	board_manager.add_piece(piece, false)
+	GameManager.board_manager.add_piece(piece, false)
 	EventBus.board.emit_event("piece_placed_on_board", [piece])
 
 # 棋子移除处理
 func _on_piece_removed(piece: ChessPiece):
-	board_manager.remove_piece(piece, false)
+	GameManager.board_manager.remove_piece(piece, false)
 	EventBus.board.emit_event("piece_removed_from_board", [piece])
 
 # 备战区棋子放置处理
 func _on_bench_piece_placed(piece: ChessPiece):
-	board_manager.add_piece(piece, true)
+	GameManager.board_manager.add_piece(piece, true)
 	EventBus.board.emit_event("piece_placed_on_bench", [piece])
 
 # 备战区棋子移除处理
 func _on_bench_piece_removed(piece: ChessPiece):
-	board_manager.remove_piece(piece, true)
+	GameManager.board_manager.remove_piece(piece, true)
 	EventBus.board.emit_event("piece_removed_from_bench", [piece])
 
 # 开始拖拽棋子
@@ -275,7 +269,7 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
 
 # 查找指定位置的格子
 func _find_cell_at_position(global_pos: Vector2) -> BoardCell:
-	return board_manager.find_cell_at_position(global_pos, cell_size)
+	return GameManager.board_manager.find_cell_at_position(global_pos, cell_size)
 
 # 高亮可放置的格子
 func _highlight_valid_cells() -> void:
@@ -283,8 +277,8 @@ func _highlight_valid_cells() -> void:
 		return
 	
 	# 获取所有格子
-	var all_cells = board_manager.get_all_cells()
-	var bench_cells = board_manager.get_bench_cells()
+	var all_cells = GameManager.board_manager.get_all_cells()
+	var bench_cells = GameManager.board_manager.get_bench_cells()
 	
 	# 高亮棋盘上的可放置格子
 	for cell in all_cells:
@@ -307,8 +301,8 @@ func _highlight_valid_cells() -> void:
 # 清除所有高亮
 func _clear_all_highlights() -> void:
 	# 获取所有格子
-	var all_cells = board_manager.get_all_cells()
-	var bench_cells = board_manager.get_bench_cells()
+	var all_cells = GameManager.board_manager.get_all_cells()
+	var bench_cells = GameManager.board_manager.get_bench_cells()
 	
 	# 清除棋盘上的高亮
 	for cell in all_cells:
@@ -337,8 +331,8 @@ func _on_battle_started() -> void:
 	set_process(false)
 	
 	# 锁定所有格子
-	var all_cells = board_manager.get_all_cells()
-	var bench_cells = board_manager.get_bench_cells()
+	var all_cells = GameManager.board_manager.get_all_cells()
+	var bench_cells = GameManager.board_manager.get_bench_cells()
 	
 	for cell in all_cells:
 		cell.is_playable = false
@@ -352,8 +346,8 @@ func _on_battle_ended(_result) -> void:
 	set_process(true)
 	
 	# 解锁格子
-	var all_cells = board_manager.get_all_cells()
-	var bench_cells = board_manager.get_bench_cells()
+	var all_cells = GameManager.board_manager.get_all_cells()
+	var bench_cells = GameManager.board_manager.get_bench_cells()
 	
 	for cell in all_cells:
 		if cell.cell_type != "blocked":

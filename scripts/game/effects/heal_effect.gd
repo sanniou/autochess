@@ -21,16 +21,10 @@ func apply() -> void:
 	if source and is_instance_valid(source):
 		heal_amount += source.spell_power
 
-	# 获取战斗管理器
-	var game_manager = target.get_node_or_null("/root/GameManager")
 	var final_heal = 0.0
 
-	if game_manager and game_manager.battle_manager and game_manager.battle_manager.has_method("apply_heal"):
-		# 使用战斗管理器应用治疗
-		final_heal = game_manager.battle_manager.apply_heal(source, target, heal_amount)
-	else:
-		# 直接应用治疗
-		final_heal = target.heal(heal_amount, source)
+	# 使用战斗管理器应用治疗
+	final_heal = GameManager.battle_manager.apply_heal(source, target, heal_amount)
 
 	# 创建视觉效果
 	_create_visual_effect(final_heal)
@@ -46,21 +40,16 @@ func _create_visual_effect(heal_amount: float) -> void:
 	if not target or not is_instance_valid(target):
 		return
 
-	# 获取特效管理器
-	var game_manager = Engine.get_singleton("GameManager")
-	if not game_manager or not game_manager.effect_manager:
-		return
-
 	# 创建视觉特效参数
 	var params = {
-		"color": game_manager.effect_manager.get_effect_color("heal"),
+		"color": GameManager.effect_manager.get_effect_color("heal"),
 		"duration": 1.0,
 		"heal_amount": heal_amount
 	}
 
 	# 使用特效管理器创建特效
-	game_manager.effect_manager.create_visual_effect(
-		game_manager.effect_manager.VisualEffectType.HEAL,
+	GameManager.effect_manager.create_visual_effect(
+		GameManager.effect_manager.VisualEffectType.HEAL,
 		target,
 		params
 	)

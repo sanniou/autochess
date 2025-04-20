@@ -89,7 +89,7 @@ func _check_story_triggers() -> void:
 
 # 检查主线剧情触发
 func _check_main_story_triggers() -> void:
-	var event_manager = get_node("/root/GameManager/EventManager")
+	var event_manager = GameManager.event_manager
 	if not event_manager:
 		return
 	
@@ -117,7 +117,7 @@ func _check_main_story_triggers() -> void:
 
 # 检查分支剧情触发
 func _check_branch_story_triggers() -> void:
-	var event_manager = get_node("/root/GameManager/EventManager")
+	var event_manager = GameManager.event_manager
 	if not event_manager:
 		return
 	

@@ -201,7 +201,7 @@ func _apply_effect(effect: Dictionary) -> void:
 
 # 应用金币效果
 func _apply_gold_effect(effect: Dictionary) -> void:
-	var player_manager = get_node("/root/GameManager/PlayerManager")
+	var player_manager = GameManager.player_manager
 	var amount = effect.value
 
 	if effect.has("operation") and effect.operation == "subtract":
@@ -211,7 +211,7 @@ func _apply_gold_effect(effect: Dictionary) -> void:
 
 # 应用生命值效果
 func _apply_health_effect(effect: Dictionary) -> void:
-	var player_manager = get_node("/root/GameManager/PlayerManager")
+	var player_manager = GameManager.player_manager
 	var amount = effect.value
 
 	if effect.has("operation") and effect.operation == "subtract":
@@ -221,7 +221,7 @@ func _apply_health_effect(effect: Dictionary) -> void:
 
 # 应用物品效果
 func _apply_item_effect(effect: Dictionary) -> void:
-	var equipment_manager = get_node("/root/GameManager/EquipmentManager")
+	var equipment_manager = GameManager.equipment_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -232,7 +232,7 @@ func _apply_item_effect(effect: Dictionary) -> void:
 
 # 应用遗物效果
 func _apply_relic_effect(effect: Dictionary) -> void:
-	var relic_manager = get_node("/root/GameManager/RelicManager")
+	var relic_manager = GameManager.relic_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -245,8 +245,8 @@ func _apply_relic_effect(effect: Dictionary) -> void:
 
 # 应用棋子效果
 func _apply_chess_piece_effect(effect: Dictionary) -> void:
-	var chess_factory = get_node("/root/GameManager/ChessFactory")
-	var board_manager = get_node("/root/GameManager/BoardManager")
+	var chess_factory = GameManager.chess_factory
+	var board_manager = GameManager.board_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -258,7 +258,7 @@ func _apply_chess_piece_effect(effect: Dictionary) -> void:
 				if effect.has("position"):
 					var piece = board_manager.get_piece_at(effect.position)
 					if piece:
-						board_manager.remove_piece(piece)
+						board_manager.remove_piece(piece, false)
 			"upgrade":
 				if effect.has("position"):
 					var piece = board_manager.get_piece_at(effect.position)
@@ -267,7 +267,7 @@ func _apply_chess_piece_effect(effect: Dictionary) -> void:
 
 # 应用商店效果
 func _apply_shop_effect(effect: Dictionary) -> void:
-	var shop_manager = get_node("/root/GameManager/ShopManager")
+	var shop_manager = GameManager.shop_manager
 
 	if effect.has("operation"):
 		match effect.operation:
@@ -281,12 +281,11 @@ func _apply_shop_effect(effect: Dictionary) -> void:
 
 # 应用战斗效果
 func _apply_battle_effect(effect: Dictionary) -> void:
-	var game_manager = get_node("/root/GameManager")
 
 	if effect.has("operation"):
 		match effect.operation:
 			"start":
-				game_manager.change_state(GameManager.GameState.BATTLE)
+				GameManager.change_state(GameManager.GameState.BATTLE)
 			"skip":
 				# 跳过战斗，直接获得奖励
 				pass
@@ -295,10 +294,6 @@ func _apply_battle_effect(effect: Dictionary) -> void:
 func _apply_special_effect(effect: Dictionary) -> void:
 	if not effect.has("operation"):
 		return
-
-	var game_manager = get_node("/root/GameManager")
-	var player_manager = get_node("/root/GameManager/PlayerManager")
-	var player = player_manager.get_current_player() if player_manager else null
 
 	match effect.operation:
 		"curse":
@@ -413,60 +408,51 @@ func get_info() -> Dictionary:
 
 # 应用诅咒效果
 func _apply_curse_effect(curse_type: String, duration: int) -> void:
-	var curse_manager = get_node("/root/GameManager/CurseManager")
-	if curse_manager:
-		curse_manager.apply_curse(curse_type, duration)
-		EventBus.debug.emit_event("debug_message", ["应用诅咒效果: " + curse_type + ", 持续" + str(duration) + "回合", 0])
-		EventBus.ui.emit_event("show_toast", [tr("ui.event.curse_applied", tr("curse." + curse_type))])
+	var curse_manager = GameManager.curse_manager
+	curse_manager.apply_curse(curse_type, duration)
+	EventBus.debug.emit_event("debug_message", ["应用诅咒效果: " + curse_type + ", 持续" + str(duration) + "回合", 0])
+	EventBus.ui.emit_event("show_toast", [tr("ui.event.curse_applied", tr("curse." + curse_type))])
 
 # 设置剧情标记
 func _set_story_flag(flag: String) -> void:
-	var story_manager = get_node("/root/GameManager/StoryManager")
-	if story_manager:
-		story_manager.set_flag(flag, true)
-		EventBus.debug.emit_event("debug_message", ["设置剧情标记: " + flag, 0])
+	var story_manager = GameManager.story_manager
+	story_manager.set_flag(flag, true)
+	EventBus.debug.emit_event("debug_message", ["设置剧情标记: " + flag, 0])
 
 # 触发连锁事件
 func _trigger_chain_event(event_id: String) -> void:
-	var event_manager = get_node("/root/GameManager/EventManager")
-	if event_manager:
-		# 完成当前事件
-		complete()
-
-		# 触发连锁事件
-		event_manager.trigger_event(event_id)
-		EventBus.debug.emit_event("debug_message", ["触发连锁事件: " + event_id, 0])
+	var event_manager = GameManager.event_manager
+	# 完成当前事件
+	complete()
+	# 触发连锁事件
+	event_manager.trigger_event(event_id)
+	EventBus.debug.emit_event("debug_message", ["触发连锁事件: " + event_id, 0])
 
 # 修改事件权重
 func _modify_event_weight(event_id: String, weight_modifier: float) -> void:
-	var event_manager = get_node("/root/GameManager/EventManager")
-	if event_manager:
-		event_manager.modify_event_weight(event_id, weight_modifier)
-		EventBus.debug.emit_event("debug_message", ["修改事件权重: " + event_id + ", 修改值: " + str(weight_modifier), 0])
+	var event_manager = GameManager.event_manager
+	event_manager.modify_event_weight(event_id, weight_modifier)
+	EventBus.debug.emit_event("debug_message", ["修改事件权重: " + event_id + ", 修改值: " + str(weight_modifier), 0])
 
 # 解锁成就
 func _unlock_achievement(achievement_id: String) -> void:
-	var achievement_manager = get_node("/root/GameManager/AchievementManager")
-	if achievement_manager:
-		achievement_manager.unlock_achievement(achievement_id)
-		EventBus.debug.emit_event("debug_message", ["解锁成就: " + achievement_id, 0])
+	var achievement_manager = GameManager.achievement_manager
+	achievement_manager.unlock_achievement(achievement_id)
+	EventBus.debug.emit_event("debug_message", ["解锁成就: " + achievement_id, 0])
 
 # 修改游戏难度
 func _modify_difficulty(difficulty_modifier: float) -> void:
-	var game_manager = get_node("/root/GameManager")
-	if game_manager:
-		var current_difficulty = game_manager.difficulty_level
-		var new_difficulty = clamp(current_difficulty + difficulty_modifier, 1, 3)
-		game_manager.set_difficulty(new_difficulty)
-		EventBus.debug.emit_event("debug_message", ["修改游戏难度: " + str(current_difficulty) + " -> " + str(new_difficulty), 0])
+	var current_difficulty = GameManager.difficulty_level
+	var new_difficulty = clamp(current_difficulty + difficulty_modifier, 1, 3)
+	GameManager.set_difficulty(new_difficulty)
+	EventBus.debug.emit_event("debug_message", ["修改游戏难度: " + str(current_difficulty) + " -> " + str(new_difficulty), 0])
 
 # 应用增益效果给所有棋子
 func _apply_buff_to_all_pieces(buff_type: String, value: float, duration: int = -1) -> void:
-	var board_manager = get_node("/root/GameManager/BoardManager")
-	if board_manager:
-		var pieces = board_manager.get_all_player_pieces()
-		for piece in pieces:
-			piece.add_buff(buff_type, value, duration)
+	var board_manager = GameManager.board_manager
+	var pieces = board_manager.get_all_player_pieces()
+	for piece in pieces:
+		piece.add_buff(buff_type, value, duration)
 
-		EventBus.debug.emit_event("debug_message", ["应用增益效果给所有棋子: " + buff_type + ", 值: " + str(value), 0])
-		EventBus.ui.emit_event("show_toast", [tr("ui.event.buff_applied"), tr("buff." + buff_type), str(value)])
+	EventBus.debug.emit_event("debug_message", ["应用增益效果给所有棋子: " + buff_type + ", 值: " + str(value), 0])
+	EventBus.ui.emit_event("show_toast", [tr("ui.event.buff_applied"), tr("buff." + buff_type), str(value)])

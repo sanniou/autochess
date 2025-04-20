@@ -271,13 +271,32 @@ func emit_event(event_name: String, args: Array = []) -> int:
 		_log_error("触发事件失败：无效的事件名称")
 		return 0
 
+	# 获取调用堆栈信息以确定发送方
+	var sender_info = "未知"
+	if debug_mode:
+		var stack = get_stack()
+		# 尝试找到真正的发送方，而不是 EventBus 本身
+		var found_sender = false
+		for i in range(1, stack.size()):
+			var caller = stack[i]
+			# 跳过 EventBus 和 EventGroup 类的调用
+			if not ("event_bus.gd" in caller["source"] or "EventGroup" in caller["function"]):
+				sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
+				found_sender = true
+				break
+
+		# 如果没有找到其他发送方，使用第一个非 EventBus 的调用者
+		if not found_sender and stack.size() > 1:
+			var caller = stack[1]
+			sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
+
 	# 记录事件
 	if enable_event_logging:
-		_log_event(event_name, args)
+		_log_event(event_name, args, sender_info)
 
 	# 添加到事件历史
 	if enable_event_history:
-		_add_to_history(event_name, args)
+		_add_to_history(event_name, args, sender_info)
 
 	# 更新事件统计
 	if _event_stats.has(event_name):
@@ -363,12 +382,13 @@ func get_event_stats() -> Dictionary:
 
 ## 添加到事件历史
 ## 将事件添加到历史记录
-func _add_to_history(event_name: String, args: Array) -> void:
+func _add_to_history(event_name: String, args: Array, sender_info: String = "未知") -> void:
 	# 创建事件记录
 	var event_record = {
 		"event": event_name,
 		"args": args,
-		"time": Time.get_unix_time_from_system()
+		"time": Time.get_unix_time_from_system(),
+		"sender": sender_info
 	}
 
 	# 添加到历史记录
@@ -380,13 +400,13 @@ func _add_to_history(event_name: String, args: Array) -> void:
 
 ## 记录事件
 ## 记录事件信息
-func _log_event(event_name: String, args: Array) -> void:
+func _log_event(event_name: String, args: Array, sender_info: String = "未知") -> void:
 	var args_str = ""
 
 	if args.size() > 0:
 		args_str = " - 参数: " + str(args)
 
-	_log_info("事件触发：" + event_name + args_str)
+	_log_info("事件触发：" + event_name + args_str + " - 发送方: " + sender_info)
 
 ## 记录错误信息
 func _log_error(message: String) -> void:
@@ -429,6 +449,25 @@ class EventGroup extends Node:
 		if not has_user_signal(signal_name):
 			add_event_signal(signal_name)
 
+		# 获取调用堆栈信息以确定发送方
+		var sender_info = "未知"
+		if _event_bus.debug_mode:
+			var stack = get_stack()
+			# 尝试找到真正的发送方，而不是 EventBus 本身
+			var found_sender = false
+			for i in range(1, stack.size()):
+				var caller = stack[i]
+				# 跳过 EventBus 和 EventGroup 类的调用
+				if not ("event_bus.gd" in caller["source"] or "EventGroup" in caller["function"]):
+					sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
+					found_sender = true
+					break
+
+			# 如果没有找到其他发送方，使用第一个非 EventBus 的调用者
+			if not found_sender and stack.size() > 1:
+				var caller = stack[1]
+				sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
+
 		# 触发信号
 		if args.size() > 0:
 			var call_args = [signal_name]
@@ -439,6 +478,9 @@ class EventGroup extends Node:
 
 		# 同时触发事件总线的事件
 		var event_name = _group_name + "." + signal_name
+
+		# 调用 EventBus 的 emit_event 方法，它会自己获取调用堆栈信息
+		# 所以我们不需要传递 sender_info
 		_event_bus.emit_event(event_name, args)
 
 	# 连接事件

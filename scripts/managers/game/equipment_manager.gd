@@ -3,14 +3,17 @@ class_name EquipmentManager
 ## 装备管理器
 ## 管理所有装备的创建、合成和商店逻辑
 
-# 装备缓存 {装备ID: 装备实例}
+# 引入常量
+const GameConsts = preload("res://scripts/constants/game_constants.gd")
+const EffectConsts = preload("res://scripts/constants/effect_constants.gd")
+
+# 装备实例缓存 {装备ID: 装备实例}
 var _equipment_cache: Dictionary = {}
 
-# 商店库存
+# 商店库存 (存储装备实例的ID)
 var _shop_inventory: Array = []
 
 # 引用
-@onready var config_manager: ConfigManager = get_node("/root/GameManager/ConfigManager")
 @onready var tier_manager: EquipmentTierManager = EquipmentTierManager.new()
 @onready var combine_system: EquipmentCombineSystem = EquipmentCombineSystem.new()
 
@@ -41,14 +44,8 @@ func get_equipment(equipment_id: String) -> Equipment:
 	if _equipment_cache.has(equipment_id):
 		return _equipment_cache[equipment_id]
 
-	# 获取配置管理器
-	var config_manager = get_manager("ConfigManager")
-	if not config_manager:
-		_log_error("无法获取配置管理器")
-		return null
-
 	# 从配置创建新实例
-	var config = config_manager.get_equipment(equipment_id)
+	var config = ConfigManager.get_equipment(equipment_id)
 	if not config:
 		_log_warning("无法获取装备配置: " + equipment_id)
 		return null
@@ -70,16 +67,11 @@ func get_equipments(equipment_ids: Array) -> Array:
 
 # 刷新商店库存
 func refresh_shop_inventory(count: int = 5, player_level: int = 1, shop_tier: int = 1):
+	# 清空当前库存
 	_shop_inventory.clear()
 
-	# 获取配置管理器
-	var config_manager = get_manager("ConfigManager")
-	if not config_manager:
-		_log_error("无法获取配置管理器")
-		return
-
 	# 根据玩家等级获取可生成的装备
-	var available_equipments = config_manager.get_equipments_by_rarity(get_available_rarities(player_level))
+	var available_equipments = ConfigManager.get_equipments_by_rarity(get_available_rarities(player_level))
 
 	# 随机选择装备
 	for i in range(count):
@@ -87,50 +79,60 @@ func refresh_shop_inventory(count: int = 5, player_level: int = 1, shop_tier: in
 			break
 
 		var random_index = randi() % available_equipments.size()
-		var base_equipment_id = available_equipments[random_index]
+		var base_equipment_config = available_equipments[random_index]
 
 		# 决定装备品质
-		var tier_chances = {
-			EquipmentTierManager.EquipmentTier.NORMAL: 0.5,
-			EquipmentTierManager.EquipmentTier.MAGIC: 0.3,
-			EquipmentTierManager.EquipmentTier.RARE: 0.15,
-			EquipmentTierManager.EquipmentTier.EPIC: 0.04,
-			EquipmentTierManager.EquipmentTier.LEGENDARY: 0.01
-		}
-
-		# 根据玩家等级和商店等级调整品质概率
-		var level_factor = min(player_level / 10.0, 1.0)  # 玩家等级因子，最高10级
-		var shop_factor = min(shop_tier / 3.0, 1.0)  # 商店等级因子，最高3级
-
-		# 调整概率
-		tier_chances[EquipmentTierManager.EquipmentTier.NORMAL] -= 0.3 * (level_factor + shop_factor) / 2.0
-		tier_chances[EquipmentTierManager.EquipmentTier.MAGIC] += 0.1 * (level_factor + shop_factor) / 2.0
-		tier_chances[EquipmentTierManager.EquipmentTier.RARE] += 0.1 * (level_factor + shop_factor) / 2.0
-		tier_chances[EquipmentTierManager.EquipmentTier.EPIC] += 0.07 * (level_factor + shop_factor) / 2.0
-		tier_chances[EquipmentTierManager.EquipmentTier.LEGENDARY] += 0.03 * (level_factor + shop_factor) / 2.0
-
-		# 确保概率合理
-		for tier in tier_chances:
-			tier_chances[tier] = max(0.0, min(tier_chances[tier], 1.0))
-
-		# 随机选择品质
-		var selected_tier = EquipmentTierManager.EquipmentTier.NORMAL
-		var rand = randf()
-		var cumulative_chance = 0.0
-
-		for tier in tier_chances:
-			cumulative_chance += tier_chances[tier]
-			if rand <= cumulative_chance:
-				selected_tier = tier
-				break
+		var selected_tier = _select_equipment_tier(player_level, shop_tier)
 
 		# 创建装备实例
-		var equipment = generate_random_equipment(base_equipment_id, selected_tier)
+		var equipment = generate_random_equipment(base_equipment_config.get_id(), selected_tier)
 		if equipment:
+			# 将装备实例的ID添加到库存中
 			_shop_inventory.append(equipment.id)
+			# 确保装备实例已经缓存
+			_equipment_cache[equipment.id] = equipment
 
 	# 发送商店刷新信号
 	EventBus.economy.emit_event("shop_inventory_updated", [_shop_inventory])
+
+# 选择装备品质
+func _select_equipment_tier(player_level: int, shop_tier: int) -> int:
+	# 品质概率表
+	var tier_chances = {
+		EquipmentTierManager.EquipmentTier.NORMAL: 0.5,
+		EquipmentTierManager.EquipmentTier.MAGIC: 0.3,
+		EquipmentTierManager.EquipmentTier.RARE: 0.15,
+		EquipmentTierManager.EquipmentTier.EPIC: 0.04,
+		EquipmentTierManager.EquipmentTier.LEGENDARY: 0.01
+	}
+
+	# 根据玩家等级和商店等级调整品质概率
+	var level_factor = min(player_level / 10.0, 1.0)  # 玩家等级因子，最高10级
+	var shop_factor = min(shop_tier / 3.0, 1.0)  # 商店等级因子，最高3级
+
+	# 调整概率
+	tier_chances[EquipmentTierManager.EquipmentTier.NORMAL] -= 0.3 * (level_factor + shop_factor) / 2.0
+	tier_chances[EquipmentTierManager.EquipmentTier.MAGIC] += 0.1 * (level_factor + shop_factor) / 2.0
+	tier_chances[EquipmentTierManager.EquipmentTier.RARE] += 0.1 * (level_factor + shop_factor) / 2.0
+	tier_chances[EquipmentTierManager.EquipmentTier.EPIC] += 0.07 * (level_factor + shop_factor) / 2.0
+	tier_chances[EquipmentTierManager.EquipmentTier.LEGENDARY] += 0.03 * (level_factor + shop_factor) / 2.0
+
+	# 确保概率合理
+	for tier in tier_chances:
+		tier_chances[tier] = max(0.0, min(tier_chances[tier], 1.0))
+
+	# 随机选择品质
+	var selected_tier = EquipmentTierManager.EquipmentTier.NORMAL
+	var rand = randf()
+	var cumulative_chance = 0.0
+
+	for tier in tier_chances:
+		cumulative_chance += tier_chances[tier]
+		if rand <= cumulative_chance:
+			selected_tier = tier
+			break
+
+	return selected_tier
 
 # 获取当前商店库存
 func get_shop_inventory() -> Array:
@@ -160,16 +162,7 @@ func combine_equipments(equipment1: Equipment, equipment2: Equipment) -> Equipme
 
 # 根据玩家等级获取可用稀有度
 func get_available_rarities(player_level: int) -> Array:
-	var rarities = ["common"]
-
-	if player_level >= 3:
-		rarities.append("rare")
-	if player_level >= 6:
-		rarities.append("epic")
-	if player_level >= 9:
-		rarities.append("legendary")
-
-	return rarities
+	return GameConsts.get_rarities_by_level(player_level)
 
 # 商店刷新请求处理
 func _on_shop_refresh_requested(player_level: int, shop_tier: int = 1):
@@ -181,7 +174,14 @@ func _on_equipment_combine_requested(equipment1: Equipment, equipment2: Equipmen
 
 # 生成随机装备
 func generate_random_equipment(base_equipment_id: String, tier: int = EquipmentTierManager.EquipmentTier.NORMAL) -> Equipment:
-	return tier_manager.generate_random_equipment(base_equipment_id, tier)
+	# 使用装备等级管理器生成随机装备
+	var equipment = tier_manager.generate_random_equipment(base_equipment_id, tier)
+
+	# 将装备实例保存到缓存中
+	if equipment:
+		_equipment_cache[equipment.id] = equipment
+
+	return equipment
 
 # 升级装备品质
 func upgrade_equipment_tier(equipment: Equipment, new_tier: int) -> Equipment:

@@ -68,7 +68,19 @@ func _get_default_schema() -> Dictionary:
 		"enemy_scaling": {
 			"type": "dictionary",
 			"required": false,
-			"description": "敌人缩放"
+			"description": "敌人缩放",
+			"schema": {
+			"health": {
+				"type": "float",
+				"required": false,
+				"description": "生命值乘数"
+			},
+			"damage": {
+				"type": "float",
+				"required": false,
+				"description": "伤害乘数"
+			}
+			}
 		},
 		"player_gold_multiplier": {
 			"type": "float",

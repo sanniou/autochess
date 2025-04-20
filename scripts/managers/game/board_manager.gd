@@ -42,8 +42,6 @@ func _do_initialize() -> void:
 
 	# 获取对象池引用
 	piece_pool = get_manager("ObjectPool")
-	if not piece_pool:
-		_log_error("无法获取对象池引用")
 
 	# 初始化数据结构
 	_initialize_data_structures()
@@ -176,9 +174,6 @@ func get_ally_pieces(is_player: bool) -> Array:
 func get_piece_from_pool(piece_id: String) -> ChessPiece:
 	# 使用棋子工厂创建棋子
 	var chess_factory = get_manager("ChessFactory")
-	if not chess_factory:
-		_log_error("无法获取棋子工厂")
-		return null
 
 	var piece = chess_factory.create_chess_piece(piece_id)
 	if piece:
@@ -188,9 +183,6 @@ func get_piece_from_pool(piece_id: String) -> ChessPiece:
 # 回收棋子到对象池
 func return_piece_to_pool(piece: ChessPiece):
 	var chess_factory = get_manager("ChessFactory")
-	if not chess_factory:
-		_log_error("无法获取棋子工厂")
-		return
 
 	chess_factory.release_chess_piece(piece)
 

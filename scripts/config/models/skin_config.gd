@@ -48,13 +48,50 @@ func _get_default_schema() -> Dictionary:
 		"unlock_condition": {
 			"type": "dictionary",
 			"required": false,
-			"description": "解锁条件"
+			"description": "解锁条件",
+			"schema": {
+				"type": {
+					"type": "string",
+					"required": true,
+					"description": "解锁条件类型"
+				},
+				"value": {
+					"type": "int",
+					"required": false,
+					"description": "解锁条件值"
+				},
+				"threshold": {
+					"type": "int",
+					"required": false,
+					"description": "解锁条件阈值"
+				}
+			}
 		},
 		"assets": {
 			"type": "dictionary",
 			"required": true,
-			"description": "皮肤资源路径"
-		}
+			"description": "皮肤资源路径",
+			"schema": {
+				"chess": {
+					"type": "dictionary",
+					"required": false,
+					"description": "棋子资源路径",
+					"check_schema": false
+					},
+					"board": {
+						"type": "dictionary",
+						"required": false,
+						"description": "棋盘资源路径",
+						"check_schema": false
+						},
+						"ui": {
+							"type": "dictionary",
+							"required": false,
+							"description": "UI资源路径",
+							"check_schema": false
+							}
+						}
+			}
 	}
 
 # 验证自定义规则
