@@ -1,20 +1,96 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # General Preferences
 - User prefers communication in Chinese.
 - 用户希望语法遵守 Godot 的规范。
 - 用户希望应用 AngularJS commit 规范
 - 用户希望分析代码应该足够激进，优先考虑代码质量和最优设计
+- 用户希望修改代码的时候必须先读取最新文件后再修改代码。
 - 用户希望修改代码的时候必须先对原文件和相关模块完全的掌握，不应该遗漏待实现的功能。
+- User prefers thoroughly reading source files before attempting to modify functions.
 - 用户希望带着重构优化的目光审视你所看到的代码。
 - 用户希望编程时不需要考虑兼容问题，如果有保护性的兼容代码请修改掉，不要添加无谓的空判断，这样只会隐藏问题。
+- User prefers high quality code without defensive programming, doesn't want to handle exceptional cases, and wants to remove unreasonable designs and code.
 - 用户希望不要使用注释相关功能的方式来逃避问题。
-- 用户希望新建功能模块的时候，请先分析项目中是否有可用的 Utils 和模块，如果判断已有文件不合理可以直接修改/删除/替换。不要随意新建相同功能的新文件/函数，以免造成混乱。不要随意新建相同功能的新文件/函数，以免造成混乱。
+- 用户希望新建功能模块的时候，请先分析项目中是否有可用的 Utils 和模块，如果判断已有文件不合理可以直接修改/删除/替换。不要随意新建相同功能的新文件/函数，以免造成混乱。
 - 用户希望生成代码的时候，提前考虑好性能、可扩展、可配置、解耦、模块化的实现。代码要提前关注可能与其他系统的交互,预设交互空间（比如难度、皮肤、多语言-目前只需要中文、成就统计、遗物影响、事件影响、插件系统以及其它系统）
 - 用户希望当涉及到无法生成的文件的时候，请使用虚拟文件占位（或者godot 是否会有一些公共素材可以使用）。
 - 新增用户希望/删除/重构功能时判断此项目是否真的需要这些需修改？在合适的范围内做减法。
+- User prefers to analyze code architecture for potential refactoring before fixing specific bugs.
 - 用户希望检查并清理项目中的矛盾、重复和未使用的部分，保持代码库的整洁。
 - 用户关心配置模型类在项目中的实际使用情况。
 - 用户偏好直接执行代码迁移而不需要创建迁移指南。
-- 用户希望先分析代码合理性，考虑最优架构重构，然后再开始编码实现。
-- 用户希望基于用户体验、视觉效果、项目架构再次回顾是否还有可优化点。
-- User prefers high quality code without defensive programming, doesn't want to handle exceptional cases, and wants to remove unreasonable designs and code.
+- 用户希望完全迁移工作应该包含清理旧模块。
 - User prefers thorough analysis of user experience, visual effects, and project architecture before implementation.
+- 用户希望将类型和条件常量维护在/scripts/constants目录中。
+- 用户希望分析Constants目录下相似度高的常量文件，并考虑最优架构进行重构。
+- 用户偏好使用Python工具而不是Godot编辑器脚本工具。
+- 用户希望分析代码是否合理，然后是否有最优架构来重构代码，得出结论后 coding。
+- 用户希望检查项目中是否正确使用了重构后的constants，特别是在json、config model、实例类和manager中的使用情况。
+- 用户希望在设计测试前先分析代码合理性，考虑最优架构重构，然后再开始编码实现。
+- 用户偏好简化测试架构，不希望为测试功能创建额外的管理器类
+- 用户希望简化测试架构，不希望重复分析旧测试代码，强调保持项目整洁。
+- 用户希望将测试场景添加到首页入口中。
+- 用户偏好使用 effects 的设计而非 effect。
+- 用户希望分析未解决的问题并进行重构/优化，同时保持系统整洁性和代码质量。
+
+# Effects System
+- User wants to analyze potential duplication between effects in /game/effects directory and newly created effects to determine which implementation is better.
+- User wants to migrate completely from the old effects system to the new one, ensuring the new system implements sufficient effects before deleting the old system.
+
+# Equipment and Shop
+- User prefers to analyze equipment generation and shop refresh logic for architectural issues before implementing solutions, particularly regarding how randomly generated equipment is handled by the shop manager.
+- 用户关心随机生成的装备配置是否会污染装备池，认为新生成的配置应该只在商店中使用一次。
+- 用户偏好架构设计中只有equipment manager处理equipment config并生成equipment实例，其他模块如shop只使用equipment实例。
+- 项目中对于装备实例已有定义的equipment class.
+- Equipment is an object not a dictionary, and doesn't have a get_data function, so code that treats it as such will fail.
+- User wants to apply the same architecture principles to refactor chess and relic shops as were applied to the equipment shop.
+- User wants to ensure equipment JSON files have standardized effect types and triggers, and prefers proactive identification and fixing of such issues.
+- User identified parameter mismatches between player and piece systems, particularly in the piece.equip_item(equipment) method.
+
+# Config Model
+- User wants to analyze and potentially refactor relic config validation, particularly focusing on mismatches between config and JSON files.
+- 用户偏好统一项目中 config rarity 字段的类型，使其保持一致（不混用数字和字母）。
+- RelicConfig应该直接可用而不需要转换为Relic需要的格式。
+- User prefers to handle int and float types together in config model validation, converting float values to int when int type is required since Godot parses numbers as float by default.
+- User suggests adding a nested schema layer under 'thresholds' in synergy config's get_default_schema function to enable deeper validation in config models.
+- 用户希望修改 config model 的 validate 函数，当 schema 为字典/字典数组时必须提供 schema 属性以进行下一层的校验。
+
+# Shop Scene
+- 用户希望shop场景应分为遗物商店、棋子商店和装备商店，且shop test应直接展示游戏中的shop场景并添加测试功能按钮和数据回显。
+
+# Localization
+- User notes that chess pieces are loaded from JSON, so LocalizationManager.translate() might not have localization data available for them.
+- 用户偏好将本地化回退逻辑实现在LocalizationManager中，而不是在各个使用本地化的组件中实现。
+
+# Chess
+- 用户询问 ChessFactory 是否已被 ChessManager 完全替代，是否可以删除。
+- 用户偏好从'将ChessFactory作为ChessManager的内部组件'和'逐步迁移'两种方案中选择最优架构实现。
+- The chess piece system has issues with complex state machine implementation, tight coupling between skills and chess pieces, and scattered attribute modification logic.
+
+# Synergy
+- 用户希望在synergy系统中应用effects数组中的所有效果，而不仅是第一个效果。
+- The synergy system has issues with inconsistent effect application, incomplete threshold validation, and only applying the first effect in the effects array.
+
+# Event System
+- 用户认为事件系统重构太复杂，希望先处理其他任务.
+
+# Battle System
+- User wants to refactor and optimize the battle system.
+- 用户希望分析 battle manager 和 battle engine 以及相关交互代码，并清理不需要的旧模块。
