@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cp4vfutxctvhr"]
+
+[ext_resource type="Script" uid="uid://c8mgbugvwa0yv" path="res://scripts/test/map_integration_test.gd" id="1_yjnqm"]
+
+[node name="MapIntegrationTest" type="Node"]
+script = ExtResource("1_yjnqm")

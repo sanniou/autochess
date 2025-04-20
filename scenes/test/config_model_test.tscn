@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8qjy6yvx3yjb"]
+
+[ext_resource type="Script" uid="uid://b0uxq4umrrcyy" path="res://scripts/tests/config_model_test.gd" id="1_yjnqm"]
+
+[node name="ConfigModelTest" type="Node"]
+script = ExtResource("1_yjnqm")
