@@ -34,10 +34,6 @@ var unlocked_skins: Dictionary = {
 	SkinType.UI: ["default"]
 }
 
-# 引用
-@onready var config_manager = get_node("/root/ConfigManager")
-@onready var save_manager = get_node("/root/SaveManager")
-
 # 初始化
 func _ready() -> void:
 	# 加载皮肤配置
@@ -53,7 +49,7 @@ func _ready() -> void:
 # 加载皮肤配置
 func _load_skin_config() -> void:
 	# 使用标准的ConfigManager方法获取皮肤配置
-	skin_config = config_manager.get_all_skins()
+	skin_config = ConfigManager.get_all_skins()
 
 	if skin_config.is_empty():
 		# 创建默认配置
@@ -88,11 +84,11 @@ func _load_skin_config() -> void:
 		}
 
 		# 保存默认配置
-		config_manager.save_json(SKIN_CONFIG_PATH, skin_config)
+		ConfigManager.save_json(SKIN_CONFIG_PATH, skin_config)
 
 # 加载已解锁的皮肤
 func _load_unlocked_skins() -> void:
-	var save_data = save_manager.get_save_data()
+	var save_data = GameManager.save_manager.get_save_data()
 
 	if save_data.has("unlocked_skins"):
 		unlocked_skins = save_data.unlocked_skins
@@ -106,7 +102,7 @@ func _load_unlocked_skins() -> void:
 
 		# 保存到存档
 		save_data["unlocked_skins"] = unlocked_skins
-		save_manager.save_game()
+		GameManager.save_manager.save_game()
 
 	# 加载当前皮肤
 	if save_data.has("current_skins"):
@@ -120,7 +116,7 @@ func _load_unlocked_skins() -> void:
 
 		# 保存到存档
 		save_data["current_skins"] = current_skins
-		save_manager.save_game()
+		GameManager.save_manager.save_game()
 
 	# 应用当前皮肤
 	for skin_type in current_skins.keys():
@@ -130,21 +126,21 @@ func _load_unlocked_skins() -> void:
 func apply_skin(skin_type: SkinType, skin_id: String) -> bool:
 	# 检查皮肤是否存在
 	if not _skin_exists(skin_type, skin_id):
-		EventBus.debug.emit_event("debug_message", ["皮肤不存在: " + SkinType.keys(])[skin_type] + " - " + skin_id, 1)
+		EventBus.debug.emit_event("debug_message", ["皮肤不存在: " + SkinType.keys()[skin_type] + " - " + skin_id, 1])
 		return false
 
 	# 检查皮肤是否已解锁
 	if not _skin_unlocked(skin_type, skin_id):
-		EventBus.debug.emit_event("debug_message", ["皮肤未解锁: " + SkinType.keys(])[skin_type] + " - " + skin_id, 1)
+		EventBus.debug.emit_event("debug_message", ["皮肤未解锁: " + SkinType.keys()[skin_type] + " - " + skin_id, 1])
 		return false
 
 	# 更新当前皮肤
 	current_skins[skin_type] = skin_id
 
 	# 保存到存档
-	var save_data = save_manager.get_save_data()
+	var save_data = GameManager.save_manager.get_save_data()
 	save_data["current_skins"] = current_skins
-	save_manager.save_game()
+	GameManager.save_manager.save_game()
 
 	# 根据皮肤类型应用不同的处理
 	match skin_type:
@@ -164,21 +160,21 @@ func apply_skin(skin_type: SkinType, skin_id: String) -> bool:
 func unlock_skin(skin_type: SkinType, skin_id: String) -> bool:
 	# 检查皮肤是否存在
 	if not _skin_exists(skin_type, skin_id):
-		EventBus.debug.emit_event("debug_message", ["皮肤不存在: " + SkinType.keys(])[skin_type] + " - " + skin_id, 1)
+		EventBus.debug.emit_event("debug_message", ["皮肤不存在: " + SkinType.keys()[skin_type] + " - " + skin_id, 1])
 		return false
 
 	# 检查皮肤是否已解锁
 	if _skin_unlocked(skin_type, skin_id):
-		EventBus.debug.emit_event("debug_message", ["皮肤已解锁: " + SkinType.keys(])[skin_type] + " - " + skin_id, 0)
+		EventBus.debug.emit_event("debug_message", ["皮肤已解锁: " + SkinType.keys()[skin_type] + " - " + skin_id, 0])
 		return true
 
 	# 解锁皮肤
 	unlocked_skins[skin_type].append(skin_id)
 
 	# 保存到存档
-	var save_data = save_manager.get_save_data()
+	var save_data = GameManager.save_manager.get_save_data()
 	save_data["unlocked_skins"] = unlocked_skins
-	save_manager.save_game()
+	GameManager.save_manager.save_game()
 
 	# 发送信号
 	skin_unlocked.emit(SkinType.keys()[skin_type], skin_id)

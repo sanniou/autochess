@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8qxr6j2yvdgx"]
+[gd_scene load_steps=3 format=3 uid="uid://c8qxr6j22yvdgx"]
 
-[ext_resource type="Script" path="res://scripts/ui/battle_ui_controller.gd" id="1_yvnqm"]
+[ext_resource type="Script" uid="uid://cp5ietvjlkovm" path="res://scripts/ui/battle_ui_controller.gd" id="1_yvnqm"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8jnxu"]
 bg_color = Color(0.12549, 0.12549, 0.12549, 0.901961)

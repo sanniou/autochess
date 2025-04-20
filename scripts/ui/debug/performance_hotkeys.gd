@@ -2,10 +2,6 @@ extends Node
 ## 性能监控快捷键处理
 ## 用于处理性能监控相关的快捷键
 
-# 引用
-@onready var debug_manager = get_node_or_null("/root/DebugManager")
-@onready var performance_monitor = get_node_or_null("/root/PerformanceMonitor")
-
 # 快捷键设置
 var hotkey_settings = {
 	"toggle_overlay": KEY_F3,       # 切换性能监控显示
@@ -16,15 +12,11 @@ var hotkey_settings = {
 	"toggle_logging": KEY_F8        # 切换性能日志记录
 }
 
+var debug_manager
+var performance_monitor
 # 初始化
 func _ready() -> void:
-	# 检查是否有调试管理器
-	if not debug_manager:
-		push_error("无法获取调试管理器引用")
-	
-	# 检查是否有性能监控器
-	if not performance_monitor:
-		push_error("无法获取性能监控器引用")
+	debug_manager=DebugManager
 
 # 输入处理
 func _input(event: InputEvent) -> void:

@@ -2,9 +2,6 @@ extends Control
 ## 皮肤商店界面
 ## 用于购买和解锁游戏皮肤
 
-# 皮肤管理器
-var skin_manager = null
-
 # 玩家金币
 var player_gold = 0
 
@@ -13,14 +10,9 @@ var skin_shop_item_scene = preload("res://scenes/ui/skin_shop_item.tscn")
 
 # 初始化
 func _ready():
-	# 获取皮肤管理器
-	if has_node("/root/SkinManager"):
-		skin_manager = get_node("/root/SkinManager")
-	else:
-		skin_manager = get_node("/root/GameManager/SkinManager")
 	
 	# 获取玩家金币
-	var save_data = get_node("/root/SaveManager").get_save_data()
+	var save_data = SaveManager.get_save_data()
 	if save_data.has("gold"):
 		player_gold = save_data.gold
 	
@@ -34,16 +26,14 @@ func _ready():
 	_add_animations()
 	
 	# 播放背景音乐
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_music("shop.ogg")
+	AudioManager.play_music("shop.ogg")
 	
 	# 连接信号
 	$Header/BackButton.pressed.connect(_on_back_button_pressed)
 
 # 加载皮肤
 func _load_skins() -> void:
-	if skin_manager:
+	if GameManager.skin_manager:
 		# 加载棋子皮肤
 		_load_chess_skins()
 		
@@ -62,7 +52,7 @@ func _load_chess_skins() -> void:
 		child.queue_free()
 	
 	# 获取所有棋子皮肤
-	var chess_skins = skin_manager.get_all_skins("chess")
+	var chess_skins = GameManager.skin_manager.get_all_skins("chess")
 	
 	# 添加皮肤项
 	for skin_id in chess_skins:
@@ -79,7 +69,7 @@ func _load_board_skins() -> void:
 		child.queue_free()
 	
 	# 获取所有棋盘皮肤
-	var board_skins = skin_manager.get_all_skins("board")
+	var board_skins = GameManager.skin_manager.get_all_skins("board")
 	
 	# 添加皮肤项
 	for skin_id in board_skins:
@@ -96,7 +86,7 @@ func _load_ui_skins() -> void:
 		child.queue_free()
 	
 	# 获取所有UI皮肤
-	var ui_skins = skin_manager.get_all_skins("ui")
+	var ui_skins = GameManager.skin_manager.get_all_skins("ui")
 	
 	# 添加皮肤项
 	for skin_id in ui_skins:
@@ -129,7 +119,7 @@ func _create_skin_shop_item(skin_id: String, skin_data: Dictionary, skin_type: S
 	item.set_skin_price(price)
 	
 	# 设置皮肤状态
-	var is_unlocked = skin_manager.is_skin_unlocked(skin_id, skin_type)
+	var is_unlocked = GameManager.skin_manager.is_skin_unlocked(skin_id, skin_type)
 	item.set_skin_state(is_unlocked, player_gold >= price)
 	
 	# 连接信号
@@ -172,16 +162,15 @@ func _on_skin_purchased(skin_id: String, skin_type: String, price: int) -> void:
 	$Header/GoldContainer/GoldValue.text = str(player_gold)
 	
 	# 更新存档中的金币
-	var save_data = get_node("/root/SaveManager").get_save_data()
+	var save_data = SaveManager.get_save_data()
 	save_data.gold = player_gold
-	get_node("/root/SaveManager").save_game()
+	SaveManager.save_game()
 	
 	# 解锁皮肤
-	if skin_manager.unlock_skin(skin_id, skin_type):
+	if GameManager.skin_manager.unlock_skin(skin_id, skin_type):
 		# 播放购买成功音效
-		if has_node("/root/AudioManager"):
-			var audio_manager = get_node("/root/AudioManager")
-			audio_manager.play_ui_sound("purchase.ogg")
+		var audio_manager = AudioManager
+		audio_manager.play_ui_sound("purchase.ogg")
 		
 		# 显示购买成功提示
 		var dialog = AcceptDialog.new()
@@ -204,14 +193,12 @@ func _on_skin_purchased(skin_id: String, skin_type: String, price: int) -> void:
 		player_gold += price
 		$Header/GoldContainer/GoldValue.text = str(player_gold)
 		save_data.gold = player_gold
-		get_node("/root/SaveManager").save_game()
+		SaveManager.save_game()
 
 # 返回按钮处理
 func _on_back_button_pressed() -> void:
 	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 	
 	# 创建过渡动画
 	var transition = ColorRect.new()

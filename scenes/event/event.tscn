@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8yvnqavrpwg8t"]
+[gd_scene load_steps=2 format=3 uid="uid://bia1e3sy71npjx"]
 
-[ext_resource type="Script" path="res://scripts/game/events/event.gd" id="1_yvnqr"]
+[ext_resource type="Script" uid="uid://drfb472a4hfpq" path="res://scripts/game/events/event.gd" id="1_yvnqr"]
 
 [node name="Event" type="Control"]
 layout_mode = 3

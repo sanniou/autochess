@@ -1,7 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q3"]
 
-[ext_resource type="Script" path="res://scenes/battle/battle_scene.gd" id="1_yvmqe"]
-[ext_resource type="PackedScene" uid="uid://c8qxr6j2yvdgx" path="res://scenes/ui/battle_ui_controller.tscn" id="2_n3m4p"]
+[ext_resource type="Script" uid="uid://ctl4mbrleble3" path="res://scenes/battle/battle_scene.gd" id="1_yvmqe"]
+[ext_resource type="PackedScene" uid="uid://c8qxr6j2yvdg4x" path="res://scenes/ui/chess_info_panel.tscn" id="2_n3m4p"]
 
 [node name="BattleScene" type="Control"]
 layout_mode = 3

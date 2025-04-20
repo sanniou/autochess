@@ -16,10 +16,7 @@ func _ready():
 	$Title.text = LocalizationManager.tr("ui.map.title")
 
 	# 创建地图管理器
-	map_manager = get_node("/root/GameManager").map_manager
-	if not map_manager:
-		map_manager = MapManager.new()
-		add_child(map_manager)
+	map_manager = GameManager.map_manager
 
 	# 连接信号
 	map_manager.map_initialized.connect(_on_map_initialized)
@@ -33,7 +30,7 @@ func _ready():
 	_update_player_info()
 
 	# 初始化地图
-	var difficulty = get_node("/root/GameManager").difficulty_level
+	var difficulty = GameManager.difficulty_level
 	map_manager.initialize_map("standard", difficulty)
 
 	# 播放地图音乐
@@ -42,17 +39,11 @@ func _ready():
 ## 更新玩家信息
 func _update_player_info() -> void:
 	# 从玩家管理器获取数据
-	var player_manager = get_node("/root/GameManager/PlayerManager")
-	if player_manager and player_manager.current_player:
-		var player = player_manager.current_player
-		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health").format({"current": str(player.current_health), "max": str(player.max_health)})
-		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": str(player.gold)})
-		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": str(player.level)})
-	else:
-		# 没有玩家数据时使用默认值
-		$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health").format({"current": "100", "max": "100"})
-		$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": "0"})
-		$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": "1"})
+	var player_manager = GameManager.player_manager
+	var player = player_manager.current_player
+	$PlayerInfo/HealthLabel.text = LocalizationManager.tr("ui.player.health").format({"current": str(player.current_health), "max": str(player.max_health)})
+	$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": str(player.gold)})
+	$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": str(player.level)})
 
 ## 地图初始化处理
 func _on_map_initialized(map_data: Dictionary) -> void:
@@ -72,10 +63,7 @@ func _on_map_initialized(map_data: Dictionary) -> void:
 	# 连接节点悬停信号
 	EventBus.map.connect_event("map_node_hovered", _on_map_node_hovered)
 
-	# 创建自定义信号用于节点离开
-	if not EventBus.has_signal("map_node_unhovered"):
-		EventBus.add_user_signal("map_node_unhovered")
-
+	# 节点离开
 	EventBus.map_node_unhovered.connect(_on_map_node_unhovered)
 
 
@@ -231,12 +219,12 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 
 	# 显示节点信息提示
 	var node_type_name = LocalizationManager.tr("ui.map.node_" + node_data.type)
-	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.node_selected"]).format({"type": node_type_name}))
+	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name})])
 
 ## 地图完成处理
 func _on_map_completed() -> void:
 	# 地图完成后的处理
-	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.completed"]))
+	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.completed")])
 	# 播放完成音效
 	AudioManager.play_sfx("victory.ogg")
 

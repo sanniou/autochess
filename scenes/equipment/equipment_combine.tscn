@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7qb"]
 
-[ext_resource type="Script" path="res://scenes/equipment/equipment_combine.gd" id="1_yvmqe"]
+[ext_resource type="Script" uid="uid://but0s1v3v2xve" path="res://scenes/equipment/equipment_combine.gd" id="1_yvmqe"]
 
 [node name="EquipmentCombine" type="Control"]
 layout_mode = 3

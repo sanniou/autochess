@@ -14,9 +14,7 @@ func _ready():
 	_initialize_ui()
 
 	# 播放背景音乐
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_music("main_menu.ogg")
+	AudioManager.play_music("main_menu.ogg")
 
 	# 检查存档
 	_check_saves()
@@ -90,19 +88,12 @@ func _on_start_game_button_pressed():
 	_play_button_sound()
 
 	# 显示难度选择对话框
-	var game_manager = get_node_or_null("/root/GameManager")
-	if game_manager and game_manager.has_method("start_new_game"):
-		# 创建过渡动画
-		_transition_to_scene("res://scenes/game.tscn")
-	else:
-		# 如果没有GameManager，直接转场
-		_transition_to_scene("res://scenes/game.tscn")
+	# 创建过渡动画
+	_transition_to_scene("res://scenes/game.tscn")
 
 # 播放按钮音效
 func _play_button_sound() -> void:
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 
 # 场景过渡动画
 func _transition_to_scene(scene_path: String) -> void:
@@ -150,6 +141,15 @@ func _on_battle_test_button_pressed():
 	_play_button_sound()
 	_transition_to_scene("res://scenes/test/battle_test.tscn")
 
+# 战斗模拟测试按钮处理
+func _on_battle_simulation_button_pressed():
+	# 如果正在执行动画，忽略点击
+	if _is_animating:
+		return
+
+	_play_button_sound()
+	_transition_to_scene("res://scenes/test/battle_simulation_test.tscn")
+
 # 装备测试按钮处理
 func _on_equipment_test_button_pressed():
 	# 如果正在执行动画，忽略点击
@@ -175,7 +175,8 @@ func _on_map_test_button_pressed():
 		return
 
 	_play_button_sound()
-	_transition_to_scene("res://scenes/test/map_test.tscn")
+	# _transition_to_scene("res://scenes/test/map_test.tscn")
+	_transition_to_scene("res://scenes/test/new_map_test.tscn")
 
 # 事件测试按钮处理
 func _on_event_test_button_pressed():
@@ -249,13 +250,7 @@ func _on_quit_button_pressed():
 	_play_button_sound()
 
 	# 显示确认对话框
-	var game_manager = get_node_or_null("/root/GameManager")
-	if game_manager and game_manager.has_method("quit_game"):
-		# 使用GameManager退出游戏
-		_play_exit_animation(func(): game_manager.quit_game())
-	else:
-		# 直接退出游戏
-		_play_exit_animation(func(): get_tree().quit())
+	_play_exit_animation(func(): GameManager.quit_game())
 
 # 播放退出动画
 func _play_exit_animation(callback: Callable) -> void:

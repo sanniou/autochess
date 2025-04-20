@@ -25,15 +25,6 @@ var animation_speed: float = 1.0
 var use_animations: bool = true
 var current_animation: String = ""
 
-# 引用
-@onready var EventBus = get_node_or_null("/root/EventBus")
-@onready var game_manager = get_node_or_null("/root/GameManager")
-@onready var config_manager = get_node_or_null("/root/ConfigManager")
-@onready var localization_manager = get_node_or_null("/root/LocalizationManager")
-@onready var font_manager = get_node_or_null("/root/FontManager")
-@onready var audio_manager = get_node_or_null("/root/AudioManager")
-@onready var ui_manager = get_node_or_null("/root/GameManager/UIManager") if game_manager else null
-
 # 工具类
 @onready var utils = get_node_or_null("/root/Utils")
 
@@ -175,11 +166,11 @@ func _on_scale_changed(scale_factor: float) -> void:
 func chess_tr(key: String, params: Array = []) -> String:
 	if utils:
 		return utils.translate(key, params)
-	return localization_manager.translate(key, params)
+	return GameManager.localization_manager.translate(key, params)
 
 # 播放UI音效
 func play_ui_sound(sound_name: String) -> void:
-	audio_manager.play_ui_sound(sound_name)
+	GameManager.audio_manager.play_ui_sound(sound_name)
 
 # 创建标签
 func create_label(text: String, font_size: int = 16, color: Color = Color.WHITE) -> Label:

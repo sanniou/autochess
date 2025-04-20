@@ -12,14 +12,10 @@ var altar_type: String = ""
 # 初始化
 func _initialize() -> void:
 	# 获取祭坛管理器
-	altar_manager = game_manager.altar_manager
-	
-	if altar_manager == null:
-		EventBus.debug.emit_event("debug_message", ["无法获取祭坛管理器", 1])
-		return
+	altar_manager = GameManager.altar_manager
 	
 	# 获取祭坛类型
-	altar_type = game_manager.altar_params.get("altar_type", "")
+	altar_type = GameManager.altar_params.get("altar_type", "")
 	
 	# 连接信号
 	if has_node("SacrificeButton"):
@@ -63,8 +59,6 @@ func update_hud() -> void:
 func _update_sacrifice_items() -> void:
 	# 获取物品容器
 	var items_container = get_node_or_null("ItemsContainer")
-	if items_container == null:
-		return
 	
 	# 清空容器
 	for child in items_container.get_children():
@@ -100,9 +94,7 @@ func _update_sacrifice_items() -> void:
 
 # 获取棋子牺牲物品
 func _get_chess_sacrifice_items() -> Array:
-	var chess_manager = game_manager.chess_manager
-	if chess_manager == null:
-		return []
+	var chess_manager = GameManager.chess_manager
 	
 	# 获取玩家拥有的棋子
 	var chess_pieces = chess_manager.get_player_chess_pieces()
@@ -123,9 +115,7 @@ func _get_chess_sacrifice_items() -> Array:
 
 # 获取装备牺牲物品
 func _get_equipment_sacrifice_items(stat_type: String) -> Array:
-	var equipment_manager = game_manager.equipment_manager
-	if equipment_manager == null:
-		return []
+	var equipment_manager = GameManager.equipment_manager
 	
 	# 获取玩家拥有的装备
 	var equipments = equipment_manager.get_player_equipments()
@@ -154,9 +144,7 @@ func _get_equipment_sacrifice_items(stat_type: String) -> Array:
 
 # 获取法术书牺牲物品
 func _get_spellbook_sacrifice_items() -> Array:
-	var item_manager = game_manager.item_manager
-	if item_manager == null:
-		return []
+	var item_manager = GameManager.item_manager
 	
 	# 获取玩家拥有的法术书
 	var spellbooks = item_manager.get_player_items_by_type("spellbook")
@@ -176,10 +164,8 @@ func _get_spellbook_sacrifice_items() -> Array:
 
 # 获取遗物牺牲物品
 func _get_relic_sacrifice_items() -> Array:
-	var relic_manager = game_manager.relic_manager
-	if relic_manager == null:
-		return []
-	
+	var relic_manager = GameManager.relic_manager
+
 	# 获取玩家拥有的遗物
 	var relics = relic_manager.get_player_relics()
 	var sacrifice_items = []
@@ -253,7 +239,7 @@ func _create_sacrifice_item(item_data: Dictionary, index: int) -> Control:
 func _on_sacrifice_item_clicked(event: InputEvent, index: int, item_data: Dictionary) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
 		# 显示确认对话框
-		var popup = game_manager.ui_manager.show_popup("confirm_dialog", {
+		var popup = GameManager.ui_manager.show_popup("confirm_dialog", {
 			"title": tr("ui.altar.sacrifice_title"),
 			"message": tr("ui.altar.sacrifice_message", [item_data.name, str(item_data.value)]),
 			"confirm_text": tr("ui.altar.sacrifice_confirm"),
@@ -292,24 +278,24 @@ func _perform_sacrifice(item_data: Dictionary) -> void:
 # 牺牲棋子
 func _sacrifice_chess(item_data: Dictionary) -> void:
 	# 移除棋子
-	var chess_manager = game_manager.chess_manager
+	var chess_manager = GameManager.chess_manager
 	if chess_manager:
 		chess_manager.remove_chess_piece(item_data.id)
 	
 	# 增加玩家生命值
-	var player_manager = game_manager.player_manager
+	var player_manager = GameManager.player_manager
 	if player_manager:
 		player_manager.heal_player(item_data.value)
 
 # 牺牲装备
 func _sacrifice_equipment(item_data: Dictionary) -> void:
 	# 移除装备
-	var equipment_manager = game_manager.equipment_manager
+	var equipment_manager = GameManager.equipment_manager
 	if equipment_manager:
 		equipment_manager.remove_equipment(item_data.id)
 	
 	# 增加玩家属性
-	var player_manager = game_manager.player_manager
+	var player_manager = GameManager.player_manager
 	if player_manager:
 		if altar_type == "attack":
 			player_manager.add_attack_bonus(item_data.value)
@@ -319,24 +305,24 @@ func _sacrifice_equipment(item_data: Dictionary) -> void:
 # 牺牲法术书
 func _sacrifice_spellbook(item_data: Dictionary) -> void:
 	# 移除法术书
-	var item_manager = game_manager.item_manager
+	var item_manager = GameManager.item_manager
 	if item_manager:
 		item_manager.remove_item(item_data.id)
 	
 	# 增强玩家技能
-	var ability_manager = game_manager.ability_manager
+	var ability_manager = GameManager.ability_manager
 	if ability_manager:
 		ability_manager.enhance_player_abilities(item_data.value)
 
 # 牺牲遗物
 func _sacrifice_relic(item_data: Dictionary) -> void:
 	# 移除遗物
-	var relic_manager = game_manager.relic_manager
+	var relic_manager = GameManager.relic_manager
 	if relic_manager:
 		relic_manager.remove_relic(item_data.id)
 	
 	# 增加玩家金币
-	var player_manager = game_manager.player_manager
+	var player_manager = GameManager.player_manager
 	if player_manager:
 		player_manager.add_gold(item_data.value)
 
@@ -355,4 +341,4 @@ func _on_cancel_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 返回地图
-	game_manager.change_state(GameManager.GameState.MAP)
+	GameManager.change_state(GameManager.GameState.MAP)

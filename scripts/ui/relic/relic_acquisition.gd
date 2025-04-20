@@ -3,7 +3,6 @@ extends Control
 ## 显示获取遗物的动画效果
 
 # 引用
-@onready var EventBus = get_node("/root/EventBus")
 @onready var animation_player = $AnimationPlayer
 @onready var title_label = $Panel/VBoxContainer/TitleLabel
 @onready var texture_rect = $Panel/VBoxContainer/TextureRect

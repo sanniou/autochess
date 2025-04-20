@@ -2,6 +2,9 @@ extends Panel
 ## 皮肤项
 ## 用于显示和选择皮肤
 
+# 引入常量
+const GameConsts = preload("res://scripts/constants/game_constants.gd")
+
 # 信号
 signal skin_selected(skin_id, skin_type)
 signal skin_preview_requested(skin_id, skin_type)
@@ -36,28 +39,10 @@ func set_skin_description(description: String) -> void:
 	$VBoxContainer/DescriptionLabel.text = description
 
 # 设置皮肤稀有度
-func set_skin_rarity(rarity: String) -> void:
-	var rarity_text = "稀有度: "
-	var rarity_color = Color.WHITE
-
-	match rarity:
-		"common":
-			rarity_text += "普通"
-			rarity_color = Color(0.8, 0.8, 0.8)
-		"uncommon":
-			rarity_text += "优秀"
-			rarity_color = Color(0.2, 0.8, 0.2)
-		"rare":
-			rarity_text += "稀有"
-			rarity_color = Color(0.2, 0.2, 0.8)
-		"epic":
-			rarity_text += "史诗"
-			rarity_color = Color(0.8, 0.2, 0.8)
-		"legendary":
-			rarity_text += "传说"
-			rarity_color = Color(1.0, 0.8, 0.0)
-		_:
-			rarity_text += rarity
+func set_skin_rarity(rarity: int) -> void:
+	# 获取稀有度名称和颜色
+	var rarity_text = "稀有度: " + GameConsts.get_rarity_name(rarity)
+	var rarity_color = GameConsts.get_rarity_color(rarity)
 
 	$VBoxContainer/RarityLabel.text = rarity_text
 	$VBoxContainer/RarityLabel.add_theme_color_override("font_color", rarity_color)
@@ -111,19 +96,16 @@ func _on_select_button_pressed() -> void:
 	_update_skin_state()
 
 	# 播放选择音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("select.ogg")
+	var audio_manager = AudioManager
+	audio_manager.play_ui_sound("select.ogg")
 
 # 预览按钮处理
 func _on_preview_button_pressed() -> void:
 	# 发送预览信号
 	skin_preview_requested.emit(skin_id, skin_type)
 
-	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	var audio_manager = AudioManager
+	audio_manager.play_ui_sound("button_click.ogg")
 
 	# 创建预览对话框
 	var dialog = AcceptDialog.new()
@@ -210,9 +192,7 @@ func _on_unlock_button_pressed() -> void:
 	skin_unlock_requested.emit(skin_id, skin_type)
 
 	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 
 	# 显示解锁确认对话框
 	var dialog = ConfirmationDialog.new()
@@ -225,33 +205,20 @@ func _on_unlock_button_pressed() -> void:
 
 	dialog.confirmed.connect(func():
 		# 尝试解锁皮肤
-		if has_node("/root/SkinManager"):
-			var skin_manager = get_node("/root/SkinManager")
-			var success = skin_manager.unlock_skin(skin_id, skin_type)
-
-			if success:
-				# 更新解锁状态
-				is_unlocked = true
-				_update_skin_state()
-
-				# 播放解锁音效
-				if has_node("/root/AudioManager"):
-					var audio_manager = get_node("/root/AudioManager")
-					audio_manager.play_sfx("unlock.ogg")
-
-				# 显示解锁成功提示
-				var success_dialog = AcceptDialog.new()
-				success_dialog.title = "解锁成功"
-				success_dialog.dialog_text = "皮肤已成功解锁！"
-				add_child(success_dialog)
-				success_dialog.popup_centered()
-			else:
-				# 显示解锁失败提示
-				var fail_dialog = AcceptDialog.new()
-				fail_dialog.title = "解锁失败"
-				fail_dialog.dialog_text = "金币不足或其他原因导致解锁失败。"
-				add_child(fail_dialog)
-				fail_dialog.popup_centered()
+		var skin_manager = GameManager.skin_manager
+		var success = skin_manager.unlock_skin(skin_id, skin_type)
+		if success:
+			# 更新解锁状态
+			is_unlocked = true
+			_update_skin_state()
+			# 播放解锁音效
+			AudioManager.play_sfx("unlock.ogg")
+			# 显示解锁成功提示
+			var success_dialog = AcceptDialog.new()
+			success_dialog.title = "解锁成功"
+			success_dialog.dialog_text = "皮肤已成功解锁！"
+			add_child(success_dialog)
+			success_dialog.popup_centered()
 	)
 
 	add_child(dialog)

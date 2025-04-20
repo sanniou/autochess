@@ -6,14 +6,11 @@ class_name BlacksmithScene
 # 铁匠铺折扣
 var discount: float = 0.0
 
-# 引用
-@onready var game_manager = get_node("/root/GameManager")
-@onready var ui_manager = game_manager.ui_manager
 
 # 初始化
 func _ready() -> void:
 	# 获取铁匠铺参数
-	var blacksmith_params = game_manager.blacksmith_params
+	var blacksmith_params = GameManager.blacksmith_params
 	if blacksmith_params:
 		discount = blacksmith_params.get("discount", 0.0)
 

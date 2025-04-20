@@ -12,11 +12,7 @@ var current_event = null
 # 初始化
 func _initialize() -> void:
 	# 获取事件管理器
-	event_manager = game_manager.event_manager
-	
-	if event_manager == null:
-		EventBus.debug.emit_event("debug_message", ["无法获取事件管理器", 1])
-		return
+	event_manager = GameManager.event_manager
 	
 	# 连接事件信号
 	EventBus.event.connect_event("event_started", _on_event_started)
@@ -134,7 +130,7 @@ func _on_event_completed(event, result: Dictionary) -> void:
 	await get_tree().create_timer(2.0).timeout
 	
 	# 返回地图
-	game_manager.change_state(GameManager.GameState.MAP)
+	GameManager.change_state(GameManager.GameState.MAP)
 
 # 选项按钮点击处理
 func _on_option_button_pressed(option_index: int) -> void:
@@ -151,4 +147,4 @@ func _show_option_result(result: Dictionary) -> void:
 		"rewards": result.get("rewards", {})
 	}
 	
-	game_manager.ui_manager.show_popup("event_result", popup_data)
+	GameManager.ui_manager.show_popup("event_result", popup_data)

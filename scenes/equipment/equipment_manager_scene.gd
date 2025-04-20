@@ -2,10 +2,6 @@ extends Control
 ## 装备管理场景
 ## 玩家可以在此管理装备
 
-# 引用
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-@onready var equipment_manager = get_node("/root/GameManager/EquipmentManager")
-@onready var config_manager = get_node("/root/ConfigManager")
 
 # 当前玩家
 var current_player = null
@@ -17,7 +13,7 @@ var selected_chess = null
 # 初始化
 func _ready():
 	# 获取当前玩家
-	current_player = player_manager.get_current_player()
+	current_player = GameManager.player_manager.get_current_player()
 	
 	# 设置标题
 	$MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer/TitleLabel.text = "装备管理"

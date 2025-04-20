@@ -19,6 +19,18 @@ const UI_POPUP_PATH = "res://scenes/ui/popups/"
 const UI_HUD_PATH = "res://scenes/ui/hud/"
 const UI_ACHIEVEMENT_PATH = "res://scenes/ui/achievement/"
 
+# 弹窗路径映射
+const POPUP_MAPPING = {
+	"confirm_dialog": "confirm_dialog_popup",
+	"event_result": "event_result_popup",
+	"battle_result": "battle_result_popup",
+	"save_select": "save_select_popup",
+	"save_game": "save_game_popup",
+	"load_game": "load_game_popup",
+	"settings": "settings_popup",
+	"node_details": "node_details_popup"
+}
+
 # UI状态
 enum UIState {
 	NORMAL,  # 正常状态
@@ -33,6 +45,15 @@ var current_state: UIState = UIState.NORMAL
 # 当前活动的弹窗
 var active_popups: Array = []
 
+# 弹窗堆栈
+var popup_stack: Array = []
+
+# 弹窗缓存
+var popup_cache: Dictionary = {}
+
+# UI容器
+var ui_containers: Dictionary = {}
+
 # 当前场景的HUD
 var current_hud: Control = null
 
@@ -44,10 +65,6 @@ var toast_node: Control = null
 
 # 成就通知容器
 var achievement_notification_container: Control = null
-
-# 引用
-@onready var scene_manager = get_node("/root/GameManager").scene_manager
-@onready var config_manager = get_node("/root/ConfigManager")
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -70,6 +87,9 @@ func _do_initialize() -> void:
 	EventBus.ui.connect_event("start_transition", start_transition)
 	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
 
+	# 创建 UI 容器
+	_create_ui_containers()
+
 	# 创建过渡动画节点
 	_create_transition_node()
 
@@ -78,6 +98,30 @@ func _do_initialize() -> void:
 
 	# 创建成就通知容器
 	_create_achievement_notification_container()
+
+# 创建 UI 容器
+func _create_ui_containers() -> void:
+	# 创建 HUD 容器
+	var hud_container = Control.new()
+	hud_container.name = "HUDContainer"
+	hud_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(hud_container)
+	ui_containers["hud"] = hud_container
+
+	# 创建弹窗容器
+	var popup_container = Control.new()
+	popup_container.name = "PopupContainer"
+	popup_container.set_anchors_preset(Control.PRESET_FULL_RECT)
+	add_child(popup_container)
+	ui_containers["popup"] = popup_container
+
+# 获取 HUD 容器
+func get_hud_container() -> Control:
+	return ui_containers.get("hud")
+
+# 获取弹窗容器
+func get_popup_container() -> Control:
+	return ui_containers.get("popup")
 
 # 创建过渡动画节点
 func _create_transition_node() -> void:
@@ -133,43 +177,66 @@ func show_toast(message: String, duration: float = TOAST_DURATION) -> void:
 	timer.timeout.connect(func(): toast_node.visible = false)
 
 # 显示弹窗
-func show_popup(popup_name: String, popup_data: Dictionary = {}) -> Control:
-	# 加载弹窗场景
-	var popup_path = UI_POPUP_PATH + popup_name + ".tscn"
-	var popup_scene = load(popup_path)
+func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictionary = {}) -> Control:
+	# 获取弹窗文件名
+	var popup_file_name = POPUP_MAPPING.get(popup_name, popup_name)
 
-	if popup_scene == null:
-		EventBus.debug.emit_event("debug_message", ["无法加载弹窗: " + popup_path, 1])
-		return null
+	# 检查是否有缓存
+	var popup_instance = null
+	if popup_cache.has(popup_name) and options.get("use_cache", false):
+		popup_instance = popup_cache[popup_name]
 
-	# 实例化弹窗
-	var popup_instance = popup_scene.instantiate()
-	add_child(popup_instance)
+		# 如果弹窗已经有父节点，则不使用缓存
+		if popup_instance.get_parent() != null:
+			popup_instance = null
+
+	if popup_instance == null:
+		# 加载弹窗场景
+		var popup_path = UI_POPUP_PATH + popup_file_name + ".tscn"
+		var popup_scene = load(popup_path)
+
+		if popup_scene == null:
+			EventBus.debug.emit_event("debug_message", ["无法加载弹窗: " + popup_path, 1])
+			return null
+
+		# 实例化弹窗
+		popup_instance = popup_scene.instantiate()
+
+		# 如果需要缓存
+		if options.get("cache", false):
+			popup_cache[popup_name] = popup_instance
+
+	# 添加到容器
+	var popup_container = get_popup_container()
+	if popup_container:
+		popup_container.add_child(popup_instance)
+	else:
+		add_child(popup_instance)
 
 	# 设置弹窗数据
-	if popup_instance.has_method("set_popup_data"):
-		popup_instance.set_popup_data(popup_data)
+	popup_instance.set_popup_data(popup_data)
 
 	# 初始化弹窗
-	if popup_instance.has_method("_initialize"):
-		popup_instance._initialize()
+	popup_instance.initialize()
+
+	# 设置弹窗层级
+	var popup_layer = options.get("layer", active_popups.size())
+	_set_popup_layer(popup_instance, popup_layer)
 
 	# 显示弹窗
-	if popup_instance.has_method("popup_centered"):
-		popup_instance.popup_centered()
-	else:
-		popup_instance.visible = true
+	var transition = options.get("transition", "fade")
+	_show_popup_with_transition(popup_instance, transition)
 
 	# 更新UI状态
 	current_state = UIState.POPUP
 	active_popups.append(popup_instance)
+	popup_stack.push_back(popup_instance)
 
 	# 发送信号
 	popup_opened.emit(popup_name)
 
 	# 连接关闭信号
-	if popup_instance.has_signal("popup_hide"):
-		popup_instance.popup_hide.connect(func(): _on_popup_closed(popup_instance, popup_name))
+	popup_instance.popup_closed.connect(func(): _on_popup_closed(popup_instance, popup_name))
 
 	return popup_instance
 
@@ -180,12 +247,8 @@ func close_popup(popup_instance: Control = null) -> void:
 		popup_instance = active_popups.back()
 
 	if popup_instance != null:
-		# 如果弹窗有hide方法，调用hide
-		if popup_instance.has_method("hide"):
-			popup_instance.hide()
-		else:
-			# 否则直接设置为不可见
-			popup_instance.visible = false
+		# 调用弹窗的close_popup方法
+		popup_instance.close_popup()
 
 		# 从活动弹窗列表中移除
 		active_popups.erase(popup_instance)
@@ -194,10 +257,65 @@ func close_popup(popup_instance: Control = null) -> void:
 		if active_popups.size() == 0:
 			current_state = UIState.NORMAL
 
+# 设置弹窗层级
+func _set_popup_layer(popup: Control, layer: int) -> void:
+	# 检查是否是 Window 类型
+	if popup.get_class() == "Window":
+		# Window 类型弹窗不需要设置层级
+		return
+
+	# 设置 z_index
+	popup.z_index = layer
+
+	# 如果有背景，设置背景的 z_index
+	if popup.has_node("Background"):
+		popup.get_node("Background").z_index = layer - 1
+
+# 使用过渡效果显示弹窗
+func _show_popup_with_transition(popup: Control, transition: String) -> void:
+	# 检查是否是 Window 类型
+	if popup.get_class() == "Window":
+		# Window 类型弹窗使用内置的显示方法
+		popup.show_popup()
+		return
+
+	match transition:
+		"fade":
+			# 淡入效果
+			popup.modulate.a = 0
+			popup.visible = true
+
+			var tween = create_tween()
+			tween.tween_property(popup, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
+		"scale":
+			# 缩放效果
+			popup.scale = Vector2(0.5, 0.5)
+			popup.modulate.a = 0
+			popup.visible = true
+
+			var tween = create_tween()
+			tween.parallel().tween_property(popup, "scale", Vector2(1, 1), 0.3).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(popup, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
+		"slide":
+			# 滑动效果
+			var original_position = popup.position
+			popup.position.y = -popup.size.y
+			popup.visible = true
+
+			var tween = create_tween()
+			tween.tween_property(popup, "position", original_position, 0.3).set_ease(Tween.EASE_OUT)
+		_:
+			# 默认直接显示
+			popup.visible = true
+			popup.show_popup()
+
 # 弹窗关闭处理
 func _on_popup_closed(popup_instance: Control, popup_name: String) -> void:
 	# 从活动弹窗列表中移除
 	active_popups.erase(popup_instance)
+
+	# 从弹窗堆栈中移除
+	popup_stack.erase(popup_instance)
 
 	# 如果没有活动弹窗，恢复正常状态
 	if active_popups.size() == 0:
@@ -206,8 +324,16 @@ func _on_popup_closed(popup_instance: Control, popup_name: String) -> void:
 	# 发送信号
 	popup_closed.emit(popup_name)
 
-	# 延迟销毁弹窗
-	popup_instance.queue_free()
+	# 如果弹窗不在缓存中，则销毁它
+	var is_cached = false
+	for cached_popup in popup_cache.values():
+		if cached_popup == popup_instance:
+			is_cached = true
+			break
+
+	if not is_cached:
+		# 延迟销毁弹窗
+		popup_instance.queue_free()
 
 # 开始过渡动画
 func start_transition(transition_type: String = "fade", duration: float = TRANSITION_DURATION) -> void:
@@ -262,52 +388,24 @@ func _on_transition_finished(transition_type: String) -> void:
 	# 发送信号
 	transition_finished.emit(transition_type)
 
-# 加载HUD
-func load_hud(hud_name: String) -> Control:
+# 获取当前HUD
+func get_current_hud() -> Control:
+	return current_hud
+
+# 设置当前HUD
+func set_current_hud(hud: Control) -> void:
 	# 卸载当前HUD
 	if current_hud != null:
 		current_hud.queue_free()
-		current_hud = null
 
-	# 加载HUD场景
-	var hud_path = UI_HUD_PATH + hud_name + ".tscn"
-	var hud_scene = load(hud_path)
-
-	if hud_scene == null:
-		EventBus.debug.emit_event("debug_message", ["无法加载HUD: " + hud_path, 1])
-		return null
-
-	# 实例化HUD
-	current_hud = hud_scene.instantiate()
-	add_child(current_hud)
-
-	return current_hud
+	# 设置新HUD
+	current_hud = hud
 
 # 游戏状态变化处理
-func _on_game_state_changed(old_state: int, new_state: int) -> void:
-	# 根据游戏状态加载不同的HUD
-	match new_state:
-		GameManager.GameState.MAIN_MENU:
-			# 主菜单不需要加载HUD，因为它自己就是一个完整的场景
-			# 卸载当前HUD
-			if current_hud != null:
-				current_hud.queue_free()
-				current_hud = null
-		GameManager.GameState.MAP:
-			load_hud("map_hud")
-		GameManager.GameState.BATTLE:
-			load_hud("battle_hud")
-		GameManager.GameState.SHOP:
-			load_hud("shop_hud")
-		GameManager.GameState.EVENT:
-			load_hud("event_hud")
-		GameManager.GameState.ALTAR:
-			load_hud("altar_hud")
-		GameManager.GameState.BLACKSMITH:
-			load_hud("blacksmith_hud")
-		_:
-			# 默认HUD
-			load_hud("default_hud")
+func _on_game_state_changed(_old_state: int, _new_state: int) -> void:
+	# 游戏状态变化时的处理
+	# 注意：HUD的加载由HUDManager处理
+	pass
 
 # 获取当前UI状态
 func get_current_state() -> UIState:
@@ -317,9 +415,7 @@ func get_current_state() -> UIState:
 func has_active_popup() -> bool:
 	return active_popups.size() > 0
 
-# 获取当前HUD
-func get_current_hud() -> Control:
-	return current_hud
+
 
 # 创建成就通知容器
 func _create_achievement_notification_container() -> void:

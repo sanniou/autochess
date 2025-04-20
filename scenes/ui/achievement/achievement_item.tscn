@@ -1,8 +1,12 @@
-[gd_scene load_steps=4 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=4 format=3 uid="uid://c8qvt5qjkuv7qu"]
 
-[ext_resource type="Script" path="res://scripts/ui/achievement/achievement_item.gd" id="1_yvmqe"]
-[ext_resource type="Texture2D" path="res://assets/ui/icons/achievement_default.png" id="2_abcde"]
-[ext_resource type="Texture2D" path="res://assets/ui/icons/lock.png" id="3_fghij"]
+[ext_resource type="Script" uid="uid://05odsv8ywc8y" path="res://scripts/ui/achievement/achievement_item.gd" id="1_yvmqe"]
+
+[sub_resource type="Resource" id="Resource_uusd0"]
+metadata/__load_path__ = "res://assets/ui/icons/achievement_default.png"
+
+[sub_resource type="Resource" id="Resource_ys05x"]
+metadata/__load_path__ = "res://assets/ui/icons/lock.png"
 
 [node name="AchievementItem" type="Control"]
 custom_minimum_size = Vector2(0, 80)
@@ -38,7 +42,7 @@ theme_override_constants/separation = 10
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 0.2
-texture = ExtResource("2_abcde")
+texture = SubResource("Resource_uusd0")
 expand_mode = 1
 stretch_mode = 5
 
@@ -53,7 +57,7 @@ offset_left = -20.0
 offset_top = -20.0
 grow_horizontal = 0
 grow_vertical = 0
-texture = ExtResource("3_fghij")
+texture = SubResource("Resource_ys05x")
 expand_mode = 1
 stretch_mode = 5
 

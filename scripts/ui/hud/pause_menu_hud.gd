@@ -9,7 +9,7 @@ var save_manager = null
 # 初始化
 func _initialize() -> void:
 	# 获取存档管理器
-	save_manager = get_node("/root/SaveManager")
+	save_manager = SaveManager
 	
 	# 连接信号
 	if has_node("ResumeButton"):
@@ -52,7 +52,7 @@ func _on_resume_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 恢复游戏
-	game_manager.resume_game()
+	GameManager.resume_game()
 
 # 保存按钮点击处理
 func _on_save_button_pressed() -> void:
@@ -60,7 +60,7 @@ func _on_save_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 显示保存游戏对话框
-	var popup = game_manager.ui_manager.show_popup("save_game_popup")
+	var popup = GameManager.ui_manager.show_popup("save_game_popup")
 	
 	# 连接保存完成信号
 	if popup and popup.has_signal("save_completed"):
@@ -72,7 +72,7 @@ func _on_load_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 显示加载游戏对话框
-	var popup = game_manager.ui_manager.show_popup("load_game_popup")
+	var popup = GameManager.ui_manager.show_popup("load_game_popup")
 	
 	# 连接加载完成信号
 	if popup and popup.has_signal("load_completed"):
@@ -84,7 +84,7 @@ func _on_settings_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 显示设置对话框
-	game_manager.ui_manager.show_popup("settings")
+	GameManager.ui_manager.show_popup("settings")
 
 # 主菜单按钮点击处理
 func _on_main_menu_button_pressed() -> void:
@@ -92,7 +92,7 @@ func _on_main_menu_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 显示确认对话框
-	var popup = game_manager.ui_manager.show_popup("confirm_dialog", {
+	var popup = GameManager.ui_manager.show_popup("confirm_dialog", {
 		"title": tr("ui.pause_menu.main_menu_title"),
 		"message": tr("ui.pause_menu.main_menu_message"),
 		"confirm_text": tr("ui.pause_menu.main_menu_confirm"),
@@ -109,7 +109,7 @@ func _on_quit_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 显示确认对话框
-	var popup = game_manager.ui_manager.show_popup("confirm_dialog", {
+	var popup = GameManager.ui_manager.show_popup("confirm_dialog", {
 		"title": tr("ui.pause_menu.quit_title"),
 		"message": tr("ui.pause_menu.quit_message"),
 		"confirm_text": tr("ui.pause_menu.quit_confirm"),
@@ -128,24 +128,24 @@ func _on_save_completed(save_name: String) -> void:
 # 加载完成处理
 func _on_load_completed(save_name: String) -> void:
 	# 恢复游戏
-	game_manager.resume_game()
+	GameManager.resume_game()
 	
 	# 加载存档
-	game_manager.load_game(save_name)
+	GameManager.load_game(save_name)
 
 # 主菜单确认处理
 func _on_main_menu_confirmed() -> void:
 	# 恢复游戏
-	game_manager.resume_game()
+	GameManager.resume_game()
 	
 	# 触发自动存档
 	if save_manager:
 		save_manager.trigger_autosave()
 	
 	# 返回主菜单
-	game_manager.change_state(GameManager.GameState.MAIN_MENU)
+	GameManager.change_state(GameManager.GameState.MAIN_MENU)
 
 # 退出确认处理
 func _on_quit_confirmed() -> void:
 	# 退出游戏
-	game_manager.quit_game()
+	GameManager.quit_game()

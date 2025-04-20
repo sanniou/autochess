@@ -2,10 +2,6 @@ extends Window
 ## 设置弹窗
 ## 管理游戏设置
 
-# 引用
-@onready var audio_manager = get_node("/root/GameManager/AudioManager")
-@onready var config_manager = get_node("/root/ConfigManager")
-
 # 设置数据
 var settings_data = {
 	"difficulty": 1,
@@ -36,15 +32,15 @@ func _ready():
 # 加载设置
 func _load_settings():
 	# 从配置管理器加载设置
-	var config = config_manager.get_config("settings")
+	var config = ConfigManager.get_config("settings")
 	if config:
 		settings_data = config.duplicate(true)
 
 # 保存设置
 func _save_settings():
 	# 保存到配置管理器
-	config_manager.set_config("settings", settings_data)
-	config_manager.save_config()
+	ConfigManager.set_config("settings", settings_data)
+	ConfigManager.save_config()
 
 # 更新UI
 func _update_ui():
@@ -100,11 +96,10 @@ func _apply_settings():
 	EventBus.localization.emit_event("language_changed", [settings_data.language])
 	
 	# 应用音频设置
-	if audio_manager:
-		audio_manager.set_master_volume(settings_data.master_volume)
-		audio_manager.set_music_volume(settings_data.music_volume)
-		audio_manager.set_sfx_volume(settings_data.sfx_volume)
-		audio_manager.set_mute(settings_data.mute)
+	GameManager.audio_manager.set_master_volume(settings_data.master_volume)
+	GameManager.audio_manager.set_music_volume(settings_data.music_volume)
+	GameManager.audio_manager.set_sfx_volume(settings_data.sfx_volume)
+	GameManager.audio_manager.set_mute(settings_data.mute)
 	
 	# 应用图形设置
 	if settings_data.fullscreen:

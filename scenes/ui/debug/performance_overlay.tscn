@@ -1,7 +1,12 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8y6vxe5xgj8q"]
+[gd_scene load_steps=4 format=3 uid="uid://c8y6vxe5xgj8q"]
 
-[ext_resource type="Script" path="res://scripts/ui/debug/performance_overlay.gd" id="1_yjnvp"]
-[ext_resource type="Script" path="res://scripts/ui/debug/performance_overlay.gd::PerformanceGraph" id="2_yjnvp"]
+[ext_resource type="Script" uid="uid://4isjve1lrqio" path="res://scripts/ui/debug/performance_overlay.gd" id="1_yjnvp"]
+
+[sub_resource type="Resource" id="Resource_0g7da"]
+metadata/__load_path__ = "res://scripts/ui/debug/performance_overlay.gd::PerformanceGraph"
+
+[sub_resource type="Resource" id="Resource_010sm"]
+metadata/__load_path__ = "res://scripts/ui/debug/performance_overlay.gd::PerformanceGraph"
 
 [node name="PerformanceOverlay" type="Control"]
 layout_mode = 3
@@ -56,12 +61,12 @@ layout_mode = 2
 [node name="FpsGraph" type="Control" parent="VBoxContainer/GraphContainer"]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-script = ExtResource("2_yjnvp")
+script = SubResource("Resource_0g7da")
 
 [node name="MemoryGraph" type="Control" parent="VBoxContainer/GraphContainer"]
 custom_minimum_size = Vector2(200, 50)
 layout_mode = 2
-script = ExtResource("2_yjnvp")
+script = SubResource("Resource_010sm")
 
 [node name="ToggleButton" type="Button" parent="."]
 layout_mode = 1

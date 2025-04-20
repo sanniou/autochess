@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8yvnqavrpwg8t"]
+[gd_scene load_steps=2 format=3 uid="uid://bia1esy761npjx"]
 
-[ext_resource type="Script" path="res://scripts/ui/relic/relic_item.gd" id="1_yvnqr"]
+[ext_resource type="Script" uid="uid://5128hmjawyj" path="res://scripts/ui/relic/relic_item.gd" id="1_yvnqr"]
 
 [node name="RelicItem" type="Panel"]
 custom_minimum_size = Vector2(80, 80)

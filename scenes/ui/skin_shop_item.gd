@@ -60,9 +60,7 @@ func set_skin_state(is_unlocked: bool, can_afford: bool) -> void:
 # 购买按钮处理
 func _on_purchase_button_pressed() -> void:
 	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 
 	# 发送购买信号
 	skin_purchased.emit(skin_id, skin_type, price)
@@ -70,9 +68,7 @@ func _on_purchase_button_pressed() -> void:
 # 预览按钮处理
 func _on_preview_button_pressed() -> void:
 	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 
 	# 创建预览对话框
 	var dialog = AcceptDialog.new()

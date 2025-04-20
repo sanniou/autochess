@@ -12,11 +12,7 @@ var selected_node = null
 # 初始化
 func _initialize() -> void:
 	# 获取地图管理器
-	map_manager = game_manager.map_manager
-	
-	if map_manager == null:
-		EventBus.debug.emit_event("debug_message", ["无法获取地图管理器", 1])
-		return
+	map_manager = GameManager.map_manager
 	
 	# 连接地图信号
 	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
@@ -91,7 +87,7 @@ func _on_map_node_hovered(node_data: Dictionary) -> void:
 # 地图完成处理
 func _on_map_completed() -> void:
 	# 显示地图完成提示
-	EventBus.ui.emit_event("show_toast", [tr("ui.map.completed"]))
+	EventBus.ui.emit_event("show_toast", [tr("ui.map.completed")])
 	
 	# 播放完成音效
 	AudioManager.play_sfx("map_completed.ogg")
@@ -106,4 +102,4 @@ func show_node_details(node) -> void:
 		"node": node
 	}
 	
-	game_manager.ui_manager.show_popup("node_details", popup_data)
+	GameManager.ui_manager.show_popup("node_details", popup_data)

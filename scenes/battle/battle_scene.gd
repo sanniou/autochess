@@ -156,15 +156,8 @@ func _initialize_battle() -> void:
 
 	# 获取全局战斗管理器
 	battle_manager = get_node_or_null("/root/GameManager/BattleManager")
-	if battle_manager == null:
-		# 如果全局战斗管理器不可用，创建一个临时的
-		EventBus.debug.emit_event("debug_message", ["全局战斗管理器不可用，创建临时实例", 1])
-		battle_manager = BattleManager.new()
-		add_child(battle_manager)
 
-	# 连接战斗结束信号
-	if not battle_manager.is_connected("battle_ended", _on_battle_ended):
-		battle_manager.battle_ended.connect(_on_battle_ended)
+	battle_manager.battle_ended.connect(_on_battle_ended)
 
 ## 战斗结束处理
 func _on_battle_ended(victory: bool) -> void:

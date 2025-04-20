@@ -23,7 +23,7 @@ var discount: float = 0.0
 # 初始化
 func _initialize() -> void:
 	# 获取铁匠铺参数
-	var blacksmith_params = game_manager.blacksmith_params
+	var blacksmith_params = GameManager.blacksmith_params
 	if blacksmith_params:
 		discount = blacksmith_params.get("discount", 0.0)
 	
@@ -121,7 +121,7 @@ func _update_equipment_list() -> void:
 		child.queue_free()
 	
 	# 获取玩家装备
-	var equipment_manager = game_manager.equipment_manager
+	var equipment_manager = GameManager.equipment_manager
 	if equipment_manager == null:
 		return
 	
@@ -270,7 +270,7 @@ func _create_equipment_item(equipment: Dictionary, index: int) -> Control:
 		BlacksmithService.ENCHANT:
 			# 显示附魔数量
 			var enchant_label = Label.new()
-			enchant_label.text = tr("ui.equipment.enchantments", [str(equipment.enchantments.size()), str(game_manager.equipment_manager.MAX_ENCHANTMENTS)])
+			enchant_label.text = tr("ui.equipment.enchantments", [str(equipment.enchantments.size()), str(GameManager.equipment_manager.MAX_ENCHANTMENTS)])
 			enchant_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			vbox.add_child(enchant_label)
 	
@@ -395,10 +395,10 @@ func _on_confirm_button_pressed() -> void:
 	var price = _calculate_service_price(current_service, selected_equipment)
 	
 	# 检查玩家金币是否足够
-	var player_manager = game_manager.player_manager
+	var player_manager = GameManager.player_manager
 	if player_manager == null or player_manager.get_gold() < price:
 		# 显示金币不足提示
-		EventBus.ui.emit_event("show_toast", [tr("ui.blacksmith.not_enough_gold"]))
+		EventBus.ui.emit_event("show_toast", [tr("ui.blacksmith.not_enough_gold")])
 		return
 	
 	# 扣除金币
@@ -412,7 +412,7 @@ func _on_confirm_button_pressed() -> void:
 		play_ui_sound("blacksmith_success.ogg")
 		
 		# 显示成功提示
-		EventBus.ui.emit_event("show_toast", [_get_service_success_message(current_service]))
+		EventBus.ui.emit_event("show_toast", [_get_service_success_message(current_service)])
 		
 		# 发送装备升级信号
 		EventBus.map.emit_event("equipment_upgraded", [selected_equipment, true])
@@ -427,7 +427,7 @@ func _on_confirm_button_pressed() -> void:
 		play_ui_sound("blacksmith_fail.ogg")
 		
 		# 显示失败提示
-		EventBus.ui.emit_event("show_toast", [_get_service_fail_message(current_service]))
+		EventBus.ui.emit_event("show_toast", [_get_service_fail_message(current_service)])
 		
 		# 发送装备升级信号
 		EventBus.map.emit_event("equipment_upgraded", [selected_equipment, false])
@@ -435,7 +435,7 @@ func _on_confirm_button_pressed() -> void:
 
 # 执行服务
 func _perform_service(service: BlacksmithService, equipment: Dictionary) -> bool:
-	var equipment_manager = game_manager.equipment_manager
+	var equipment_manager = GameManager.equipment_manager
 	if equipment_manager == null:
 		return false
 	
@@ -492,4 +492,4 @@ func _on_cancel_button_pressed() -> void:
 	play_ui_sound("button_click.ogg")
 	
 	# 返回地图
-	game_manager.change_state(GameManager.GameState.MAP)
+	GameManager.change_state(GameManager.GameState.MAP)

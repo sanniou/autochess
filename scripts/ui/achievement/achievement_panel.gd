@@ -19,7 +19,6 @@ enum AchievementCategory {
 var current_category: int = AchievementCategory.ALL
 
 # 引用
-@onready var achievement_manager = get_node("/root/GameManager/AchievementManager")
 @onready var achievement_container = $ScrollContainer/AchievementContainer
 @onready var category_buttons = {
 	AchievementCategory.ALL: $CategoryPanel/HBoxContainer/AllButton,
@@ -53,9 +52,9 @@ func _connect_signals() -> void:
 	close_button.pressed.connect(_on_close_button_pressed)
 	
 	# 连接成就管理器信号
-	if achievement_manager:
-		achievement_manager.achievement_unlocked.connect(_on_achievement_unlocked)
-		achievement_manager.achievement_progress_updated.connect(_on_achievement_progress_updated)
+
+	GameManager.achievement_manager.achievement_unlocked.connect(_on_achievement_unlocked)
+	GameManager.achievement_manager.achievement_progress_updated.connect(_on_achievement_progress_updated)
 
 # 加载成就列表
 func _load_achievements() -> void:

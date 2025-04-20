@@ -9,7 +9,7 @@ var player: Player = null
 # 初始化
 func _initialize() -> void:
 	# 获取当前玩家
-	player = game_manager.player_manager.get_current_player()
+	player = GameManager.player_manager.get_current_player()
 	
 	if player == null:
 		EventBus.debug.emit_event("debug_message", ["无法获取当前玩家", 1])

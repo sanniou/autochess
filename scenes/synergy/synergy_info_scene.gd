@@ -2,10 +2,6 @@ extends Control
 ## 羁绊信息界面
 ## 显示当前激活的羁绊和所有羁绊信息
 
-# 引用
-@onready var synergy_manager = get_node("/root/GameManager/SynergyManager")
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-
 # 初始化
 func _ready():
 	# 更新界面
@@ -28,10 +24,10 @@ func _update_ui():
 # 更新激活的羁绊
 func _update_active_synergies():
 	# 获取激活的羁绊
-	var active_synergies = synergy_manager.get_active_synergies()
+	var active_synergies = GameManager.synergy_manager.get_active_synergies()
 
 	# 获取羁绊配置
-	var synergy_configs = synergy_manager.get_all_synergy_configs()
+	var synergy_configs = GameManager.synergy_manager.get_all_synergy_configs()
 
 	# 获取羁绊计数
 	var synergy_counts = _get_synergy_counts()
@@ -54,10 +50,10 @@ func _update_active_synergies():
 # 更新所有羁绊
 func _update_all_synergies():
 	# 获取所有羁绊配置
-	var synergy_configs = synergy_manager.get_all_synergy_configs()
+	var synergy_configs = GameManager.synergy_manager.get_all_synergy_configs()
 
 	# 获取激活的羁绊
-	var active_synergies = synergy_manager.get_active_synergies()
+	var active_synergies = GameManager.synergy_manager.get_active_synergies()
 
 	# 获取羁绊计数
 	var synergy_counts = _get_synergy_counts()
@@ -150,7 +146,7 @@ func _get_synergy_counts():
 	var counts = {}
 
 	# 获取当前玩家
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if not player:
 		return counts
 

@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7qi"]
 
-[ext_resource type="Script" path="res://scenes/synergy/synergy_info_scene.gd" id="1_yvmqe"]
+[ext_resource type="Script" uid="uid://dy0ua7svk2777" path="res://scenes/synergy/synergy_info_scene.gd" id="1_yvmqe"]
 
 [node name="SynergyInfoScene" type="Control"]
 layout_mode = 3

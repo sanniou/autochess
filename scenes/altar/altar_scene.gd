@@ -6,15 +6,10 @@ class_name AltarScene
 # 祭坛类型
 var altar_type: String = ""
 
-# 引用
-@onready var game_manager = get_node("/root/GameManager")
-@onready var EventBus = get_node("/root/EventBus")
-@onready var ui_manager = game_manager.ui_manager
-
 # 初始化
 func _ready() -> void:
 	# 获取祭坛参数
-	var altar_params = game_manager.altar_params
+	var altar_params = GameManager.altar_params
 	if altar_params:
 		altar_type = altar_params.get("altar_type", "")
 
@@ -147,7 +142,7 @@ func _on_altar_sacrifice_made(altar_type: String, sacrifice_data: Dictionary) ->
 
 	# 延迟返回地图
 	var timer = get_tree().create_timer(2.0)
-	timer.timeout.connect(func(): game_manager.change_state(GameManager.GameState.MAP))
+	timer.timeout.connect(func(): GameManager.change_state(GameManager.GameState.MAP))
 
 # 显示牺牲效果
 func _show_sacrifice_effect(sacrifice_data: Dictionary) -> void:

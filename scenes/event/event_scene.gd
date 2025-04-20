@@ -2,18 +2,14 @@ extends Control
 ## 事件场景
 ## 显示事件和选项
 
-# 引用
-@onready var event_manager = get_node("/root/GameManager/EventManager")
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-
 # 当前事件
 var current_event = null
 
 # 初始化
 func _ready():
 	# 获取当前事件
-	if event_manager and event_manager.current_event:
-		current_event = event_manager.current_event
+	if GameManager.event_manager.current_event:
+		current_event = GameManager.event_manager.current_event
 		
 		# 显示事件
 		_display_event()
@@ -70,7 +66,7 @@ func _create_choice_buttons():
 
 # 检查选项要求
 func _check_choice_requirements(requirements: Dictionary) -> bool:
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if not player:
 		return false
 	

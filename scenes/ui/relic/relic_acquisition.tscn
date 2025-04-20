@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://c8yvnqavrpwg8t"]
+[gd_scene load_steps=4 format=3 uid="uid://b1ia1esy71npjx"]
 
-[ext_resource type="Script" path="res://scripts/ui/relic/relic_acquisition.gd" id="1_yvnqr"]
+[ext_resource type="Script" uid="uid://u8ff4ywrvpdo" path="res://scripts/ui/relic/relic_acquisition.gd" id="1_yvnqr"]
 
 [sub_resource type="Animation" id="Animation_1"]
 resource_name = "acquisition"
@@ -46,7 +46,7 @@ tracks/2/keys = {
 
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_1"]
 _data = {
-"acquisition": SubResource("Animation_1")
+&"acquisition": SubResource("Animation_1")
 }
 
 [node name="RelicAcquisition" type="Control"]

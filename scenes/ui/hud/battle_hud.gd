@@ -2,11 +2,6 @@ extends Control
 ## 战斗HUD
 ## 显示战斗界面的HUD元素
 
-# 引用
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-@onready var battle_manager = get_node("/root/GameManager/BattleManager")
-@onready var ui_manager = get_node("/root/GameManager/UIManager")
-
 # 初始化
 func _ready():
 	# 更新玩家信息
@@ -24,7 +19,7 @@ func _ready():
 # 更新玩家信息
 func _update_player_info():
 	# 获取当前玩家
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if not player:
 		return
 	
@@ -40,24 +35,24 @@ func _update_player_info():
 func _update_battle_info():
 	# 获取战斗信息
 	var round_label = $TopPanel/MarginContainer/HBoxContainer/BattleInfoContainer/RoundLabel
-	round_label.text = "回合: " + str(battle_manager.current_round)
+	round_label.text = "回合: " + str(GameManager.battle_manager.current_round)
 	
 	var timer_label = $TopPanel/MarginContainer/HBoxContainer/BattleInfoContainer/TimerLabel
-	timer_label.text = "时间: " + str(int(battle_manager.timer))
+	timer_label.text = "时间: " + str(int(GameManager.battle_manager.timer))
 	
 	var state_label = $TopPanel/MarginContainer/HBoxContainer/BattleInfoContainer/StateLabel
-	match battle_manager.current_state:
-		battle_manager.BattleState.PREPARE:
+	match GameManager.battle_manager.current_state:
+		GameManager.battle_manager.BattleState.PREPARE:
 			state_label.text = "状态: 准备阶段"
-		battle_manager.BattleState.BATTLE:
+		GameManager.battle_manager.BattleState.BATTLE:
 			state_label.text = "状态: 战斗阶段"
-		battle_manager.BattleState.RESULT:
+		GameManager.battle_manager.BattleState.RESULT:
 			state_label.text = "状态: 结算阶段"
 
 # 玩家生命值变化事件处理
 func _on_player_health_changed(old_value, new_value):
 	# 获取当前玩家
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if not player:
 		return
 	
@@ -100,7 +95,7 @@ func _on_synergy_button_pressed():
 # 设置按钮点击处理
 func _on_settings_button_pressed():
 	# 显示设置弹窗
-	ui_manager.show_popup("settings_popup")
+	GameManager.ui_manager.show_popup("settings_popup")
 
 # 处理输入
 func _process(delta):

@@ -21,11 +21,7 @@ var battle_state: String = "preparing"  # preparing, fighting, ended
 # 初始化
 func _initialize() -> void:
 	# 获取战斗管理器
-	battle_manager = game_manager.battle_manager
-	
-	if battle_manager == null:
-		EventBus.debug.emit_event("debug_message", ["无法获取战斗管理器", 1])
-		return
+	battle_manager = GameManager.battle_manager
 	
 	# 连接战斗信号
 	EventBus.battle.connect_event("battle_started", _on_battle_started)
@@ -150,11 +146,11 @@ func _on_round_timer_timeout() -> void:
 # 显示战斗结果
 func _show_battle_result(result: Dictionary) -> void:
 	# 创建结果弹窗
-	var popup = game_manager.ui_manager.show_popup("battle_result", result)
+	var popup = GameManager.ui_manager.show_popup("battle_result", result)
 	
 	# 连接弹窗关闭信号
 	if popup and popup.has_signal("popup_hide"):
-		popup.popup_hide.connect(func(): game_manager.change_state(GameManager.GameState.MAP))
+		popup.popup_hide.connect(func(): GameManager.change_state(GameManager.GameState.MAP))
 
 # 游戏暂停处理
 func _on_game_paused(paused: bool) -> void:

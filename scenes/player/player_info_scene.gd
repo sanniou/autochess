@@ -2,16 +2,13 @@ extends Control
 ## 玩家信息界面
 ## 显示玩家的属性和状态
 
-# 引用
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-
 # 当前玩家
 var current_player = null
 
 # 初始化
 func _ready():
 	# 获取当前玩家
-	current_player = player_manager.get_current_player()
+	current_player = GameManager.player_manager.get_current_player()
 	
 	# 更新界面
 	_update_ui()

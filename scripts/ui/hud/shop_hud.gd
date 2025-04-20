@@ -12,14 +12,10 @@ var economy_manager = null
 # 初始化
 func _initialize() -> void:
 	# 获取商店管理器
-	shop_manager = game_manager.shop_manager
+	shop_manager = GameManager.shop_manager
 	
 	# 获取经济管理器
-	economy_manager = game_manager.economy_manager
-	
-	if shop_manager == null:
-		EventBus.debug.emit_event("debug_message", ["无法获取商店管理器", 1])
-		return
+	economy_manager = GameManager.economy_manager
 	
 	# 连接商店信号
 	EventBus.economy.connect_event("shop_refreshed", _on_shop_refreshed)
@@ -92,7 +88,7 @@ func _update_equipment_list(equipment_list: Array) -> void:
 		var equipment_id = equipment_list[i]
 		
 		# 获取装备数据
-		var equipment_data = config_manager.get_equipment(equipment_id)
+		var equipment_data = ConfigManager.get_equipment(equipment_id)
 		if equipment_data == null:
 			continue
 		
@@ -114,7 +110,7 @@ func _update_refresh_button() -> void:
 	refresh_button.text = tr("ui.shop.refresh", [str(refresh_cost)])
 	
 	# 检查玩家金币是否足够
-	var player = game_manager.player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if player and player.gold < refresh_cost:
 		refresh_button.disabled = true
 	else:

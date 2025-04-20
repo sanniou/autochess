@@ -9,7 +9,6 @@ extends Control
 @onready var texture_rect = $RelicInfoPanel/VBoxContainer/TextureRect
 @onready var description_label = $RelicInfoPanel/VBoxContainer/DescriptionLabel
 @onready var effects_container = $RelicInfoPanel/VBoxContainer/EffectsContainer
-@onready var EventBus = get_node("/root/EventBus")
 # 遗物管理器引用
 var relic_manager: RelicManager
 

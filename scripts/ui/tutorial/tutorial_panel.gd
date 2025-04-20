@@ -1,4 +1,4 @@
-extends Control
+extends BaseControlPopup
 class_name TutorialPanel
 ## 教程面板
 ## 显示教程内容和导航按钮
@@ -88,7 +88,7 @@ func _update_step_ui(step_data: Dictionary) -> void:
 	
 	# 更新按钮状态
 	prev_button.disabled = current_step == 0
-	next_button.text = current_step == total_steps - 1 ? tr("ui.tutorial.finish") : tr("ui.tutorial.next")
+	next_button.text =  tr("ui.tutorial.finish") if current_step == total_steps - 1 else tr("ui.tutorial.next")
 
 # 上一步按钮处理
 func _on_prev_button_pressed() -> void:

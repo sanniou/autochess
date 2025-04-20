@@ -1,8 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=4 format=3 uid="uid://c8qvt5qjkuv7qa"]
 
-[ext_resource type="Script" uid="uid://dskn1mnlo0byu" path="res://scripts/game/board/chess_board.gd" id="1_yvmqe"]
-[ext_resource type="PackedScene" uid="uid://c8qvt5qjkuv7q" path="res://scenes/skin_shop.tscn" id="2_n3m4p"]
-[ext_resource type="PackedScene" uid="uid://c8qxr6j2yvdgx" path="res://scenes/ui/chess_info_panel.tscn" id="3_kl7xp"]
+[ext_resource type="Script"  path="res://scripts/game/board/chess_board.gd" id="1_yvmqe"]
+[ext_resource type="PackedScene" path="res://scenes/blacksmith/blacksmith_scene.tscn" id="2_n3m4p"]
+[ext_resource type="PackedScene"  path="res://scenes/ui/chess_info_panel.tscn" id="3_kl7xp"]
 
 [node name="ChessBoard" type="Node2D"]
 script = ExtResource("1_yvmqe")

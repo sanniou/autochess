@@ -2,11 +2,6 @@ extends Control
 ## 遗物管理场景
 ## 玩家可以在此查看和管理遗物
 
-# 引用
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-@onready var relic_manager = get_node("/root/GameManager/RelicManager")
-@onready var config_manager = get_node("/root/ConfigManager")
-
 # 当前玩家
 var current_player = null
 
@@ -16,7 +11,7 @@ var selected_relic = null
 # 初始化
 func _ready():
 	# 获取当前玩家
-	current_player = player_manager.get_current_player()
+	current_player = GameManager.player_manager.get_current_player()
 	
 	# 设置标题
 	$MarginContainer/VBoxContainer/HeaderPanel/HBoxContainer/TitleLabel.text = "遗物管理"
@@ -37,8 +32,7 @@ func _load_relic_list():
 	
 	# 获取玩家遗物
 	var relics = []
-	if relic_manager:
-		relics = relic_manager.get_player_relics()
+	relics = GameManager.relic_manager.get_player_relics()
 	
 	# 添加遗物到列表
 	for relic in relics:
@@ -116,7 +110,7 @@ func _create_relic_item(relic):
 # 激活按钮处理
 func _on_activate_button_pressed(relic):
 	# 激活遗物
-	relic_manager.activate_relic(relic.id)
+	GameManager.relic_manager.activate_relic(relic.id)
 	
 	# 重新加载遗物列表
 	_load_relic_list()

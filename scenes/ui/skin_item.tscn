@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7qm"]
 
 [ext_resource type="Script" path="res://scenes/ui/skin_item.gd" id="1_yvmqe"]
 

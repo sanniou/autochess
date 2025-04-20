@@ -17,11 +17,8 @@ var skin_item_scene = preload("res://scenes/ui/skin_item.tscn")
 
 # 初始化
 func _ready():
-	# 获取皮肤管理器
-	if has_node("/root/SkinManager"):
-		skin_manager = get_node("/root/SkinManager")
-	else:
-		skin_manager = get_node("/root/GameManager/SkinManager")
+
+	skin_manager =GameManager.skin_manager
 	
 	# 加载皮肤
 	_load_skins()
@@ -30,9 +27,7 @@ func _ready():
 	_add_animations()
 	
 	# 播放背景音乐
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_music("menu.ogg")
+	AudioManager.play_music("menu.ogg")
 
 # 加载皮肤
 func _load_skins() -> void:
@@ -168,16 +163,12 @@ func _on_skin_selected(skin_id: String, skin_type: String) -> void:
 			child.set_selected(child.skin_id == skin_id)
 	
 	# 播放选择音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("select.ogg")
+	AudioManager.play_ui_sound("select.ogg")
 
 # 应用按钮处理
 func _on_apply_button_pressed() -> void:
 	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 	
 	# 应用选中的皮肤
 	if skin_manager:
@@ -193,9 +184,7 @@ func _on_apply_button_pressed() -> void:
 # 皮肤商店按钮处理
 func _on_shop_button_pressed() -> void:
 	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 	
 	# 创建过渡动画
 	var transition = ColorRect.new()
@@ -211,9 +200,7 @@ func _on_shop_button_pressed() -> void:
 # 返回按钮处理
 func _on_back_button_pressed() -> void:
 	# 播放按钮音效
-	if has_node("/root/AudioManager"):
-		var audio_manager = get_node("/root/AudioManager")
-		audio_manager.play_ui_sound("button_click.ogg")
+	AudioManager.play_ui_sound("button_click.ogg")
 	
 	# 创建过渡动画
 	var transition = ColorRect.new()

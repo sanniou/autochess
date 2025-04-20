@@ -1,6 +1,6 @@
-[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7q"]
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv7qn"]
 
-[ext_resource type="Script" path="res://scenes/ui/skin_shop_item.gd" id="1_yvmqe"]
+[ext_resource type="Script" uid="uid://0wo15ppa3hg3" path="res://scenes/ui/skin_shop_item.gd" id="1_yvmqe"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.15, 0.15, 0.15, 0.8)

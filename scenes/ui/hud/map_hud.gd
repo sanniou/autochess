@@ -2,10 +2,6 @@ extends Control
 ## 地图HUD
 ## 显示地图界面的HUD元素
 
-# 引用
-@onready var player_manager = get_node("/root/GameManager/PlayerManager")
-@onready var ui_manager = get_node("/root/GameManager/UIManager")
-
 # 初始化
 func _ready():
 	# 更新玩家信息
@@ -20,7 +16,7 @@ func _ready():
 # 更新玩家信息
 func _update_player_info():
 	# 获取当前玩家
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if not player:
 		return
 	
@@ -43,7 +39,7 @@ func _update_player_info():
 # 玩家生命值变化事件处理
 func _on_player_health_changed(old_value, new_value):
 	# 获取当前玩家
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if not player:
 		return
 	
@@ -66,7 +62,7 @@ func _on_player_level_changed(old_level, new_level):
 # 经验变化事件处理
 func _on_exp_changed(old_exp, new_exp):
 	# 获取当前玩家
-	var player = player_manager.get_current_player()
+	var player = GameManager.player_manager.get_current_player()
 	if not player:
 		return
 	
@@ -97,4 +93,4 @@ func _on_synergy_button_pressed():
 # 设置按钮点击处理
 func _on_settings_button_pressed():
 	# 显示设置弹窗
-	ui_manager.show_popup("settings_popup")
+	GameManager.ui_manager.show_popup("settings_popup")

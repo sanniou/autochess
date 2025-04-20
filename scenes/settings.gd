@@ -27,12 +27,8 @@ var audio_manager = null
 
 # 初始化
 func _ready():
-	# 获取管理器
-	if has_node("/root/SettingsManager"):
-		settings_manager = get_node("/root/SettingsManager")
-	
-	if has_node("/root/AudioManager"):
-		audio_manager = get_node("/root/AudioManager")
+	settings_manager = SettingsManager
+	audio_manager = AudioManager
 	
 	# 初始化界面
 	_initialize_ui()
@@ -99,15 +95,12 @@ func _apply_settings() -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_ENABLED if settings.display.vsync else DisplayServer.VSYNC_DISABLED)
 	
 	# 应用游戏设置
-	if has_node("/root/GameManager"):
-		var game_manager = get_node("/root/GameManager")
-		game_manager.set_difficulty(settings.game.difficulty)
+	GameManager.set_difficulty(settings.game.difficulty)
 	
-	if has_node("/root/LocalizationManager"):
-		var localization_manager = get_node("/root/LocalizationManager")
-		var language_codes = ["zh_CN"]
-		if settings.game.language < language_codes.size():
-			localization_manager.set_language(language_codes[settings.game.language])
+	var localization_manager = LocalizationManager
+	var language_codes = ["zh_CN"]
+	if settings.game.language < language_codes.size():
+		localization_manager.set_language(language_codes[settings.game.language])
 
 # 重置设置
 func _reset_settings() -> void:
