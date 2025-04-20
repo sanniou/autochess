@@ -15,9 +15,6 @@ var current_config_path = ""
 var current_config_data = {}
 var config_files = {}
 
-# 引用
-@onready var config_manager = get_node("/root/ConfigManager")
-
 func _ready():
 	# 连接信号
 	save_button.pressed.connect(_on_save_button_pressed)
@@ -30,7 +27,7 @@ func _ready():
 
 ## 加载配置文件列表
 func _load_config_files() -> void:
-	config_files = config_manager.get_all_config_files()
+	config_files = ConfigManager.get_all_config_files()
 	config_list.clear()
 	
 	for config_name in config_files:
@@ -41,7 +38,7 @@ func _load_config_files() -> void:
 ## 加载配置文件
 func _load_config_file(config_path: String) -> void:
 	current_config_path = config_path
-	current_config_data = config_manager.load_json(config_path)
+	current_config_data = ConfigManager.load_json(config_path)
 	
 	_update_config_tree()
 	
@@ -211,7 +208,7 @@ func _on_save_button_pressed() -> void:
 		status_label.text = "错误: 未选择配置文件"
 		return
 	
-	var result = config_manager.save_json(current_config_path, current_config_data)
+	var result = ConfigManager.save_json(current_config_path, current_config_data)
 	if result:
 		status_label.text = "已保存配置文件: " + current_config_path
 	else:

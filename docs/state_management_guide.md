@@ -187,33 +187,31 @@ StateManager.unsubscribe_all(self)
 ```gdscript
 extends Node
 
-# 状态管理器引用
-@onready var state_manager = get_node("/root/StateManager")
 
 # 当前玩家状态
 var player_state = {}
 
 func _ready():
     # 订阅状态变更
-    state_manager.subscribe("player", self, "_on_player_state_changed")
+    GameManager.state_manager.subscribe("player", self, "_on_player_state_changed")
     
     # 获取初始状态
-    player_state = state_manager.get_state_section("player")
+    player_state = GameManager.state_manager.get_state_section("player")
     
     # 更新UI
     _update_ui()
 
 func _exit_tree():
     # 取消订阅状态变更
-    state_manager.unsubscribe_all(self)
+    GameManager.state_manager.unsubscribe_all(self)
 
 # 添加金币
 func add_gold(amount: int):
     # 创建动作
-    var action = state_manager.create_action("CHANGE_GOLD", {"amount": amount})
+    var action = GameManager.state_manager.create_action("CHANGE_GOLD", {"amount": amount})
     
     # 分发动作
-    state_manager.dispatch(action)
+    GameManager.state_manager.dispatch(action)
 
 # 玩家状态变更处理
 func _on_player_state_changed(new_state):
