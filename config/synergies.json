@@ -6,28 +6,34 @@
     "name": "刺客",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "chance": 0.1,
-          "damage": 0.2,
-          "type": "crit"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "chance": 0.1,
+            "damage": 0.2,
+            "type": "crit"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "chance": 0.2,
-          "damage": 0.4,
-          "type": "crit"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "chance": 0.2,
+            "damage": 0.4,
+            "type": "crit"
+          }
+        ]
       },
       {
-        "count": 6.0,
-        "effect": {
-          "chance": 0.3,
-          "damage": 0.6,
-          "type": "crit"
-        }
+        "count": 6,
+        "effects": [
+          {
+            "chance": 0.3,
+            "damage": 0.6,
+            "type": "crit"
+          }
+        ]
       }
     ]
   },
@@ -38,18 +44,22 @@
     "name": "元素",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "chance": 0.2,
-          "type": "elemental_effect"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "chance": 0.2,
+            "type": "elemental_effect"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "chance": 0.4,
-          "type": "elemental_effect"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "chance": 0.4,
+            "type": "elemental_effect"
+          }
+        ]
       }
     ]
   },
@@ -60,25 +70,31 @@
     "name": "精灵",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "chance": 0.15,
-          "type": "dodge"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "chance": 0.15,
+            "type": "dodge"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "chance": 0.3,
-          "type": "dodge"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "chance": 0.3,
+            "type": "dodge"
+          }
+        ]
       },
       {
-        "count": 6.0,
-        "effect": {
-          "chance": 0.45,
-          "type": "dodge"
-        }
+        "count": 6,
+        "effects": [
+          {
+            "chance": 0.45,
+            "type": "dodge"
+          }
+        ]
       }
     ]
   },
@@ -89,28 +105,34 @@
     "name": "人类",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "chance": 0.2,
-          "reduction": 1.0,
-          "type": "cooldown_reduction"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "chance": 0.2,
+            "reduction": 1,
+            "type": "cooldown_reduction"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "chance": 0.4,
-          "reduction": 2.0,
-          "type": "cooldown_reduction"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "chance": 0.4,
+            "reduction": 2,
+            "type": "cooldown_reduction"
+          }
+        ]
       },
       {
-        "count": 6.0,
-        "effect": {
-          "chance": 0.6,
-          "reduction": 3.0,
-          "type": "cooldown_reduction"
-        }
+        "count": 6,
+        "effects": [
+          {
+            "chance": 0.6,
+            "reduction": 3,
+            "type": "cooldown_reduction"
+          }
+        ]
       }
     ]
   },
@@ -121,25 +143,31 @@
     "name": "法师",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "amp": 0.2,
-          "type": "spell_amp"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "amp": 0.2,
+            "type": "spell_amp"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "amp": 0.4,
-          "type": "spell_amp"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "amp": 0.4,
+            "type": "spell_amp"
+          }
+        ]
       },
       {
-        "count": 6.0,
-        "effect": {
-          "amp": 0.7,
-          "type": "spell_amp"
-        }
+        "count": 6,
+        "effects": [
+          {
+            "amp": 0.7,
+            "type": "spell_amp"
+          }
+        ]
       }
     ]
   },
@@ -150,25 +178,31 @@
     "name": "游侠",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "chance": 0.2,
-          "type": "double_attack"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "chance": 0.2,
+            "type": "double_attack"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "chance": 0.35,
-          "type": "double_attack"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "chance": 0.35,
+            "type": "double_attack"
+          }
+        ]
       },
       {
-        "count": 6.0,
-        "effect": {
-          "chance": 0.5,
-          "type": "double_attack"
-        }
+        "count": 6,
+        "effects": [
+          {
+            "chance": 0.5,
+            "type": "double_attack"
+          }
+        ]
       }
     ]
   },
@@ -179,20 +213,24 @@
     "name": "召唤师",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "damage": 0.2,
-          "health": 0.2,
-          "type": "summon_boost"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "damage": 0.2,
+            "health": 0.2,
+            "type": "summon_boost"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "damage": 0.4,
-          "health": 0.4,
-          "type": "summon_boost"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "damage": 0.4,
+            "health": 0.4,
+            "type": "summon_boost"
+          }
+        ]
       }
     ]
   },
@@ -203,22 +241,26 @@
     "name": "辅助",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "stats": {
-            "attack_speed": 0.1
-          },
-          "type": "team_buff"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "stats": {
+              "attack_speed": 0.1
+            },
+            "type": "team_buff"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "stats": {
-            "attack_speed": 0.2
-          },
-          "type": "team_buff"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "stats": {
+              "attack_speed": 0.2
+            },
+            "type": "team_buff"
+          }
+        ]
       }
     ]
   },
@@ -229,31 +271,37 @@
     "name": "战士",
     "thresholds": [
       {
-        "count": 2.0,
-        "effect": {
-          "stats": {
-            "armor": 15.0
-          },
-          "type": "stat_boost"
-        }
+        "count": 2,
+        "effects": [
+          {
+            "stats": {
+              "armor": 15.0
+            },
+            "type": "stat_boost"
+          }
+        ]
       },
       {
-        "count": 4.0,
-        "effect": {
-          "stats": {
-            "armor": 35.0
-          },
-          "type": "stat_boost"
-        }
+        "count": 4,
+        "effects": [
+          {
+            "stats": {
+              "armor": 35.0
+            },
+            "type": "stat_boost"
+          }
+        ]
       },
       {
-        "count": 6.0,
-        "effect": {
-          "stats": {
-            "armor": 60.0
-          },
-          "type": "stat_boost"
-        }
+        "count": 6,
+        "effects": [
+          {
+            "stats": {
+              "armor": 60.0
+            },
+            "type": "stat_boost"
+          }
+        ]
       }
     ]
   }

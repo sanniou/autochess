@@ -11,10 +11,6 @@
       {
         "text": "购买物品",
         "effects": [
-          {
-            "type": "shop",
-            "operation": "open"
-          }
         ]
       },
       {
@@ -204,11 +200,7 @@
           "has_damaged_equipment": true
         },
         "effects": [
-          {
-            "type": "item",
-            "operation": "repair",
-            "item_id": "damaged"
-          }
+ 
         ]
       },
       {
@@ -229,12 +221,7 @@
       {
         "text": "战斗",
         "effects": [
-          {
-            "type": "battle",
-            "operation": "start",
-            "battle_type": "elite",
-            "difficulty": 1.2
-          }
+      
         ]
       },
       {
@@ -384,12 +371,6 @@
         "text": "准备接受诅咒",
         "effects": [
           {
-            "type": "special",
-            "operation": "curse",
-            "curse_type": "mirror",
-            "duration": 3
-          },
-          {
             "type": "relic",
             "operation": "add",
             "relic_id": "mirror_shard"
@@ -430,33 +411,13 @@
       {
         "text": "选择力量之路",
         "effects": [
-          {
-            "type": "chess_piece",
-            "operation": "buff_all",
-            "buff_type": "attack_damage",
-            "value": 5
-          },
-          {
-            "type": "special",
-            "operation": "story_flag",
-            "flag": "chose_power"
-          }
+   
         ]
       },
       {
         "text": "选择智慧之路",
         "effects": [
-          {
-            "type": "chess_piece",
-            "operation": "buff_all",
-            "buff_type": "spell_power",
-            "value": 10
-          },
-          {
-            "type": "special",
-            "operation": "story_flag",
-            "flag": "chose_wisdom"
-          }
+    
         ]
       },
       {
@@ -466,11 +427,6 @@
             "type": "gold",
             "operation": "add",
             "value": 30
-          },
-          {
-            "type": "special",
-            "operation": "story_flag",
-            "flag": "chose_wealth"
           }
         ]
       }
@@ -488,29 +444,13 @@
       {
         "text": "接受挑战（只能使用3个棋子）",
         "effects": [
-          {
-            "type": "battle",
-            "operation": "start",
-            "battle_type": "special",
-            "special_rules": {
-              "max_pieces": 3,
-              "rewards_multiplier": 2.0
-            }
-          }
+
         ]
       },
       {
         "text": "接受挑战（棋子生命值减半）",
         "effects": [
-          {
-            "type": "battle",
-            "operation": "start",
-            "battle_type": "special",
-            "special_rules": {
-              "health_multiplier": 0.5,
-              "rewards_multiplier": 1.5
-            }
-          }
+
         ]
       },
       {
@@ -530,7 +470,7 @@
     "title": "宝藏室",
     "description": "你发现了一个充满宝物的房间，但似乎只能选择其中一件。",
     "image_path": "res://assets/images/events/treasure_room.png",
-    "event_type": "reward",
+    "event_type": "treasure",
     "weight": 25,
     "is_one_time": true,
     "choices": [

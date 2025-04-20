@@ -13,7 +13,7 @@
     "id": "ancient_coin",
     "is_passive": true,
     "name": "远古硬币",
-    "rarity": 0.0
+    "rarity": 0
   },
   "crown_of_kings": {
     "description": "每回合开始时，随机一个友方棋子获得50%攻击力和20%攻击速度，持续整个回合。",
@@ -29,7 +29,7 @@
     "id": "crown_of_kings",
     "is_passive": true,
     "name": "王者之冠",
-    "rarity": 3.0
+    "rarity": 3
   },
   "dragon_scale": {
     "description": "所有友方棋子获得10点护甲。",
@@ -47,7 +47,7 @@
     "id": "dragon_scale",
     "is_passive": true,
     "name": "龙鳞",
-    "rarity": 2.0
+    "rarity": 2
   },
   "healing_potion": {
     "charges": 1.0,
@@ -65,7 +65,7 @@
     "id": "healing_potion",
     "is_passive": false,
     "name": "治疗药水",
-    "rarity": 0.0
+    "rarity": 0
   },
   "heart_amulet": {
     "description": "所有友方棋子获得10%最大生命值。",
@@ -84,7 +84,7 @@
     "id": "heart_amulet",
     "is_passive": true,
     "name": "心形护符",
-    "rarity": 1.0
+    "rarity": 1
   },
   "lucky_coin": {
     "description": "每回合结束时获得1金币。",
@@ -100,7 +100,7 @@
     "id": "lucky_coin",
     "is_passive": true,
     "name": "幸运硬币",
-    "rarity": 0.0
+    "rarity": 0
   },
   "mage_emblem": {
     "description": "所有法师棋子获得20%法术强度。",
@@ -122,7 +122,7 @@
     "id": "mage_emblem",
     "is_passive": true,
     "name": "法师徽章",
-    "rarity": 1.0
+    "rarity": 1
   },
   "merchants_purse": {
     "description": "商店刷新费用减少1金币。",
@@ -139,7 +139,7 @@
     "id": "merchants_purse",
     "is_passive": true,
     "name": "商人钱袋",
-    "rarity": 0.0
+    "rarity": 0
   },
   "mystic_orb": {
     "description": "所有友方棋子获得10点魔法抗性。",
@@ -157,7 +157,7 @@
     "id": "mystic_orb",
     "is_passive": true,
     "name": "神秘法球",
-    "rarity": 2.0
+    "rarity": 2
   },
   "swift_boots": {
     "description": "所有友方棋子获得10%攻击速度。",
@@ -176,7 +176,7 @@
     "id": "swift_boots",
     "is_passive": true,
     "name": "迅捷之靴",
-    "rarity": 1.0
+    "rarity": 1
   },
   "warrior_emblem": {
     "description": "所有战士棋子获得15%攻击力。",
@@ -198,6 +198,6 @@
     "id": "warrior_emblem",
     "is_passive": true,
     "name": "战士徽章",
-    "rarity": 1.0
+    "rarity": 1
   }
 }

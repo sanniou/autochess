@@ -1,8 +1,6 @@
 {
   "amulet": {
-    "combine_recipes": [
-      "shadow_amulet"
-    ],
+    "combine_recipes": ["shadow_amulet"],
     "description": "增加闪避几率。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/amulet.png",
@@ -22,27 +20,22 @@
         "description": "使用技能时，有20%几率减少2秒冷却时间。",
         "effect": "cooldown_reduction",
         "reduction": 2.0,
-        "trigger": "ability_cast",
-        "type": "on_ability"
+        "trigger": "on_ability",
+        "type": "special"
       }
     ],
     "icon_path": "res://assets/images/equipment/arcane_staff.png",
     "id": "arcane_staff",
     "name": "奥术法杖",
     "rarity": 2,
-    "recipe": [
-      "staff",
-      "staff"
-    ],
+    "recipe": ["staff", "staff"],
     "stats": {
       "spell_power": 25.0
     },
     "type": "weapon"
   },
   "armor": {
-    "combine_recipes": [
-      "plate_armor"
-    ],
+    "combine_recipes": ["plate_armor"],
     "description": "增加护甲。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/armor.png",
@@ -63,18 +56,15 @@
         "description": "暴击时有机会造成出血效果，每秒造成额外伤害。",
         "duration": 3.0,
         "effect": "bleed",
-        "trigger": "crit",
-        "type": "on_crit"
+        "trigger": "on_crit",
+        "type": "damage"
       }
     ],
     "icon_path": "res://assets/images/equipment/assassin_gloves.png",
     "id": "assassin_gloves",
     "name": "刺客手套",
     "rarity": 2,
-    "recipe": [
-      "gloves",
-      "sword"
-    ],
+    "recipe": ["gloves", "sword"],
     "stats": {
       "crit_chance": 0.15,
       "crit_damage": 0.2
@@ -82,9 +72,7 @@
     "type": "accessory"
   },
   "belt": {
-    "combine_recipes": [
-      "giants_belt"
-    ],
+    "combine_recipes": ["giants_belt"],
     "description": "增加生命值。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/belt.png",
@@ -104,26 +92,23 @@
         "description": "生命值低于50%时，攻击力增加30%。",
         "effect": "damage_boost",
         "threshold": 0.5,
-        "trigger": "health_percent",
-        "type": "passive"
+        "trigger": "on_low_health",
+        "type": "stat_boost"
       },
       {
         "boost": 0.2,
         "description": "生命值低于25%时，攻击速度增加20%。",
         "effect": "attack_speed_boost",
         "threshold": 0.25,
-        "trigger": "health_percent",
-        "type": "passive"
+        "trigger": "on_low_health",
+        "type": "stat_boost"
       }
     ],
     "icon_path": "res://assets/images/equipment/berserker_axe.png",
     "id": "berserker_axe",
     "name": "狂战士之斧",
     "rarity": 3,
-    "recipe": [
-      "sword",
-      "giant_sword"
-    ],
+    "recipe": ["sword", "giant_sword"],
     "stats": {
       "attack_damage": 30.0,
       "attack_speed": 0.1
@@ -131,9 +116,7 @@
     "type": "weapon"
   },
   "bow": {
-    "combine_recipes": [
-      "rapid_bow"
-    ],
+    "combine_recipes": ["rapid_bow"],
     "description": "增加攻击速度。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/bow.png",
@@ -146,9 +129,7 @@
     "type": "weapon"
   },
   "cloak": {
-    "combine_recipes": [
-      "dragon_cloak"
-    ],
+    "combine_recipes": ["dragon_cloak"],
     "description": "增加魔法抗性。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/cloak.png",
@@ -168,18 +149,15 @@
         "description": "受到魔法伤害时，有15%几率减少50%伤害。",
         "effect": "damage_reduction",
         "reduction": 0.5,
-        "trigger": "take_magic_damage",
-        "type": "passive"
+        "trigger": "on_hit",
+        "type": "stat_boost"
       }
     ],
     "icon_path": "res://assets/images/equipment/dragon_cloak.png",
     "id": "dragon_cloak",
     "name": "龙鳞斗篷",
     "rarity": 2,
-    "recipe": [
-      "cloak",
-      "cloak"
-    ],
+    "recipe": ["cloak", "cloak"],
     "stats": {
       "magic_resist": 25.0
     },
@@ -192,18 +170,15 @@
         "description": "元素效果持续时间增加1秒。",
         "effect": "duration_increase",
         "increase": 1.0,
-        "trigger": "elemental_effect",
-        "type": "passive"
+        "trigger": "on_hit",
+        "type": "stat_boost"
       }
     ],
     "icon_path": "res://assets/images/equipment/elemental_focus.png",
     "id": "elemental_focus",
     "name": "元素聚焦",
     "rarity": 2,
-    "recipe": [
-      "elemental_orb",
-      "staff"
-    ],
+    "recipe": ["elemental_orb", "staff"],
     "stats": {
       "elemental_effect_chance": 0.25,
       "spell_power": 15.0
@@ -211,9 +186,7 @@
     "type": "accessory"
   },
   "elemental_orb": {
-    "combine_recipes": [
-      "elemental_focus"
-    ],
+    "combine_recipes": ["elemental_focus"],
     "description": "增加元素效果几率。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/elemental_orb.png",
@@ -232,18 +205,15 @@
         "chance": 0.1,
         "description": "攻击有10%几率造成双倍伤害。",
         "effect": "double_damage",
-        "trigger": "attack",
-        "type": "on_attack"
+        "trigger": "on_attack",
+        "type": "damage"
       }
     ],
     "icon_path": "res://assets/images/equipment/giant_sword.png",
     "id": "giant_sword",
     "name": "巨人之剑",
     "rarity": 2,
-    "recipe": [
-      "sword",
-      "sword"
-    ],
+    "recipe": ["sword", "sword"],
     "stats": {
       "attack_damage": 25.0
     },
@@ -257,27 +227,22 @@
         "effect": "damage_reduction",
         "reduction": 0.15,
         "threshold": 0.3,
-        "trigger": "low_health",
-        "type": "passive"
+        "trigger": "on_low_health",
+        "type": "stat_boost"
       }
     ],
     "icon_path": "res://assets/images/equipment/giants_belt.png",
     "id": "giants_belt",
     "name": "巨人腰带",
     "rarity": 2,
-    "recipe": [
-      "belt",
-      "belt"
-    ],
+    "recipe": ["belt", "belt"],
     "stats": {
       "health": 250.0
     },
     "type": "accessory"
   },
   "gloves": {
-    "combine_recipes": [
-      "assassin_gloves"
-    ],
+    "combine_recipes": ["assassin_gloves"],
     "description": "增加暴击几率。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/gloves.png",
@@ -297,7 +262,8 @@
         "effect": "health_regen",
         "interval": 1.0,
         "percent": 0.01,
-        "type": "passive"
+        "trigger": "on_timer",
+        "type": "stat_boost"
       },
       {
         "amount": 100.0,
@@ -305,18 +271,15 @@
         "description": "受到伤害时，有机会生成一个吸收伤害的护盾。",
         "duration": 3.0,
         "effect": "shield",
-        "trigger": "take_damage",
-        "type": "on_damage"
+        "trigger": "on_hit",
+        "type": "damage"
       }
     ],
     "icon_path": "res://assets/images/equipment/guardian_shield.png",
     "id": "guardian_shield",
     "name": "守护者之盾",
     "rarity": 3,
-    "recipe": [
-      "armor",
-      "plate_armor"
-    ],
+    "recipe": ["armor", "plate_armor"],
     "stats": {
       "armor": 30.0,
       "health": 150.0,
@@ -332,18 +295,15 @@
         "description": "受到物理伤害时，有15%几率减少50%伤害。",
         "effect": "damage_reduction",
         "reduction": 0.5,
-        "trigger": "take_physical_damage",
-        "type": "passive"
+        "trigger": "on_hit",
+        "type": "stat_boost"
       }
     ],
     "icon_path": "res://assets/images/equipment/plate_armor.png",
     "id": "plate_armor",
     "name": "板甲",
     "rarity": 2,
-    "recipe": [
-      "armor",
-      "armor"
-    ],
+    "recipe": ["armor", "armor"],
     "stats": {
       "armor": 25.0
     },
@@ -357,18 +317,15 @@
         "count": 3.0,
         "description": "每三次攻击后，下一次攻击造成额外伤害。",
         "effect": "bonus_damage",
-        "trigger": "attack_count",
-        "type": "passive"
+        "trigger": "on_attack",
+        "type": "stat_boost"
       }
     ],
     "icon_path": "res://assets/images/equipment/rapid_bow.png",
     "id": "rapid_bow",
     "name": "疾速之弓",
     "rarity": 2,
-    "recipe": [
-      "bow",
-      "bow"
-    ],
+    "recipe": ["bow", "bow"],
     "stats": {
       "attack_speed": 0.25
     },
@@ -382,27 +339,22 @@
         "description": "闪避后获得1秒隐身效果，期间不会被选为目标。",
         "duration": 1.0,
         "effect": "stealth",
-        "trigger": "dodge",
-        "type": "on_dodge"
+        "trigger": "on_dodge",
+        "type": "special"
       }
     ],
     "icon_path": "res://assets/images/equipment/shadow_amulet.png",
     "id": "shadow_amulet",
     "name": "暗影护符",
     "rarity": 2,
-    "recipe": [
-      "amulet",
-      "cloak"
-    ],
+    "recipe": ["amulet", "cloak"],
     "stats": {
       "dodge_chance": 0.15
     },
     "type": "accessory"
   },
   "staff": {
-    "combine_recipes": [
-      "arcane_staff"
-    ],
+    "combine_recipes": ["arcane_staff"],
     "description": "增加法术强度。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/staff.png",
@@ -422,34 +374,30 @@
         "count": 1.0,
         "description": "使用技能时，增加一个额外的召唤物。",
         "effect": "extra_summon",
-        "trigger": "ability_cast",
-        "type": "on_ability"
+        "trigger": "on_ability",
+        "type": "special"
       },
       {
         "damage_boost": 0.2,
         "description": "召唤物生命值和伤害增加20%。",
         "effect": "summon_boost",
         "health_boost": 0.2,
-        "type": "passive"
+        "trigger": "passive",
+        "type": "stat_boost"
       }
     ],
     "icon_path": "res://assets/images/equipment/summoner_staff.png",
     "id": "summoner_staff",
     "name": "召唤法杖",
     "rarity": 3,
-    "recipe": [
-      "staff",
-      "arcane_staff"
-    ],
+    "recipe": ["staff", "arcane_staff"],
     "stats": {
       "spell_power": 20.0
     },
     "type": "weapon"
   },
   "sword": {
-    "combine_recipes": [
-      "giant_sword"
-    ],
+    "combine_recipes": ["giant_sword"],
     "description": "增加攻击力。",
     "effects": [],
     "icon_path": "res://assets/images/equipment/sword.png",
