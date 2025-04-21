@@ -209,18 +209,34 @@ func _create_ranged_attack_animation(animation_data: Dictionary) -> void:
 		tween.tween_property(attacker, "scale", params.attack_scale, params.duration * 0.2)
 		tween.tween_property(attacker, "scale", original_scale, params.duration * 0.2).set_delay(params.duration * 0.2)
 
-	# 创建投射物
-	var projectile = Sprite2D.new()
-	projectile.texture = load("res://assets/images/vfx/projectile.png")  # 默认投射物纹理
-	projectile.global_position = attacker.global_position
-	get_tree().root.add_child(projectile)
+	# 使用EffectAnimator创建投射物特效
+	var effect_animator = get_node_or_null("/root/GameManager/EffectAnimator")
+	if effect_animator:
+		# 创建投射物特效
+		var projectile_effect_id = effect_animator.play_sprite_effect(
+			attacker.global_position,
+			"res://assets/images/vfx/projectile.png",
+			1,  # 帧数
+			params.duration * 0.6,  # 帧时长
+			{
+				"auto_remove": false,  # 不自动移除，我们将手动控制
+				"loop": false
+			}
+		)
 
-	# 投射物移动动画
-	var projectile_tween = create_tween()
-	projectile_tween.tween_property(projectile, "global_position", target.global_position, params.duration * 0.6)
-	projectile_tween.tween_callback(func():
-		# 移除投射物
-		projectile.queue_free()
+		# 获取特效节点
+		var projectile = null
+		if effect_animator.active_effects.has(projectile_effect_id):
+			projectile = effect_animator.active_effects[projectile_effect_id].node
+
+		# 创建移动动画
+		if projectile:
+			var projectile_tween = create_tween()
+			projectile_tween.tween_property(projectile, "global_position", target.global_position, params.duration * 0.6)
+			projectile_tween.tween_callback(func():
+				# 完成后清理特效
+				effect_animator._cleanup_effect(projectile_effect_id)
+				effect_animator.active_effects.erase(projectile_effect_id)
 
 		# 添加攻击特效
 		if params.effect_name != "":
@@ -273,20 +289,36 @@ func _create_magic_attack_animation(animation_data: Dictionary) -> void:
 		tween.tween_property(attacker, "scale", params.attack_scale, params.duration * 0.3)
 		tween.tween_property(attacker, "scale", original_scale, params.duration * 0.3).set_delay(params.duration * 0.3)
 
-	# 创建施法特效
-	var cast_effect = Sprite2D.new()
-	cast_effect.texture = load("res://assets/images/vfx/magic_cast.png")  # 默认施法特效纹理
-	cast_effect.global_position = attacker.global_position
-	cast_effect.modulate = Color(1, 1, 1, 0)  # 初始透明
-	get_tree().root.add_child(cast_effect)
+	# 使用EffectAnimator创建施法特效
+	var effect_animator = get_node_or_null("/root/GameManager/EffectAnimator")
+	if effect_animator:
+		# 创建施法特效
+		var cast_effect_id = effect_animator.play_sprite_effect(
+			attacker.global_position,
+			"res://assets/images/vfx/magic_cast.png",
+			1,  # 帧数
+			params.duration * 0.5,  # 帧时长
+			{
+				"auto_remove": false,  # 不自动移除，我们将手动控制
+				"loop": false,
+				"modulate": Color(1, 1, 1, 0)  # 初始透明
+			}
+		)
 
-	# 施法特效动画
-	var cast_tween = create_tween()
-	cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 1), params.duration * 0.3)
-	cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 0), params.duration * 0.2)
-	cast_tween.tween_callback(func():
-		# 移除施法特效
-		cast_effect.queue_free()
+		# 获取特效节点
+		var cast_effect = null
+		if effect_animator.active_effects.has(cast_effect_id):
+			cast_effect = effect_animator.active_effects[cast_effect_id].node
+
+		# 创建淡入淡出动画
+		if cast_effect:
+			var cast_tween = create_tween()
+			cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 1), params.duration * 0.3)
+			cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 0), params.duration * 0.2)
+			cast_tween.tween_callback(func():
+				# 完成后清理特效
+				effect_animator._cleanup_effect(cast_effect_id)
+				effect_animator.active_effects.erase(cast_effect_id)
 
 		# 添加攻击特效
 		if params.effect_name != "":
@@ -704,11 +736,13 @@ func play_movement_animation(piece, start_pos: Vector2, end_pos: Vector2, params
 		# 获取特效管理器
 		var effect_animator = get_node_or_null("/root/GameManager/EffectAnimator")
 		if effect_animator:
-			# 创建拖尾特效
+			# 使用EffectAnimator创建线条特效
+			# 注意：由于拖尾需要自定义处理，我们仍然需要手动创建节点
+			# 但我们可以将其添加到EffectAnimator的容器中管理
 			var trail = Line2D.new()
 			trail.width = 5.0
 			trail.default_color = params.trail_color
-			get_tree().root.add_child(trail)
+			effect_animator.effect_container.add_child(trail)
 
 			# 添加起点
 			trail.add_point(start_pos)
@@ -724,7 +758,7 @@ func play_movement_animation(piece, start_pos: Vector2, end_pos: Vector2, params
 				if trail.get_point_count() > 20:
 					trail.remove_point(0)
 			)
-			get_tree().root.add_child(timer)
+			effect_animator.effect_container.add_child(timer)
 			timer.start()
 
 			# 移动结束后渐隐拖尾

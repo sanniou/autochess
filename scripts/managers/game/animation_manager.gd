@@ -24,6 +24,12 @@ enum AnimationState {
 	COMPLETED # 已完成
 }
 
+# 动画配置管理器
+var animation_config_manager = null
+
+# 动画LOD系统
+var animation_lod_system = null
+
 # 当前活动的动画
 var active_animations = {}
 
@@ -49,15 +55,18 @@ func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "AnimationManager"
 
+	# 初始化动画配置管理器
+	_initialize_config_manager()
+
 	# 原 _ready 函数的内容
 	# 连接信号
-		EventBus.game.connect_event("game_paused", _on_game_paused)
+	EventBus.game.connect_event("game_paused", _on_game_paused)
 
-		# 初始化动画控制器
-		_initialize_animators()
+	# 初始化动画控制器
+	_initialize_animators()
 
-		# 添加到处理列表
-		set_process(true)
+	# 添加到处理列表
+	set_process(true)
 
 	# 处理函数，用于更新动画队列和状态
 func _process(delta: float) -> void:
@@ -65,6 +74,36 @@ func _process(delta: float) -> void:
 	for type in animation_queues.keys():
 		if not is_playing[type] and not animation_queues[type].is_empty():
 			_process_queue(type)
+
+# 初始化动画配置管理器
+func _initialize_config_manager() -> void:
+	# 创建动画配置管理器
+	animation_config_manager = AnimationConfigManager.new()
+	add_child(animation_config_manager)
+
+	# 连接配置加载信号
+	animation_config_manager.config_loaded.connect(_on_config_loaded)
+	animation_config_manager.config_error.connect(_on_config_error)
+
+	# 创建动画LOD系统
+	animation_lod_system = AnimationLODSystem.new()
+	add_child(animation_lod_system)
+
+	# 连接LOD系统信号
+	animation_lod_system.lod_changed.connect(_on_lod_changed)
+
+# 配置加载回调
+func _on_config_loaded(config_type: String) -> void:
+	_log_info("动画配置已加载: " + config_type)
+
+# 配置错误回调
+func _on_config_error(error_message: String) -> void:
+	_log_error("加载动画配置错误: " + error_message)
+
+# LOD级别变化回调
+func _on_lod_changed(object, old_level: int, new_level: int) -> void:
+	# 记录日志
+	_log_info("对象LOD级别变化: " + str(object) + ", " + str(old_level) + " -> " + str(new_level))
 
 # 初始化动画控制器
 func _initialize_animators() -> void:
@@ -88,22 +127,23 @@ func _initialize_animators() -> void:
 	add_child(ui_animator)
 	add_child(effect_animator)
 
-# 获取棋子动画控制器
-func _get_chess_animator(chess_piece) -> ChessAnimator:
+# 获取棋子视图组件
+func _get_chess_view_component(chess_piece) -> ViewComponent:
 	# 检查棋子是否有效
 	if not chess_piece or not is_instance_valid(chess_piece):
 		return null
 
-	# 检查棋子是否已经有动画控制器
-	if chess_piece.has_node("ChessAnimator"):
-		return chess_piece.get_node("ChessAnimator")
+	# 获取视图组件
+	var view_component = null
 
-	# 创建新的棋子动画控制器
-	var animator = ChessAnimator.new(chess_piece)
-	animator.name = "ChessAnimator"
-	chess_piece.add_child(animator)
+	# 使用组件系统获取ViewComponent
+	if chess_piece.has_method("get_component"):
+		view_component = chess_piece.get_component("ViewComponent")
 
-	return animator
+	if not view_component:
+		_log_warning("无法获取棋子的视图组件: " + str(chess_piece))
+
+	return view_component
 
 # 播放棋子动画
 func play_chess_animation(chess_piece, animation_name: String, speed: float = 1.0, loop: bool = false) -> String:
@@ -118,16 +158,16 @@ func play_chess_animation(chess_piece, animation_name: String, speed: float = 1.
 	if active_animations.has(animation_id):
 		return animation_id
 
-	# 获取或创建棋子动画控制器
-	var animator = _get_chess_animator(chess_piece)
-	if not animator:
+	# 获取棋子视图组件
+	var view_component = _get_chess_view_component(chess_piece)
+	if not view_component:
 		return ""
 
 	# 创建动画数据
 	var animation_data = {
 		"id": animation_id,
 		"chess_piece": chess_piece,
-		"animator": animator,
+		"animator": view_component,
 		"animation_name": animation_name,
 		"speed": speed,
 		"loop": loop,
@@ -277,8 +317,10 @@ func cancel_animation(animation_id: String) -> bool:
 
 	# 根据动画类型调用相应的取消方法
 	var result = false
-	if animator is ChessAnimator:
-		result = animator.stop_animation()
+	if animator is ViewComponent:
+		# ViewComponent没有stop_animation方法，但可以通过播放idle动画来停止当前动画
+		animator.play_animation("idle")
+		result = true
 	elif animator is BattleAnimator:
 		result = animator.cancel_animation(animation_id)
 	elif animator is UIAnimator:
@@ -314,8 +356,10 @@ func pause_animation(animation_id: String) -> bool:
 
 	# 根据动画类型调用相应的暂停方法
 	var result = false
-	if animator is ChessAnimator:
-		result = animator.pause_animation()
+	if animator is ViewComponent:
+		# ViewComponent没有pause_animation方法，但可以通过设置动画速度为0来暂停
+		animator.set_animation_speed(0)
+		result = true
 	elif animator is BattleAnimator:
 		result = animator.pause_animation(animation_id)
 	elif animator is UIAnimator:
@@ -349,8 +393,10 @@ func resume_animation(animation_id: String) -> bool:
 
 	# 根据动画类型调用相应的恢复方法
 	var result = false
-	if animator is ChessAnimator:
-		result = animator.resume_animation()
+	if animator is ViewComponent:
+		# ViewComponent没有resume_animation方法，但可以通过恢复动画速度来继续播放
+		animator.set_animation_speed(animation_data.speed)
+		result = true
 	elif animator is BattleAnimator:
 		result = animator.resume_animation(animation_id)
 	elif animator is UIAnimator:
@@ -384,10 +430,10 @@ func set_animation_speed(animation_id: String, speed: float) -> bool:
 
 	# 根据动画类型调用相应的设置速度方法
 	var result = false
-	if animator is ChessAnimator:
-		result = animator.set_animation_speed(speed)
-		if result:
-			animation_data.speed = speed
+	if animator is ViewComponent:
+		animator.set_animation_speed(speed)
+		animation_data.speed = speed
+		result = true
 	elif animator is BattleAnimator:
 		result = animator.set_animation_speed(animation_id, speed)
 	elif animator is UIAnimator:
@@ -518,11 +564,12 @@ func _process_queue(type: int) -> void:
 
 	if type == AnimationType.CHESS:
 		# 播放棋子动画
-		result = animator.play_animation(
-			animation_data.animation_name,
-			animation_data.speed,
-			animation_data.loop
-		)
+		if animator is ViewComponent:
+			# 设置动画速度
+			animator.set_animation_speed(animation_data.speed)
+			# 播放动画
+			animator.play_animation(animation_data.animation_name)
+			result = true
 	elif type == AnimationType.BATTLE:
 		# 播放战斗动画
 		result = animator.play_animation(
@@ -558,8 +605,8 @@ func _process_queue(type: int) -> void:
 		_process_queue(type)
 	else:
 		# 连接动画完成信号
-		if animator is ChessAnimator:
-			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
+		if animator is ViewComponent:
+			animator.animation_finished.connect(_on_animation_completed.bind(animation_data.id))
 		elif animator is BattleAnimator:
 			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
 		elif animator is UIAnimator:
@@ -586,9 +633,9 @@ func _on_animation_completed(animation_id: String) -> void:
 	# 断开信号连接
 	var animator = animation_data.animator
 	if animator:
-		if animator is ChessAnimator:
-			if animator.animation_completed.is_connected(_on_animation_completed):
-				animator.animation_completed.disconnect(_on_animation_completed)
+		if animator is ViewComponent:
+			if animator.animation_finished.is_connected(_on_animation_completed):
+				animator.animation_finished.disconnect(_on_animation_completed)
 		elif animator is BattleAnimator:
 			if animator.animation_completed.is_connected(_on_animation_completed):
 				animator.animation_completed.disconnect(_on_animation_completed)

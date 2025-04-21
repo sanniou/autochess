@@ -1,0 +1,504 @@
+{
+  "chess_animations": {
+    "idle": {
+      "loop": true,
+      "speed": 1.0,
+      "transition": "none"
+    },
+    "attack": {
+      "loop": false,
+      "speed": 1.5,
+      "transition": "idle",
+      "effects": [
+        {
+          "type": "sound",
+          "name": "attack.ogg",
+          "timing": 0.2
+        }
+      ]
+    },
+    "hit": {
+      "loop": false,
+      "speed": 1.2,
+      "transition": "idle",
+      "effects": [
+        {
+          "type": "sound",
+          "name": "hit.ogg",
+          "timing": 0.0
+        },
+        {
+          "type": "particle",
+          "name": "hit_particles",
+          "timing": 0.0,
+          "position": "self",
+          "params": {
+            "amount": 10,
+            "lifetime": 0.5,
+            "color": [1.0, 0.5, 0.5, 0.8]
+          }
+        }
+      ]
+    },
+    "death": {
+      "loop": false,
+      "speed": 1.0,
+      "transition": "none",
+      "effects": [
+        {
+          "type": "sound",
+          "name": "death.ogg",
+          "timing": 0.0
+        },
+        {
+          "type": "particle",
+          "name": "death_particles",
+          "timing": 0.0,
+          "position": "self",
+          "params": {
+            "amount": 30,
+            "lifetime": 1.0,
+            "color": [0.5, 0.5, 0.5, 0.8]
+          }
+        }
+      ]
+    },
+    "cast": {
+      "loop": false,
+      "speed": 1.2,
+      "transition": "idle",
+      "effects": [
+        {
+          "type": "sound",
+          "name": "cast.ogg",
+          "timing": 0.1
+        },
+        {
+          "type": "particle",
+          "name": "magic_particles",
+          "timing": 0.2,
+          "position": "self",
+          "params": {
+            "amount": 20,
+            "lifetime": 0.8,
+            "color": [0.5, 0.8, 1.0, 0.8]
+          }
+        }
+      ]
+    },
+    "move": {
+      "loop": true,
+      "speed": 1.2,
+      "transition": "idle",
+      "effects": [
+        {
+          "type": "sound",
+          "name": "move.ogg",
+          "timing": 0.0,
+          "params": {
+            "volume": 0.5
+          }
+        }
+      ]
+    }
+  },
+  "battle_animations": {
+    "attack": {
+      "duration": 0.8,
+      "effects": [
+        {
+          "type": "sprite",
+          "name": "attack_effect",
+          "timing": 0.2,
+          "position": "target",
+          "params": {
+            "scale": [1.5, 1.5],
+            "frames": 5,
+            "frame_duration": 0.1
+          }
+        }
+      ]
+    },
+    "projectile": {
+      "duration": 0.6,
+      "effects": [
+        {
+          "type": "sprite",
+          "name": "projectile",
+          "timing": 0.0,
+          "position": "path",
+          "params": {
+            "scale": [1.0, 1.0],
+            "frames": 1,
+            "frame_duration": 0.6
+          }
+        },
+        {
+          "type": "sprite",
+          "name": "impact",
+          "timing": 0.5,
+          "position": "target",
+          "params": {
+            "scale": [1.2, 1.2],
+            "frames": 4,
+            "frame_duration": 0.1
+          }
+        }
+      ]
+    },
+    "spell": {
+      "duration": 1.0,
+      "effects": [
+        {
+          "type": "sprite",
+          "name": "cast_effect",
+          "timing": 0.0,
+          "position": "caster",
+          "params": {
+            "scale": [1.2, 1.2],
+            "frames": 5,
+            "frame_duration": 0.1
+          }
+        },
+        {
+          "type": "sprite",
+          "name": "spell_effect",
+          "timing": 0.5,
+          "position": "target",
+          "params": {
+            "scale": [2.0, 2.0],
+            "frames": 8,
+            "frame_duration": 0.1
+          }
+        }
+      ]
+    },
+    "movement": {
+      "duration": 0.5,
+      "path_type": "linear",
+      "effects": [
+        {
+          "type": "trail",
+          "name": "movement_trail",
+          "timing": 0.0,
+          "params": {
+            "width": 5.0,
+            "color": [0.5, 0.5, 0.5, 0.5],
+            "fade_time": 0.3
+          }
+        }
+      ]
+    },
+    "death": {
+      "duration": 1.0,
+      "effects": [
+        {
+          "type": "particle",
+          "name": "death_particles",
+          "timing": 0.0,
+          "position": "self",
+          "params": {
+            "amount": 30,
+            "lifetime": 0.8,
+            "color": [0.5, 0.5, 0.5, 0.8]
+          }
+        },
+        {
+          "type": "sprite",
+          "name": "death_effect",
+          "timing": 0.0,
+          "position": "self",
+          "params": {
+            "scale": [1.5, 1.5],
+            "frames": 8,
+            "frame_duration": 0.125
+          }
+        }
+      ]
+    }
+  },
+  "ui_animations": {
+    "fade_in": {
+      "duration": 0.3,
+      "easing": "ease_out",
+      "properties": {
+        "modulate:a": [0.0, 1.0]
+      }
+    },
+    "fade_out": {
+      "duration": 0.3,
+      "easing": "ease_in",
+      "properties": {
+        "modulate:a": [1.0, 0.0]
+      }
+    },
+    "slide_in_right": {
+      "duration": 0.5,
+      "easing": "ease_out_back",
+      "properties": {
+        "position:x": [800, 0]
+      }
+    },
+    "slide_out_right": {
+      "duration": 0.5,
+      "easing": "ease_in_back",
+      "properties": {
+        "position:x": [0, 800]
+      }
+    },
+    "slide_in_left": {
+      "duration": 0.5,
+      "easing": "ease_out_back",
+      "properties": {
+        "position:x": [-800, 0]
+      }
+    },
+    "slide_out_left": {
+      "duration": 0.5,
+      "easing": "ease_in_back",
+      "properties": {
+        "position:x": [0, -800]
+      }
+    },
+    "pop_in": {
+      "duration": 0.4,
+      "easing": "ease_out_elastic",
+      "properties": {
+        "scale": [0.0, 1.0]
+      }
+    },
+    "pop_out": {
+      "duration": 0.3,
+      "easing": "ease_in_back",
+      "properties": {
+        "scale": [1.0, 0.0]
+      }
+    }
+  },
+  "chess_piece_view": {
+    "star_colors": [
+      [1.0, 1.0, 1.0, 1.0],  # 1星 - 白色
+      [0.0, 0.8, 0.0, 1.0],  # 2星 - 绿色
+      [0.0, 0.0, 1.0, 1.0]   # 3星 - 蓝色
+    ],
+    "health_bar_colors": [
+      [0.0, 1.0, 0.0, 1.0],  # 满血 - 绿色
+      [1.0, 1.0, 0.0, 1.0],  # 中血 - 黄色
+      [1.0, 0.0, 0.0, 1.0]   # 低血 - 红色
+    ],
+    "mana_bar_color": [0.0, 0.5, 1.0, 1.0],  # 蓝色
+    "animations": {
+      "idle": {
+        "modulate": [1.0, 1.0, 1.0, 1.0],
+        "rotation": 0.0,
+        "position_y": [-2.0, 2.0],
+        "duration": 2.0,
+        "loop": true
+      },
+      "move": {
+        "modulate": [0.8, 1.0, 0.8, 1.0],
+        "rotation": [-0.1, 0.1],
+        "duration": 0.6,
+        "loop": true
+      },
+      "attack": {
+        "modulate": [1.0, 1.0, 1.0, 1.0],
+        "scale": [[1.2, 1.2], [1.0, 1.0]],
+        "duration": 0.2,
+        "loop": false
+      },
+      "cast": {
+        "modulate": [0.8, 0.8, 1.0, 1.0],
+        "scale": [[1.2, 1.2], [1.0, 1.0]],
+        "rotation": [0.0, 0.2, -0.2, 0.0],
+        "duration": 0.7,
+        "loop": false
+      },
+      "stunned": {
+        "modulate": [0.7, 0.7, 0.7, 1.0],
+        "rotation": [-0.3, 0.3],
+        "duration": 0.4,
+        "loop": true
+      },
+      "death": {
+        "modulate": [0.5, 0.5, 0.5, 0.5],
+        "scale": [[0.8, 0.8]],
+        "rotation": [3.14159],
+        "duration": 1.0,
+        "loop": false
+      }
+    },
+    "states": {
+      "idle": {
+        "modulate": [1.0, 1.0, 1.0, 1.0]
+      },
+      "moving": {
+        "modulate": [0.8, 1.0, 0.8, 1.0]
+      },
+      "attacking": {
+        "modulate": [1.0, 1.0, 1.0, 1.0]
+      },
+      "casting": {
+        "modulate": [0.8, 0.8, 1.0, 1.0]
+      },
+      "stunned": {
+        "modulate": [0.7, 0.7, 0.7, 1.0]
+      },
+      "dead": {
+        "modulate": [0.5, 0.5, 0.5, 0.5]
+      }
+    }
+  },
+  "effect_animations": {
+    "particle_effects": {
+      "hit_particles": {
+        "amount": 10,
+        "lifetime": 0.5,
+        "speed": 50.0,
+        "color": [1.0, 0.5, 0.5, 0.8],
+        "scale": [1.0, 1.0],
+        "texture": "res://assets/images/vfx/particle.png",
+        "emission_shape": 0,
+        "emission_radius": 10.0,
+        "direction": [0, -1],
+        "spread": 45.0,
+        "gravity": [0, 98]
+      },
+      "death_particles": {
+        "amount": 30,
+        "lifetime": 0.8,
+        "speed": 50.0,
+        "color": [0.5, 0.5, 0.5, 0.8],
+        "scale": [1.5, 1.5],
+        "texture": "res://assets/images/vfx/particle.png",
+        "emission_shape": 1,
+        "emission_radius": 20.0,
+        "direction": [0, -1],
+        "spread": 180.0,
+        "gravity": [0, 20]
+      },
+      "magic_particles": {
+        "amount": 20,
+        "lifetime": 0.8,
+        "speed": 30.0,
+        "color": [0.5, 0.8, 1.0, 0.8],
+        "scale": [1.0, 1.0],
+        "texture": "res://assets/images/vfx/magic_particle.png",
+        "emission_shape": 0,
+        "emission_radius": 5.0,
+        "direction": [0, -1],
+        "spread": 360.0,
+        "gravity": [0, -10]
+      }
+    },
+    "sprite_effects": {
+      "attack_effect": {
+        "texture": "res://assets/images/vfx/attack_effect.png",
+        "frames": 5,
+        "frame_duration": 0.1,
+        "scale": [1.5, 1.5],
+        "loop": false
+      },
+      "impact": {
+        "texture": "res://assets/images/vfx/impact.png",
+        "frames": 4,
+        "frame_duration": 0.1,
+        "scale": [1.2, 1.2],
+        "loop": false
+      },
+      "cast_effect": {
+        "texture": "res://assets/images/vfx/cast_effect.png",
+        "frames": 5,
+        "frame_duration": 0.1,
+        "scale": [1.2, 1.2],
+        "loop": false
+      },
+      "spell_effect": {
+        "texture": "res://assets/images/vfx/spell_effect.png",
+        "frames": 8,
+        "frame_duration": 0.1,
+        "scale": [2.0, 2.0],
+        "loop": false
+      },
+      "death_effect": {
+        "texture": "res://assets/images/vfx/death_effect.png",
+        "frames": 8,
+        "frame_duration": 0.125,
+        "scale": [1.5, 1.5],
+        "loop": false
+      }
+    },
+    "combined_effects": {
+      "attack_combo": {
+        "duration": 0.8,
+        "effects": [
+          {
+            "type": "sprite",
+            "name": "attack_effect",
+            "timing": 0.0
+          },
+          {
+            "type": "particle",
+            "name": "hit_particles",
+            "timing": 0.2
+          },
+          {
+            "type": "sound",
+            "name": "attack_impact.ogg",
+            "timing": 0.2
+          }
+        ]
+      },
+      "spell_combo": {
+        "duration": 1.0,
+        "effects": [
+          {
+            "type": "sprite",
+            "name": "cast_effect",
+            "timing": 0.0
+          },
+          {
+            "type": "particle",
+            "name": "magic_particles",
+            "timing": 0.2
+          },
+          {
+            "type": "sprite",
+            "name": "spell_effect",
+            "timing": 0.5
+          },
+          {
+            "type": "sound",
+            "name": "spell_cast.ogg",
+            "timing": 0.0
+          },
+          {
+            "type": "sound",
+            "name": "spell_impact.ogg",
+            "timing": 0.5
+          }
+        ]
+      },
+      "death_combo": {
+        "duration": 1.0,
+        "effects": [
+          {
+            "type": "sprite",
+            "name": "death_effect",
+            "timing": 0.0
+          },
+          {
+            "type": "particle",
+            "name": "death_particles",
+            "timing": 0.0
+          },
+          {
+            "type": "sound",
+            "name": "death.ogg",
+            "timing": 0.0
+          }
+        ]
+      }
+    }
+  }
+}
