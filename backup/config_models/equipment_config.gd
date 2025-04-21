@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name EquipmentConfig
 ## 装备配置模型
 ## 提供装备配置数据的访问和验证

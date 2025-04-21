@@ -221,7 +221,15 @@ func _on_test_hub_button_pressed():
 		return
 
 	_play_button_sound()
-	_transition_to_scene("res://scenes/test/test_hub.tscn")
+
+	# 获取测试管理器
+	var test_manager = GameManager.get_manager(MC.ManagerNames.TEST_MANAGER)
+	if test_manager:
+		# 使用测试管理器打开测试中心
+		test_manager.open_test_hub()
+	else:
+		# 直接切换到测试中心场景
+		_transition_to_scene("res://scenes/test/test_hub.tscn")
 
 # 设置按钮处理
 func _on_settings_button_pressed():

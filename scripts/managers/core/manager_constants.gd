@@ -10,7 +10,7 @@ class ManagerNames:
 	const NETWORK_MANAGER = "NetworkManager"
 	const SYNC_MANAGER = "SyncManager"
 	const STATS_MANAGER = "StatsManager"
-	
+
 	# 游戏管理器
 	const MAP_MANAGER = "MapManager"
 	const PLAYER_MANAGER = "PlayerManager"
@@ -25,7 +25,7 @@ class ManagerNames:
 	const CURSE_MANAGER = "CurseManager"
 	const STORY_MANAGER = "StoryManager"
 	const SYNERGY_MANAGER = "SynergyManager"
-	
+
 	# UI管理器
 	const UI_MANAGER = "UIManager"
 	const THEME_MANAGER = "ThemeManager"
@@ -41,3 +41,4 @@ class ManagerNames:
 	const RELIC_UI_MANAGER = "RelicUIManager"
 	const EFFECT_MANAGER = "EffectManager"
 	const TEST_MANAGER = "TestManager"
+	const UNIFIED_TEST_CONFIG_MANAGER = "UnifiedTestConfigManager"

@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name EventConfig
 ## 事件配置模型
 ## 提供事件配置数据的访问和验证

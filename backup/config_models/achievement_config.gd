@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name AchievementConfig
 ## 成就配置模型
 ## 提供成就配置数据的访问和验证

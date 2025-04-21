@@ -78,6 +78,7 @@ var ability_factory: AbilityFactory = null
 var relic_ui_manager: RelicUiManager = null
 var effect_manager: EffectManager = null
 var test_manager: TestManager = null
+var unified_test_config_manager: UnifiedTestConfigManager = null
 
 # 初始化
 func _ready() -> void:
@@ -197,6 +198,7 @@ func _register_all_managers() -> void:
 	# ChessFactory 已被 ChessManager 替代
 
 	# 注册测试管理器
+	_register_manager("UnifiedTestConfigManager", "res://scripts/test/unified_test_config_manager.gd")
 	_register_manager("TestManager", "res://scripts/managers/test/test_manager.gd")
 
 ## 注册单个管理器
@@ -258,6 +260,7 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"RelicUIManager": relic_ui_manager = manager_instance
 		"EffectManager": effect_manager = manager_instance
 		"TestManager": test_manager = manager_instance
+		"UnifiedTestConfigManager": unified_test_config_manager = manager_instance
 
 ## 改变游戏状态
 func change_state(new_state: int) -> void:
@@ -347,6 +350,9 @@ func _initialize_all_managers() -> void:
 	_initialize_manager(MC.ManagerNames.ABILITY_FACTORY)
 	_initialize_manager(MC.ManagerNames.RELIC_UI_MANAGER)
 	_initialize_manager(MC.ManagerNames.EFFECT_MANAGER)
+
+	# 4. 初始化测试管理器
+	_initialize_manager(MC.ManagerNames.UNIFIED_TEST_CONFIG_MANAGER)
 	_initialize_manager(MC.ManagerNames.TEST_MANAGER)
 
 ## 初始化单个管理器
@@ -377,8 +383,11 @@ func _initialize_manager(manager_name: String) -> bool:
 ## 重置所有管理器
 func _reset_all_managers() -> void:
 	# 按照与初始化相反的顺序重置管理器
-	# 1. 先重置UI管理器
+	# 1. 先重置测试管理器
 	_reset_manager(MC.ManagerNames.TEST_MANAGER)
+	_reset_manager(MC.ManagerNames.UNIFIED_TEST_CONFIG_MANAGER)
+
+	# 2. 然后重置UI管理器
 	_reset_manager(MC.ManagerNames.EFFECT_MANAGER)
 	_reset_manager(MC.ManagerNames.RELIC_UI_MANAGER)
 	_reset_manager(MC.ManagerNames.ABILITY_FACTORY)

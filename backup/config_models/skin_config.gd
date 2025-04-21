@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name SkinConfig
 ## 皮肤配置模型
 ## 提供皮肤配置数据的访问和验证

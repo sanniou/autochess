@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name ChessPieceConfig
 ## 棋子配置模型
 ## 提供棋子配置数据的访问和验证

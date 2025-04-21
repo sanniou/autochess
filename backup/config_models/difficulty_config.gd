@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name DifficultyConfig
 ## 难度配置模型
 ## 提供难度配置数据的访问和验证

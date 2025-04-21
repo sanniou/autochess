@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name TutorialConfig
 ## 教程配置模型
 ## 提供教程配置数据的访问和验证

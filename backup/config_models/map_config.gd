@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name MapConfig
 ## 地图配置模型
 ## 提供地图配置数据的访问和验证

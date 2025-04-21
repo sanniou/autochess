@@ -22,7 +22,10 @@ var test_results: Dictionary = {}
 var current_test: String = ""
 
 # 测试运行器
-var test_runner: TestRunner = null
+var test_runner: UnifiedTestRunner = null
+
+# 测试发现器
+var test_discoverer: TestDiscoverer = null
 
 # 重写初始化方法
 func _do_initialize() -> void:
@@ -30,7 +33,7 @@ func _do_initialize() -> void:
 	manager_name = "TestManager"
 
 	# 创建测试运行器
-	test_runner = TestRunner.new()
+	test_runner = UnifiedTestRunner.new()
 	add_child(test_runner)
 
 	# 连接信号
@@ -38,8 +41,12 @@ func _do_initialize() -> void:
 	test_runner.tests_completed.connect(_on_tests_completed)
 	test_runner.test_progress.connect(_on_test_progress)
 
-	# 注册测试模块
-	_register_test_modules()
+	# 创建测试发现器
+	test_discoverer = TestDiscoverer.new()
+	add_child(test_discoverer)
+
+	# 发现测试
+	test_modules = test_discoverer.discover_all_tests()
 
 	_log_info("测试管理器初始化完成")
 
@@ -73,6 +80,11 @@ func _do_cleanup() -> void:
 	if test_runner:
 		test_runner.queue_free()
 		test_runner = null
+
+	# 释放测试发现器
+	if test_discoverer:
+		test_discoverer.queue_free()
+		test_discoverer = null
 
 	_log_info("测试管理器已清理")
 
@@ -506,3 +518,9 @@ func _on_tests_completed(results: Dictionary) -> void:
 func _on_test_progress(current: int, total: int) -> void:
 	# 转发信号
 	test_progress.emit(current, total)
+
+## 重新发现测试
+func rediscover_tests() -> void:
+	# 发现测试
+	if test_discoverer:
+		test_modules = test_discoverer.discover_all_tests()

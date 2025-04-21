@@ -1,4 +1,4 @@
-extends ConfigModel
+extends "res://scripts/config/config_model.gd"
 class_name RelicConfig
 ## 遗物配置模型
 ## 提供遗物配置数据的访问和验证
