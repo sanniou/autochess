@@ -3,20 +3,30 @@ class_name MapManager
 ## 地图管理器
 ## 管理地图生成、节点选择和地图进度
 
-# 信号
+# 地图信号
+signal map_loaded(map_data)
+signal map_cleared
 signal node_selected(node_data)
-signal map_completed
+signal node_visited(node_data)
+signal node_hovered(node_data)
+signal node_unhovered(node_data)
+signal map_completed(map_data)
 
-# 地图数据
-var map_data: MapData
-var nodes: Dictionary = {}  # 节点ID到MapNode对象的映射
-var current_layer: int = 0
+# 地图组件
+var map_controller: MapController
+var map_config: MapConfig = MapConfig.new()
+
+# 当前地图状态
+var current_map: MapData = null
 var current_node: MapNode = null
-var selectable_nodes: Array = []
-var completed: bool = false
+var visited_nodes = {}
+var available_nodes = {}
 
 # 地图生成器
-var map_generator: MapGenerator
+var map_generator: ProceduralMapGenerator
+
+# 地图渲染器场景
+const MAP_RENDERER_SCENE = preload("res://scenes/game/map/map_renderer_2d.tscn")
 
 # 难度相关
 var difficulty_level: int = 1
@@ -26,20 +36,47 @@ var map_template: String = "standard"
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "MapManager"
+	# 添加依赖
+	add_dependency("ConfigManager")
 
-	# 原 _ready 函数的内容
+	# 创建地图渲染器
+	var map_renderer = MAP_RENDERER_SCENE.instantiate()
+	add_child(map_renderer)
+
+	# 创建地图控制器
+	map_controller = MapController.new()
+	map_controller.renderer = map_renderer
+	add_child(map_controller)
+
 	# 创建地图生成器
-	map_generator = MapGenerator.new()
+	map_generator = ProceduralMapGenerator.new()
+	map_controller.generator = map_generator
 	add_child(map_generator)
+
 	# 连接信号
-	map_generator.map_generated.connect(_on_map_generated)
+	map_controller.map_loaded.connect(_on_map_loaded)
+	map_controller.map_cleared.connect(_on_map_cleared)
+	map_controller.node_selected.connect(_on_node_selected)
+	map_controller.node_visited.connect(_on_node_visited)
+	map_controller.node_hovered.connect(_on_node_hovered)
+	map_controller.node_unhovered.connect(_on_node_unhovered)
+
+	# 连接事件总线信号
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
 	EventBus.event.connect_event("event_completed", _on_event_completed)
 	EventBus.economy.connect_event("shop_closed", _on_shop_exited)
 
+	# 加载地图配置
+	_load_map_config()
+
 	_log_info("地图管理器初始化完成")
 
-	## 初始化地图
+## 加载地图配置
+func _load_map_config() -> void:
+	# 使用ConfigManager加载配置
+	map_config.initialize(ConfigManager)
+
+## 初始化地图
 func initialize_map(template: String = "standard", difficulty: int = 1, seed_value: int = -1) -> void:
 	# 设置难度和模板
 	difficulty_level = difficulty
@@ -52,95 +89,143 @@ func initialize_map(template: String = "standard", difficulty: int = 1, seed_val
 		map_template = "easy"
 
 	# 生成地图
-	map_data = map_generator.generate_map(map_template, seed_value)
+	var map_data = map_generator.generate_map(map_template, seed_value)
 
-	# 初始化节点
-	_initialize_nodes()
+	if map_data:
+		# 加载生成的地图
+		load_map(map_data)
+	else:
+		_log_error("生成地图失败")
 
-	# 设置初始节点
-	current_layer = 0
-	current_node = _get_node_by_id(map_data.nodes[0][0].id)
-	current_node.mark_as_visited()
+## 加载地图
+func load_map(map_data: MapData) -> void:
+	# 清除当前地图
+	clear_map()
 
-	# 更新可选节点
-	_update_selectable_nodes()
+	# 设置当前地图
+	current_map = map_data
 
-	# 发送地图初始化信号
-	#map_initialized.emit(map_data)
+	# 重置状态
+	visited_nodes = {}
+	available_nodes = {}
 
-## 初始化节点
-func _initialize_nodes() -> void:
-	nodes.clear()
+	# 找到起始节点
+	var start_nodes = current_map.get_nodes_by_type("start")
+	if not start_nodes.is_empty():
+		current_node = start_nodes[0]
+		visited_nodes[current_node.id] = true
 
-	# 创建所有节点
-	for layer_nodes in map_data.nodes:
-		for node_data in layer_nodes:
-			var node = MapNode.new()
-			node.initialize(node_data,'',0,0)
-			nodes[node.id] = node
+		# 更新可用节点
+		_update_available_nodes()
 
-	# 设置节点连接
-	for layer_idx in range(map_data.connections.size()):
-		var layer_connections = map_data.connections[layer_idx]
+	# 使用控制器加载地图
+	map_controller.load_map_data(current_map)
 
-		for connection in layer_connections:
-			var from_node = nodes[connection.from]
+	# 发送信号
+	map_loaded.emit(current_map)
 
-			for to_node_id in connection.to:
-				from_node.add_connection_to(to_node_id)
-				var to_node = nodes[to_node_id]
-				to_node.add_connection_from(connection.from)
+## 加载地图文件
+func load_map_file(file_path: String) -> void:
+	map_controller.load_map_file(file_path)
+
+## 保存地图文件
+func save_map_file(file_path: String) -> void:
+	map_controller.save_map_file(file_path)
+
+## 清除地图
+func clear_map() -> void:
+	# 清除状态
+	current_map = null
+	current_node = null
+	visited_nodes = {}
+	available_nodes = {}
+
+	# 使用控制器清除地图
+	map_controller.clear_map()
+
+	# 发送信号
+	map_cleared.emit()
 
 ## 选择节点
 func select_node(node_id: String) -> bool:
-	# 检查是否是可选节点
-	var is_selectable = false
-	for node in selectable_nodes:
-		if node.id == node_id:
-			is_selectable = true
-			break
-
-	if not is_selectable:
+	if not current_map:
 		return false
 
+	var node = current_map.get_node_by_id(node_id)
+	if not node:
+		return false
+
+	# 检查节点是否可用
+	if not available_nodes.has(node_id):
+		return false
+
+	# 使用控制器选择节点
+	map_controller.select_node(node_id)
+
 	# 更新当前节点
-	var selected_node = nodes[node_id]
-	current_node = selected_node
-	current_layer = selected_node.layer
-	selected_node.mark_as_visited()
-
-	# 更新可选节点
-	_update_selectable_nodes()
-
-	# 检查是否完成地图
-	if current_layer == map_data.layers - 1:
-		completed = true
-		map_completed.emit()
-
-	# 发送节点选择信号
-	node_selected.emit(selected_node.get_data())
-	EventBus.map.emit_event("map_node_selected", [selected_node.get_data()])
+	current_node = node
 
 	# 触发节点事件
-	_trigger_node_event(selected_node)
+	_trigger_node_event(node)
 
 	return true
 
-## 更新可选节点
-func _update_selectable_nodes() -> void:
-	selectable_nodes.clear()
+## 访问节点
+func visit_node(node_id: String) -> bool:
+	if not current_map:
+		return false
 
-	if current_layer >= map_data.layers - 1 or completed:
+	var node = current_map.get_node_by_id(node_id)
+	if not node:
+		return false
+
+	# 检查节点是否可用
+	if not available_nodes.has(node_id):
+		return false
+
+	# 更新当前节点
+	current_node = node
+
+	# 标记为已访问
+	visited_nodes[node_id] = true
+	node.visited = true
+
+	# 更新可用节点
+	_update_available_nodes()
+
+	# 使用控制器访问节点
+	map_controller.visit_node(node_id)
+
+	# 检查地图是否完成
+	if _is_map_completed():
+		map_completed.emit(current_map)
+
+	return true
+
+## 更新可用节点
+func _update_available_nodes() -> void:
+	if not current_map or not current_node:
 		return
 
-	# 查找当前节点的连接
-	for node_id in current_node.connections_to:
-		var node = nodes[node_id]
-		selectable_nodes.append(node)
+	# 清除当前可用节点
+	available_nodes = {}
 
-## 获取所有节点
-func get_all_nodes() -> Dictionary:
-	return nodes
+	# 获取当前节点可到达的节点
+	var reachable_nodes = current_map.get_reachable_nodes(current_node.id)
+
+	# 添加到可用节点
+	for node in reachable_nodes:
+		available_nodes[node.id] = true
+
+## 检查地图是否完成
+func _is_map_completed() -> bool:
+	if not current_map or not current_node:
+		return false
+
+	# 检查当前节点是否是出口节点
+	return current_node.get_property("is_exit", false)
+
+
 
 ## 触发节点事件
 func _trigger_node_event(node: MapNode) -> void:
@@ -311,62 +396,48 @@ func _process_rewards(rewards: Dictionary) -> void:
 				if not relic_id.is_empty():
 					relic_manager.acquire_relic(relic_id)
 
-## 获取节点通过ID
-func _get_node_by_id(node_id: String) -> MapNode:
-	if nodes.has(node_id):
-		return nodes[node_id]
-	return null
 
-## 获取当前地图数据
-func get_map_data() -> MapData:
-	return map_data
 
-## 获取当前节点
-func get_current_node() -> MapNode:
-	return current_node
 
-## 获取可选节点
-func get_selectable_nodes() -> Array:
-	return selectable_nodes
 
 
 
 ## 获取地图完成状态
 func is_map_completed() -> bool:
-	return completed
+	return _is_map_completed()
 
 ## 获取两个节点之间的路径
 func get_path_between_nodes(from_node_id: String, to_node_id: String) -> Array:
-	# 如果节点不存在，返回空数组
-	if not nodes.has(from_node_id) or not nodes.has(to_node_id):
+	if not current_map:
 		return []
 
 	# 获取节点
-	var from_node = nodes[from_node_id]
-	var to_node = nodes[to_node_id]
+	var from_node = current_map.get_node_by_id(from_node_id)
+	var to_node = current_map.get_node_by_id(to_node_id)
 
-	# 如果节点层级不相邻，返回空数组
-	if to_node.layer != from_node.layer + 1:
+	if not from_node or not to_node:
 		return []
 
-	# 检查直接连接
-	if from_node.connections_to.has(to_node_id):
-		return [from_node_id, to_node_id]
+	# 获取从起始节点可达的节点
+	var reachable_nodes = current_map.get_reachable_nodes(from_node_id)
+
+	# 检查目标节点是否可达
+	for node in reachable_nodes:
+		if node.id == to_node_id:
+			return [from_node_id, to_node_id]
 
 	# 如果没有直接连接，返回空数组
 	return []
 
 ## 获取到目标节点的最佳路径
 func get_best_path_to_node(target_node_id: String) -> Array:
-	# 如果没有当前节点或目标节点不存在，返回空数组
-	if not current_node or not nodes.has(target_node_id):
+	# 如果没有当前节点或当前地图，返回空数组
+	if not current_node or not current_map:
 		return []
 
 	# 获取目标节点
-	var target_node = nodes[target_node_id]
-
-	# 如果目标节点层级不在地图的最后一层，返回空数组
-	if target_node.layer != map_data.layers - 1:
+	var target_node = current_map.get_node_by_id(target_node_id)
+	if not target_node:
 		return []
 
 	# 使用广度优先搜索找到目标节点的路径
@@ -374,6 +445,9 @@ func get_best_path_to_node(target_node_id: String) -> Array:
 
 ## 使用广度优先搜索找到目标节点的路径
 func _find_path_bfs(start_node_id: String, target_node_id: String) -> Array:
+	if not current_map:
+		return []
+
 	# 初始化队列和访问记录
 	var queue = []
 	var visited = {}
@@ -392,14 +466,19 @@ func _find_path_bfs(start_node_id: String, target_node_id: String) -> Array:
 			return _reconstruct_path(parent, start_node_id, target_node_id)
 
 		# 获取当前节点
-		var current_node = nodes[current_id]
+		var current_node = current_map.get_node_by_id(current_id)
+		if not current_node:
+			continue
 
-		# 遍历所有连接
-		for next_id in current_node.connections_to:
-			if not visited.has(next_id):
-				queue.push_back(next_id)
-				visited[next_id] = true
-				parent[next_id] = current_id
+		# 获取可达节点
+		var reachable_nodes = current_map.get_reachable_nodes(current_id)
+
+		# 遍历所有可达节点
+		for next_node in reachable_nodes:
+			if not visited.has(next_node.id):
+				queue.push_back(next_node.id)
+				visited[next_node.id] = true
+				parent[next_node.id] = current_id
 
 	# 如果没有找到路径，返回空数组
 	return []
@@ -415,6 +494,30 @@ func _reconstruct_path(parent: Dictionary, start_node_id: String, target_node_id
 
 	return path
 
+## 地图加载事件处理
+func _on_map_loaded(map_data: MapData) -> void:
+	map_loaded.emit(map_data)
+
+## 地图清除事件处理
+func _on_map_cleared() -> void:
+	map_cleared.emit()
+
+## 节点选择事件处理
+func _on_node_selected(node: MapNode) -> void:
+	node_selected.emit(node)
+
+## 节点访问事件处理
+func _on_node_visited(node: MapNode) -> void:
+	node_visited.emit(node)
+
+## 节点悬停事件处理
+func _on_node_hovered(node: MapNode) -> void:
+	node_hovered.emit(node)
+
+## 节点取消悬停事件处理
+func _on_node_unhovered(node: MapNode) -> void:
+	node_unhovered.emit(node)
+
 ## 战斗结束事件处理
 func _on_battle_ended(result: Dictionary) -> void:
 	# 如果战斗失败，不处理奖励
@@ -426,7 +529,7 @@ func _on_battle_ended(result: Dictionary) -> void:
 		_process_rewards(result.rewards)
 
 ## 事件完成事件处理
-func _on_event_completed(event, result: Dictionary) -> void:
+func _on_event_completed(_event, result: Dictionary) -> void:
 	# 处理事件奖励
 	if result.has("rewards"):
 		_process_rewards(result.rewards)
@@ -436,19 +539,17 @@ func _on_shop_exited() -> void:
 	# 商店退出后的处理
 	pass
 
-## 地图生成事件处理
-func _on_map_generated(data: MapData) -> void:
-	map_data = data
-
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
-			EventBus.event.disconnect_event("event_completed", _on_event_completed)
-			EventBus.economy.disconnect_event("shop_closed", _on_shop_exited)
+	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+	EventBus.event.disconnect_event("event_completed", _on_event_completed)
+	EventBus.economy.disconnect_event("shop_closed", _on_shop_exited)
+
+	# 清理地图控制器
+	if map_controller:
+		map_controller.queue_free()
+		map_controller = null
 
 	# 清理地图生成器
 	if map_generator:
@@ -456,26 +557,39 @@ func _do_cleanup() -> void:
 		map_generator = null
 
 	# 清理地图数据
-	map_data.clear()
-	nodes.clear()
-	selectable_nodes.clear()
+	current_map = null
 	current_node = null
-	current_layer = 0
-	completed = false
+	visited_nodes = {}
+	available_nodes = {}
 
 	_log_info("地图管理器清理完成")
 
 # 重写重置方法
 func _do_reset() -> void:
 	# 清理地图数据
-	map_data.clear()
-	nodes.clear()
-	selectable_nodes.clear()
+	current_map = null
 	current_node = null
-	current_layer = 0
-	completed = false
+	visited_nodes = {}
+	available_nodes = {}
 
 	_log_info("地图管理器重置完成")
+
+## 获取当前地图数据
+func get_current_map() -> MapData:
+	return current_map
+
+## 获取当前节点
+func get_current_node() -> MapNode:
+	return current_node
+
+## 获取可选节点
+func get_selectable_nodes() -> Array:
+	var nodes_array = []
+	for node_id in available_nodes:
+		var node = current_map.get_node_by_id(node_id)
+		if node:
+			nodes_array.append(node)
+	return nodes_array
 
 ## 触发神秘节点
 func _trigger_mystery_node(node: MapNode) -> void:
@@ -485,13 +599,7 @@ func _trigger_mystery_node(node: MapNode) -> void:
 
 	# 创建一个新的节点数据
 	var mystery_node = MapNode.new()
-	mystery_node.initialize(
-		node.id,
-		random_type,
-		 node.layer,
-		 node.position,
-		#"visited": true
-	)
+	mystery_node.initialize(node.id, random_type, node.layer, node.position)
 
 	# 根据随机类型设置额外属性
 	match random_type:

@@ -290,7 +290,9 @@ func _create_magic_attack_animation(animation_data: Dictionary) -> void:
 		tween.tween_property(attacker, "scale", original_scale, params.duration * 0.3).set_delay(params.duration * 0.3)
 
 	# 使用EffectAnimator创建施法特效
-	var effect_animator = get_node_or_null("/root/GameManager/EffectAnimator")
+	var effect_animator = null
+	if battle_manager and battle_manager is AnimationManager:
+		effect_animator = battle_manager.get_effect_animator()
 	if effect_animator:
 		# 创建施法特效
 		var cast_effect_id = effect_animator.play_sprite_effect(
@@ -608,7 +610,9 @@ func play_death_animation(target, params: Dictionary = {}) -> String:
 	# 添加死亡特效
 	if params.effect_name != "":
 		# 获取特效管理器
-		var effect_animator = get_node_or_null("/root/GameManager/EffectAnimator")
+		var effect_animator = null
+		if battle_manager and battle_manager is AnimationManager:
+			effect_animator = battle_manager.get_effect_animator()
 		if effect_animator:
 			# 播放特效
 			var effect_id = effect_animator.play_combined_effect(
@@ -775,7 +779,9 @@ func play_movement_animation(piece, start_pos: Vector2, end_pos: Vector2, params
 	# 添加移动特效
 	if params.effect_name != "":
 		# 获取特效管理器
-		var effect_animator = get_node_or_null("/root/GameManager/EffectAnimator")
+		var effect_animator = null
+		if battle_manager and battle_manager is AnimationManager:
+			effect_animator = battle_manager.get_effect_animator()
 		if effect_animator:
 			# 播放特效
 			var effect_id = effect_animator.play_combined_effect(
@@ -935,7 +941,9 @@ func play_effect_animation(position: Vector2, effect_name: String, params: Dicti
 		return ""
 
 	# 获取特效管理器
-	var effect_animator = get_node_or_null("/root/GameManager/EffectAnimator")
+	var effect_animator = null
+	if battle_manager and battle_manager is AnimationManager:
+		effect_animator = battle_manager.get_effect_animator()
 	if effect_animator:
 		# 播放特效
 		var effect_id = effect_animator.play_combined_effect(

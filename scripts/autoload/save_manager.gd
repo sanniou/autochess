@@ -274,31 +274,50 @@ func _get_map_save_data() -> Dictionary:
 	# 从地图管理器获取数据
 	var map_manager = get_node_or_null("/root/GameManager/MapManager")
 	if map_manager:
-		var map_data = map_manager.get_map_data()
+		var map_data = map_manager.get_current_map()
 		if map_data:
 			var nodes_data = []
 
-			# 遍历所有节点层
-			for layer in map_data.nodes:
-				var layer_nodes = []
+			# 遍历所有节点
+			for node in map_data.nodes:
+				# 获取节点数据
+				if node is MapNode:
+					nodes_data.append({
+						"id": node.id,
+						"type": node.type,
+						"layer": node.layer,
+						"position": node.position,
+						"visited": node.visited,
+						"properties": node.properties.duplicate(),
+						"rewards": node.rewards.duplicate()
+					})
 
-				# 遍历层中的所有节点
-				for node in layer:
-					# 获取节点数据
-					if typeof(node) == TYPE_OBJECT and node.has_method("get_data"):
-						layer_nodes.append(node.get_data())
-					else:
-						layer_nodes.append(node)
+			# 获取连接数据
+			var connections_data = []
+			for connection in map_data.connections:
+				if connection is MapConnection:
+					connections_data.append({
+						"id": connection.id,
+						"from_node_id": connection.from_node_id,
+						"to_node_id": connection.to_node_id,
+						"traversable": connection.traversable,
+						"properties": connection.properties.duplicate()
+					})
 
-				nodes_data.append(layer_nodes)
+			# 获取当前节点和已访问节点
+			var current_node_id = ""
+			if map_manager.current_node:
+				current_node_id = map_manager.current_node.id
 
 			return {
-				"seed": map_data.get("seed", 0),
+				"seed": map_data.seed_value,
 				"nodes": nodes_data,
-				"current_node": map_manager.get_current_node_id(),
-				"visited_nodes": map_manager.get_visited_nodes(),
-				"progress": map_manager.get_map_progress(),
-				"template_id": map_data.get("id", "standard")
+				"connections": connections_data,
+				"current_node": current_node_id,
+				"visited_nodes": map_manager.visited_nodes.keys(),
+				"template_id": map_data.template_id,
+				"layers": map_data.layers,
+				"difficulty": map_data.difficulty
 			}
 
 	# 如果无法获取地图数据，返回默认数据
@@ -487,7 +506,46 @@ func _apply_map_save_data(data: Dictionary) -> void:
 	var map_manager = get_node_or_null("/root/GameManager/MapManager")
 	if map_manager and not data.is_empty():
 		# 设置地图数据
-		map_manager.load_map_data(data)
+		# 首先创建一个MapData对象
+		var map_data = MapData.new()
+
+		# 设置基本信息
+		map_data.id = data.get("id", "")
+		map_data.name = data.get("name", "")
+		map_data.description = data.get("description", "")
+		map_data.difficulty = data.get("difficulty", 1)
+		map_data.seed_value = data.get("seed", 0)
+		map_data.template_id = data.get("template_id", "standard")
+		map_data.layers = data.get("layers", 0)
+
+		# 创建节点
+		for node_data in data.get("nodes", []):
+			var node = MapNode.new()
+			node.initialize(
+				node_data.get("id", ""),
+				node_data.get("type", ""),
+				node_data.get("layer", 0),
+				node_data.get("position", 0)
+			)
+			node.visited = node_data.get("visited", false)
+			node.properties = node_data.get("properties", {}).duplicate()
+			node.rewards = node_data.get("rewards", {}).duplicate()
+			map_data.add_node(node)
+
+		# 创建连接
+		for connection_data in data.get("connections", []):
+			var connection = MapConnection.new()
+			connection.initialize(
+				connection_data.get("id", ""),
+				connection_data.get("from_node_id", ""),
+				connection_data.get("to_node_id", "")
+			)
+			connection.traversable = connection_data.get("traversable", true)
+			connection.properties = connection_data.get("properties", {}).duplicate()
+			map_data.add_connection(connection)
+
+		# 加载地图
+		map_manager.load_map(map_data)
 		EventBus.debug.emit_event("debug_message", ["应用地图存档数据成功", 0])
 	else:
 		EventBus.debug.emit_event("debug_message", ["无法应用地图存档数据", 1])

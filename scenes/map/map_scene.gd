@@ -19,7 +19,7 @@ func _ready():
 	map_manager = GameManager.map_manager
 
 	# 连接信号
-	map_manager.map_initialized.connect(_on_map_initialized)
+	map_manager.map_loaded.connect(_on_map_loaded)
 	map_manager.node_selected.connect(_on_map_node_selected)
 	map_manager.map_completed.connect(_on_map_completed)
 
@@ -45,8 +45,8 @@ func _update_player_info() -> void:
 	$PlayerInfo/GoldLabel.text = LocalizationManager.tr("ui.player.gold").format({"amount": str(player.gold)})
 	$PlayerInfo/LevelLabel.text = LocalizationManager.tr("ui.player.level").format({"level": str(player.level)})
 
-## 地图初始化处理
-func _on_map_initialized(map_data: Dictionary) -> void:
+## 地图加载处理
+func _on_map_loaded(map_data: MapData) -> void:
 	# 清除现有地图
 	for child in $MapContainer.get_children():
 		child.queue_free()
@@ -69,7 +69,7 @@ func _on_map_initialized(map_data: Dictionary) -> void:
 
 
 ## 创建地图节点
-func _create_map_nodes(map_data: Dictionary) -> void:
+func _create_map_nodes(map_data: MapData) -> void:
 	# 计算节点位置
 	var map_width = $MapContainer.size.x
 	var map_height = $MapContainer.size.y
@@ -102,7 +102,7 @@ func _create_map_nodes(map_data: Dictionary) -> void:
 	_update_node_states()
 
 ## 创建地图连接线
-func _create_map_connections(map_data: Dictionary) -> void:
+func _create_map_connections(map_data: MapData) -> void:
 	# 清除现有连接线
 	for child in $ConnectionsContainer.get_children():
 		child.queue_free()
@@ -174,6 +174,10 @@ func _update_node_states() -> void:
 	# 获取当前节点和可选节点
 	var current_node = map_manager.get_current_node()
 	var selectable_nodes = map_manager.get_selectable_nodes()
+	var current_map = map_manager.get_current_map()
+
+	if not current_map:
+		return
 
 	# 更新所有节点状态
 	for node_id in node_instances.keys():
@@ -189,7 +193,7 @@ func _update_node_states() -> void:
 
 		# 检查是否已访问
 		var is_visited = false
-		var node = map_manager.get_all_nodes().get(node_id)
+		var node = current_map.get_node_by_id(node_id)
 		if node:
 			is_visited = node.visited
 
@@ -209,7 +213,7 @@ func _on_node_selected(node_data) -> void:
 		_update_node_states()
 
 		# 如果是最后一层的Boss节点，显示从当前节点到Boss的最佳路径
-		if node_data.type == "boss" and node_data.layer == map_manager.get_map_data().layers - 1:
+		if node_data.type == "boss" and node_data.layer == map_manager.get_current_map().layers - 1:
 			_show_best_path_to_boss()
 
 ## 地图节点选择处理
@@ -394,13 +398,14 @@ func _show_best_path_to_boss() -> void:
 
 	# 查找Boss节点
 	var boss_node = null
-	var all_nodes = map_manager.get_all_nodes()
+	var current_map = map_manager.get_current_map()
+	if not current_map:
+		return
 
-	for node_id in all_nodes.keys():
-		var node = all_nodes[node_id]
-		if node.type == "boss" and node.layer == map_manager.get_map_data().layers - 1:
-			boss_node = node
-			break
+	# 获取Boss节点
+	var boss_nodes = current_map.get_nodes_by_type("boss")
+	if not boss_nodes.is_empty():
+		boss_node = boss_nodes[0]
 
 	if not boss_node:
 		return
@@ -442,8 +447,12 @@ func _update_connection_states(current_node) -> void:
 		var to_node_id = connection.get_meta("to_node")
 
 		# 获取节点
-		var from_node = map_manager.get_all_nodes().get(from_node_id)
-		var to_node = map_manager.get_all_nodes().get(to_node_id)
+		var current_map = map_manager.get_current_map()
+		if not current_map:
+			continue
+
+		var from_node = current_map.get_node_by_id(from_node_id)
+		var to_node = current_map.get_node_by_id(to_node_id)
 
 		if from_node == null or to_node == null:
 			continue
