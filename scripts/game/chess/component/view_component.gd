@@ -430,7 +430,7 @@ func _remove_from_lod_system(effect: Node) -> void:
 # 获取LOD系统
 func _get_lod_system() -> AnimationLODSystem:
 	# 尝试从动画管理器获取LOD系统
-	var animation_manager = get_node_or_null("/root/AnimationManager")
+	var animation_manager = GameManager.animation_manager
 	if animation_manager and animation_manager.has_node("AnimationLODSystem"):
 		return animation_manager.get_node("AnimationLODSystem")
 

@@ -16,11 +16,11 @@ var components_by_type: Dictionary = {}  # 按类型组织的组件字典 {组�
 var update_order: Array = []  # 更新顺序
 
 # 所有者
-var owner = null
+var component_owner = null
 
 # 初始化
 func _init(p_owner = null):
-	owner = p_owner
+	component_owner = p_owner
 
 # 添加组件
 func add_component(component: Component) -> Component:

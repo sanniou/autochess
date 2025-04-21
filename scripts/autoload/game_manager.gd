@@ -61,11 +61,13 @@ var curse_manager: CurseManager = null
 var story_manager: StoryManager = null
 var synergy_manager: SynergyManager = null
 
+var ui_throttle_manager = null
 var ui_manager: UIManager = null
 # scene_manager 现在是 Autoload 节点
 var theme_manager: ThemeManager = null
 var hud_manager: HUDManager = null
 
+var animation_manager: AnimationManager = null
 var ui_animator: UIAnimator = null
 var notification_system: NotificationSystem = null
 var tooltip_system: TooltipSystem = null
@@ -76,7 +78,7 @@ var achievement_manager: AchievementManager = null
 var tutorial_manager: TutorialManager = null
 var ability_factory: AbilityFactory = null
 var relic_ui_manager: RelicUiManager = null
-var effect_manager: EffectManager = null
+var effect_manager: EffectManager = null  # 特效管理器，负责协调逻辑效果和视觉效果
 var test_manager: TestManager = null
 var unified_test_config_manager: UnifiedTestConfigManager = null
 
@@ -159,6 +161,7 @@ func _register_all_managers() -> void:
 
 	# 注册核心管理器
 	# SceneManager 现在是 Autoload 节点
+	_register_manager("UIThrottleManager", "res://scripts/managers/ui/ui_throttle_manager.gd")
 	_register_manager("UIManager", "res://scripts/ui/ui_manager.gd")
 	_register_manager("ThemeManager", "res://scripts/managers/ui/theme_manager.gd")
 	_register_manager("HUDManager", "res://scripts/managers/ui/hud_manager.gd")
@@ -243,12 +246,14 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"StoryManager": story_manager = manager_instance
 		"SynergyManager": synergy_manager = manager_instance
 
+		"UIThrottleManager": ui_throttle_manager = manager_instance
 		"UIManager": ui_manager = manager_instance
 		# "SceneManager": 现在是 Autoload 节点
 		"ThemeManager": theme_manager = manager_instance
 		"HUDManager": hud_manager = manager_instance
 
 		"UIAnimator": ui_animator = manager_instance
+		"AnimationManager": animation_manager = manager_instance
 		"NotificationSystem": notification_system = manager_instance
 		"TooltipSystem": tooltip_system = manager_instance
 		"SkinManager": skin_manager = manager_instance
@@ -337,6 +342,7 @@ func _initialize_all_managers() -> void:
 	_initialize_manager(MC.ManagerNames.SYNERGY_MANAGER)
 
 	# 3. 最后初始化UI管理器
+	_initialize_manager("UIThrottleManager")
 	_initialize_manager(MC.ManagerNames.UI_MANAGER)
 	_initialize_manager(MC.ManagerNames.THEME_MANAGER)
 	_initialize_manager(MC.ManagerNames.HUD_MANAGER)
@@ -401,6 +407,7 @@ func _reset_all_managers() -> void:
 	_reset_manager(MC.ManagerNames.HUD_MANAGER)
 	_reset_manager(MC.ManagerNames.THEME_MANAGER)
 	_reset_manager(MC.ManagerNames.UI_MANAGER)
+	_reset_manager("UIThrottleManager")
 
 	# 2. 然后重置游戏管理器
 	_reset_manager(MC.ManagerNames.SYNERGY_MANAGER)

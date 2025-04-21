@@ -44,7 +44,10 @@ func _do_initialize() -> void:
 	_load_chess_configs()
 
 	# 预热对象池
-	chess_factory.warm_pool(10)
+	chess_factory.warm_pool(20)  # 增加预热数量
+
+	# 添加对象池监控
+	_setup_pool_monitoring()
 
 	_log_info("棋子管理器初始化完成")
 
@@ -272,6 +275,10 @@ func _on_game_state_changed(_old_state: int, new_state: int) -> void:
 func _log_warning(warning_message: String) -> void:
 	EventBus.debug.emit_event("debug_message", [warning_message, 1])
 
+# 记录信息
+func _log_info(info_message: String) -> void:
+	EventBus.debug.emit_event("debug_message", [info_message, 0])
+
 # 重写重置方法
 func _do_reset() -> void:
 	# 清空缓存
@@ -285,7 +292,7 @@ func _do_reset() -> void:
 	# 重置棋子工厂
 	if chess_factory:
 		chess_factory.clear_pool()
-		chess_factory.warm_pool(10)
+		chess_factory.warm_pool(20)  # 增加预热数量
 
 	_log_info("棋子管理器重置完成")
 
@@ -299,6 +306,12 @@ func _do_cleanup() -> void:
 
 	_chess_cache.clear()
 	_shop_inventory.clear()
+
+	# 停止对象池监控
+	var timer = get_node_or_null("PoolMonitorTimer")
+	if timer:
+		timer.stop()
+		timer.queue_free()
 
 	# 清理棋子工厂
 	if chess_factory:
@@ -333,4 +346,38 @@ func get_chess_configs_by_tier(tier: int) -> Array:
 
 	return result
 
+# 设置对象池监控
+func _setup_pool_monitoring() -> void:
+	# 创建定时器
+	var timer = Timer.new()
+	timer.name = "PoolMonitorTimer"
+	timer.wait_time = 10.0  # 10秒检查一次
+	timer.autostart = true
+	timer.timeout.connect(_on_pool_monitor_timeout)
+	add_child(timer)
 
+# 对象池监控定时器回调
+func _on_pool_monitor_timeout() -> void:
+	# 检查对象池是否存在
+	if not ObjectPool._pools.has(chess_factory.CHESS_POOL_NAME):
+		return
+
+	# 获取对象池统计信息
+	var stats = ObjectPool.get_pool_stats(chess_factory.CHESS_POOL_NAME)
+
+	# 记录对象池状态
+	var usage_rate = stats.usage_rate * 100
+	var active_count = stats.active
+	var total_count = ObjectPool._pools[chess_factory.CHESS_POOL_NAME].size()
+
+	# 发送调试信息
+	if usage_rate > 80:
+		_log_warning("棋子对象池使用率过高: " + str(usage_rate) + "% (" + str(active_count) + "/" + str(total_count) + ")")
+	else:
+		_log_info("棋子对象池状态: " + str(usage_rate) + "% (" + str(active_count) + "/" + str(total_count) + ")")
+
+	# 如果使用率过高，增加池大小
+	if usage_rate > 90:
+		var new_size = total_count + 10
+		ObjectPool.set_pool_size(chess_factory.CHESS_POOL_NAME, new_size)
+		_log_warning("自动增加棋子对象池大小至: " + str(new_size))

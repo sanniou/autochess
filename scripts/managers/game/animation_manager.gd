@@ -115,9 +115,10 @@ func _initialize_animators() -> void:
 	var ui_animator = UIAnimator.new()
 	ui_animator.name = "UIAnimator"
 
-	# 创建特效动画控制器
-	var effect_animator = EffectAnimator.new(get_tree().get_root())
-	effect_animator.name = "EffectAnimator"
+	# 创建视觉效果动画控制器
+	var effect_animator = VisualEffectAnimator.new(get_tree().get_root())
+	effect_animator.name = "VisualEffectAnimator"
+	_log_info("创建视觉效果动画器成功")
 
 	# 添加为子节点以便生命周期管理
 	add_child(battle_animator)
@@ -245,8 +246,9 @@ func play_effect_animation(position: Vector2, effect_name: String, params: Dicti
 	var animation_id = _create_animation_id(AnimationType.EFFECT, effect_name)
 
 	# 获取特效动画控制器
-	var effect_animator = get_node_or_null("EffectAnimator")
+	var effect_animator = get_effect_animator()
 	if not effect_animator:
+		_log_error("无法获取视觉效果动画器")
 		return ""
 
 	# 合并默认参数
@@ -308,7 +310,7 @@ func cancel_animation(animation_id: String) -> bool:
 		result = true
 	elif animator is BattleAnimator:
 		result = animator.cancel_animation(animation_id)
-	elif animator is EffectAnimator:
+	elif animator is VisualEffectAnimator:
 		result = animator.cancel_animation(animation_id)
 
 	if result:
@@ -356,7 +358,7 @@ func pause_animation(animation_id: String) -> bool:
 		result = true
 	elif animator is BattleAnimator:
 		result = animator.pause_animation(animation_id)
-	elif animator is EffectAnimator:
+	elif animator is VisualEffectAnimator:
 		result = animator.pause_animation(animation_id)
 
 	if result:
@@ -402,7 +404,7 @@ func resume_animation(animation_id: String) -> bool:
 		result = true
 	elif animator is BattleAnimator:
 		result = animator.resume_animation(animation_id)
-	elif animator is EffectAnimator:
+	elif animator is VisualEffectAnimator:
 		result = animator.resume_animation(animation_id)
 
 	if result:
@@ -448,7 +450,7 @@ func set_animation_speed(animation_id: String, speed: float) -> bool:
 		result = true
 	elif animator is BattleAnimator:
 		result = animator.set_animation_speed(animation_id, speed)
-	elif animator is EffectAnimator:
+	elif animator is VisualEffectAnimator:
 		result = animator.set_animation_speed(animation_id, speed)
 
 	return result
@@ -652,7 +654,7 @@ func _process_queue(type: int) -> void:
 			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
 		elif animator is UIAnimator:
 			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
-		elif animator is EffectAnimator:
+		elif animator is VisualEffectAnimator:
 			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
 
 # 动画完成处理
@@ -688,7 +690,7 @@ func _on_animation_completed(animation_id: String) -> void:
 		elif animator is BattleAnimator:
 			if animator.animation_completed.is_connected(_on_animation_completed):
 				animator.animation_completed.disconnect(_on_animation_completed)
-		elif animator is EffectAnimator:
+		elif animator is VisualEffectAnimator:
 			if animator.animation_completed.is_connected(_on_animation_completed):
 				animator.animation_completed.disconnect(_on_animation_completed)
 
@@ -792,9 +794,17 @@ func get_ui_animator() -> UIAnimator:
 func get_battle_animator() -> BattleAnimator:
 	return get_node_or_null("BattleAnimator")
 
-# 获取特效动画器
-func get_effect_animator() -> EffectAnimator:
-	return get_node_or_null("EffectAnimator")
+# 获取视觉效果动画器
+func get_effect_animator() -> VisualEffectAnimator:
+	var animator = get_node_or_null("VisualEffectAnimator")
+	if not animator:
+		_log_warning("无法获取VisualEffectAnimator，尝试创建新实例")
+		# 如果找不到，创建一个新的
+		animator = VisualEffectAnimator.new(get_tree().get_root())
+		animator.name = "VisualEffectAnimator"
+		add_child(animator)
+		_log_info("创建新的VisualEffectAnimator成功")
+	return animator
 
 # 获取动画配置管理器
 func get_animation_config_manager() -> AnimationConfigManager:

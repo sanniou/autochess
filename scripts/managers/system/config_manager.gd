@@ -1,5 +1,4 @@
 extends "res://scripts/managers/core/base_manager.gd"
-class_name ConfigManager
 ## 配置管理器
 ## 负责加载、验证和管理游戏配置数据
 
@@ -49,72 +48,114 @@ func _do_initialize() -> void:
 func _register_default_config_types() -> void:
 	# 注册棋子配置
 	register_config_type(
-		"chess_pieces", 
+		"chess_pieces",
 		"res://config/chess_pieces.json",
 		"res://scripts/config/models/chess_piece_config.gd"
 	)
-	
+
 	# 注册装备配置
 	register_config_type(
-		"equipment", 
+		"equipment",
 		"res://config/equipment.json",
 		"res://scripts/config/models/equipment_config.gd"
 	)
-	
+
 	# 注册地图配置
 	register_config_type(
-		"map_config", 
+		"map_config",
 		"res://config/map_config.json",
 		"res://scripts/config/models/map_config.gd"
 	)
-	
+
 	# 注册遗物配置
 	register_config_type(
-		"relics", 
+		"relics",
 		"res://config/relics/relics.json",
 		"res://scripts/config/models/relic_config.gd"
 	)
-	
+
 	# 注册羁绊配置
 	register_config_type(
-		"synergies", 
+		"synergies",
 		"res://config/synergies.json",
 		"res://scripts/config/models/synergy_config.gd"
 	)
-	
+
 	# 注册事件配置
 	register_config_type(
-		"events", 
+		"events",
 		"res://config/events/events.json",
 		"res://scripts/config/models/event_config.gd"
 	)
-	
+
 	# 注册难度配置
 	register_config_type(
-		"difficulty", 
+		"difficulty",
 		"res://config/difficulty.json",
 		"res://scripts/config/models/difficulty_config.gd"
 	)
-	
+
 	# 注册成就配置
 	register_config_type(
-		"achievements", 
+		"achievements",
 		"res://config/achievements.json",
 		"res://scripts/config/models/achievement_config.gd"
 	)
-	
+
 	# 注册皮肤配置
 	register_config_type(
-		"skins", 
+		"skins",
 		"res://config/skins.json",
 		"res://scripts/config/models/skin_config.gd"
 	)
-	
+
 	# 注册教程配置
 	register_config_type(
-		"tutorials", 
+		"tutorials",
 		"res://config/tutorials.json",
 		"res://scripts/config/models/tutorial_config.gd"
+	)
+
+	# 注册动画配置
+	register_config_type(
+		"animation_config",
+		"res://config/animations/animation_config.json",
+		"res://scripts/config/models/animation_config.gd"
+	)
+
+	# 注册环境效果配置
+	register_config_type(
+		"environment_effects",
+		"res://config/effects/environment_effects.json",
+		"res://scripts/config/models/effect_config.gd"
+	)
+
+	# 注册技能效果配置
+	register_config_type(
+		"skill_effects",
+		"res://config/effects/skill_effects.json",
+		"res://scripts/config/models/effect_config.gd"
+	)
+
+	# 注册棋盘皮肤配置
+	register_config_type(
+		"board_skins",
+		"res://config/skins/board_skins.json",
+		"res://scripts/config/models/skin_config.gd"
+	)
+
+	# 注册棋子皮肤配置
+	register_config_type(
+		"chess_skins",
+		"res://config/skins/chess_skins.json",
+		"res://scripts/config/models/skin_config.gd"
+	)
+
+	# 注册UI皮肤配置
+	register_config_type(
+		"ui_skins",
+		"res://config/skins/ui_skins.json",
+		"res://scripts/config/models/skin_config.gd"
 	)
 
 ## 注册配置类型
@@ -122,11 +163,11 @@ func _register_default_config_types() -> void:
 func register_config_type(config_type: String, file_path: String, model_class_path: String = "") -> void:
 	# 注册配置路径
 	_config_paths[config_type] = file_path
-	
+
 	# 注册配置模型类
 	if not model_class_path.is_empty():
 		_config_model_classes[config_type] = model_class_path
-	
+
 	_log_info("注册配置类型: " + config_type + " -> " + file_path)
 
 ## 取消注册配置类型
@@ -135,22 +176,22 @@ func unregister_config_type(config_type: String) -> void:
 	if not _config_paths.has(config_type):
 		_log_warning("取消注册配置类型失败: 配置类型不存在 - " + config_type)
 		return
-	
+
 	# 移除配置路径
 	_config_paths.erase(config_type)
-	
+
 	# 移除配置模型类
 	if _config_model_classes.has(config_type):
 		_config_model_classes.erase(config_type)
-	
+
 	# 清除缓存
 	if _config_cache.has(config_type):
 		_config_cache.erase(config_type)
-	
+
 	# 清除模型
 	if _config_models.has(config_type):
 		_config_models.erase(config_type)
-	
+
 	_log_info("取消注册配置类型: " + config_type)
 
 ## 加载所有配置文件
@@ -536,20 +577,20 @@ func get_config_dir() -> String:
 func _do_reset() -> void:
 	# 清除所有缓存
 	_config_cache.clear()
-	
+
 	# 重新加载所有配置
 	load_all_configs()
-	
+
 	_log_info("ConfigManager 已重置")
 
 ## 重写清理方法
 func _do_cleanup() -> void:
 	# 清除所有缓存
 	_config_cache.clear()
-	
+
 	# 清除所有模型
 	_config_models.clear()
-	
+
 	_log_info("ConfigManager 已清理")
 
 # 以下是为了向后兼容的方法

@@ -12,7 +12,7 @@ var _event_handlers = {}
 var _event_history = []
 
 # 事件历史最大长度
-var max_history_length = 100
+var max_history_length = 50  # 减少历史长度
 
 # 是否启用事件记录
 var enable_event_logging = false
@@ -25,6 +25,23 @@ var debug_mode = false
 
 # 事件统计
 var _event_stats = {}
+
+# 事件批处理
+var _event_batch = {}
+
+# 批处理间隔
+var batch_interval = 0.1  # 秒
+
+# 批处理定时器
+var _batch_timer = 0.0
+
+# 需要批处理的事件类型
+var _batch_event_types = [
+	"debug.debug_message",  # 调试信息
+	"ui.update_ui",         # UI更新
+	"battle.damage_dealt",  # 伤害事件
+	"battle.heal_received"  # 治疗事件
+]
 
 # 游戏事件
 var game = null
@@ -89,18 +106,24 @@ var debug = null
 # 初始化
 func _ready():
 	# 设置调试模式
-	debug_mode = OS.is_debug_build()
+	debug_mode = OS.is_debug_build() and OS.has_feature("debug")
 
 	# 如果处于调试模式，启用事件记录和历史
 	if debug_mode:
 		enable_event_logging = true
 		enable_event_history = true
+	else:
+		enable_event_logging = false
+		enable_event_history = false
 
 	# 初始化事件分组
 	_initialize_event_groups()
 
 	# 初始化事件统计
 	_initialize_event_stats()
+
+	# 初始化事件批处理
+	_initialize_event_batching()
 
 	print("[EventBus] 事件总线初始化完成")
 
@@ -164,8 +187,19 @@ func _initialize_event_stats():
 			_event_stats[event_id] = {
 				"emit_count": 0,
 				"last_emit_time": 0,
-				"handler_count": 0
+				"handler_count": 0,
+				"batch_count": 0  # 批处理计数
 			}
+
+## 初始化事件批处理
+func _initialize_event_batching():
+	# 初始化批处理字典
+	for event_type in _batch_event_types:
+		_event_batch[event_type] = {
+			"args": [],
+			"count": 0,
+			"last_emit_time": 0
+		}
 
 ## 注册事件处理器
 ## 将事件处理器注册到指定的事件
@@ -271,6 +305,10 @@ func emit_event(event_name: String, args: Array = []) -> int:
 		_log_error("触发事件失败：无效的事件名称")
 		return 0
 
+	# 检查是否需要批处理
+	if _event_batch.has(event_name):
+		return _add_to_batch(event_name, args)
+
 	# 获取调用堆栈信息以确定发送方
 	var sender_info = "未知"
 	if debug_mode:
@@ -319,6 +357,55 @@ func emit_event(event_name: String, args: Array = []) -> int:
 			count += 1
 
 	return count
+
+## 添加到批处理
+## 将事件添加到批处理队列
+func _add_to_batch(event_name: String, args: Array) -> int:
+	# 更新批处理信息
+	_event_batch[event_name].args = args  # 只保存最新的参数
+	_event_batch[event_name].count += 1
+	_event_batch[event_name].last_emit_time = Time.get_unix_time_from_system()
+
+	# 更新统计
+	if _event_stats.has(event_name):
+		_event_stats[event_name].batch_count += 1
+
+	return 1  # 返回1表示成功添加到批处理
+
+## 处理批处理事件
+## 处理所有批处理队列中的事件
+func _process(delta: float) -> void:
+	# 更新批处理定时器
+	_batch_timer += delta
+
+	# 如果达到批处理间隔，处理所有批处理事件
+	if _batch_timer >= batch_interval:
+		_batch_timer = 0.0
+		_process_batched_events()
+
+## 处理所有批处理事件
+func _process_batched_events() -> void:
+	# 遍历所有批处理事件
+	for event_name in _event_batch.keys():
+		var batch = _event_batch[event_name]
+
+		# 如果有事件需要处理
+		if batch.count > 0:
+			# 构造新的参数数组，包含批处理计数
+			var args = batch.args.duplicate()
+			args.append(batch.count)  # 添加计数作为最后一个参数
+
+			# 直接调用处理器，跳过正常的emit_event流程
+			if _event_handlers.has(event_name):
+				for handler in _event_handlers[event_name]:
+					if is_instance_valid(handler.target):
+						if args.size() > 0:
+							handler.target.callv(handler.method, args)
+						else:
+							handler.target.call(handler.method)
+
+			# 重置批处理计数
+			batch.count = 0
 
 ## 获取事件处理器数量
 ## 获取指定事件的处理器数量
@@ -383,13 +470,24 @@ func get_event_stats() -> Dictionary:
 ## 添加到事件历史
 ## 将事件添加到历史记录
 func _add_to_history(event_name: String, args: Array, sender_info: String = "未知") -> void:
-	# 创建事件记录
+	# 跳过批处理事件的历史记录
+	if _event_batch.has(event_name):
+		return
+
+	# 跳过调试信息的历史记录
+	if event_name == "debug.debug_message":
+		return
+
+	# 创建精简的事件记录，不存储完整参数
 	var event_record = {
 		"event": event_name,
-		"args": args,
 		"time": Time.get_unix_time_from_system(),
 		"sender": sender_info
 	}
+
+	# 如果参数不为空，添加参数数量信息
+	if args.size() > 0:
+		event_record["args_count"] = args.size()
 
 	# 添加到历史记录
 	_event_history.append(event_record)
@@ -401,10 +499,23 @@ func _add_to_history(event_name: String, args: Array, sender_info: String = "未
 ## 记录事件
 ## 记录事件信息
 func _log_event(event_name: String, args: Array, sender_info: String = "未知") -> void:
-	var args_str = ""
+	# 跳过批处理事件的日志记录
+	if _event_batch.has(event_name):
+		return
 
+	# 跳过调试信息的日志记录，除非是错误级别
+	if event_name == "debug.debug_message" and args.size() > 1:
+		var level = args[1]
+		if level < 2:  # 只记录错误级别的调试信息
+			return
+
+	# 简化参数输出
+	var args_str = ""
 	if args.size() > 0:
-		args_str = " - 参数: " + str(args)
+		if args.size() <= 3:
+			args_str = " - 参数: " + str(args)
+		else:
+			args_str = " - 参数数量: " + str(args.size())
 
 	_log_info("事件触发：" + event_name + args_str + " - 发送方: " + sender_info)
 
@@ -449,6 +560,15 @@ class EventGroup extends Node:
 		if not has_user_signal(signal_name):
 			add_event_signal(signal_name)
 
+		# 构造完整的事件名称
+		var event_name = _group_name + "." + signal_name
+
+		# 检查是否需要批处理
+		if _event_bus._event_batch.has(event_name):
+			# 如果需要批处理，只添加到批处理队列，不触发信号
+			_event_bus._add_to_batch(event_name, args)
+			return
+
 		# 获取调用堆栈信息以确定发送方
 		var sender_info = "未知"
 		if _event_bus.debug_mode:
@@ -475,9 +595,6 @@ class EventGroup extends Node:
 			callv("emit_signal", call_args)
 		else:
 			emit_signal(signal_name)
-
-		# 同时触发事件总线的事件
-		var event_name = _group_name + "." + signal_name
 
 		# 调用 EventBus 的 emit_event 方法，它会自己获取调用堆栈信息
 		# 所以我们不需要传递 sender_info

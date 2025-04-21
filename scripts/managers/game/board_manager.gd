@@ -1,7 +1,13 @@
 extends "res://scripts/managers/core/base_manager.gd"
 class_name BoardManager
 ## 棋盘管理器
-## 管理棋盘状态和逻辑，不直接处理视觉表现
+## 负责棋盘的数据管理和逻辑处理，不涉及视觉表现和用户交互
+## 主要职责：
+## 1. 管理棋盘和备战区的格子数据
+## 2. 管理棋子的放置、移动和删除
+## 3. 处理棋子合成和升级逻辑
+## 4. 生成和管理特殊格子
+## 5. 提供棋盘状态查询接口
 
 # 信号
 signal board_reset()
@@ -294,25 +300,6 @@ func generate_special_cells() -> void:
 	# 发送特殊格子生成信号
 	special_cells_generated.emit()
 
-# 查找棋子所在的格子
-func find_cell_at_position(global_pos: Vector2, cell_size: Vector2) -> BoardCell:
-	# 检查主棋盘格子
-	for row in cells:
-		for cell in row:
-			if cell:
-				var rect = Rect2(cell.global_position, cell_size)
-				if rect.has_point(global_pos):
-					return cell
-
-	# 检查备战区格子
-	for cell in bench_cells:
-		var rect = Rect2(cell.global_position, cell_size)
-		if rect.has_point(global_pos):
-			return cell
-
-	return null
-
-
 
 # 获取所有备战区棋子
 func get_bench_pieces() -> Array:
@@ -347,20 +334,13 @@ func upgrade_piece(piece_id: String) -> ChessPieceEntity:
 	# 查找相同类型和星级的棋子
 	var same_pieces = []
 
-	# 检查棋盘上的棋子
-	for p in pieces:
+	# 收集所有相同类型和星级的棋子
+	var all_pieces = pieces + bench_pieces
+	for p in all_pieces:
 		if p.id == piece_id and (same_pieces.is_empty() or p.star_level == same_pieces[0].star_level):
 			same_pieces.append(p)
 			if same_pieces.size() >= 3:
 				break
-
-	# 检查备战区的棋子
-	if same_pieces.size() < 3:
-		for p in bench_pieces:
-			if p.id == piece_id and (same_pieces.is_empty() or p.star_level == same_pieces[0].star_level):
-				same_pieces.append(p)
-				if same_pieces.size() >= 3:
-					break
 
 	# 如果没有足够的棋子，返回空
 	if same_pieces.size() < 3:
@@ -414,20 +394,13 @@ func try_combine_pieces(piece: ChessPieceEntity) -> bool:
 	# 查找相同类型和星级的棋子
 	var same_pieces = [piece]
 
-	# 检查棋盘上的棋子
-	for p in pieces:
+	# 收集所有相同类型和星级的棋子
+	var all_pieces = pieces + bench_pieces
+	for p in all_pieces:
 		if p != piece and p.id == piece.id and p.star_level == piece.star_level:
 			same_pieces.append(p)
 			if same_pieces.size() >= 3:
 				break
-
-	# 检查备战区的棋子
-	if same_pieces.size() < 3:
-		for p in bench_pieces:
-			if p != piece and p.id == piece.id and p.star_level == piece.star_level:
-				same_pieces.append(p)
-				if same_pieces.size() >= 3:
-					break
 
 	# 如果有足够的棋子，进行合成
 	if same_pieces.size() >= 3:

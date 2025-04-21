@@ -38,6 +38,9 @@ var enemy_units: Array = []
 # 战斗命令队列
 var command_queue: Array = []
 var executing_command: bool = false
+var max_commands_per_frame: int = 5  # 每帧处理的最大命令数
+var command_batch_timer: float = 0.0  # 命令批处理计时器
+var command_batch_interval: float = 0.05  # 命令批处理间隔
 
 # 战斗事件历史
 var event_history: Array = []
@@ -83,6 +86,9 @@ func _process(delta: float) -> void:
 	battle_timer -= delta
 	battle_stats.battle_duration += delta
 
+	# 执行命令队列
+	_process_command_queue(delta)
+
 	# 更新当前阶段
 	match current_phase:
 		BattleConstants.BattlePhase.PREPARE:
@@ -91,9 +97,6 @@ func _process(delta: float) -> void:
 			_update_combat_phase(delta)
 		BattleConstants.BattlePhase.RESOLUTION:
 			_update_resolution_phase(delta)
-
-	# 执行命令队列
-	_process_command_queue(delta)
 
 # 开始战斗
 func start_battle(player_team: Array = [], enemy_team: Array = []) -> void:
@@ -253,9 +256,21 @@ func _update_combat_phase(delta: float) -> void:
 	# 应用战斗速度
 	var adjusted_delta = delta * battle_speed
 
-	# 更新AI控制器
-	if ai_controller:
-		ai_controller.update(adjusted_delta, enemy_units)
+	# 使用静态帧率控制AI更新
+	# 每秒更新AI的次数与战斗速度成正比
+	static var ai_update_timer = 0.0
+	ai_update_timer += adjusted_delta
+
+	# 根据战斗速度调整AI更新间隔
+	var ai_update_interval = 0.2 / battle_speed  # 战斗速度越快，更新间隔越短
+
+	# 当达到更新间隔时更新AI
+	if ai_update_timer >= ai_update_interval:
+		ai_update_timer = 0.0
+
+		# 更新AI控制器
+		if ai_controller:
+			ai_controller.update(adjusted_delta, enemy_units)
 
 # 更新结算阶段
 func _update_resolution_phase(delta: float) -> void:
@@ -380,6 +395,16 @@ func _cleanup_battle_effects() -> void:
 
 # 处理命令队列
 func _process_command_queue(delta: float) -> void:
+	# 更新命令批处理计时器
+	command_batch_timer += delta
+
+	# 如果没有达到批处理间隔，返回
+	if command_batch_timer < command_batch_interval:
+		return
+
+	# 重置批处理计时器
+	command_batch_timer = 0.0
+
 	# 如果正在执行命令，等待完成
 	if executing_command:
 		return
@@ -388,21 +413,27 @@ func _process_command_queue(delta: float) -> void:
 	if command_queue.is_empty():
 		return
 
-	# 获取下一个命令
-	var command = command_queue.pop_front()
+	# 批量处理命令
+	var commands_processed = 0
+	while not command_queue.is_empty() and commands_processed < max_commands_per_frame:
+		# 获取下一个命令
+		var command = command_queue.pop_front()
 
-	# 执行命令
-	executing_command = true
-	var result = command.execute()
+		# 执行命令
+		executing_command = true
+		var result = command.execute()
 
-	# 记录命令执行
-	_record_command_execution(command, result)
+		# 记录命令执行
+		_record_command_execution(command, result)
 
-	# 发送命令执行信号
-	battle_command_executed.emit(command)
+		# 发送命令执行信号
+		battle_command_executed.emit(command)
 
-	# 标记命令执行完成
-	executing_command = false
+		# 标记命令执行完成
+		executing_command = false
+
+		# 增加已处理命令计数
+		commands_processed += 1
 
 # 记录命令执行
 func _record_command_execution(command: BattleCommand, result: Dictionary) -> void:
@@ -418,10 +449,32 @@ func _record_command_execution(command: BattleCommand, result: Dictionary) -> vo
 
 # 触发战斗事件
 func _trigger_battle_event(event_type: String, data: Dictionary) -> void:
+	# 优化：跳过高频率事件
+	var high_frequency_events = ["damage_dealt", "dot_damage", "healing_done"]
+
+	# 如果是高频率事件，使用频率控制
+	if event_type in high_frequency_events:
+		# 使用静态计数器进行频率控制
+		static var event_counters = {}
+		if not event_counters.has(event_type):
+			event_counters[event_type] = 0
+
+		event_counters[event_type] += 1
+
+		# 每间5次事件只记录和发送一次
+		if event_counters[event_type] % 5 != 0:
+			# 只发送信号，不记录历史和发送事件总线
+			battle_event_triggered.emit(event_type, data)
+			return
+
 	# 添加时间戳
 	data["timestamp"] = Time.get_ticks_msec()
 
 	# 添加到事件历史
+	# 优化：限制事件历史大小
+	while event_history.size() >= 100:
+		event_history.pop_front()
+
 	event_history.append({
 		"type": event_type,
 		"data": data

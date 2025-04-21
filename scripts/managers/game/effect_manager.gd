@@ -1,40 +1,26 @@
 extends "res://scripts/managers/core/base_manager.gd"
 class_name EffectManager
-## 特效管理器
-## 负责创建和管理游戏中的各种特效
+## 效果管理器
+## 专注于管理游戏中的逻辑效果，如伤害、治疗、状态效果等，不直接处理视觉表现
 
-# 视觉特效类型枚举
-enum VisualEffectType {
-	TELEPORT_DISAPPEAR,  # 传送消失
-	TELEPORT_APPEAR,     # 传送出现
-	DAMAGE,              # 伤害
-	HEAL,                # 治疗
-	BUFF,                # 增益
-	DEBUFF,              # 减益
-	STUN,                # 眩晕
-	LEVEL_UP,            # 升级
-	DEATH,               # 死亡
-	AREA_DAMAGE,         # 区域伤害
-	SUMMON,              # 召唤
-	CHAIN,               # 链式效果
-	DOT                  # 持续伤害
+# 效果类型枚举
+enum EffectType {
+	STAT,      # 属性效果
+	STATUS,    # 状态效果
+	DOT,       # 持续伤害
+	DAMAGE,    # 直接伤害
+	HEAL,      # 治疗
+	SPECIAL    # 特殊效果
 }
 
-# 特效场景路径
-var effect_scenes = {
-	VisualEffectType.TELEPORT_DISAPPEAR: "res://scenes/effects/teleport_effect_visual.tscn",
-	VisualEffectType.TELEPORT_APPEAR: "res://scenes/effects/teleport_effect_visual.tscn",
-	VisualEffectType.DAMAGE: "res://scenes/effects/damage_effect_visual.tscn",
-	VisualEffectType.HEAL: "res://scenes/effects/heal_effect_visual.tscn",
-	VisualEffectType.BUFF: "res://scenes/effects/buff_effect_visual.tscn",
-	VisualEffectType.DEBUFF: "res://scenes/effects/debuff_effect_visual.tscn",
-	VisualEffectType.STUN: "res://scenes/effects/debuff_effect_visual.tscn", # 使用debuff特效
-	VisualEffectType.LEVEL_UP: "res://scenes/effects/buff_effect_visual.tscn", # 使用buff特效
-	VisualEffectType.DEATH: "res://scenes/effects/teleport_effect_visual.tscn", # 使用传送消失特效
-	VisualEffectType.AREA_DAMAGE: "res://scenes/effects/area_damage_effect_visual.tscn",
-	VisualEffectType.SUMMON: "res://scenes/effects/summon_effect_visual.tscn",
-	VisualEffectType.CHAIN: "res://scenes/effects/damage_effect_visual.tscn", # 使用伤害特效
-	VisualEffectType.DOT: "res://scenes/effects/debuff_effect_visual.tscn" # 使用减益特效
+# 效果到视觉效果的映射
+var effect_to_visual_map = {
+	EffectType.STAT: "buff",
+	EffectType.STATUS: "debuff",
+	EffectType.DOT: "dot",
+	EffectType.DAMAGE: "damage",
+	EffectType.HEAL: "heal",
+	EffectType.SPECIAL: "special"
 }
 
 # 特效颜色
@@ -55,6 +41,9 @@ var effect_colors = {
 	"death": Color(0.3, 0.3, 0.3, 0.8)      # 死亡 - 灰色
 }
 
+# 视觉效果动画器引用
+var visual_effect_animator: VisualEffectAnimator = null
+
 # 当前活动的特效
 var active_effects = []
 
@@ -66,138 +55,65 @@ func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "EffectManager"
 
-	# 预加载特效场景
-	_preload_effect_scenes()
+	# 获取视觉效果动画器
+	_get_visual_effect_animator()
 
 	# 连接信号
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
 
-	print("特效管理器初始化完成")
+	_log_info("效果管理器初始化完成")
 
-# 预加载特效场景
-func _preload_effect_scenes():
-	for effect_type in effect_scenes:
-		var scene_path = effect_scenes[effect_type]
-		if ResourceLoader.exists(scene_path):
-			var scene = load(scene_path)
-			if scene:
-				print("预加载特效场景: " + scene_path)
+# 获取视觉效果动画器
+func _get_visual_effect_animator() -> void:
+	# 尝试从动画管理器获取视觉效果动画器
+	if GameManager.animation_manager:
+		visual_effect_animator = GameManager.animation_manager.get_effect_animator()
+		if visual_effect_animator:
+			_log_info("成功获取视觉效果动画器")
+			return
+
+	# 如果没有找到，在下一帧再次尝试
+	_log_warning("无法获取视觉效果动画器，将在下一帧重试")
+	call_deferred("_get_visual_effect_animator")
+
+
 
 # 创建视觉特效
-func create_visual_effect(effect_type: VisualEffectType, target: Node2D, params: Dictionary = {}):
+func create_visual_effect(effect_type: int, target: Node2D, params: Dictionary = {}) -> String:
+	# 检查视觉效果动画器是否可用
+	if not visual_effect_animator:
+		_get_visual_effect_animator()
+		if not visual_effect_animator:
+			_log_error("无法获取视觉效果动画器")
+			return ""
+
 	# 检查特效类型是否有效
-	if not effect_scenes.has(effect_type):
-		print("无效的特效类型: " + str(effect_type))
-		return null
+	if not effect_to_visual_map.has(effect_type):
+		_log_error("无效的效果类型: " + str(effect_type))
+			return ""
 
-	# 获取特效场景路径
-	var scene_path = effect_scenes[effect_type]
+	# 准备特效参数
+	var effect_params = params.duplicate()
 
-	# 检查场景是否存在
-	if not ResourceLoader.exists(scene_path):
-		print("特效场景不存在: " + scene_path)
-		return null
+	# 获取视觉效果名称
+	var visual_effect_name = effect_to_visual_map[effect_type]
 
-	# 加载特效场景
-	var effect_scene = load(scene_path)
-	if not effect_scene:
-		print("无法加载特效场景: " + scene_path)
-		return null
+	# 根据效果类型添加特定参数
+	if effect_type == EffectType.DAMAGE and params.has("damage_type"):
+		visual_effect_name = params.damage_type + "_hit"
 
-	# 实例化特效
-	var effect_instance = effect_scene.instantiate()
-	if not effect_instance:
-		print("无法实例化特效场景: " + scene_path)
-		return null
+	# 添加颜色参数
+	if not effect_params.has("color") and params.has("effect_type"):
+		var color = get_effect_color(params.effect_type)
+		effect_params["color"] = color
 
-	# 添加到目标
-	target.add_child(effect_instance)
+	# 使用视觉效果动画器创建特效
+	return visual_effect_animator.play_combined_effect(target.global_position, visual_effect_name, effect_params)
 
-	# 设置特效参数
-	match effect_type:
-		VisualEffectType.TELEPORT_DISAPPEAR:
-			if effect_instance.has_method("play_disappear_effect"):
-				effect_instance.play_disappear_effect()
 
-		VisualEffectType.TELEPORT_APPEAR:
-			if effect_instance.has_method("play_appear_effect"):
-				effect_instance.play_appear_effect()
-
-		VisualEffectType.DAMAGE:
-			if effect_instance.has_method("play_damage_effect"):
-				var damage_type = params.get("damage_type", "magical")
-				var color = effect_colors.get(damage_type, effect_colors["magical"])
-				var damage_amount = params.get("damage_amount", 0.0)
-				effect_instance.play_damage_effect(color, damage_amount)
-
-		VisualEffectType.HEAL:
-			if effect_instance.has_method("play_heal_effect"):
-				var heal_amount = params.get("heal_amount", 0.0)
-				effect_instance.play_heal_effect(heal_amount)
-
-		VisualEffectType.BUFF:
-			if effect_instance.has_method("play_buff_effect"):
-				var buff_type = params.get("buff_type", "buff")
-				var color = effect_colors.get(buff_type, effect_colors["buff"])
-				effect_instance.play_buff_effect(color)
-
-		VisualEffectType.DEBUFF:
-			if effect_instance.has_method("play_debuff_effect"):
-				var debuff_type = params.get("debuff_type", "debuff")
-				var color = effect_colors.get(debuff_type, effect_colors["debuff"])
-				effect_instance.play_debuff_effect(color)
-
-		VisualEffectType.STUN:
-			if effect_instance.has_method("play_debuff_effect"):
-				var color = effect_colors["stun"]
-				effect_instance.play_debuff_effect(color)
-
-		VisualEffectType.LEVEL_UP:
-			if effect_instance.has_method("play_buff_effect"):
-				var color = effect_colors["level_up"]
-				effect_instance.play_buff_effect(color)
-
-		VisualEffectType.DEATH:
-			if effect_instance.has_method("play_disappear_effect"):
-				effect_instance.play_disappear_effect()
-
-		VisualEffectType.AREA_DAMAGE:
-			if effect_instance.has_method("play_area_damage_effect"):
-				var damage_type = params.get("damage_type", "magical")
-				var color = effect_colors.get(damage_type, effect_colors["magical"])
-				var radius = params.get("radius", 100.0)
-				effect_instance.play_area_damage_effect(color, radius)
-
-		VisualEffectType.SUMMON:
-			if effect_instance.has_method("play_summon_effect"):
-				var summon_type = params.get("summon_type", "summon")
-				var color = effect_colors.get(summon_type, Color(0.2, 0.8, 0.2, 0.8))
-				effect_instance.play_summon_effect(color)
-
-		VisualEffectType.CHAIN:
-			if effect_instance.has_method("play_damage_effect"):
-				var damage_type = params.get("damage_type", "magical")
-				var color = effect_colors.get(damage_type, effect_colors["magical"])
-				var damage_amount = params.get("damage_amount", 0.0)
-				effect_instance.play_damage_effect(color, damage_amount)
-
-	# 添加到活动特效列表
-	active_effects.append(effect_instance)
-
-	# 返回特效实例
-	return effect_instance
 
 # 清理完成的特效
 func _process(delta):
-	# 清理视觉特效
-	var i = 0
-	while i < active_effects.size():
-		var effect = active_effects[i]
-		if not is_instance_valid(effect) or effect.is_queued_for_deletion():
-			active_effects.remove_at(i)
-		else:
-			i += 1
-
 	# 更新逻辑效果
 	var effects_to_remove = []
 	for effect_id in active_logical_effects:
@@ -270,248 +186,295 @@ func add_effect(effect: BaseEffect) -> void:
 
 # 创建效果
 func create_effect(effect_type: int, target: Node2D, params: Dictionary = {}):
-	# 使用战斗管理器的效果管理器创建效果
-	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
-		# 创建效果数据
-		var effect_data = {}
+	# 检查目标是否有效
+	if not target or not is_instance_valid(target):
+		_log_error("创建效果失败：目标无效")
+		return null
 
-		match effect_type:
-			BaseEffect.EffectType.STAT:
-				# 创建增益效果数据
-				var buff_type = params.get("buff_type", "attack")
-				var buff_value = params.get("buff_value", 10.0)
-				var duration = params.get("duration", 5.0)
+	# 创建效果数据
+	var effect_data = _create_effect_data(effect_type, params)
 
-				# 创建属性字典
-				var stats = {}
-				match buff_type:
-					"attack":
-						stats["attack_damage"] = buff_value
-					"defense":
-						stats["armor"] = buff_value
-						stats["magic_resist"] = buff_value
-					"speed":
-						stats["attack_speed"] = buff_value
-						stats["move_speed"] = buff_value * 10.0
-					"health":
-						stats["max_health"] = buff_value
-					"spell":
-						stats["spell_power"] = buff_value
-					"crit":
-						stats["crit_chance"] = buff_value
-						stats["crit_damage"] = buff_value * 0.5
+	# 如果效果数据为空，返回空
+	if effect_data.is_empty():
+		_log_error("创建效果失败：无法生成效果数据")
+		return null
 
-				# 创建效果数据
-				effect_data = {
-					"effect_type": BattleEffect.EffectType.STAT_MOD,
-					"name": "增益: " + buff_type,
-					"description": "增加" + buff_type + "属性" + str(buff_value),
-					"duration": duration,
-					"stats": stats,
-					"is_percentage": false,
-					"tags": ["buff"]
-				}
+	# 创建视觉效果
+	_create_visual_effect_for_type(effect_type, target, params)
 
-				# 创建视觉效果
-				create_visual_effect(VisualEffectType.BUFF, target, {
-					"color": get_effect_color(buff_type),
-					"duration": duration
-				})
+	# 应用效果
+	return _apply_battle_effect(effect_data, null, target)
 
-			BaseEffect.EffectType.STATUS:
-				# 创建状态效果数据
-				var status_type = params.get("status_type", "stun")
-				var duration = params.get("duration", 2.0)
+# 创建效果数据
+func _create_effect_data(effect_type: int, params: Dictionary) -> Dictionary:
+	var effect_data = {}
 
-				# 获取状态类型
-				var status_type_value = StatusEffect.StatusType.STUN
-				match status_type:
-					"stun":
-						status_type_value = StatusEffect.StatusType.STUN
-					"silence":
-						status_type_value = StatusEffect.StatusType.SILENCE
-					"disarm":
-						status_type_value = StatusEffect.StatusType.DISARM
-					"root":
-						status_type_value = StatusEffect.StatusType.ROOT
-					"taunt":
-						status_type_value = StatusEffect.StatusType.TAUNT
-					"frozen":
-						status_type_value = StatusEffect.StatusType.FROZEN
+	match effect_type:
+		BaseEffect.EffectType.STAT:
+			effect_data = _create_stat_effect_data(params)
+		BaseEffect.EffectType.STATUS:
+			effect_data = _create_status_effect_data(params)
+		BaseEffect.EffectType.DOT:
+			effect_data = _create_dot_effect_data(params)
+		BaseEffect.EffectType.DAMAGE:
+			effect_data = _create_damage_effect_data(params)
+		BaseEffect.EffectType.HEAL:
+			effect_data = _create_heal_effect_data(params)
 
-				# 创建效果数据
-				effect_data = {
-					"effect_type": BattleEffect.EffectType.STATUS,
-					"name": "状态: " + status_type,
-					"description": "施加" + status_type + "状态",
-					"duration": duration,
-					"status_type": status_type_value,
-					"tags": ["status", "debuff"]
-				}
+	return effect_data
 
-				# 创建视觉效果
-				create_visual_effect(VisualEffectType.STUN, target, {
-					"color": get_effect_color(status_type),
-					"duration": duration
-				})
+# 创建属性效果数据
+func _create_stat_effect_data(params: Dictionary) -> Dictionary:
+	# 获取参数
+	var buff_type = params.get("buff_type", "attack")
+	var buff_value = params.get("buff_value", 10.0)
+	var duration = params.get("duration", 5.0)
 
-			BaseEffect.EffectType.DOT:
-				# 创建持续伤害效果数据
-				var dot_type = params.get("dot_type", "burning")
-				var damage_per_second = params.get("damage_per_second", 10.0)
-				var duration = params.get("duration", 5.0)
-				var damage_type = params.get("damage_type", "magical")
+	# 创建属性字典
+	var stats = {}
+	match buff_type:
+		"attack":
+			stats["attack_damage"] = buff_value
+		"defense":
+			stats["armor"] = buff_value
+			stats["magic_resist"] = buff_value
+		"speed":
+			stats["attack_speed"] = buff_value
+			stats["move_speed"] = buff_value * 10.0
+		"health":
+			stats["max_health"] = buff_value
+		"spell":
+			stats["spell_power"] = buff_value
+		"crit":
+			stats["crit_chance"] = buff_value
+			stats["crit_damage"] = buff_value * 0.5
 
-				# 获取DOT类型
-				var dot_type_value = DotEffect.DotType.BURNING
-				match dot_type:
-					"burning":
-						dot_type_value = DotEffect.DotType.BURNING
-					"poisoned":
-						dot_type_value = DotEffect.DotType.POISONED
-					"bleeding":
-						dot_type_value = DotEffect.DotType.BLEEDING
+	# 返回效果数据
+	return {
+		"effect_type": BattleEffect.EffectType.STAT_MOD,
+		"name": "增益: " + buff_type,
+		"description": "增加" + buff_type + "属性" + str(buff_value),
+		"duration": duration,
+		"stats": stats,
+		"is_percentage": false,
+		"tags": ["buff"]
+	}
 
-				# 创建效果数据
-				effect_data = {
-					"effect_type": BattleEffect.EffectType.DOT,
-					"name": "持续伤害: " + dot_type,
-					"description": "每秒造成" + str(damage_per_second) + "点" + damage_type + "伤害",
-					"duration": duration,
-					"dot_type": dot_type_value,
-					"damage_per_second": damage_per_second,
-					"damage_type": damage_type,
-					"tick_interval": 1.0,
-					"tags": ["dot", "debuff"]
-				}
+# 创建状态效果数据
+func _create_status_effect_data(params: Dictionary) -> Dictionary:
+	# 获取参数
+	var status_type = params.get("status_type", "stun")
+	var duration = params.get("duration", 2.0)
 
-				# 创建视觉效果
-				create_visual_effect(VisualEffectType.DOT, target, {
-					"color": get_effect_color(damage_type),
-					"duration": duration,
-					"dot_type": dot_type
-				})
+	# 获取状态类型
+	var status_type_value = StatusEffect.StatusType.STUN
+	match status_type:
+		"stun":
+			status_type_value = StatusEffect.StatusType.STUN
+		"silence":
+			status_type_value = StatusEffect.StatusType.SILENCE
+		"disarm":
+			status_type_value = StatusEffect.StatusType.DISARM
+		"root":
+			status_type_value = StatusEffect.StatusType.ROOT
+		"taunt":
+			status_type_value = StatusEffect.StatusType.TAUNT
+		"frozen":
+			status_type_value = StatusEffect.StatusType.FROZEN
 
-			BaseEffect.EffectType.DAMAGE:
-				# 创建伤害效果数据
-				var damage_value = params.get("value", 10.0)
-				var damage_type = params.get("damage_type", "magical")
-				var is_critical = params.get("is_critical", false)
-				var is_dodgeable = params.get("is_dodgeable", true)
+	# 返回效果数据
+	return {
+		"effect_type": BattleEffect.EffectType.STATUS,
+		"name": "状态: " + status_type,
+		"description": "施加" + status_type + "状态",
+		"duration": duration,
+		"status_type": status_type_value,
+		"tags": ["status", "debuff"]
+	}
 
-				# 创建效果数据
-				effect_data = {
-					"effect_type": BattleEffect.EffectType.DAMAGE,
-					"name": "伤害: " + damage_type,
-					"description": "造成" + str(damage_value) + "点" + damage_type + "伤害",
-					"value": damage_value,
-					"damage_type": damage_type,
-					"is_critical": is_critical,
-					"is_dodgeable": is_dodgeable,
-					"tags": ["damage"]
-				}
+# 创建持续伤害效果数据
+func _create_dot_effect_data(params: Dictionary) -> Dictionary:
+	# 获取参数
+	var dot_type = params.get("dot_type", "burning")
+	var damage_per_second = params.get("damage_per_second", 10.0)
+	var duration = params.get("duration", 5.0)
+	var damage_type = params.get("damage_type", "magical")
 
-				# 创建视觉效果
-				create_visual_effect(VisualEffectType.DAMAGE, target, {
-					"damage_type": damage_type,
-					"damage_amount": damage_value
-				})
+	# 获取DOT类型
+	var dot_type_value = DotEffect.DotType.BURNING
+	match dot_type:
+		"burning":
+			dot_type_value = DotEffect.DotType.BURNING
+		"poisoned":
+			dot_type_value = DotEffect.DotType.POISONED
+		"bleeding":
+			dot_type_value = DotEffect.DotType.BLEEDING
 
-			BaseEffect.EffectType.HEAL:
-				# 创建治疗效果数据
-				var heal_value = params.get("value", 10.0)
+	# 返回效果数据
+	return {
+		"effect_type": BattleEffect.EffectType.DOT,
+		"name": "持续伤害: " + dot_type,
+		"description": "每秒造成" + str(damage_per_second) + "点" + damage_type + "伤害",
+		"duration": duration,
+		"dot_type": dot_type_value,
+		"damage_per_second": damage_per_second,
+		"damage_type": damage_type,
+		"tick_interval": 1.0,
+		"tags": ["dot", "debuff"]
+	}
 
-				# 创建效果数据
-				effect_data = {
-					"effect_type": BattleEffect.EffectType.HEAL,
-					"name": "治疗",
-					"description": "恢复" + str(heal_value) + "点生命值",
-					"value": heal_value,
-					"tags": ["heal"]
-				}
+# 创建伤害效果数据
+func _create_damage_effect_data(params: Dictionary) -> Dictionary:
+	# 获取参数
+	var damage_value = params.get("value", 10.0)
+	var damage_type = params.get("damage_type", "magical")
+	var is_critical = params.get("is_critical", false)
+	var is_dodgeable = params.get("is_dodgeable", true)
 
-				# 创建视觉效果
-				create_visual_effect(VisualEffectType.HEAL, target, {
-					"heal_amount": heal_value
-				})
+	# 返回效果数据
+	return {
+		"effect_type": BattleEffect.EffectType.DAMAGE,
+		"name": "伤害: " + damage_type,
+		"description": "造成" + str(damage_value) + "点" + damage_type + "伤害",
+		"value": damage_value,
+		"damage_type": damage_type,
+		"is_critical": is_critical,
+		"is_dodgeable": is_dodgeable,
+		"tags": ["damage"]
+	}
 
-		# 应用效果
-		if not effect_data.is_empty():
-			return GameManager.battle_manager.effect_manager.apply_effect(effect_data, null, target)
+# 创建治疗效果数据
+func _create_heal_effect_data(params: Dictionary) -> Dictionary:
+	# 获取参数
+	var heal_value = params.get("value", 10.0)
 
-	# 如果不能使用新系统，使用旧系统
-	return create_and_add_effect(effect_type, null, target, params)
+	# 返回效果数据
+	return {
+		"effect_type": BattleEffect.EffectType.HEAL,
+		"name": "治疗",
+		"description": "恢复" + str(heal_value) + "点生命值",
+		"value": heal_value,
+		"tags": ["heal"]
+	}
+
+# 根据效果类型创建视觉效果
+func _create_visual_effect_for_type(effect_type: int, target: Node2D, params: Dictionary) -> void:
+	# 检查目标是否有效
+	if not target or not is_instance_valid(target):
+		return
+
+	# 检查视觉效果动画器是否可用
+	if not visual_effect_animator:
+		_get_visual_effect_animator()
+		if not visual_effect_animator:
+			_log_error("无法获取视觉效果动画器")
+			return
+
+	# 准备视觉效果参数
+	var visual_params = params.duplicate()
+
+	# 根据效果类型设置参数
+	match effect_type:
+		EffectType.STAT:
+			# 获取参数
+			var buff_type = params.get("buff_type", "attack")
+			var duration = params.get("duration", 5.0)
+
+			# 创建视觉效果
+			visual_params["color"] = get_effect_color(buff_type)
+			visual_params["duration"] = duration
+			create_visual_effect(EffectType.STAT, target, visual_params)
+
+		EffectType.STATUS:
+			# 获取参数
+			var status_type = params.get("status_type", "stun")
+			var duration = params.get("duration", 2.0)
+
+			# 创建视觉效果
+			visual_params["color"] = get_effect_color(status_type)
+			visual_params["duration"] = duration
+			create_visual_effect(EffectType.STATUS, target, visual_params)
+
+		EffectType.DOT:
+			# 获取参数
+			var dot_type = params.get("dot_type", "burning")
+			var damage_type = params.get("damage_type", "magical")
+			var duration = params.get("duration", 5.0)
+
+			# 创建视觉效果
+			visual_params["color"] = get_effect_color(damage_type)
+			visual_params["duration"] = duration
+			visual_params["dot_type"] = dot_type
+			create_visual_effect(EffectType.DOT, target, visual_params)
+
+		EffectType.DAMAGE:
+			# 获取参数
+			var damage_value = params.get("value", 10.0)
+			var damage_type = params.get("damage_type", "magical")
+
+			# 创建视觉效果
+			visual_params["damage_type"] = damage_type
+			visual_params["damage_amount"] = damage_value
+			create_visual_effect(EffectType.DAMAGE, target, visual_params)
+
+		EffectType.HEAL:
+			# 获取参数
+			var heal_value = params.get("value", 10.0)
+
+			# 创建视觉效果
+			visual_params["heal_amount"] = heal_value
+			create_visual_effect(EffectType.HEAL, target, visual_params)
+
+# 应用战斗效果
+func _apply_battle_effect(effect_data: Dictionary, source = null, target = null):
+	# 检查战斗管理器是否可用
+	if not GameManager.battle_manager or not GameManager.battle_manager.effect_manager:
+		_log_error("应用效果失败：战斗管理器不可用")
+		return null
+
+	# 使用战斗管理器的效果管理器应用效果
+	return GameManager.battle_manager.effect_manager.apply_effect(effect_data, source, target)
 
 # 移除效果
-func remove_effect(effect_id_or_effect) -> void:
+func remove_effect(effect_id_or_effect) -> bool:
 	# 如果是效果对象
 	if effect_id_or_effect is BattleEffect:
 		# 使用战斗管理器的效果管理器移除效果
 		if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
-			GameManager.battle_manager.effect_manager.remove_effect(effect_id_or_effect)
-			return
+			return GameManager.battle_manager.effect_manager.remove_effect(effect_id_or_effect)
+		return false
 
 	# 如果是效果 ID
 	if effect_id_or_effect is String:
 		# 检查效果是否存在
 		if not active_logical_effects.has(effect_id_or_effect):
-			return
+			return false
 
 		# 获取效果
 		var effect = active_logical_effects[effect_id_or_effect]
 
-		# 如果是新效果系统的效果
+		# 如果是效果对象
 		if effect is BattleEffect:
 			# 使用战斗管理器的效果管理器移除效果
 			if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
-				GameManager.battle_manager.effect_manager.remove_effect(effect)
+				var result = GameManager.battle_manager.effect_manager.remove_effect(effect)
 				# 从活动效果列表中移除
-				active_logical_effects.erase(effect_id_or_effect)
-			return
+				if result:
+					active_logical_effects.erase(effect_id_or_effect)
+				return result
+		return false
 
-		# 如果是旧效果系统的效果
-		if effect is BaseEffect:
-			# 移除效果
-			effect.remove()
+	return false
 
-			# 从活动效果列表中移除
-			active_logical_effects.erase(effect_id_or_effect)
 
-# 创建并添加效果
-func create_and_add_effect(effect_type: int, source = null, target = null, params: Dictionary = {}) -> BaseEffect:
-	# 尝试使用新的效果系统
-	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
-		# 迁移效果数据
-		var migrated_data = EffectMigrationTool.migrate_effect_data(params)
-		migrated_data["effect_type"] = EffectMigrationTool._convert_effect_type(effect_type)
-
-		# 使用战斗管理器的效果管理器创建效果
-		var battle_effect = GameManager.battle_manager.effect_manager.apply_effect(migrated_data, source, target)
-		if battle_effect:
-			return battle_effect
-
-	# 如果不能使用新系统，使用旧系统
-	# 注意：这部分代码应该不会被执行，因为我们已经完全迁移到新系统
-	print("WARNING: 尝试使用旧效果系统，这不应该发生")
-	return null
 
 # 重写重置方法
 func _do_reset() -> void:
-	# 清理所有活动特效
-	for effect in active_effects:
-		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
-			effect.queue_free()
-
-	active_effects.clear()
-
 	# 清理所有逻辑效果
 	for effect_id in active_logical_effects:
 		var effect = active_logical_effects[effect_id]
-		if effect is BaseEffect:
-			effect.remove()
-		elif effect is BattleEffect:
-			if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
-				GameManager.battle_manager.effect_manager.remove_effect(effect)
+		if effect is BattleEffect:
+			remove_effect(effect)
 
 	active_logical_effects.clear()
 
@@ -519,28 +482,18 @@ func _do_reset() -> void:
 	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
 		GameManager.battle_manager.effect_manager.remove_all_battle_effects()
 
-	_log_info("特效管理器重置完成")
+	_log_info("效果管理器重置完成")
 
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
 	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
 
-	# 清理所有活动特效
-	for effect in active_effects:
-		if is_instance_valid(effect) and not effect.is_queued_for_deletion():
-			effect.queue_free()
-
-	active_effects.clear()
-
 	# 清理所有逻辑效果
 	for effect_id in active_logical_effects:
 		var effect = active_logical_effects[effect_id]
-		if effect is BaseEffect:
-			effect.remove()
-		elif effect is BattleEffect:
-			if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
-				GameManager.battle_manager.effect_manager.remove_effect(effect)
+		if effect is BattleEffect:
+			remove_effect(effect)
 
 	active_logical_effects.clear()
 
@@ -548,4 +501,4 @@ func _do_cleanup() -> void:
 	if GameManager.battle_manager and GameManager.battle_manager.effect_manager:
 		GameManager.battle_manager.effect_manager.remove_all_battle_effects()
 
-	_log_info("特效管理器清理完成")
+	_log_info("效果管理器清理完成")

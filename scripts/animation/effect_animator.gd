@@ -1,7 +1,8 @@
 extends Node
-class_name EffectAnimator
-## 特效动画控制器
-## 负责控制特效动画，如技能特效、环境特效等
+class_name VisualEffectAnimator
+## 视觉特效动画控制器
+## 专注于创建和管理视觉特效，如粒子、精灵、着色器等特效，不处理游戏逻辑
+## 提供统一的特效创建和管理接口，使用对象池优化性能
 
 # 信号
 signal animation_started(animation_name: String)
@@ -27,6 +28,9 @@ enum AnimationState {
 # 特效容器
 var effect_container = null
 
+# 特效注册表
+var effect_registry = null
+
 # 当前活动的特效
 var active_effects = {}
 
@@ -47,8 +51,15 @@ const MAX_SPRITE_EFFECTS = 100
 const MAX_CONTAINER_EFFECTS = 50
 
 # 初始化
-func _init(container) -> void:
+func _init(container = null) -> void:
+	# 如果没有提供容器，使用场景根节点
+	if container == null:
+		container = get_tree().get_root() if is_inside_tree() else null
+
 	effect_container = container
+
+	# 创建特效注册表
+	effect_registry = EffectRegistry.new()
 
 	# 获取LOD系统
 	_get_lod_system()
@@ -379,6 +390,17 @@ func play_shader_effect(target, shader_path: String, duration: float, params: Di
 
 # 播放组合特效
 func play_combined_effect(position: Vector2, effect_name: String, params: Dictionary = {}) -> String:
+	# 检查容器是否有效
+	if not effect_container:
+		_log_error("无效的特效容器")
+		return ""
+
+	# 检查特效注册表是否存在该特效
+	if effect_registry and effect_registry.effect_configs.has(effect_name):
+		# 使用特效注册表播放特效
+		return effect_registry.play_effect(self, position, effect_name, params)
+
+	# 如果特效注册表中没有该特效，则使用默认方式播放
 	# 创建特效ID
 	var effect_id = _create_effect_id(EffectType.COMBINED, effect_name)
 
@@ -400,8 +422,16 @@ func play_combined_effect(position: Vector2, effect_name: String, params: Dictio
 		if not params.has(key):
 			params[key] = default_params[key]
 
-	# 创建组合特效容器
-	var container = Node2D.new()
+	# 从对象池获取容器
+	var container = null
+	if ObjectPool and ObjectPool.has_pool(CONTAINER_POOL_NAME):
+		container = ObjectPool.get_object(CONTAINER_POOL_NAME)
+
+	# 如果对象池无法提供实例，则创建新实例
+	if not container:
+		container = Node2D.new()
+
+	# 设置容器属性
 	container.name = "CombinedEffect_" + effect_id
 	container.position = position
 	container.scale = params.scale
@@ -420,7 +450,8 @@ func play_combined_effect(position: Vector2, effect_name: String, params: Dictio
 		"start_time": Time.get_ticks_msec(),
 		"state": AnimationState.PLAYING,
 		"auto_remove": params.auto_remove,
-		"child_effects": []
+		"child_effects": [],
+		"from_pool": container != null and ObjectPool != null and ObjectPool.has_pool(CONTAINER_POOL_NAME)
 	}
 
 	# 添加到活动特效
@@ -461,6 +492,10 @@ func play_combined_effect(position: Vector2, effect_name: String, params: Dictio
 		# 如果创建成功，添加到子特效列表
 		if child_effect_id != "":
 			effect_data.child_effects.append(child_effect_id)
+
+	# 添加到LOD系统
+	if lod_system and is_instance_valid(container):
+		lod_system.add_object(container, "effect")
 
 	# 发送特效开始信号
 	animation_started.emit(effect_id)
@@ -591,6 +626,9 @@ func clear_effects() -> void:
 
 	# 清空特效队列
 	effect_queue.clear()
+
+	# 清空活动特效列表
+	active_effects.clear()
 
 # 创建特效ID
 func _create_effect_id(type: int, name: String) -> String:
@@ -730,3 +768,22 @@ func _cleanup_effect(effect_id: String) -> void:
 				# 恢复原始材质
 				if effect_data.has("original_material"):
 					effect_data.target.material = effect_data.original_material
+
+# 记录错误信息
+func _log_error(error_message: String) -> void:
+	print("[VisualEffectAnimator] ERROR: " + error_message)
+
+# 记录警告信息
+func _log_warning(warning_message: String) -> void:
+	print("[VisualEffectAnimator] WARNING: " + warning_message)
+
+# 记录信息
+func _log_info(info_message: String) -> void:
+	print("[VisualEffectAnimator] INFO: " + info_message)
+
+# 播放动画
+# 兼容AnimationManager的接口
+func play_animation(position: Vector2, effect_name: String, params: Dictionary = {}) -> bool:
+	# 直接调用play_combined_effect
+	var effect_id = play_combined_effect(position, effect_name, params)
+	return effect_id != ""

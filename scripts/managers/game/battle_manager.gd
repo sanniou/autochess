@@ -18,7 +18,7 @@ var Events = null
 var battle_engine: BattleEngine = null
 
 # 效果管理器
-var effect_manager: EffectManager = null
+var effect_manager: BattleEffectManager = null
 
 # 战斗难度
 var difficulty: int = BC.AIDifficulty.NORMAL  # 当前难度
@@ -56,7 +56,7 @@ func _do_initialize() -> void:
 	Events = load("res://scripts/events/event_definitions.gd")
 
 	# 创建效果管理器
-	effect_manager = EffectManager.new()
+	effect_manager = BattleEffectManager.new()
 	add_child(effect_manager)
 
 	# 连接信号 - 使用规范的事件连接方式和常量

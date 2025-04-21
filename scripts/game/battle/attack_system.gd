@@ -216,8 +216,10 @@ func apply_damage(attacker: ChessPieceEntity, defender: ChessPieceEntity, damage
 	# 重置攻击计时器
 	attacker.attack_timer = 1.0 / attacker.attack_speed
 
-	# 发送伤害事件
-	EventBus.battle.emit_event("damage_dealt", [attacker, defender, actual_damage, damage_type_str])
+	# 优化：只在伤害超过一定阈值时发送事件
+	# 或者当伤害类型不是普通物理伤害时发送
+	if actual_damage > 5.0 or damage_type_str != "physical":
+		EventBus.battle.emit_event("damage_dealt", [attacker, defender, actual_damage, damage_type_str])
 
 # 触发攻击效果
 func _trigger_attack_effects(attacker: ChessPieceEntity, defender: ChessPieceEntity, damage_result: Dictionary) -> void:

@@ -50,7 +50,7 @@ func handle_input(event: InputEvent) -> void:
 	pass
 
 # 获取状态名称
-func get_name() -> String:
+func get_chess_name() -> String:
 	return state_name
 
 # 获取状态描述

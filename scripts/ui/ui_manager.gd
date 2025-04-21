@@ -66,6 +66,9 @@ var toast_node: Control = null
 # 成就通知容器
 var achievement_notification_container: Control = null
 
+# UI节流管理器
+var ui_throttle_manager: UIThrottleManager = null
+
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
@@ -76,9 +79,13 @@ func _do_initialize() -> void:
 	add_dependency("GameManager")
 	# 添加依赖
 	add_dependency("AudioManager")
-
 	# 添加依赖
 	add_dependency("SceneManager")
+	# 添加UI节流管理器依赖
+	add_dependency("UIThrottleManager")
+
+	# 获取UI节流管理器
+	ui_throttle_manager = GameManager.get_manager("UIThrottleManager")
 
 	# 连接信号
 	EventBus.ui.connect_event("show_toast", show_toast)
@@ -98,6 +105,9 @@ func _do_initialize() -> void:
 
 	# 创建成就通知容器
 	_create_achievement_notification_container()
+
+	# 设置UI更新频率
+	_configure_ui_throttling()
 
 # 创建 UI 容器
 func _create_ui_containers() -> void:
@@ -162,8 +172,18 @@ func _create_toast_node() -> void:
 
 # 显示提示
 func show_toast(message: String, duration: float = TOAST_DURATION) -> void:
-	# 设置提示文本
+	# 检查是否已经有相同的提示正在显示
 	var label = toast_node.get_node("Panel/Label")
+	if toast_node.visible and label.text == message:
+		# 如果相同的提示已经在显示，只重置定时器
+		if toast_node.has_meta("timer"):
+			var old_timer = toast_node.get_meta("timer")
+			if old_timer and is_instance_valid(old_timer):
+				old_timer.timeout.disconnect(toast_node.get_meta("timer_callback"))
+		else:
+			return
+
+	# 设置提示文本
 	label.text = message
 
 	# 显示提示
@@ -174,10 +194,28 @@ func show_toast(message: String, duration: float = TOAST_DURATION) -> void:
 
 	# 创建定时器
 	var timer = get_tree().create_timer(duration)
-	timer.timeout.connect(func(): toast_node.visible = false)
+	var callback = func(): toast_node.visible = false
+	timer.timeout.connect(callback)
+
+	# 存储定时器和回调函数引用
+	toast_node.set_meta("timer", timer)
+	toast_node.set_meta("timer_callback", callback)
 
 # 显示弹窗
 func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictionary = {}) -> Control:
+	# 检查是否已经有相同类型的弹窗正在显示
+	for popup in active_popups:
+		if popup.name.begins_with(popup_name) or popup.name.begins_with(POPUP_MAPPING.get(popup_name, popup_name)):
+			# 如果已经有相同类型的弹窗，更新数据并返回
+			if options.get("update_existing", true):
+				# 更新弹窗数据
+				popup.set_popup_data(popup_data)
+
+				# 强制更新UI
+				force_update_ui("popup", popup.name)
+
+				return popup
+
 	# 获取弹窗文件名
 	var popup_file_name = POPUP_MAPPING.get(popup_name, popup_name)
 
@@ -337,6 +375,13 @@ func _on_popup_closed(popup_instance: Control, popup_name: String) -> void:
 
 # 开始过渡动画
 func start_transition(transition_type: String = "fade", duration: float = TRANSITION_DURATION) -> void:
+	# 检查是否已经有过渡动画正在进行
+	if current_state == UIState.TRANSITION:
+		# 如果已经有过渡动画正在进行，取消当前的过渡动画
+		var tween = transition_node.get_meta("tween") if transition_node.has_meta("tween") else null
+		if tween and is_instance_valid(tween):
+			tween.kill()
+
 	# 更新UI状态
 	current_state = UIState.TRANSITION
 
@@ -354,17 +399,20 @@ func start_transition(transition_type: String = "fade", duration: float = TRANSI
 		"fade_in":
 			# 淡入动画
 			var tween = create_tween()
+			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 		"fade_out":
 			# 淡出动画
 			color_rect.color = Color(0, 0, 0, 1)
 			var tween = create_tween()
+			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 		"fade":
 			# 淡入淡出动画
 			var tween = create_tween()
+			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
 			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint", []))
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
@@ -372,6 +420,7 @@ func start_transition(transition_type: String = "fade", duration: float = TRANSI
 		_:
 			# 默认淡入淡出
 			var tween = create_tween()
+			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
 			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint", []))
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
@@ -414,6 +463,49 @@ func get_current_state() -> UIState:
 # 是否有活动弹窗
 func has_active_popup() -> bool:
 	return active_popups.size() > 0
+
+# 配置UI节流
+func _configure_ui_throttling() -> void:
+	# 检查UI节流管理器是否可用
+	if not ui_throttle_manager:
+		return
+
+	# 设置全局配置
+	var config = {
+		"enabled": true,
+		"default_interval": 0.1,
+		"high_fps_interval": 0.2,
+		"low_fps_interval": 0.05,
+		"fps_threshold": 40,
+		"adaptive": true
+	}
+
+	# 应用配置
+	ui_throttle_manager.set_global_config(config)
+
+	# 注册常用UI节流器
+	EventBus.ui.emit_event("register_ui_throttler", ["hud", config])
+	EventBus.ui.emit_event("register_ui_throttler", ["popup", config])
+	EventBus.ui.emit_event("register_ui_throttler", ["battle", config])
+	EventBus.ui.emit_event("register_ui_throttler", ["shop", config])
+	EventBus.ui.emit_event("register_ui_throttler", ["map", config])
+
+# 获取UI节流器
+func get_throttler(ui_id: String) -> UIThrottler:
+	if ui_throttle_manager:
+		return ui_throttle_manager.get_throttler(ui_id)
+	return null
+
+# 检查是否应该更新UI
+func should_update_ui(ui_id: String, component_id: String, delta: float, custom_interval: float = -1) -> bool:
+	if ui_throttle_manager:
+		return ui_throttle_manager.should_update(ui_id, component_id, delta, custom_interval)
+	return true
+
+# 强制更新UI
+func force_update_ui(ui_id: String, component_id: String = "") -> void:
+	if ui_throttle_manager:
+		ui_throttle_manager.force_update(ui_id, component_id)
 
 
 

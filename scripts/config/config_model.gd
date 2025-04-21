@@ -63,13 +63,13 @@ func get_schema() -> Dictionary:
 	return schema.duplicate(true)
 
 ## 获取配置字段
-func get(field_name: String, default_value = null):
+func get_value(field_name: String, default_value = null):
 	if data.has(field_name):
 		return data[field_name]
 	return default_value
 
 ## 设置配置字段
-func set(field_name: String, value) -> bool:
+func set_value(field_name: String, value) -> bool:
 	# 检查字段是否在架构中
 	if not schema.has(field_name):
 		validation_errors.append("字段不在架构中: " + field_name)

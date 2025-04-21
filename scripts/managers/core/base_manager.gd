@@ -12,9 +12,6 @@ signal dependency_added(dependency_name: String)
 signal dependency_removed(dependency_name: String)
 signal error_occurred(error_message: String)
 
-# 初始化状态
-var _initialized: bool = false
-
 # 管理器名称
 var manager_name: String = ""
 

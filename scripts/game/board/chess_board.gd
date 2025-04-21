@@ -1,7 +1,13 @@
 extends Node2D
 class_name ChessBoard
 ## 棋盘场景控制器
-## 负责棋盘的视觉表现和用户交互
+## 负责棋盘的视觉表现和用户交互，不直接管理棋盘数据
+## 主要职责：
+## 1. 创建和管理棋盘的视觉组件
+## 2. 处理用户交互（点击、拖拽等）
+## 3. 提供视觉反馈（高亮、动画等）
+## 4. 将用户操作转发给BoardManager处理
+## 5. 响应BoardManager的状态变化
 
 # 棋盘配置
 @export var board_width: int = 8
@@ -113,16 +119,8 @@ func _on_cell_clicked(cell: BoardCell):
 		start_drag_piece(cell)
 
 		# 尝试合成棋子
-		if not is_combining:
-			# 检查棋子类型和星级
-			var star_level = 0
-			if cell.current_piece is ChessPieceAdapter:
-				star_level = cell.current_piece.level
-			elif cell.current_piece is ChessPieceEntity:
-				star_level = cell.current_piece.level
-
-			if star_level < 3:
-				GameManager.board_manager.try_combine_pieces(cell.current_piece)
+		if not is_combining and cell.current_piece.star_level < 3:
+			GameManager.board_manager.try_combine_pieces(cell.current_piece)
 	elif dragging_piece:
 		# 结束拖拽
 		end_drag_piece(cell)
@@ -133,13 +131,8 @@ func _on_cell_clicked(cell: BoardCell):
 func _on_cell_hovered(cell: BoardCell):
 	# 如果正在拖拽棋子，高亮可放置的格子
 	if dragging_piece and cell.is_playable and not cell.current_piece:
-		# 检查棋子类型
-		var is_player_piece = false
-
-		if dragging_piece is ChessPieceAdapter:
-			is_player_piece = dragging_piece.is_player_piece
-		elif dragging_piece is ChessPieceEntity:
-			is_player_piece = dragging_piece.is_player_piece
+		# 获取棋子属性
+		var is_player_piece = dragging_piece.is_player_piece
 
 		# 如果是玩家棋子且格子是出生区
 		if is_player_piece and cell.cell_type == "spawn":
@@ -285,7 +278,21 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
 
 # 查找指定位置的格子
 func _find_cell_at_position(global_pos: Vector2) -> BoardCell:
-	return GameManager.board_manager.find_cell_at_position(global_pos, cell_size)
+	# 检查主棋盘格子
+	var all_cells = GameManager.board_manager.get_all_cells()
+	for cell in all_cells:
+		var rect = Rect2(cell.global_position, cell_size)
+		if rect.has_point(global_pos):
+			return cell
+
+	# 检查备战区格子
+	var bench_cells = GameManager.board_manager.get_bench_cells()
+	for cell in bench_cells:
+		var rect = Rect2(cell.global_position, cell_size)
+		if rect.has_point(global_pos):
+			return cell
+
+	return null
 
 # 高亮可放置的格子
 func _highlight_valid_cells() -> void:
@@ -296,15 +303,8 @@ func _highlight_valid_cells() -> void:
 	var all_cells = GameManager.board_manager.get_all_cells()
 	var bench_cells = GameManager.board_manager.get_bench_cells()
 
-	# 检查棋子类型
-	var is_player_piece = false
-
-	if dragging_piece is ChessPieceEntity:
-		is_player_piece = dragging_piece.is_player_piece
-	elif dragging_piece is ChessPieceAdapter:
-		is_player_piece = dragging_piece.is_player_piece
-	elif dragging_piece is ChessPieceEntity:
-		is_player_piece = dragging_piece.is_player_piece
+	# 获取棋子属性
+	var is_player_piece = dragging_piece.is_player_piece
 
 	# 高亮棋盘上的可放置格子
 	for cell in all_cells:

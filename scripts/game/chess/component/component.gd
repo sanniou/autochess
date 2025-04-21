@@ -49,7 +49,7 @@ func _process_update(delta: float) -> void:
 	pass
 
 # 获取组件名称
-func get_name() -> String:
+func get_component_name() -> String:
 	return component_name
 
 # 获取组件ID

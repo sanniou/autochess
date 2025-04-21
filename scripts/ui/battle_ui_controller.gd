@@ -13,8 +13,21 @@ extends Control
 # 战斗管理器引用
 var battle_manager: BattleManager
 
+# UI节流器
+var ui_throttler: UIThrottler
+
+# 上次显示的时间文本
+var _last_time_text: String = ""
+
 # 初始化
 func _ready():
+	# 创建 UI 节流器
+	ui_throttler = UIThrottler.new({
+		"default_interval": 0.1,  # 100ms更新一次
+		"high_fps_interval": 0.2,  # 高帧率时200ms更新一次
+		"low_fps_interval": 0.05   # 低帧率时50ms更新一次
+	})
+
 	# 隐藏战斗统计面板
 	battle_stats_panel.visible = false
 
@@ -29,10 +42,20 @@ func _ready():
 
 # 更新
 func _process(delta):
-	# 更新战斗计时器
+	# 使用节流器控制UI更新频率
 	if battle_manager and battle_manager.current_state == battle_manager.BattleState.BATTLE:
-		var time_left = battle_manager.timer
-		battle_timer.text = "时间: %02d:%02d" % [int(time_left) / 60, int(time_left) % 60]
+		if ui_throttler.should_update("battle_timer", delta):
+			_update_battle_timer()
+
+# 更新战斗计时器
+func _update_battle_timer() -> void:
+	var time_left = battle_manager.timer
+	var new_text = "时间: %02d:%02d" % [int(time_left) / 60, int(time_left) % 60]
+
+	# 只有当文本变化时才更新标签
+	if new_text != _last_time_text:
+		_last_time_text = new_text
+		battle_timer.text = new_text
 
 # 速度滑块变化处理
 func _on_speed_slider_changed(value: float):
