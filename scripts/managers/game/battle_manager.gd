@@ -395,37 +395,17 @@ func apply_shield_effect(source, target, shield_type: int, shield_amount: float,
 # 应用伤害
 func apply_damage(source, target, damage: float, damage_type: String = "magical", is_critical: bool = false, is_dodgeable: bool = true) -> float:
 	# 如果战斗引擎存在，使用战斗引擎应用伤害
-	if battle_engine:
-		return battle_engine.apply_damage(source, target, damage, damage_type, is_critical, is_dodgeable)
-
-	# 如果战斗引擎不存在，直接应用伤害
-	if target and is_instance_valid(target) and target.has_method("take_damage"):
-		return target.take_damage(damage, damage_type, source, is_critical, is_dodgeable)
-
-	return 0.0
+	return battle_engine.apply_damage(source, target, damage, damage_type, is_critical, is_dodgeable)
 
 # 应用治疗
 func apply_heal(source, target, heal_amount: float) -> float:
 	# 如果战斗引擎存在，使用战斗引擎应用治疗
-	if battle_engine:
-		return battle_engine.apply_heal(source, target, heal_amount)
-
-	# 如果战斗引擎不存在，直接应用治疗
-	if target and is_instance_valid(target) and target.has_method("heal"):
-		return target.heal(heal_amount, source)
-
-	return 0.0
+	return battle_engine.apply_heal(source, target, heal_amount)
 
 # 创建浮动文本
 func create_floating_text(position: Vector2, text: String, color: Color = Color.WHITE) -> void:
 	# 如果战斗引擎存在，使用战斗引擎创建浮动文本
-	if battle_engine and battle_engine.has_method("create_floating_text"):
-		battle_engine.create_floating_text(position, text, color)
-
-# 迁移旧效果到新效果系统
-func migrate_effect(old_effect, source = null, target = null) -> BattleEffect:
-	# 使用迁移工具迁移效果
-	return EffectMigrationTool.migrate_effect(old_effect, source, target)
+	battle_engine.create_floating_text(position, text, color)
 
 # 重写重置方法
 func _do_reset() -> void:

@@ -1,6 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://bj72qgldgp41l"]
-
-[ext_resource type="Script" uid="uid://bows5anvsogk5" path="res://scripts/effects/area_damage_effect.gd" id="1_yjr2t"]
+[gd_scene load_steps=8 format=3 uid="uid://bj72qgldgp41l"]
 
 [sub_resource type="Gradient" id="Gradient_lfxnq"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -59,7 +57,6 @@ color = Color(0.6, 0.1, 0.1, 0.8)
 color_ramp = SubResource("GradientTexture1D_ixvs3")
 
 [node name="AreaDamageEffect" type="Node2D"]
-script = ExtResource("1_yjr2t")
 
 [node name="ExplosionParticles" type="GPUParticles2D" parent="."]
 emitting = false

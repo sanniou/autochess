@@ -202,7 +202,7 @@ func show_toast(message: String, duration: float = TOAST_DURATION) -> void:
 	toast_node.set_meta("timer_callback", callback)
 
 # 显示弹窗
-func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictionary = {}) -> Control:
+func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictionary = {}) -> Node:
 	# 检查是否已经有相同类型的弹窗正在显示
 	for popup in active_popups:
 		if popup.name.begins_with(popup_name) or popup.name.begins_with(POPUP_MAPPING.get(popup_name, popup_name)):
@@ -274,19 +274,39 @@ func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictio
 	popup_opened.emit(popup_name)
 
 	# 连接关闭信号
-	popup_instance.popup_closed.connect(func(): _on_popup_closed(popup_instance, popup_name))
+	if popup_instance.has_signal("popup_closed"):
+		# 先断开之前的连接，避免重复连接
+		if popup_instance.is_connected("popup_closed", Callable(self, "_on_popup_closed")):
+			popup_instance.disconnect("popup_closed", Callable(self, "_on_popup_closed"))
+
+		# 连接新的信号
+		popup_instance.popup_closed.connect(func(): _on_popup_closed(popup_instance, popup_name))
 
 	return popup_instance
 
 # 关闭弹窗
-func close_popup(popup_instance: Control = null) -> void:
+func close_popup(popup_instance: Node = null) -> void:
 	if popup_instance == null and active_popups.size() > 0:
 		# 关闭最后一个弹窗
 		popup_instance = active_popups.back()
 
 	if popup_instance != null:
-		# 调用弹窗的close_popup方法
-		popup_instance.close_popup()
+		# 检查弹窗类型
+		if popup_instance.has_method("close_popup"):
+			# 调用弹窗的close_popup方法
+			popup_instance.close_popup()
+		elif popup_instance is Window:
+			# 对于Window类型，直接隐藏
+			popup_instance.hide()
+			# 如果Window有popup_closed信号，发送该信号
+			if popup_instance.has_signal("popup_closed"):
+				popup_instance.emit_signal("popup_closed")
+		elif popup_instance is Control:
+			# 对于Control类型，直接隐藏
+			popup_instance.visible = false
+			# 如果Control有popup_closed信号，发送该信号
+			if popup_instance.has_signal("popup_closed"):
+				popup_instance.emit_signal("popup_closed")
 
 		# 从活动弹窗列表中移除
 		active_popups.erase(popup_instance)
@@ -296,10 +316,14 @@ func close_popup(popup_instance: Control = null) -> void:
 			current_state = UIState.NORMAL
 
 # 设置弹窗层级
-func _set_popup_layer(popup: Control, layer: int) -> void:
+func _set_popup_layer(popup: Node, layer: int) -> void:
 	# 检查是否是 Window 类型
-	if popup.get_class() == "Window":
+	if popup is Window or popup.get_class() == "Window":
 		# Window 类型弹窗不需要设置层级
+		return
+
+	# 确保是 Control 类型
+	if not popup is Control:
 		return
 
 	# 设置 z_index
@@ -310,11 +334,14 @@ func _set_popup_layer(popup: Control, layer: int) -> void:
 		popup.get_node("Background").z_index = layer - 1
 
 # 使用过渡效果显示弹窗
-func _show_popup_with_transition(popup: Control, transition: String) -> void:
+func _show_popup_with_transition(popup: Node, transition: String) -> void:
 	# 检查是否是 Window 类型
-	if popup.get_class() == "Window":
+	if popup is Window or popup.get_class() == "Window":
 		# Window 类型弹窗使用内置的显示方法
-		popup.show_popup()
+		if popup.has_method("show_popup"):
+			popup.show_popup()
+		else:
+			popup.popup_centered()
 		return
 
 	match transition:
@@ -345,10 +372,11 @@ func _show_popup_with_transition(popup: Control, transition: String) -> void:
 		_:
 			# 默认直接显示
 			popup.visible = true
-			popup.show_popup()
+			if popup.has_method("show_popup"):
+				popup.show_popup()
 
 # 弹窗关闭处理
-func _on_popup_closed(popup_instance: Control, popup_name: String) -> void:
+func _on_popup_closed(popup_instance: Node, popup_name: String) -> void:
 	# 从活动弹窗列表中移除
 	active_popups.erase(popup_instance)
 

@@ -1,7 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bqnxqwu5a4ywv"]
-
-[sub_resource type="Resource" id="Resource_4ki57"]
-metadata/__load_path__ = "res://scripts/effects/damage_effect.gd"
+[gd_scene load_steps=5 format=3 uid="uid://bqnxqwu5a4ywv"]
 
 [sub_resource type="Gradient" id="Gradient_lfxnq"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -39,7 +36,6 @@ color = Color(0.8, 0.2, 0.2, 0.8)
 color_ramp = SubResource("GradientTexture1D_ixvs3")
 
 [node name="DamageEffect" type="Node2D"]
-script = SubResource("Resource_4ki57")
 
 [node name="DamageParticles" type="GPUParticles2D" parent="."]
 emitting = false

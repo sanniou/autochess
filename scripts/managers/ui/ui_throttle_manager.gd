@@ -35,10 +35,11 @@ func _do_initialize() -> void:
 	# 更新帧率
 	_update_fps()
 
+static var fps_timer = 0.0
+
 # 进程函数
 func _process(_delta: float) -> void:
 	# 每秒更新一次帧率
-	static var fps_timer = 0.0
 	fps_timer += _delta
 	
 	if fps_timer >= 1.0:
@@ -77,7 +78,7 @@ func force_update(ui_id: String, component_id: String = "") -> void:
 
 # 注册UI节流器事件处理
 func _on_register_ui_throttler(ui_id: String, config: Dictionary = {}) -> void:
-	var throttler = UIThrottler.new(config.is_empty() ? global_config : config)
+	var throttler = UIThrottler.new(global_config if config.is_empty() else config)
 	_throttlers[ui_id] = throttler
 
 # 注销UI节流器事件处理

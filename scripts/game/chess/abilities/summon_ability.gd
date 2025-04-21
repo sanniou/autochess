@@ -110,7 +110,7 @@ func _get_empty_cells_around(position: Vector2i, board_manager) -> Array:
 # 创建默认召唤物
 func _create_default_summon() -> ChessPieceEntity:
 	# 创建一个基础棋子作为召唤物
-	var summon = ChessPiece.new()
+	var summon = ChessPieceEntity.new()
 
 	# 设置基本属性
 	summon.id = "summon_" + str(randi())
@@ -133,7 +133,7 @@ func _create_default_summon() -> ChessPieceEntity:
 
 # 移除召唤物
 func _remove_summon(summon: ChessPieceEntity) -> void:
-	if is_instance_valid(summon) and summon.current_state != ChessPiece.ChessState.DEAD:
+	if is_instance_valid(summon) and summon.current_state != StateMachineComponent.ChessState.DEAD:
 		# 播放消失特效
 		_play_despawn_effect(summon)
 

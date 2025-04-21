@@ -496,12 +496,19 @@ func _preload_common_resources() -> void:
 		preload_resource(audio, ResourceType.AUDIO)
 
 	# 预加载常用场景
+	# 注意：原先的一些场景文件已被移除或替换为新的实现
+	# - ui/loading_screen.tscn：现在由 SceneManager 处理加载过渡
+	# - ui/message_box.tscn：现在由 ui/popups/confirm_dialog_popup.tscn 替代
+	# - ui/tooltip.tscn：现在由 TooltipSystem 动态创建
+	# - effects/particle_effect.tscn 和 sprite_effect.tscn：现在可能由 scenes/vfx 下的文件替代
 	var common_scenes = [
-		"ui/loading_screen.tscn",
-		"ui/message_box.tscn",
-		"ui/tooltip.tscn",
-		"effects/particle_effect.tscn",
-		"effects/sprite_effect.tscn"
+		# 弹窗模板
+		"ui/popups/templates/control_popup_template.tscn",
+		"ui/popups/templates/window_popup_template.tscn",
+		# 常用弹窗
+		"ui/popups/confirm_dialog_popup.tscn",
+		# 其他可能需要预加载的场景
+		"ui/popups/settings_popup.tscn"
 	]
 
 	for scene in common_scenes:

@@ -110,7 +110,7 @@ func _find_next_chain_target(current_target: ChessPieceEntity, hit_targets: Arra
 	var all_pieces = board_manager.pieces
 
 	for piece in all_pieces:
-		if piece.is_player_piece != owner.is_player_piece and piece.current_state != ChessPiece.ChessState.DEAD and not hit_targets.has(piece):
+		if piece.is_player_piece != owner.is_player_piece and piece.current_state != StateMachineComponent.ChessState.DEAD and not hit_targets.has(piece):
 			# 计算距离
 			var distance = current_target.board_position.distance_to(piece.board_position)
 			if distance <= chain_range:

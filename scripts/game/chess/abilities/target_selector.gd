@@ -105,7 +105,7 @@ func _is_valid_target_type(piece: ChessPieceEntity) -> bool:
 # 检查目标状态是否有效
 func _is_valid_target_state(piece: ChessPieceEntity) -> bool:
 	# 检查是否死亡
-	if piece.current_state == ChessPiece.ChessState.DEAD:
+	if piece.current_state == StateMachineComponent.ChessState.DEAD:
 		return false
 
 	# 检查是否隐形
@@ -172,7 +172,7 @@ func _count_nearby_pieces(piece: ChessPieceEntity, radius: float = 2.0) -> int:
 		return 0
 
 	for other in board_manager.pieces:
-		if other != piece and other.current_state != ChessPiece.ChessState.DEAD:
+		if other != piece and other.current_state != StateMachineComponent.ChessState.DEAD:
 			var distance = piece.board_position.distance_to(other.board_position)
 			if distance <= radius:
 				count += 1

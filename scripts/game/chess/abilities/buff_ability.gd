@@ -34,7 +34,7 @@ func _execute_effect(target = null) -> void:
 		"duration": duration
 	}
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.BUFF, target, params)
+	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.STAT, target, params)
 
 	# 直接应用增益效果
 	# 创建效果数据

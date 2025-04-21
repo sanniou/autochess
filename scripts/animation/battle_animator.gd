@@ -290,6 +290,7 @@ func _create_ranged_attack_animation(animation_data: Dictionary) -> void:
 				# 完成后清理特效
 				effect_animator._cleanup_effect(projectile_effect_id)
 				effect_animator.active_effects.erase(projectile_effect_id)
+			)
 			# 添加攻击特效
 			if params.effect_name != "":
 				# 播放特效

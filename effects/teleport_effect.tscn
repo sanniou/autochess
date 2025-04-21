@@ -1,6 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://c8j6y8r4e3q5v2"]
-
-[ext_resource type="Script" uid="uid://bjjs1ch1at4mr" path="res://scripts/effects/teleport_effect.gd" id="1_yjr2t"]
+[gd_scene load_steps=6 format=3 uid="uid://c8j6y8r4e3q5v2"]
 
 [sub_resource type="Gradient" id="Gradient_lfxnq"]
 offsets = PackedFloat32Array(0, 0.5, 1)
@@ -52,7 +50,6 @@ color = Color(0.8, 0.2, 0.8, 0.8)
 color_ramp = SubResource("GradientTexture1D_ixvs3")
 
 [node name="TeleportEffect" type="Node2D"]
-script = ExtResource("1_yjr2t")
 
 [node name="DisappearParticles" type="GPUParticles2D" parent="."]
 emitting = false

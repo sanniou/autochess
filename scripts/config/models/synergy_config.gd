@@ -148,7 +148,7 @@ func get_id() -> String:
 	return data.get("id", "")
 
 # 获取羁绊名称
-func get_name() -> String:
+func get_synergy_name() -> String:
 	return data.get("name", "")
 
 # 获取羁绊描述

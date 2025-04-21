@@ -73,7 +73,7 @@ func process_attack(attacker: ChessPieceEntity, defender: ChessPieceEntity) -> D
 # 检查是否可以攻击
 func can_attack(attacker: ChessPieceEntity, defender: ChessPieceEntity) -> bool:
 	# 检查攻击者和防御者状态
-	if attacker.current_state == ChessPiece.ChessState.DEAD or defender.current_state == ChessPiece.ChessState.DEAD:
+	if attacker.current_state == StateMachineComponent.ChessState.DEAD or defender.current_state == StateMachineComponent.ChessState.DEAD:
 		return false
 
 	# 检查攻击者是否在攻击冷却中

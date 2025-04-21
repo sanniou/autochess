@@ -1,5 +1,4 @@
 extends "res://scripts/managers/core/base_manager.gd"
-class_name FontManager
 ## 字体管理器
 ## 负责管理游戏中的字体资源和文本样式
 

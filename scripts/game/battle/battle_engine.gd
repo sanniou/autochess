@@ -31,6 +31,12 @@ var battle_timer: float = 0.0
 var battle_speed: float = BC.DEFAULT_BATTLE_SPEED
 var is_player_turn: bool = true
 
+# AI更新计时器
+var ai_update_timer: float = 0.0
+
+# 事件计数器
+var event_counters: Dictionary = {}
+
 # 战斗参与者
 var player_units: Array = []
 var enemy_units: Array = []
@@ -256,9 +262,8 @@ func _update_combat_phase(delta: float) -> void:
 	# 应用战斗速度
 	var adjusted_delta = delta * battle_speed
 
-	# 使用静态帧率控制AI更新
+	# 使用帧率控制AI更新
 	# 每秒更新AI的次数与战斗速度成正比
-	static var ai_update_timer = 0.0
 	ai_update_timer += adjusted_delta
 
 	# 根据战斗速度调整AI更新间隔
@@ -454,8 +459,7 @@ func _trigger_battle_event(event_type: String, data: Dictionary) -> void:
 
 	# 如果是高频率事件，使用频率控制
 	if event_type in high_frequency_events:
-		# 使用静态计数器进行频率控制
-		static var event_counters = {}
+		# 使用类级别计数器进行频率控制
 		if not event_counters.has(event_type):
 			event_counters[event_type] = 0
 
@@ -604,6 +608,12 @@ func _reset_battle_stats() -> void:
 		"battle_duration": 0,
 		"abilities_used": 0
 	}
+
+	# 重置事件计数器
+	event_counters.clear()
+
+	# 重置AI更新计时器
+	ai_update_timer = 0.0
 
 # 单位死亡事件处理
 func _on_unit_died(unit) -> void:

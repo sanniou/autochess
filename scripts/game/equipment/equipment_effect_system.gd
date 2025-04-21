@@ -38,7 +38,7 @@ func _register_effect_handlers() -> void:
 	effect_handlers[EffectConsts.EffectType.MOVEMENT] = _handle_movement_effect
 
 # 应用装备效果
-func apply_effects(equipment: Equipment, target: ChessPiece) -> void:
+func apply_effects(equipment: Equipment, target: ChessPieceEntity) -> void:
 	# 检查参数
 	if equipment == null or target == null:
 		return
@@ -64,7 +64,7 @@ func apply_effects(equipment: Equipment, target: ChessPiece) -> void:
 		_apply_effect(equipment, target, effect)
 
 # 移除装备效果
-func remove_effects(equipment: Equipment, target: ChessPiece) -> void:
+func remove_effects(equipment: Equipment, target: ChessPieceEntity) -> void:
 	# 检查参数
 	if equipment == null or target == null:
 		return
@@ -123,7 +123,7 @@ func trigger_effect(equipment: Equipment, effect_data: Dictionary, trigger_conte
 	EventBus.equipment.emit_event("equipment_effect_triggered", [equipment, effect_data])
 
 # 应用基础属性
-func _apply_stats(equipment: Equipment, target: ChessPiece) -> void:
+func _apply_stats(equipment: Equipment, target: ChessPieceEntity) -> void:
 	var stats = equipment.stats
 	if stats.is_empty():
 		return
@@ -154,7 +154,7 @@ func _apply_stats(equipment: Equipment, target: ChessPiece) -> void:
 				target.dodge_chance += value
 
 # 移除基础属性
-func _remove_stats(equipment: Equipment, target: ChessPiece) -> void:
+func _remove_stats(equipment: Equipment, target: ChessPieceEntity) -> void:
 	var stats = equipment.stats
 	if stats.is_empty():
 		return
@@ -185,7 +185,7 @@ func _remove_stats(equipment: Equipment, target: ChessPiece) -> void:
 				target.dodge_chance -= value
 
 # 应用特殊效果
-func _apply_effect(equipment: Equipment, target: ChessPiece, effect_data: Dictionary) -> void:
+func _apply_effect(equipment: Equipment, target: ChessPieceEntity, effect_data: Dictionary) -> void:
 	# 获取触发类型
 	var trigger_type = effect_data.get("trigger", "")
 	if trigger_type is String:
@@ -297,7 +297,7 @@ func _check_trigger_condition(effect_data: Dictionary, trigger_context: Dictiona
 	return true
 
 # 处理属性提升效果
-func _handle_stat_boost_effect(_equipment: Equipment, target: ChessPiece, effect_data: Dictionary, _trigger_context: Dictionary) -> void:
+func _handle_stat_boost_effect(_equipment: Equipment, target: ChessPieceEntity, effect_data: Dictionary, _trigger_context: Dictionary) -> void:
 	# 获取属性和值
 	var stat = effect_data.get("stat", "")
 	var value = effect_data.get("value", 0.0)
@@ -327,7 +327,7 @@ func _handle_stat_boost_effect(_equipment: Equipment, target: ChessPiece, effect
 			target.dodge_chance += value
 
 # 处理伤害效果
-func _handle_damage_effect(_equipment: Equipment, _target: ChessPiece, effect_data: Dictionary, trigger_context: Dictionary) -> void:
+func _handle_damage_effect(_equipment: Equipment, _target: ChessPieceEntity, effect_data: Dictionary, trigger_context: Dictionary) -> void:
 	# 获取目标
 	var damage_target = trigger_context.get("target")
 	if damage_target == null:
@@ -341,7 +341,7 @@ func _handle_damage_effect(_equipment: Equipment, _target: ChessPiece, effect_da
 	damage_target.take_damage(damage, _target, damage_type)
 
 # 处理治疗效果
-func _handle_heal_effect(_equipment: Equipment, target: ChessPiece, effect_data: Dictionary, _trigger_context: Dictionary) -> void:
+func _handle_heal_effect(_equipment: Equipment, target: ChessPieceEntity, effect_data: Dictionary, _trigger_context: Dictionary) -> void:
 	# 获取治疗值
 	var heal_amount = effect_data.get("heal_amount", 0.0)
 	
@@ -353,7 +353,7 @@ func _handle_heal_effect(_equipment: Equipment, target: ChessPiece, effect_data:
 	target.heal(heal_amount)
 
 # 处理特殊效果
-func _handle_special_effect(_equipment: Equipment, target: ChessPiece, effect_data: Dictionary, trigger_context: Dictionary) -> void:
+func _handle_special_effect(_equipment: Equipment, target: ChessPieceEntity, effect_data: Dictionary, trigger_context: Dictionary) -> void:
 	# 获取效果名称
 	var effect = effect_data.get("effect", "")
 	
@@ -393,7 +393,7 @@ func _handle_special_effect(_equipment: Equipment, target: ChessPiece, effect_da
 				bleed_target.add_status_effect("bleed", duration, {"damage": damage, "source": target})
 
 # 处理状态效果
-func _handle_status_effect(_equipment: Equipment, _target: ChessPiece, effect_data: Dictionary, trigger_context: Dictionary) -> void:
+func _handle_status_effect(_equipment: Equipment, _target: ChessPieceEntity, effect_data: Dictionary, trigger_context: Dictionary) -> void:
 	# 获取目标
 	var status_target = trigger_context.get("target", _target)
 	if status_target == null:
@@ -407,7 +407,7 @@ func _handle_status_effect(_equipment: Equipment, _target: ChessPiece, effect_da
 	status_target.add_status_effect(status_type, duration, effect_data)
 
 # 处理移动效果
-func _handle_movement_effect(_equipment: Equipment, target: ChessPiece, effect_data: Dictionary, _trigger_context: Dictionary) -> void:
+func _handle_movement_effect(_equipment: Equipment, target: ChessPieceEntity, effect_data: Dictionary, _trigger_context: Dictionary) -> void:
 	# 获取移动类型
 	var movement_type = effect_data.get("movement_type", "")
 	

@@ -19,7 +19,7 @@ func _ready():
 # 加载合成配方
 func _load_combine_recipes():
 	# 使用 ConfigManager 的 get_equipment_recipes 方法获取所有装备合成配方
-	var recipes = ConfigManager.get_equipment_recipes()
+	var recipes = ConfigManager.get_all_equipment()
 
 	# 遍历所有配方
 	for recipe in recipes:

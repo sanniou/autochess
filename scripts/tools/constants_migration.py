@@ -80,12 +80,10 @@ def update_constants_in_file(file_path):
     if file_path.endswith("constants_migration.py") or file_path.endswith("constants_migration_tool.gd"):
         return False
     
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            content = file.read()
-    except Exception as e:
-        print(f"无法读取文件 {file_path}: {e}")
-        return False
+
+    with open(file_path, 'r', encoding='utf-8') as file:
+           content = file.read()
+
     
     original_content = content
     
@@ -104,15 +102,11 @@ def update_constants_in_file(file_path):
     
     # 如果内容有变化，保存文件
     if content != original_content:
-        try:
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write(content)
-            
-            print(f"更新文件: {file_path}")
-            return True
-        except Exception as e:
-            print(f"无法写入文件 {file_path}: {e}")
-            return False
+        with open(file_path, 'w', encoding='utf-8') as file:
+            file.write(content)
+        
+        print(f"更新文件: {file_path}")
+        return True
     
     return False
 
@@ -123,12 +117,9 @@ def rename_constant_files():
         old_path = os.path.join(CONSTANTS_DIR, old_file)
         if os.path.exists(old_path):
             backup_path = os.path.join(CONSTANTS_DIR, f"{old_file}.bak")
-            try:
-                if not os.path.exists(backup_path):
-                    os.rename(old_path, backup_path)
-                    print(f"备份文件: {old_path} -> {backup_path}")
-            except Exception as e:
-                print(f"无法备份文件 {old_path}: {e}")
+            if not os.path.exists(backup_path):
+                os.rename(old_path, backup_path)
+                print(f"备份文件: {old_path} -> {backup_path}")
     
     # 重命名新文件
     for new_file, new_name in NEW_CONSTANTS.items():
@@ -137,11 +128,8 @@ def rename_constant_files():
             new_path = os.path.join(CONSTANTS_DIR, new_file.replace("_new.gd", ".gd"))
             
             if os.path.exists(old_path) and not os.path.exists(new_path):
-                try:
-                    os.rename(old_path, new_path)
-                    print(f"重命名文件: {old_path} -> {new_path}")
-                except Exception as e:
-                    print(f"无法重命名文件 {old_path}: {e}")
+                os.rename(old_path, new_path)
+                print(f"重命名文件: {old_path} -> {new_path}")
 
 def main():
     """主函数"""

@@ -19,6 +19,7 @@ var damage_type: String = "magical"
 var tick_interval: float = 1.0  # 伤害间隔（秒）
 var tick_timer: float = 0.0     # 伤害计时器
 var total_damage: float = 0.0   # 总伤害
+var tick_count: int = 0         # 伤害tick计数器
 
 # 初始化
 func _init(effect_id: String = "", effect_name: String = "", effect_description: String = "",
@@ -139,11 +140,11 @@ func _apply_damage_tick() -> void:
 
 		# 优化：只在伤害超过一定阈值时发送事件
 		# 或者每隔3次tick发送一次事件
-		static var tick_count = 0
+		# 使用实例变量而不是静态变量
 		tick_count += 1
 
 		if actual_damage > 10.0 or tick_count % 3 == 0:
-			EventBus.battle.emit_event("dot_damage", [source, target, damage, damage_type, dot_type])
+			EventBus.battle.emit_event("dot_damage", [source, target, actual_damage, damage_type, dot_type])
 
 # 获取持续伤害图标路径
 func _get_dot_icon_path(dot_type: int) -> String:
@@ -201,6 +202,7 @@ func get_data() -> Dictionary:
 	data["damage_type"] = damage_type
 	data["tick_interval"] = tick_interval
 	data["total_damage"] = total_damage
+	data["tick_count"] = tick_count
 	return data
 
 # 从数据创建效果
@@ -230,5 +232,6 @@ static func create_from_data(data: Dictionary, source = null, target = null) -> 
 	effect.created_at = data.get("created_at", Time.get_ticks_msec())
 	effect.tick_interval = data.get("tick_interval", 1.0)
 	effect.total_damage = data.get("total_damage", 0.0)
+	effect.tick_count = data.get("tick_count", 0)
 
 	return effect

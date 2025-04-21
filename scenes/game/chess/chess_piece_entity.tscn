@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://c8qj2y6yvx3yjb6"]
 
 [ext_resource type="Script" path="res://scripts/game/chess/chess_piece_entity.gd" id="1_yjnqm"]
-[ext_resource type="Texture2D" uid="uid://c8qj2y6yvx3yjb6" path="res://assets/images/chess/default_chess.png" id="2_a7b3c"]
+[ext_resource type="Texture2D" path="res://assets/images/chess/default_chess.png" id="2_a7b3c"]
 
 [sub_resource type="Animation" id="Animation_idle"]
 resource_name = "idle"
@@ -102,3 +102,5 @@ polygon = PackedVector2Array(0, -5, 1.5, -1.5, 5, -1.5, 2.5, 1.5, 3.5, 5, 0, 3, 
 position = Vector2(15, 0)
 color = Color(1, 0.8, 0, 1)
 polygon = PackedVector2Array(0, -5, 1.5, -1.5, 5, -1.5, 2.5, 1.5, 3.5, 5, 0, 3, -3.5, 5, -2.5, 1.5, -5, -1.5, -1.5, -1.5)
+
+[node name="EffectContainer" type="Node2D" parent=""]

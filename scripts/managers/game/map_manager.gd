@@ -73,8 +73,13 @@ func _do_initialize() -> void:
 
 ## 加载地图配置
 func _load_map_config() -> void:
-	# 使用ConfigManager加载配置
-	map_config.initialize(ConfigManager)
+	# 使用ConfigManager获取地图配置
+	var config_model = ConfigManager.get_map_config()
+	if config_model:
+		# 复制配置数据
+		map_config.set_data(config_model.get_data())
+	else:
+		_log_warning("无法加载地图配置")
 
 ## 初始化地图
 func initialize_map(template: String = "standard", difficulty: int = 1, seed_value: int = -1) -> void:

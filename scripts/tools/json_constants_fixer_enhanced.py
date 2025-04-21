@@ -83,22 +83,16 @@ TRIGGER_TO_EFFECT_TYPE_MAP = {
 
 def load_json_file(file_path):
     """加载 JSON 文件"""
-    try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    except Exception as e:
-        print(f"无法加载 JSON 文件 {file_path}: {e}")
-        return {}
+    with open(file_path, 'r', encoding='utf-8') as file:
+        return json.load(file)
+
 
 def save_json_file(file_path, data):
     """保存 JSON 文件"""
-    try:
-        with open(file_path, 'w', encoding='utf-8') as file:
-            json.dump(data, file, ensure_ascii=False, indent=4)
-        return True
-    except Exception as e:
-        print(f"无法保存 JSON 文件 {file_path}: {e}")
-        return False
+    with open(file_path, 'w', encoding='utf-8') as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+    return True
+
 
 def find_closest_string(input_str, candidates):
     """找到最接近的字符串"""

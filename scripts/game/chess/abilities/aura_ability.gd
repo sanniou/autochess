@@ -87,7 +87,7 @@ func _apply_aura_effect() -> void:
 	var all_pieces = board_manager.pieces
 
 	for piece in all_pieces:
-		if piece != owner and piece.is_player_piece == owner.is_player_piece and piece.current_state != ChessPiece.ChessState.DEAD:
+		if piece != owner and piece.is_player_piece == owner.is_player_piece and piece.current_state != StateMachineComponent.ChessState.DEAD:
 			# 计算距离
 			var distance = owner.board_position.distance_to(piece.board_position)
 			if distance <= aura_radius:

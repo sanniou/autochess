@@ -13,6 +13,21 @@ enum EffectType {
 	SPECIAL    # 特殊效果
 }
 
+# 视觉效果类型枚举
+enum VisualEffectType {
+	BUFF,               # 增益效果
+	DEBUFF,             # 减益效果
+	DAMAGE,             # 伤害效果
+	HEAL,               # 治疗效果
+	AREA_DAMAGE,        # 区域伤害
+	CHAIN,              # 连锁效果
+	SUMMON,             # 召唤效果
+	TELEPORT_APPEAR,    # 传送出现
+	TELEPORT_DISAPPEAR, # 传送消失
+	JUMP,               # 跳跃效果
+	DOT                 # 持续伤害效果
+}
+
 # 效果到视觉效果的映射
 var effect_to_visual_map = {
 	EffectType.STAT: "buff",
@@ -78,37 +93,43 @@ func _get_visual_effect_animator() -> void:
 
 
 
-# 创建视觉特效
-func create_visual_effect(effect_type: int, target: Node2D, params: Dictionary = {}) -> String:
-	# 检查视觉效果动画器是否可用
-	if not visual_effect_animator:
-		_get_visual_effect_animator()
-		if not visual_effect_animator:
-			_log_error("无法获取视觉效果动画器")
-			return ""
-
+# 从效果类型创建视觉特效
+## 将EffectType转换为VisualEffectType并创建视觉效果
+func create_visual_effect_from_effect_type(effect_type: int, target: Node2D, params: Dictionary = {}) -> String:
 	# 检查特效类型是否有效
 	if not effect_to_visual_map.has(effect_type):
 		_log_error("无效的效果类型: " + str(effect_type))
-			return ""
+		return ""
 
 	# 准备特效参数
 	var effect_params = params.duplicate()
 
-	# 获取视觉效果名称
-	var visual_effect_name = effect_to_visual_map[effect_type]
+	# 根据效果类型选择视觉效果类型
+	var visual_effect_type: int
+	match effect_type:
+		EffectType.STAT:
+			visual_effect_type = VisualEffectType.BUFF
+		EffectType.STATUS:
+			visual_effect_type = VisualEffectType.DEBUFF
+		EffectType.DOT:
+			visual_effect_type = VisualEffectType.DOT
+		EffectType.DAMAGE:
+			visual_effect_type = VisualEffectType.DAMAGE
+		EffectType.HEAL:
+			visual_effect_type = VisualEffectType.HEAL
+		EffectType.SPECIAL:
+			# 特殊效果需要根据参数决定视觉效果类型
+			if params.has("visual_effect_type"):
+				visual_effect_type = params.visual_effect_type
+			else:
+				_log_error("特殊效果需要指定视觉效果类型")
+				return ""
+		_:
+			_log_error("未知的效果类型: " + str(effect_type))
+			return ""
 
-	# 根据效果类型添加特定参数
-	if effect_type == EffectType.DAMAGE and params.has("damage_type"):
-		visual_effect_name = params.damage_type + "_hit"
-
-	# 添加颜色参数
-	if not effect_params.has("color") and params.has("effect_type"):
-		var color = get_effect_color(params.effect_type)
-		effect_params["color"] = color
-
-	# 使用视觉效果动画器创建特效
-	return visual_effect_animator.play_combined_effect(target.global_position, visual_effect_name, effect_params)
+	# 调用主要的视觉效果创建函数
+	return create_visual_effect(visual_effect_type, target, effect_params)
 
 
 
@@ -172,7 +193,7 @@ func _on_battle_ended(winner_team: int) -> void:
 	_do_reset()
 
 # 添加效果
-func add_effect(effect: BaseEffect) -> void:
+func add_effect(effect: BattleEffect) -> void:
 	# 检查效果是否有效
 	if not effect or not effect.target or not is_instance_valid(effect.target):
 		return
@@ -205,20 +226,104 @@ func create_effect(effect_type: int, target: Node2D, params: Dictionary = {}):
 	# 应用效果
 	return _apply_battle_effect(effect_data, null, target)
 
+# 创建视觉效果
+## 根据视觉效果类型创建相应的视觉效果
+func create_visual_effect(visual_effect_type: int, target: Node2D, params: Dictionary = {}) -> String:
+	# 检查目标是否有效
+	if not target or not is_instance_valid(target):
+		_log_error("创建视觉效果失败：目标无效")
+		return ""
+
+	# 检查视觉效果动画器是否可用
+	if not visual_effect_animator:
+		_get_visual_effect_animator()
+		if not visual_effect_animator:
+			_log_error("无法获取视觉效果动画器")
+			return ""
+
+	# 准备视觉效果参数
+	var visual_params = params.duplicate()
+
+	# 根据视觉效果类型设置参数
+	var visual_effect_name = ""
+
+	match visual_effect_type:
+		VisualEffectType.BUFF:
+			visual_effect_name = "buff"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color("buff")
+
+		VisualEffectType.DEBUFF:
+			visual_effect_name = "debuff"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color("debuff")
+
+		VisualEffectType.DAMAGE:
+			visual_effect_name = visual_params.get("damage_type", "magical") + "_hit"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color(visual_params.get("damage_type", "magical"))
+
+		VisualEffectType.HEAL:
+			visual_effect_name = "heal"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color("heal")
+
+		VisualEffectType.AREA_DAMAGE:
+			visual_effect_name = "area_damage"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color(visual_params.get("damage_type", "magical"))
+
+		VisualEffectType.CHAIN:
+			visual_effect_name = "chain"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color(visual_params.get("damage_type", "magical"))
+
+		VisualEffectType.SUMMON:
+			visual_effect_name = "summon"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color("magical")
+
+		VisualEffectType.TELEPORT_APPEAR:
+			visual_effect_name = "teleport_appear"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color("magical")
+
+		VisualEffectType.TELEPORT_DISAPPEAR:
+			visual_effect_name = "teleport_disappear"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color("magical")
+
+		VisualEffectType.JUMP:
+			visual_effect_name = "jump"
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color("physical")
+
+		VisualEffectType.DOT:
+			visual_effect_name = visual_params.get("dot_type", "burning")
+			if not visual_params.has("color"):
+				visual_params["color"] = get_effect_color(visual_params.get("dot_type", "burning"))
+
+		_:
+			_log_error("未知的视觉效果类型: " + str(visual_effect_type))
+			return ""
+
+	# 使用视觉效果动画器创建特效
+	return visual_effect_animator.play_combined_effect(target.global_position, visual_effect_name, visual_params)
+
 # 创建效果数据
 func _create_effect_data(effect_type: int, params: Dictionary) -> Dictionary:
 	var effect_data = {}
 
 	match effect_type:
-		BaseEffect.EffectType.STAT:
+		EffectType.STAT:
 			effect_data = _create_stat_effect_data(params)
-		BaseEffect.EffectType.STATUS:
+		EffectType.STATUS:
 			effect_data = _create_status_effect_data(params)
-		BaseEffect.EffectType.DOT:
+		EffectType.DOT:
 			effect_data = _create_dot_effect_data(params)
-		BaseEffect.EffectType.DAMAGE:
+		EffectType.DAMAGE:
 			effect_data = _create_damage_effect_data(params)
-		BaseEffect.EffectType.HEAL:
+		EffectType.HEAL:
 			effect_data = _create_heal_effect_data(params)
 
 	return effect_data
@@ -358,72 +463,10 @@ func _create_heal_effect_data(params: Dictionary) -> Dictionary:
 	}
 
 # 根据效果类型创建视觉效果
+## 将效果类型转换为视觉效果类型并创建相应的视觉效果
 func _create_visual_effect_for_type(effect_type: int, target: Node2D, params: Dictionary) -> void:
-	# 检查目标是否有效
-	if not target or not is_instance_valid(target):
-		return
-
-	# 检查视觉效果动画器是否可用
-	if not visual_effect_animator:
-		_get_visual_effect_animator()
-		if not visual_effect_animator:
-			_log_error("无法获取视觉效果动画器")
-			return
-
-	# 准备视觉效果参数
-	var visual_params = params.duplicate()
-
-	# 根据效果类型设置参数
-	match effect_type:
-		EffectType.STAT:
-			# 获取参数
-			var buff_type = params.get("buff_type", "attack")
-			var duration = params.get("duration", 5.0)
-
-			# 创建视觉效果
-			visual_params["color"] = get_effect_color(buff_type)
-			visual_params["duration"] = duration
-			create_visual_effect(EffectType.STAT, target, visual_params)
-
-		EffectType.STATUS:
-			# 获取参数
-			var status_type = params.get("status_type", "stun")
-			var duration = params.get("duration", 2.0)
-
-			# 创建视觉效果
-			visual_params["color"] = get_effect_color(status_type)
-			visual_params["duration"] = duration
-			create_visual_effect(EffectType.STATUS, target, visual_params)
-
-		EffectType.DOT:
-			# 获取参数
-			var dot_type = params.get("dot_type", "burning")
-			var damage_type = params.get("damage_type", "magical")
-			var duration = params.get("duration", 5.0)
-
-			# 创建视觉效果
-			visual_params["color"] = get_effect_color(damage_type)
-			visual_params["duration"] = duration
-			visual_params["dot_type"] = dot_type
-			create_visual_effect(EffectType.DOT, target, visual_params)
-
-		EffectType.DAMAGE:
-			# 获取参数
-			var damage_value = params.get("value", 10.0)
-			var damage_type = params.get("damage_type", "magical")
-
-			# 创建视觉效果
-			visual_params["damage_type"] = damage_type
-			visual_params["damage_amount"] = damage_value
-			create_visual_effect(EffectType.DAMAGE, target, visual_params)
-
-		EffectType.HEAL:
-			# 获取参数
-			var heal_value = params.get("value", 10.0)
-
-			# 创建视觉效果
-			visual_params["heal_amount"] = heal_value
-			create_visual_effect(EffectType.HEAL, target, visual_params)
+	# 直接使用新的适配器函数
+	create_visual_effect_from_effect_type(effect_type, target, params)
 
 # 应用战斗效果
 func _apply_battle_effect(effect_data: Dictionary, source = null, target = null):

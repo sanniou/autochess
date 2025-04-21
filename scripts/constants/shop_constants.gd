@@ -11,6 +11,7 @@ enum ShopType {
 	EXP,        # 经验商店
 	BLACK_MARKET, # 黑市
 	MYSTERY_SHOP, # 神秘商店
+	CONSUMABLE, 消耗品
 }
 
 # 商店触发概率

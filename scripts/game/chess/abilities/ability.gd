@@ -172,7 +172,7 @@ func _apply_effects(target: ChessPieceEntity) -> void:
 		}
 
 		# 使用特效管理器创建效果
-		GameManager.effect_manager.create_and_add_effect(BaseEffect.EffectType.DAMAGE, owner, target, params)
+		GameManager.effect_manager.create_and_add_effect(GameManager.effect_manager.EffectType.DAMAGE, owner, target, params)
 	else:
 		# 应用自定义效果
 		for effect in effects:

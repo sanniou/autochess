@@ -34,7 +34,7 @@ func add_component(component: Component) -> Component:
 	components[component.get_id()] = component
 	
 	# 添加到名称字典
-	var name = component.get_name()
+	var name = component.get_component_name()
 	if not components_by_name.has(name):
 		components_by_name[name] = []
 	components_by_name[name].append(component)
@@ -68,7 +68,7 @@ func remove_component(component_id: String) -> bool:
 	components.erase(component_id)
 	
 	# 从名称字典移除
-	var name = component.get_name()
+	var name = component.get_component_name()
 	if components_by_name.has(name):
 		components_by_name[name].erase(component)
 		if components_by_name[name].is_empty():
@@ -103,15 +103,15 @@ func get_component(component_id: String) -> Component:
 	return components.get(component_id)
 
 # 获取组件（按名称）
-func get_component_by_name(name: String) -> Component:
-	if components_by_name.has(name) and not components_by_name[name].is_empty():
-		return components_by_name[name][0]
+func get_component_by_name(_name: String) -> Component:
+	if components_by_name.has(_name) and not components_by_name[_name].is_empty():
+		return components_by_name[_name][0]
 	return null
 
 # 获取所有组件（按名称）
-func get_components_by_name(name: String) -> Array:
-	if components_by_name.has(name):
-		return components_by_name[name].duplicate()
+func get_components_by_name(_name: String) -> Array:
+	if components_by_name.has(_name):
+		return components_by_name[_name].duplicate()
 	return []
 
 # 获取所有组件（按类型）

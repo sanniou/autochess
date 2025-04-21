@@ -33,22 +33,22 @@ func deal_damage(target, amount: float, damage_type: String = "physical", is_cri
 
 	# 如果目标有战斗组件，使用它来处理伤害
 	if target_combat_component:
-		var actual_damage = target_combat_component.take_damage(owner, amount, damage_type, is_critical)
+		var _actual_damage = target_combat_component.take_damage(owner, amount, damage_type, is_critical)
 
 		# 发送伤害信号
-		damage_dealt.emit(target, actual_damage, damage_type, is_critical)
+		damage_dealt.emit(target, _actual_damage, damage_type, is_critical)
 
 		# 发送暴击信号
 		if is_critical:
-			critical_hit.emit(target, actual_damage)
+			critical_hit.emit(target, _actual_damage)
 
 		# 处理生命偷取
-		_process_lifesteal(actual_damage)
+		_process_lifesteal(_actual_damage)
 
 		# 处理元素效果
 		_process_elemental_effect(target)
 
-		return actual_damage
+		return _actual_damage
 
 	# 如果目标没有战斗组件，使用传统方式处理伤害
 	var actual_damage = amount
@@ -165,12 +165,12 @@ func heal_target(target, amount: float) -> float:
 
 	# 如果目标有战斗组件，使用它来处理治疗
 	if target_combat_component:
-		var actual_healing = target_combat_component.receive_healing(owner, amount)
+		var _actual_damage = target_combat_component.receive_healing(owner, amount)
 
 		# 发送治疗信号
-		healing_done.emit(target, actual_healing)
+		healing_done.emit(target, _actual_damage)
 
-		return actual_healing
+		return _actual_damage
 
 	# 如果目标没有战斗组件，使用传统方式处理治疗
 	var actual_healing = amount

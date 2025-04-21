@@ -87,7 +87,7 @@ func _deal_area_damage(center_pos: Vector2i, board_manager) -> void:
 	var all_pieces = board_manager.pieces
 
 	for piece in all_pieces:
-		if piece.is_player_piece != owner.is_player_piece and piece.current_state != ChessPiece.ChessState.DEAD:
+		if piece.is_player_piece != owner.is_player_piece and piece.current_state != StateMachineComponent.ChessState.DEAD:
 			# 计算距离
 			var distance = center_pos.distance_to(piece.board_position)
 			if distance <= damage_radius:
@@ -116,7 +116,7 @@ func _play_disappear_effect() -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.TELEPORT_DISAPPEAR, owner, params)
+	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR, owner, params)
 
 	# 暂时隐藏所有者
 	owner.modulate.a = 0
@@ -129,7 +129,7 @@ func _play_appear_effect() -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.TELEPORT_APPEAR, owner, params)
+	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.TELEPORT_APPEAR, owner, params)
 
 	# 显示所有者
 	var tween = owner.create_tween()
@@ -144,7 +144,7 @@ func _play_damage_effect(target: ChessPieceEntity) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
+	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.DAMAGE, target, params)
 
 # 播放技能特效
 func _play_effect(target: ChessPieceEntity) -> void:
@@ -155,4 +155,4 @@ func _play_effect(target: ChessPieceEntity) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
+	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.DAMAGE, target, params)

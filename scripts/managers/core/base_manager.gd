@@ -183,14 +183,7 @@ func get_status() -> Dictionary:
 
 # 获取管理器
 func get_manager(manager_name: String):
-	# 检查GameManager是否存在
-	if not Engine.has_singleton("GameManager"):
-		_log_error("GameManager不存在")
-		return null
-
-	# 获取GameManager
-	var game_manager = Engine.get_singleton("GameManager")
-
+	var game_manager = GameManager
 	# 返回管理器
 	return game_manager.get_manager(manager_name)
 

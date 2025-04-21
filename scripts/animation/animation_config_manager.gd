@@ -289,4 +289,4 @@ func get_config_section(section_name: String) -> Dictionary:
 			if config_data.has(section_name):
 				return config_data[section_name]
 
-		return {}
+			return {}

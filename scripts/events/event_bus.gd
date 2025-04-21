@@ -570,7 +570,7 @@ class EventGroup extends Node:
 			return
 
 		# 获取调用堆栈信息以确定发送方
-		var sender_info = "未知"
+		var _sender_info = "未知"
 		if _event_bus.debug_mode:
 			var stack = get_stack()
 			# 尝试找到真正的发送方，而不是 EventBus 本身
@@ -579,14 +579,14 @@ class EventGroup extends Node:
 				var caller = stack[i]
 				# 跳过 EventBus 和 EventGroup 类的调用
 				if not ("event_bus.gd" in caller["source"] or "EventGroup" in caller["function"]):
-					sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
+					_sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
 					found_sender = true
 					break
 
 			# 如果没有找到其他发送方，使用第一个非 EventBus 的调用者
 			if not found_sender and stack.size() > 1:
 				var caller = stack[1]
-				sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
+				_sender_info = caller["source"] + ":" + str(caller["line"]) + " in " + caller["function"]
 
 		# 触发信号
 		if args.size() > 0:
