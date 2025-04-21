@@ -21,6 +21,7 @@
 - 用户希望语法遵守 Godot 的规范。
 - 用户希望应用 AngularJS commit 规范
 - 用户希望分析代码应该足够激进，优先考虑代码质量和最优设计
+- 用户希望优化基于保持项目整洁性、api 高效、提高代码质量、精简无用逻辑、提高用户体验等角度来审视代码。只保留最优设计，清理不需要的代码。
 - 用户希望修改代码的时候必须先读取最新文件后再修改代码。
 - 用户希望修改代码的时候必须先对原文件和相关模块完全的掌握，不应该遗漏待实现的功能。
 - User prefers thoroughly reading source files before attempting to modify functions.
