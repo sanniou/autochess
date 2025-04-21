@@ -24,8 +24,8 @@ var _dependencies: Array[String] = []
 # 错误信息
 var _error: String = ""
 
-# 管理器访问器
-var _manager_accessor: ManagerAccessor = null
+# 管理器已初始化标志
+var _initialized: bool = false
 
 # 初始化方法
 func initialize() -> bool:
@@ -34,10 +34,6 @@ func initialize() -> bool:
 		return true
 	# 清空错误信息
 	_error = ""
-
-	# 创建管理器访问器
-	_manager_accessor = load("res://scripts/managers/core/manager_accessor.gd").new()
-	add_child(_manager_accessor)
 
 	# 检查依赖
 	if not _check_dependencies():
@@ -130,22 +126,25 @@ func _check_dependencies() -> bool:
 	if _dependencies.is_empty():
 		return true
 
-	# 等待管理器访问器初始化
-	if not _manager_accessor:
-		_error = "管理器访问器未初始化"
+	# 检查GameManager是否存在
+	if not Engine.has_singleton("GameManager"):
+		_error = "GameManager不存在"
 		_log_error(_error)
 		return false
+
+	# 获取GameManager
+	var game_manager = Engine.get_singleton("GameManager")
 
 	# 检查每个依赖
 	for dependency in _dependencies:
 		# 检查依赖的管理器是否存在
-		if not _manager_accessor.has_manager(dependency):
+		if not game_manager.has_manager(dependency):
 			_error = "依赖的管理器不存在: " + dependency
 			_log_error(_error)
 			return false
 
 		# 获取依赖的管理器
-		var dependency_manager = _manager_accessor.get_manager(dependency)
+		var dependency_manager = game_manager.get_manager(dependency)
 		if not dependency_manager:
 			_error = "无法获取依赖的管理器: " + dependency
 			_log_error(_error)
@@ -187,7 +186,16 @@ func get_status() -> Dictionary:
 
 # 获取管理器
 func get_manager(manager_name: String):
-	return _manager_accessor.get_manager(manager_name)
+	# 检查GameManager是否存在
+	if not Engine.has_singleton("GameManager"):
+		_log_error("GameManager不存在")
+		return null
+
+	# 获取GameManager
+	var game_manager = Engine.get_singleton("GameManager")
+
+	# 返回管理器
+	return game_manager.get_manager(manager_name)
 
 # 记录错误信息
 func _log_error(message: String) -> void:

@@ -38,8 +38,8 @@ var altar_params: Dictionary = {}
 # 铁匠铺相关参数
 var blacksmith_params: Dictionary = {}
 
-# 管理器系统
-var manager_system: ManagerSystem = null
+# 管理器字典，用于存储所有注册的管理器
+var _managers: Dictionary = {}
 
 # 系统管理器引用
 var state_manager: StateManager = null
@@ -91,10 +91,8 @@ func _do_initialize() -> void:
 	# 添加依赖
 	add_dependency("SaveManager")
 
-	# 初始化管理器系统
-	var manager_system_script = load("res://scripts/managers/core/manager_system.gd")
-	manager_system = manager_system_script.new(OS.is_debug_build())
-	add_child(manager_system)
+	# 初始化管理器字典
+	_managers.clear()
 
 	# 连接必要的信号
 	EventBus.game.connect_event("game_started", _on_game_started)
@@ -106,22 +104,50 @@ func _do_initialize() -> void:
 	_register_all_managers()
 
 	# 初始化所有管理器
-	manager_system.initialize_all()
+	_initialize_all_managers()
 
 	# 初始化游戏状态
 	change_state(GameState.MAIN_MENU)
 
 ## 注册管理器
 func register_manager(manager_name: String, manager_instance) -> bool:
-	return manager_system.register(manager_name, manager_instance)
+	# 检查管理器名称是否有效
+	if manager_name.is_empty():
+		_log_error("无效的管理器名称")
+		return false
+
+	# 检查管理器实例是否有效
+	if not is_instance_valid(manager_instance):
+		_log_error("无效的管理器实例: " + manager_name)
+		return false
+
+	# 检查管理器是否已注册
+	if _managers.has(manager_name):
+		_log_error("管理器已注册: " + manager_name)
+		return false
+
+	# 注册管理器
+	_managers[manager_name] = manager_instance
+
+	# 更新管理器引用
+	_update_manager_reference(manager_name, manager_instance)
+
+	_log_info("管理器注册成功: " + manager_name)
+	return true
 
 ## 获取管理器
 func get_manager(manager_name: String):
-	return manager_system.get_manager(manager_name)
+	# 检查管理器是否存在
+	if not _managers.has(manager_name):
+		_log_error("管理器不存在: " + manager_name)
+		return null
+
+	# 返回管理器实例
+	return _managers[manager_name]
 
 ## 检查管理器是否存在
 func has_manager(manager_name: String) -> bool:
-	return manager_system.has_manager(manager_name)
+	return _managers.has(manager_name)
 
 ## 注册所有管理器
 func _register_all_managers() -> void:
@@ -158,7 +184,6 @@ func _register_all_managers() -> void:
 	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager_new.gd")
 
 	# 注册其他管理器
-	_register_manager("UIAnimator", "res://scripts/managers/ui/ui_animator.gd")
 	_register_manager("NotificationSystem", "res://scripts/managers/ui/notification_system.gd")
 	_register_manager("TooltipSystem", "res://scripts/managers/ui/tooltip_system.gd")
 	_register_manager("SkinManager", "res://scripts/managers/game/skin_manager.gd")
@@ -186,9 +211,8 @@ func _register_manager(manager_name: String, script_path: String) -> void:
 		add_child(manager_instance)
 		manager_instance.name = manager_name
 
-		if register_manager(manager_name, manager_instance):
-			# 更新管理器引用
-			_update_manager_reference(manager_name, manager_instance)
+		# 直接注册管理器，不需要再调用_update_manager_reference
+		register_manager(manager_name, manager_instance)
 	else:
 		_log_error("无法加载管理器脚本: " + script_path)
 
@@ -285,6 +309,136 @@ func change_state(new_state: int) -> void:
 	# 发送状态变更信号
 	EventBus.game.emit_event("game_state_changed", [old_state, new_state])
 
+## 初始化所有管理器
+func _initialize_all_managers() -> void:
+	# 按照类型顺序初始化管理器
+	# 1. 先初始化系统管理器
+	_initialize_manager(MC.ManagerNames.STATE_MANAGER)
+	_initialize_manager(MC.ManagerNames.NETWORK_MANAGER)
+	_initialize_manager(MC.ManagerNames.SYNC_MANAGER)
+	_initialize_manager(MC.ManagerNames.STATS_MANAGER)
+
+	# 2. 然后初始化游戏管理器
+	_initialize_manager(MC.ManagerNames.MAP_MANAGER)
+	_initialize_manager(MC.ManagerNames.PLAYER_MANAGER)
+	_initialize_manager(MC.ManagerNames.BOARD_MANAGER)
+	_initialize_manager(MC.ManagerNames.BATTLE_MANAGER)
+	_initialize_manager(MC.ManagerNames.ECONOMY_MANAGER)
+	_initialize_manager(MC.ManagerNames.SHOP_MANAGER)
+	_initialize_manager(MC.ManagerNames.CHESS_MANAGER)
+	_initialize_manager(MC.ManagerNames.EQUIPMENT_MANAGER)
+	_initialize_manager(MC.ManagerNames.RELIC_MANAGER)
+	_initialize_manager(MC.ManagerNames.EVENT_MANAGER)
+	_initialize_manager(MC.ManagerNames.CURSE_MANAGER)
+	_initialize_manager(MC.ManagerNames.STORY_MANAGER)
+	_initialize_manager(MC.ManagerNames.SYNERGY_MANAGER)
+
+	# 3. 最后初始化UI管理器
+	_initialize_manager(MC.ManagerNames.UI_MANAGER)
+	_initialize_manager(MC.ManagerNames.THEME_MANAGER)
+	_initialize_manager(MC.ManagerNames.HUD_MANAGER)
+	_initialize_manager(MC.ManagerNames.NOTIFICATION_SYSTEM)
+	_initialize_manager(MC.ManagerNames.TOOLTIP_SYSTEM)
+	_initialize_manager(MC.ManagerNames.SKIN_MANAGER)
+	_initialize_manager(MC.ManagerNames.ENVIRONMENT_EFFECT_MANAGER)
+	_initialize_manager(MC.ManagerNames.DAMAGE_NUMBER_MANAGER)
+	_initialize_manager(MC.ManagerNames.ACHIEVEMENT_MANAGER)
+	_initialize_manager(MC.ManagerNames.TUTORIAL_MANAGER)
+	_initialize_manager(MC.ManagerNames.ABILITY_FACTORY)
+	_initialize_manager(MC.ManagerNames.RELIC_UI_MANAGER)
+	_initialize_manager(MC.ManagerNames.EFFECT_MANAGER)
+	_initialize_manager(MC.ManagerNames.TEST_MANAGER)
+
+## 初始化单个管理器
+func _initialize_manager(manager_name: String) -> bool:
+	# 检查管理器是否存在
+	if not _managers.has(manager_name):
+		_log_error("管理器不存在: " + manager_name)
+		return false
+
+	# 获取管理器实例
+	var manager = _managers[manager_name]
+
+	# 如果是BaseManager的子类，调用initialize方法
+	if manager is BaseManager:
+		if not manager.initialize():
+			_log_error("管理器初始化失败: " + manager_name)
+			return false
+		_log_info("管理器初始化成功: " + manager_name)
+		return true
+	# 对于非BaseManager子类，如果有initialize方法，调用它
+	elif manager.has_method("initialize"):
+		manager.initialize()
+		_log_info("管理器初始化成功: " + manager_name)
+		return true
+
+	return true
+
+## 重置所有管理器
+func _reset_all_managers() -> void:
+	# 按照与初始化相反的顺序重置管理器
+	# 1. 先重置UI管理器
+	_reset_manager(MC.ManagerNames.TEST_MANAGER)
+	_reset_manager(MC.ManagerNames.EFFECT_MANAGER)
+	_reset_manager(MC.ManagerNames.RELIC_UI_MANAGER)
+	_reset_manager(MC.ManagerNames.ABILITY_FACTORY)
+	_reset_manager(MC.ManagerNames.TUTORIAL_MANAGER)
+	_reset_manager(MC.ManagerNames.ACHIEVEMENT_MANAGER)
+	_reset_manager(MC.ManagerNames.DAMAGE_NUMBER_MANAGER)
+	_reset_manager(MC.ManagerNames.ENVIRONMENT_EFFECT_MANAGER)
+	_reset_manager(MC.ManagerNames.SKIN_MANAGER)
+	_reset_manager(MC.ManagerNames.TOOLTIP_SYSTEM)
+	_reset_manager(MC.ManagerNames.NOTIFICATION_SYSTEM)
+	_reset_manager(MC.ManagerNames.HUD_MANAGER)
+	_reset_manager(MC.ManagerNames.THEME_MANAGER)
+	_reset_manager(MC.ManagerNames.UI_MANAGER)
+
+	# 2. 然后重置游戏管理器
+	_reset_manager(MC.ManagerNames.SYNERGY_MANAGER)
+	_reset_manager(MC.ManagerNames.STORY_MANAGER)
+	_reset_manager(MC.ManagerNames.CURSE_MANAGER)
+	_reset_manager(MC.ManagerNames.EVENT_MANAGER)
+	_reset_manager(MC.ManagerNames.RELIC_MANAGER)
+	_reset_manager(MC.ManagerNames.EQUIPMENT_MANAGER)
+	_reset_manager(MC.ManagerNames.CHESS_MANAGER)
+	_reset_manager(MC.ManagerNames.SHOP_MANAGER)
+	_reset_manager(MC.ManagerNames.ECONOMY_MANAGER)
+	_reset_manager(MC.ManagerNames.BATTLE_MANAGER)
+	_reset_manager(MC.ManagerNames.BOARD_MANAGER)
+	_reset_manager(MC.ManagerNames.PLAYER_MANAGER)
+	_reset_manager(MC.ManagerNames.MAP_MANAGER)
+
+	# 3. 最后重置系统管理器
+	_reset_manager(MC.ManagerNames.STATS_MANAGER)
+	_reset_manager(MC.ManagerNames.SYNC_MANAGER)
+	_reset_manager(MC.ManagerNames.NETWORK_MANAGER)
+	_reset_manager(MC.ManagerNames.STATE_MANAGER)
+
+## 重置单个管理器
+func _reset_manager(manager_name: String) -> bool:
+	# 检查管理器是否存在
+	if not _managers.has(manager_name):
+		_log_error("管理器不存在: " + manager_name)
+		return false
+
+	# 获取管理器实例
+	var manager = _managers[manager_name]
+
+	# 如果是BaseManager的子类，调用reset方法
+	if manager is BaseManager:
+		if not manager.reset():
+			_log_error("管理器重置失败: " + manager_name)
+			return false
+		_log_info("管理器重置成功: " + manager_name)
+		return true
+	# 对于非BaseManager子类，如果有reset方法，调用它
+	elif manager.has_method("reset"):
+		manager.reset()
+		_log_info("管理器重置成功: " + manager_name)
+		return true
+
+	return true
+
 ## 开始新游戏
 func start_new_game(difficulty: int = 1) -> void:
 	# 设置难度
@@ -294,8 +448,7 @@ func start_new_game(difficulty: int = 1) -> void:
 	current_round = 0
 
 	# 重置所有管理器
-	if manager_system:
-		manager_system.reset_all()
+	_reset_all_managers()
 
 	# 切换到地图状态
 	change_state(GameState.MAP)
