@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bqnvj8j4vx2yd"]
 
-[ext_resource type="Script" uid="uid://b82vp4387qabr" path="res://scripts/game/map/ui/map_node_ui.gd" id="1_yjnqm"]
+[ext_resource type="Script" path="res://scripts/game/map/ui/map_node_ui.gd" id="1_yjnqm"]
 
 [node name="MapNode" type="Control"]
 custom_minimum_size = Vector2(80, 80)

@@ -140,7 +140,7 @@ func _on_delete_button_pressed() -> void:
 	# 显示确认对话框
 	var popup = GameManager.ui_manager.show_popup("confirm_dialog_popup", {
 		"title": tr("ui.save.delete_title"),
-		"message": tr("ui.save.delete_message", [selected_save]),
+		"message": tr("ui.save.delete_message", selected_save),
 		"confirm_text": tr("ui.save.delete_confirm"),
 		"cancel_text": tr("ui.save.delete_cancel")
 	})

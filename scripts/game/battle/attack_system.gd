@@ -30,7 +30,7 @@ enum AttackEffect {
 }
 
 # 状态效果 - 简化版，仅用于传递效果数据
-class StatusEffect:
+class StatusEffectEntity:
 	var type: String        # 状态类型
 	var duration: float     # 持续时间
 	var value: float = 0.0  # 效果值
@@ -81,8 +81,8 @@ func can_attack(attacker: ChessPieceEntity, defender: ChessPieceEntity) -> bool:
 		return false
 
 	# 检查攻击距离
-	var attacker_cell = board_manager._find_cell_with_piece(attacker)
-	var defender_cell = board_manager._find_cell_with_piece(defender)
+	var attacker_cell = GameManager.board_manager._find_cell_with_piece(attacker)
+	var defender_cell = GameManager.board_manager._find_cell_with_piece(defender)
 
 	if not attacker_cell or not defender_cell:
 		return false
@@ -129,20 +129,20 @@ func calculate_damage(attacker: ChessPieceEntity, defender: ChessPieceEntity, da
 	elif damage_type == DamageType.FIRE:
 		# 火焰伤害受魔抗影响，并添加燃烧状态
 		damage *= (100.0 / (100.0 + defender.magic_resist * 0.7))
-		result.status_effects.append(StatusEffect.new("burning", 3.0, damage * 0.1, attacker))
+		result.status_effects.append(StatusEffectEntity.new("burning", 3.0, damage * 0.1, attacker))
 	elif damage_type == DamageType.ICE:
 		# 冰冻伤害受魔抗影响，并添加减速状态
 		damage *= (100.0 / (100.0 + defender.magic_resist * 0.7))
-		result.status_effects.append(StatusEffect.new("slowed", 2.0, 0.3, attacker))
+		result.status_effects.append(StatusEffectEntity.new("slowed", 2.0, 0.3, attacker))
 	elif damage_type == DamageType.LIGHTNING:
 		# 闪电伤害受魔抗影响，并有概率添加眩晕状态
 		damage *= (100.0 / (100.0 + defender.magic_resist * 0.6))
 		if randf() < 0.2:  # 20%概率眩晕
-			result.status_effects.append(StatusEffect.new("stunned", 1.0, 0, attacker))
+			result.status_effects.append(StatusEffectEntity.new("stunned", 1.0, 0, attacker))
 	elif damage_type == DamageType.POISON:
 		# 毒素伤害受魔抗影响，并添加中毒状态
 		damage *= (100.0 / (100.0 + defender.magic_resist * 0.5))
-		result.status_effects.append(StatusEffect.new("poisoned", 4.0, damage * 0.05, attacker))
+		result.status_effects.append(StatusEffectEntity.new("poisoned", 4.0, damage * 0.05, attacker))
 
 	# 应用伤害加成
 	if attacker.has("damage_bonus"):
@@ -335,7 +335,7 @@ func _apply_effect(effect: Dictionary, source: ChessPieceEntity, target: ChessPi
 # 战斗开始事件处理
 func _on_battle_started() -> void:
 	# 重置所有棋子的攻击计时器
-	var all_pieces = board_manager.pieces
+	var all_pieces = GameManager.board_manager.pieces
 	for piece in all_pieces:
 		piece.attack_timer = 0
 

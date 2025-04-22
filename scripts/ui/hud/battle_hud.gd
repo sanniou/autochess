@@ -64,7 +64,7 @@ func _initialize() -> void:
 func update_hud() -> void:
 	# 更新回合显示
 	if has_node("RoundLabel"):
-		var new_round_text = tr("ui.battle.round", [str(current_round)])
+		var new_round_text = tr("ui.battle.round", str(current_round))
 		if new_round_text != _cached_texts.round:
 			_cached_texts.round = new_round_text
 			get_node("RoundLabel").text = new_round_text
@@ -72,7 +72,7 @@ func update_hud() -> void:
 	# 更新计时器显示
 	if has_node("TimerLabel"):
 		var time_left = round_timer.time_left if round_timer.is_stopped() == false else 0
-		var new_timer_text = tr("ui.battle.time_left", [str(int(time_left))])
+		var new_timer_text = tr("ui.battle.time_left", str(int(time_left)))
 		if new_timer_text != _cached_texts.timer:
 			_cached_texts.timer = new_timer_text
 			get_node("TimerLabel").text = new_timer_text
@@ -103,7 +103,7 @@ func _process(delta: float) -> void:
 		# 只更新计时器文本，其他内容通过事件更新
 		if has_node("TimerLabel") and round_timer and not round_timer.is_stopped():
 			var time_left = round_timer.time_left
-			var new_timer_text = tr("ui.battle.time_left", [str(int(time_left))])
+			var new_timer_text = tr("ui.battle.time_left", str(int(time_left)))
 			if new_timer_text != _cached_texts.timer:
 				_cached_texts.timer = new_timer_text
 				get_node("TimerLabel").text = new_timer_text

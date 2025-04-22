@@ -40,17 +40,18 @@ func update_hud() -> void:
 	
 	if has_node("HealthLabel"):
 		var health_label = get_node("HealthLabel")
-		health_label.text = tr("ui.player.health", [str(player.current_health), str(player.max_health)])
+		health_label.text = tr("ui.player.health", str(player.current_health)) + "/"+ tr("ui.player.max_health", str(player.max_health))
+		
 	
 	# 更新金币
 	if has_node("GoldLabel"):
 		var gold_label = get_node("GoldLabel")
-		gold_label.text = tr("ui.player.gold", [str(player.gold)])
+		gold_label.text = tr("ui.player.gold", str(player.gold))
 	
 	# 更新等级
 	if has_node("LevelLabel"):
 		var level_label = get_node("LevelLabel")
-		level_label.text = tr("ui.player.level", [str(player.level)])
+		level_label.text = tr("ui.player.level", str(player.level))
 	
 	# 更新经验
 	if has_node("ExpBar"):
@@ -60,7 +61,7 @@ func update_hud() -> void:
 	
 	if has_node("ExpLabel"):
 		var exp_label = get_node("ExpLabel")
-		exp_label.text = tr("ui.player.exp", [str(player.current_exp), str(player.exp_to_next_level)])
+		exp_label.text = tr("ui.player.exp", str(player.current_exp)) + "/" +tr("ui.player.exp", str(player.exp_to_next_level))
 	
 	# 调用父类方法
 	super.update_hud()
@@ -74,7 +75,8 @@ func _on_player_health_changed(old_value: int, new_value: int) -> void:
 	
 	if has_node("HealthLabel"):
 		var health_label = get_node("HealthLabel")
-		health_label.text = tr("ui.player.health", [str(new_value), str(player.max_health)])
+		health_label.text = tr("ui.player.health", str(new_value))+ "/"+tr("ui.player.max_health", str(player.max_health))
+		
 	
 	# 播放音效
 	if new_value < old_value:
@@ -89,7 +91,7 @@ func _on_player_gold_changed(old_value: int, new_value: int) -> void:
 	# 更新金币显示
 	if has_node("GoldLabel"):
 		var gold_label = get_node("GoldLabel")
-		gold_label.text = tr("ui.player.gold", [str(new_value)])
+		gold_label.text = tr("ui.player.gold", str(new_value))
 	
 	# 播放音效
 	if new_value > old_value:
@@ -104,7 +106,7 @@ func _on_player_level_changed(old_level: int, new_level: int) -> void:
 	# 更新等级显示
 	if has_node("LevelLabel"):
 		var level_label = get_node("LevelLabel")
-		level_label.text = tr("ui.player.level", [str(new_level)])
+		level_label.text = tr("ui.player.level", str(new_level))
 	
 	# 播放音效
 	if new_level > old_level:
@@ -119,7 +121,7 @@ func _on_player_level_changed(old_level: int, new_level: int) -> void:
 	
 	if has_node("ExpLabel"):
 		var exp_label = get_node("ExpLabel")
-		exp_label.text = tr("ui.player.exp", [str(player.current_exp), str(player.exp_to_next_level)])
+		exp_label.text = tr("ui.player.exp", str(player.current_exp))+"/"+tr("ui.player.exp_to_next_level", str(player.exp_to_next_level))
 
 # 玩家经验变化处理
 func _on_player_exp_changed(old_value: int, new_value: int) -> void:
@@ -130,7 +132,7 @@ func _on_player_exp_changed(old_value: int, new_value: int) -> void:
 	
 	if has_node("ExpLabel"):
 		var exp_label = get_node("ExpLabel")
-		exp_label.text = tr("ui.player.exp", [str(new_value), str(player.exp_to_next_level)])
+		exp_label.text =  str(new_value) + "/" +str(player.exp_to_next_level)
 	
 	# 播放音效
 	if new_value > old_value:

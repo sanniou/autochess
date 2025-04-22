@@ -92,11 +92,11 @@ func _load_save_list() -> void:
 		# 格式化玩家等级和地图进度
 		var level_string = ""
 		if save_info.has("player_level"):
-			level_string = tr("ui.save.level", [str(save_info.player_level)])
+			level_string = tr("ui.save.level", str(save_info.player_level))
 
 		var progress_string = ""
 		if save_info.has("map_progress"):
-			progress_string = tr("ui.save.progress", [str(save_info.map_progress)])
+			progress_string = tr("ui.save.progress", str(save_info.map_progress))
 
 		# 格式化难度
 		var difficulty_string = ""
@@ -244,3 +244,11 @@ func _delete_save(save_name: String) -> void:
 	else:
 		# 显示失败提示
 		EventBus.ui.emit_event("show_toast", [tr("ui.save.delete_failed"), 2.0])
+
+# 取消按钮点击处理
+func _on_cancel_button_pressed() -> void:
+	# 播放按钮音效
+	play_ui_sound("button_click.ogg")
+
+	# 关闭弹窗
+	close_popup()

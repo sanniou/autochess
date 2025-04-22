@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://bqnxqavrpwg8t"]
 
-[ext_resource type="Script" uid="uid://bsisncroh887m" path="res://scripts/game/relic/relic.gd" id="1_yvnqr"]
+[ext_resource type="Script" path="res://scripts/game/relic/relic.gd" id="1_yvnqr"]
 
 [node name="Relic" type="Node2D"]
 script = ExtResource("1_yvnqr")

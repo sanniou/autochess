@@ -53,13 +53,13 @@ func _update_rewards() -> void:
 	# 添加金币奖励
 	if rewards.has("gold"):
 		var gold_label = Label.new()
-		gold_label.text = tr("ui.event.reward_gold", [str(rewards.gold)])
+		gold_label.text = tr("ui.event.reward_gold", str(rewards.gold))
 		rewards_container.add_child(gold_label)
 	
 	# 添加经验奖励
 	if rewards.has("exp"):
 		var exp_label = Label.new()
-		exp_label.text = tr("ui.event.reward_exp", [str(rewards.exp)])
+		exp_label.text = tr("ui.event.reward_exp", str(rewards.exp))
 		rewards_container.add_child(exp_label)
 	
 	# 添加装备奖励
@@ -72,12 +72,12 @@ func _update_rewards() -> void:
 			
 			if equipment_config:
 				var equipment_label = Label.new()
-				equipment_label.text = tr("ui.event.reward_equipment_specific", [tr("equipment." + equipment_id + ".name")])
+				equipment_label.text = tr("ui.event.reward_equipment_specific", tr("equipment." + equipment_id + ".name"))
 				rewards_container.add_child(equipment_label)
 		elif equipment_data.has("guaranteed") and equipment_data.guaranteed:
 			var quality = equipment_data.get("quality", 1)
 			var equipment_label = Label.new()
-			equipment_label.text = tr("ui.event.reward_equipment", [str(quality)])
+			equipment_label.text = tr("ui.event.reward_equipment", str(quality))
 			rewards_container.add_child(equipment_label)
 	
 	# 添加遗物奖励
@@ -90,24 +90,24 @@ func _update_rewards() -> void:
 			
 			if relic_config:
 				var relic_label = Label.new()
-				relic_label.text = tr("ui.event.reward_relic_specific", [tr("relic." + relic_id + ".name")])
+				relic_label.text = tr("ui.event.reward_relic_specific",tr("relic." + relic_id + ".name"))
 				rewards_container.add_child(relic_label)
 		elif relic_data.has("guaranteed") and relic_data.guaranteed:
 			var rarity = relic_data.get("rarity", 0)
 			var relic_label = Label.new()
-			relic_label.text = tr("ui.event.reward_relic", [str(rarity)])
+			relic_label.text = tr("ui.event.reward_relic", str(rarity))
 			rewards_container.add_child(relic_label)
 	
 	# 添加生命值奖励
 	if rewards.has("heal"):
 		var heal_label = Label.new()
-		heal_label.text = tr("ui.event.reward_heal", [str(rewards.heal)])
+		heal_label.text = tr("ui.event.reward_heal", str(rewards.heal))
 		rewards_container.add_child(heal_label)
 	
 	# 添加生命值损失
 	if rewards.has("damage"):
 		var damage_label = Label.new()
-		damage_label.text = tr("ui.event.reward_damage", [str(rewards.damage)])
+		damage_label.text = tr("ui.event.reward_damage", str(rewards.damage))
 		rewards_container.add_child(damage_label)
 
 # 继续按钮点击处理

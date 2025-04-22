@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8yvxr1r1yvgj"]
 
-[ext_resource type="Script" uid="uid://c625nmyajhcym" path="res://scripts/game/map/ui/map_connection_ui.gd" id="1_yjnqm"]
+[ext_resource type="Script" path="res://scripts/game/map/ui/map_connection_ui.gd" id="1_yjnqm"]
 
 [node name="MapConnection" type="Control"]
 layout_mode = 3

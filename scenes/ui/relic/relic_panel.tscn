@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://bia1e2sy71npjx"]
 
-[ext_resource type="Script" uid="uid://bvrybd2wajp3" path="res://scripts/ui/relic/relic_panel.gd" id="1_yvnqr"]
+[ext_resource type="Script" path="res://scripts/ui/relic/relic_panel.gd" id="1_yvnqr"]
 
 [sub_resource type="Resource" id="Resource_kq5vx"]
 metadata/__load_path__ = "res://assets/ui/panels/panel_background.png"

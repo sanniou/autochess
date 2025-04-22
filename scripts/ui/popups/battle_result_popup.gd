@@ -59,13 +59,13 @@ func _update_rewards() -> void:
 	# 添加金币奖励
 	if rewards.has("gold"):
 		var gold_label = Label.new()
-		gold_label.text = tr("ui.battle.reward_gold", [str(rewards.gold)])
+		gold_label.text = tr("ui.battle.reward_gold", str(rewards.gold))
 		rewards_container.add_child(gold_label)
 	
 	# 添加经验奖励
 	if rewards.has("experience"):
 		var exp_label = Label.new()
-		exp_label.text = tr("ui.battle.reward_experience", [str(rewards.experience)])
+		exp_label.text = tr("ui.battle.reward_experience", str(rewards.experience))
 		rewards_container.add_child(exp_label)
 	
 	# 添加物品奖励
@@ -74,7 +74,7 @@ func _update_rewards() -> void:
 			var item_label = Label.new()
 			
 			if item_data.has("id") and item_data.has("name"):
-				item_label.text = tr("ui.battle.reward_item_specific", [item_data.name])
+				item_label.text = tr("ui.battle.reward_item_specific", item_data.name)
 			else:
 				item_label.text = tr("ui.battle.reward_item")
 				
@@ -90,12 +90,12 @@ func _update_rewards() -> void:
 			
 			if relic_config:
 				var relic_label = Label.new()
-				relic_label.text = tr("ui.battle.reward_relic_specific", [tr("relic." + relic_id + ".name")])
+				relic_label.text = tr("ui.battle.reward_relic_specific", tr("relic." + relic_id + ".name"))
 				rewards_container.add_child(relic_label)
 		elif relic_data.has("guaranteed") and relic_data.guaranteed:
 			var rarity = relic_data.get("rarity", 0)
 			var relic_label = Label.new()
-			relic_label.text = tr("ui.battle.reward_relic", [str(rarity)])
+			relic_label.text = tr("ui.battle.reward_relic", str(rarity))
 			rewards_container.add_child(relic_label)
 	
 	# 添加棋子奖励
@@ -108,7 +108,7 @@ func _update_rewards() -> void:
 			
 			if chess_config:
 				var chess_label = Label.new()
-				chess_label.text = tr("ui.battle.reward_chess_specific", [tr("chess." + chess_id + ".name")])
+				chess_label.text = tr("ui.battle.reward_chess_specific", tr("chess." + chess_id + ".name"))
 				rewards_container.add_child(chess_label)
 
 # 继续按钮点击处理

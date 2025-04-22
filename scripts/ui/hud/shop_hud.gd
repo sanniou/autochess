@@ -194,7 +194,7 @@ func _update_refresh_button() -> void:
 	var refresh_cost = shop_manager.get_current_refresh_cost()
 
 	# 更新按钮文本
-	refresh_button.text = tr("ui.shop.refresh", [str(refresh_cost)])
+	refresh_button.text = tr("ui.shop.refresh", str(refresh_cost))
 
 	# 检查玩家金币是否足够
 	var player = GameManager.player_manager.get_current_player()
@@ -244,7 +244,7 @@ func _create_chess_item(chess_data: Dictionary, index: int) -> Control:
 	# 创建棋子费用标签
 	var cost_label = Label.new()
 	cost_label.name = "CostLabel"
-	cost_label.text = tr("ui.shop.cost", [str(shop_manager.get_current_chess_cost(chess_data))])
+	cost_label.text = tr("ui.shop.cost", str(shop_manager.get_current_chess_cost(chess_data)))
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cost_label.custom_minimum_size = Vector2(120, 30)
@@ -288,7 +288,7 @@ func _create_equipment_item(equipment_data: Dictionary, index: int) -> Control:
 	# 创建装备费用标签
 	var cost_label = Label.new()
 	cost_label.name = "CostLabel"
-	cost_label.text = tr("ui.shop.cost", [str(shop_manager.get_current_equipment_cost(equipment_data))])
+	cost_label.text = tr("ui.shop.cost", str(shop_manager.get_current_equipment_cost(equipment_data)))
 	cost_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cost_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cost_label.custom_minimum_size = Vector2(120, 30)
@@ -325,7 +325,7 @@ func _update_chess_item(item: Control, chess_data: Dictionary, index: int) -> vo
 	# 更新棋子费用
 	var cost_label = item.get_node_or_null("CostLabel")
 	if cost_label:
-		var cost_text = tr("ui.shop.cost", [str(shop_manager.get_current_chess_cost(chess_data))])
+		var cost_text = tr("ui.shop.cost", str(shop_manager.get_current_chess_cost(chess_data)))
 		if cost_label.text != cost_text:
 			cost_label.text = cost_text
 
@@ -354,7 +354,7 @@ func _update_equipment_item(item: Control, equipment_data: Dictionary, index: in
 	# 更新装备费用
 	var cost_label = item.get_node_or_null("CostLabel")
 	if cost_label:
-		var cost_text = tr("ui.shop.cost", [str(shop_manager.get_current_equipment_cost(equipment_data))])
+		var cost_text = tr("ui.shop.cost", str(shop_manager.get_current_equipment_cost(equipment_data)))
 		if cost_label.text != cost_text:
 			cost_label.text = cost_text
 
@@ -370,7 +370,7 @@ func _on_chess_item_clicked(event: InputEvent, index: int) -> void:
 
 		if chess_piece == null:
 			# 购买失败，显示提示
-			EventBus.ui.emit_event("show_toast", [tr("ui.shop.purchase_failed"]))
+			EventBus.ui.emit_event("show_toast", [tr("ui.shop.purchase_failed")])
 		else:
 			# 购买成功，播放音效
 			AudioManager.play_sfx("purchase_success.ogg")
@@ -383,7 +383,7 @@ func _on_equipment_item_clicked(event: InputEvent, index: int) -> void:
 
 		if equipment == null:
 			# 购买失败，显示提示
-			EventBus.ui.emit_event("show_toast", [tr("ui.shop.purchase_failed"]))
+			EventBus.ui.emit_event("show_toast", [tr("ui.shop.purchase_failed")])
 		else:
 			# 购买成功，播放音效
 			AudioManager.play_sfx("purchase_success.ogg")
@@ -446,6 +446,6 @@ func _on_shop_discount_applied(discount_rate: float) -> void:
 	# 显示折扣提示
 	var discount_percent = int((1.0 - discount_rate) * 100)
 	if discount_percent > 0:
-		EventBus.ui.emit_event("show_toast", [tr("ui.shop.discount_applied", [str(discount_percent])]))
+		EventBus.ui.emit_event("show_toast", [tr("ui.shop.discount_applied", str(discount_percent))])
 	else:
-		EventBus.ui.emit_event("show_toast", [tr("ui.shop.discount_removed"]))
+		EventBus.ui.emit_event("show_toast", [tr("ui.shop.discount_removed")])

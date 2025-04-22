@@ -63,10 +63,10 @@ func _load_achievements() -> void:
 		child.queue_free()
 	
 	# 获取所有成就
-	var achievements = achievement_manager.get_all_achievements()
+	var achievements = GameManager.achievement_manager.get_all_achievements()
 	
 	# 获取已解锁的成就
-	var unlocked_achievements = achievement_manager.get_unlocked_achievements()
+	var unlocked_achievements = GameManager.achievement_manager.get_unlocked_achievements()
 	
 	# 按分类筛选成就
 	var filtered_achievements = {}
@@ -97,17 +97,17 @@ func _load_achievements() -> void:
 		achievement_item.set_unlocked(is_unlocked)
 		
 		# 设置进度
-		var progress = achievement_manager.get_achievement_progress(id)
-		var max_progress = achievement_manager.get_achievement_max_progress(id)
+		var progress = GameManager.achievement_manager.get_achievement_progress(id)
+		var max_progress = GameManager.achievement_manager.get_achievement_max_progress(id)
 		achievement_item.set_progress(progress, max_progress)
 
 # 更新进度显示
 func _update_progress_display() -> void:
 	# 获取所有成就
-	var achievements = achievement_manager.get_all_achievements()
+	var achievements = GameManager.achievement_manager.get_all_achievements()
 	
 	# 获取已解锁的成就
-	var unlocked_achievements = achievement_manager.get_unlocked_achievements()
+	var unlocked_achievements = GameManager.achievement_manager.get_unlocked_achievements()
 	
 	# 计算解锁进度
 	var total_achievements = achievements.size()

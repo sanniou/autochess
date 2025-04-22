@@ -28,7 +28,7 @@ class AuraData:
 	var id: String = ""              # 光环唯一ID
 	var visual_effect: Node2D = null  # 光环视觉效果
 	var is_active: bool = true        # 光环是否激活
-	var condition: Callable = null    # 光环触发条件
+	var condition: Callable    # 光环触发条件
 	var synergy_required: String = "" # 所需羁绊
 	var synergy_level: int = 0        # 羁绊等级
 
@@ -42,7 +42,7 @@ class AuraData:
 		affected_pieces = []
 
 		# 创建光环视觉效果
-		_create_visual_effect()
+		#_create_visual_effect()
 
 # 活跃的光环
 var active_auras: Array = []
@@ -156,7 +156,7 @@ func _get_pieces_in_aura_range(aura: AuraData) -> Array:
 	var result = []
 
 	# 获取光环源的格子
-	var source_cell = board_manager._find_cell_with_piece(aura.source)
+	var source_cell = GameManager.board_manager._find_cell_with_piece(aura.source)
 	if not source_cell:
 		return result
 
@@ -183,7 +183,7 @@ func _get_pieces_in_aura_range(aura: AuraData) -> Array:
 func _get_cells_in_circle(center_cell: BoardCell, radius: float) -> Array:
 	var result = []
 
-	for row in board_manager.cells:
+	for row in GameManager.board_manager.cells:
 		for cell in row:
 			var distance = Vector2(center_cell.grid_position).distance_to(Vector2(cell.grid_position))
 			if distance <= radius:
@@ -200,8 +200,8 @@ func _get_cells_in_square(center_cell: BoardCell, radius: float) -> Array:
 	for y in range(center_pos.y - range_int, center_pos.y + range_int + 1):
 		for x in range(center_pos.x - range_int, center_pos.x + range_int + 1):
 			var pos = Vector2i(x, y)
-			if board_manager.is_valid_cell(pos):
-				result.append(board_manager.get_cell(pos))
+			if GameManager.board_manager.is_valid_cell(pos):
+				result.append(GameManager.board_manager.get_cell(pos))
 
 	return result
 
@@ -210,8 +210,8 @@ func _get_cells_in_row(center_cell: BoardCell) -> Array:
 	var result = []
 	var row_index = center_cell.grid_position.y
 
-	if row_index >= 0 and row_index < board_manager.cells.size():
-		result = board_manager.cells[row_index].duplicate()
+	if row_index >= 0 and row_index < GameManager.board_manager.cells.size():
+		result = GameManager.board_manager.cells[row_index].duplicate()
 
 	return result
 
@@ -220,7 +220,7 @@ func _get_cells_in_column(center_cell: BoardCell) -> Array:
 	var result = []
 	var col_index = center_cell.grid_position.x
 
-	for row in board_manager.cells:
+	for row in GameManager.board_manager.cells:
 		if col_index >= 0 and col_index < row.size():
 			result.append(row[col_index])
 
@@ -302,7 +302,7 @@ func _initialize_auras() -> void:
 	active_auras.clear()
 
 	# 获取所有棋子
-	var all_pieces = board_manager.pieces
+	var all_pieces = GameManager.board_manager.pieces
 
 	# 检查每个棋子的光环能力
 	for piece in all_pieces:
