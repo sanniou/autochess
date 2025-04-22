@@ -502,7 +502,7 @@
             "type": "item",
             "operation": "add",
             "item_id": "random_equipment",
-            "rarity": "rare"
+            "rarity": 2,
           }
         ]
       },

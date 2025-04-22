@@ -45,7 +45,7 @@ func refresh(player_level: int) -> bool:
 			# 如果达到保底阈值，强制添加目标棋子
 			if pity_counter >= pity_threshold:
 				# 获取目标棋子数据
-				var target_data = ConfigManager.get_chess_config(target_chess)
+				var target_data = GameManager.config_manager.get_chess_config(target_chess)
 				if target_data:
 					# 创建目标棋子物品
 					var target_item_data = target_data.get_data()

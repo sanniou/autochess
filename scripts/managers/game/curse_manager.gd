@@ -334,21 +334,6 @@ func _apply_confusion_curse() -> void:
 		EventBus.ui.emit_event("show_toast", [tr("ui.curse.confusion_applied"), [piece1.name, piece2.name]])
 
 
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
-
 # 重写重置方法
 func _do_reset() -> void:
 	# 移除所有诅咒

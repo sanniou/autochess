@@ -19,7 +19,7 @@ func _ready():
 # 加载合成配方
 func _load_combine_recipes():
 	# 使用 ConfigManager 的 get_equipment_recipes 方法获取所有装备合成配方
-	var recipes = ConfigManager.get_all_equipment()
+	var recipes = GameManager.config_manager.get_all_equipment()
 
 	# 遍历所有配方
 	for recipe in recipes:
@@ -206,7 +206,7 @@ func get_possible_combinations(equipment: Equipment) -> Array:
 
 	# 获取所有装备
 	var all_equipments = []
-	for id in ConfigManager.get_all_equipment_ids():
+	for id in GameManager.config_manager.get_all_equipment_ids():
 		all_equipments.append(GameManager.equipment_manager.get_equipment(id))
 
 	# 检查每个装备是否可以与当前装备合成

@@ -42,6 +42,7 @@ var blacksmith_params: Dictionary = {}
 var _managers: Dictionary = {}
 
 # 系统管理器引用
+var config_manager: ConfigManager = null  # 配置管理器
 var state_manager: StateManager = null
 var network_manager: NetworkManager = null
 var sync_manager: SyncManager = null
@@ -168,6 +169,7 @@ func _register_all_managers() -> void:
 	_register_manager("HUDManager", "res://scripts/managers/ui/hud_manager.gd")
 
 	# 注册系统管理器
+	_register_manager("ConfigManager", "res://scripts/managers/system/config_manager.gd")  # 注册配置管理器
 	_register_manager("StateManager", "res://scripts/managers/system/state_manager.gd")
 	_register_manager("NetworkManager", "res://scripts/managers/system/network_manager.gd")
 	_register_manager("SyncManager", "res://scripts/managers/system/sync_manager.gd")
@@ -189,17 +191,21 @@ func _register_all_managers() -> void:
 	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager_new.gd")
 
 	## 注册其他管理器
-	_register_manager("AnimationManager", "res://scripts/managers/game/animation_manager.gd")
+	#_register_manager("AnimationManager", "res://scripts/managers/game/animation_manager.gd")
 	_register_manager("NotificationSystem", "res://scripts/managers/ui/notification_system.gd")
 	_register_manager("TooltipSystem", "res://scripts/managers/ui/tooltip_system.gd")
 	_register_manager("SkinManager", "res://scripts/managers/game/skin_manager.gd")
-	#_register_manager("EnvironmentEffectManager", "res://scripts/managers/game/environment_effect_manager.gd")
-	#_register_manager("DamageNumberManager", "res://scripts/managers/game/damage_number_manager.gd")
-	#_register_manager("AchievementManager", "res://scripts/managers/game/achievement_manager.gd")
-	#_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd")
-	#_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd")
-	#_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd")
-	# _register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd")
+	_register_manager("EnvironmentEffectManager", "res://scripts/managers/game/environment_effect_manager.gd")
+	_register_manager("DamageNumberManager", "res://scripts/managers/game/damage_number_manager.gd")
+	_register_manager("AchievementManager", "res://scripts/managers/game/achievement_manager.gd")
+	_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd")
+	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd")
+	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd")
+	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd")
+
+	# 注册新的效果系统
+	_register_manager("GameEffectManager", "res://scripts/game/effects/game_effect_manager.gd")
+	_register_manager("VisualManager", "res://scripts/visual/visual_manager.gd")
 #
 	## 注册测试管理器
 	_register_manager("UnifiedTestConfigManager", "res://scripts/test/unified_test_config_manager.gd")
@@ -234,6 +240,7 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"HUDManager": hud_manager = manager_instance
 
 		# 系统管理器
+		"ConfigManager": config_manager = manager_instance  # 配置管理器
 		"StateManager": state_manager = manager_instance
 		"NetworkManager": network_manager = manager_instance
 		"SyncManager": sync_manager = manager_instance
@@ -325,7 +332,10 @@ func change_state(new_state: int) -> void:
 ## 初始化所有管理器
 func _initialize_all_managers() -> void:
 	# 按照类型顺序初始化管理器
-	# 1. 先初始化系统管理器
+	# 1. 先初始化配置管理器，确保它在其他管理器之前初始化
+	_initialize_manager("ConfigManager")
+
+	# 2. 然后初始化其他系统管理器
 	_initialize_manager(MC.ManagerNames.STATE_MANAGER)
 	_initialize_manager(MC.ManagerNames.NETWORK_MANAGER)
 	_initialize_manager(MC.ManagerNames.SYNC_MANAGER)
@@ -361,16 +371,10 @@ func _initialize_all_managers() -> void:
 	_initialize_manager(MC.ManagerNames.TUTORIAL_MANAGER)
 	_initialize_manager(MC.ManagerNames.ABILITY_FACTORY)
 	_initialize_manager(MC.ManagerNames.RELIC_UI_MANAGER)
-	# 初始化新的效果系统
-	# 创建游戏效果管理器
-	game_effect_manager = GameEffectManager.new()
-	add_child(game_effect_manager)
-	register_manager("GameEffectManager", game_effect_manager)
 
-	# 创建视觉效果管理器
-	visual_manager = VisualManager.new()
-	add_child(visual_manager)
-	register_manager("VisualManager", visual_manager)
+	# 初始化新的效果系统
+	_initialize_manager(MC.ManagerNames.GAME_EFFECT_MANAGER)
+	_initialize_manager(MC.ManagerNames.VISUAL_MANAGER)
 
 	# 4. 初始化测试管理器
 	_initialize_manager(MC.ManagerNames.UNIFIED_TEST_CONFIG_MANAGER)
@@ -410,8 +414,8 @@ func _reset_all_managers() -> void:
 
 	# 2. 然后重置UI管理器
 	# 重置新的效果系统
-	_reset_manager("VisualManager")
-	_reset_manager("GameEffectManager")
+	_reset_manager(MC.ManagerNames.VISUAL_MANAGER)
+	_reset_manager(MC.ManagerNames.GAME_EFFECT_MANAGER)
 	_reset_manager(MC.ManagerNames.RELIC_UI_MANAGER)
 	_reset_manager(MC.ManagerNames.ABILITY_FACTORY)
 	_reset_manager(MC.ManagerNames.TUTORIAL_MANAGER)
@@ -441,11 +445,14 @@ func _reset_all_managers() -> void:
 	_reset_manager(MC.ManagerNames.PLAYER_MANAGER)
 	_reset_manager(MC.ManagerNames.MAP_MANAGER)
 
-	# 3. 最后重置系统管理器
+	# 3. 然后重置系统管理器
 	_reset_manager(MC.ManagerNames.STATS_MANAGER)
 	_reset_manager(MC.ManagerNames.SYNC_MANAGER)
 	_reset_manager(MC.ManagerNames.NETWORK_MANAGER)
 	_reset_manager(MC.ManagerNames.STATE_MANAGER)
+
+	# 4. 最后重置配置管理器，确保它在所有其他管理器之后重置
+	_reset_manager("ConfigManager")  # 注意：这里没有使用MC.ManagerNames常量，因为还没有定义CONFIG_MANAGER常量
 
 ## 重置单个管理器
 func _reset_manager(manager_name: String) -> bool:
@@ -662,17 +669,3 @@ func _enter_blacksmith_state() -> void:
 func _exit_blacksmith_state() -> void:
 	# 清理铁匠铺状态
 	pass
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

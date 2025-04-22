@@ -37,7 +37,7 @@ func _do_initialize() -> void:
 
 # 加载成就配置
 func _load_achievement_configs() -> void:
-	achievement_configs = ConfigManager.get_all_achievements()
+	achievement_configs = GameManager.config_manager.get_all_achievements()
 
 	# 初始化成就进度
 	for id in achievement_configs:
@@ -465,7 +465,7 @@ func _check_chess_master_achievement(new_piece: ChessPieceEntity = null) -> void
 		return
 
 	# 获取所有棋子配置
-	var all_chess_configs = ConfigManager.get_all_chess_pieces()
+	var all_chess_configs = GameManager.config_manager.get_all_chess_pieces()
 
 	# 获取玩家拥有的棋子
 	var player_chess_pieces = chess_manager.get_all_player_chess_pieces()
@@ -532,7 +532,7 @@ func _check_equipment_collector_achievement() -> void:
 		return
 
 	# 获取所有稀有装备配置
-	var all_equipment_configs = ConfigManager.get_all_equipment()
+	var all_equipment_configs = GameManager.config_manager.get_all_equipment()
 	var rare_equipment_ids = []
 
 	for id in all_equipment_configs:
@@ -558,20 +558,6 @@ func _check_equipment_collector_achievement() -> void:
 	# 如果拥有所有稀有装备，解锁"装备收藏家"成就
 	if all_owned:
 		unlock_achievement("equipment_collector")
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写重置方法
 func _do_reset() -> void:

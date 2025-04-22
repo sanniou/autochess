@@ -24,6 +24,25 @@ var _chess_configs: Dictionary = {}
 # 棋子工厂
 var chess_factory: ChessPieceFactory = null
 
+# 连接事件
+func _connect_events() -> void:
+	# 战斗事件
+	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
+
+	# 游戏状态事件
+	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+
+	# 棋子事件
+	EventBus.chess.connect_event("chess_piece_moved", _on_chess_piece_moved)
+	EventBus.chess.connect_event("chess_piece_placed", _on_chess_piece_placed)
+	EventBus.chess.connect_event("chess_piece_removed", _on_chess_piece_removed)
+
+	# 存档事件
+	EventBus.save.connect_event("save_game_requested", _on_save_game_requested)
+	EventBus.save.connect_event("load_game_requested", _on_load_game_requested)
+
+	_log_info("ChessManager 事件连接完成")
+
 # 重写初始化方法
 func _do_initialize() -> void:
 	# 设置管理器名称
@@ -33,8 +52,7 @@ func _do_initialize() -> void:
 	add_dependency("ConfigManager")
 
 	# 连接事件
-	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
-	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	_connect_events()
 
 	# 创建棋子工厂
 	chess_factory = ChessPieceFactory.new()
@@ -54,7 +72,7 @@ func _do_initialize() -> void:
 ## 加载棋子配置
 func _load_chess_configs() -> void:
 	# 从配置管理器获取棋子配置
-	var chess_configs = ConfigManager.get_all_chess_pieces()
+	var chess_configs = GameManager.config_manager.get_all_chess_pieces()
 
 	# 清空现有配置
 	_chess_configs.clear()
@@ -205,7 +223,7 @@ func get_shop_inventory() -> Array:
 
 # 根据玩家等级获取棋子池
 func _get_chess_pool_by_level(player_level: int) -> Array:
-	var all_chess = ConfigManager.get_all_chess_pieces()
+	var all_chess = GameManager.config_manager.get_all_chess_pieces()
 	var chess_pool = []
 
 	# 根据等级设置不同费用棋子的出现概率
@@ -251,7 +269,7 @@ func _get_chess_pool_size(cost: int) -> int:
 
 # 获取棋子品质
 func get_tier_from_chess_id(chess_id: String) -> int:
-	var chess_config = ConfigManager.get_chess_piece_config(chess_id)
+	var chess_config = GameManager.config_manager.get_chess_piece_config(chess_id)
 	if chess_config:
 		return chess_config.get_cost()
 	return 1
@@ -264,20 +282,333 @@ func _on_battle_round_started(_round_number: int) -> void:
 		refresh_shop_inventory(5, player.level)
 
 # 游戏状态变化事件处理
-func _on_game_state_changed(_old_state: int, new_state: int) -> void:
+func _on_game_state_changed(old_state: int, new_state: int) -> void:
 	# 如果进入商店状态，刷新商店库存
 	if new_state == GameManager.GameState.SHOP:
 		var player = GameManager.player_manager.get_current_player()
 		if player:
 			refresh_shop_inventory(5, player.level)
+			_log_info("进入商店状态，刷新商店库存")
 
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
+	# 如果进入战斗状态，准备棋子
+	elif new_state == GameManager.GameState.BATTLE:
+		_log_info("进入战斗状态，准备棋子")
+		# 可以在这里添加战斗准备逻辑
+		_prepare_chess_for_battle()
 
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
+	# 如果退出战斗状态，清理战斗相关的棋子状态
+	if old_state == GameManager.GameState.BATTLE:
+		_log_info("退出战斗状态，清理战斗相关的棋子状态")
+		# 可以在这里添加战斗后清理逻辑
+		_cleanup_chess_after_battle()
+
+# 棋子移动事件处理
+func _on_chess_piece_moved(piece: ChessPieceEntity, from_pos: Vector2i, to_pos: Vector2i) -> void:
+	# 棋子移动时更新其位置信息
+	if piece == null:
+		_log_warning("棋子移动事件处理失败：棋子为空")
+		return
+
+	_log_info("棋子移动: " + piece.id + ", 从 " + str(from_pos) + " 到 " + str(to_pos))
+
+	# 更新棋子位置
+	piece.board_position = to_pos
+
+	# 更新棋子缓存
+	if _chess_cache.has(piece.id):
+		_chess_cache[piece.id] = piece
+
+# 棋子放置事件处理
+func _on_chess_piece_placed(piece: ChessPieceEntity, position: Vector2i) -> void:
+	# 棋子放置在棋盘上时的处理
+	if piece == null:
+		_log_warning("棋子放置事件处理失败：棋子为空")
+		return
+
+	_log_info("棋子放置: " + piece.id + ", 位置: " + str(position))
+
+	# 更新棋子位置
+	piece.board_position = position
+
+	# 更新棋子缓存
+	if not _chess_cache.has(piece.id):
+		_chess_cache[piece.id] = piece
+	else:
+		_chess_cache[piece.id] = piece
+
+# 棋子移除事件处理
+func _on_chess_piece_removed(piece: ChessPieceEntity, position: Vector2i) -> void:
+	# 棋子从棋盘上移除时的处理
+	if piece == null:
+		_log_warning("棋子移除事件处理失败：棋子为空")
+		return
+
+	_log_info("棋子移除: " + piece.id + ", 位置: " + str(position))
+
+	# 重置棋子位置
+	piece.board_position = Vector2i(-1, -1)
+
+	# 更新棋子缓存
+	if _chess_cache.has(piece.id):
+		_chess_cache[piece.id] = piece
+
+# 为战斗准备棋子
+func _prepare_chess_for_battle() -> void:
+	# 获取玩家
+	var player = GameManager.player_manager.get_current_player()
+	if not player:
+		_log_warning("无法为战斗准备棋子：玩家不存在")
+		return
+
+	# 准备棋盘上的棋子
+	for piece in player.chess_pieces:
+		if piece:
+			# 重置棋子状态
+			piece.reset_for_battle()
+
+			# 更新棋子缓存
+			if not _chess_cache.has(piece.id):
+				_chess_cache[piece.id] = piece
+			else:
+				_chess_cache[piece.id] = piece
+
+	_log_info("棋子已准备就绪进入战斗，总数: " + str(player.chess_pieces.size()))
+
+# 战斗后清理棋子
+func _cleanup_chess_after_battle() -> void:
+	# 获取玩家
+	var player = GameManager.player_manager.get_current_player()
+	if not player:
+		_log_warning("无法清理战斗后的棋子：玩家不存在")
+		return
+
+	# 清理棋盘上的棋子
+	for piece in player.chess_pieces:
+		if piece:
+			# 重置棋子战斗状态
+			piece.reset_after_battle()
+
+			# 更新棋子缓存
+			if _chess_cache.has(piece.id):
+				_chess_cache[piece.id] = piece
+
+	_log_info("战斗后棋子清理完成，总数: " + str(player.chess_pieces.size()))
+
+# 存档事件处理
+func _on_save_game_requested(save_slot: String) -> void:
+	# 保存棋子状态
+	var chess_state = save_chess_state()
+
+	# 将棋子状态添加到存档数据中
+	var save_manager = get_node_or_null("/root/SaveManager")
+	if save_manager:
+		save_manager.add_save_data("chess", chess_state)
+		_log_info("棋子状态已保存到存档: " + save_slot)
+	else:
+		_log_warning("无法保存棋子状态：存档管理器不可用")
+
+# 加载事件处理
+func _on_load_game_requested(save_slot: String) -> void:
+	# 从存档中加载棋子状态
+	var save_manager = get_node_or_null("/root/SaveManager")
+	if save_manager:
+		var chess_state = save_manager.get_save_data("chess")
+		if chess_state:
+			load_chess_state(chess_state)
+			_log_info("棋子状态已从存档加载: " + save_slot)
+		else:
+			_log_warning("无法加载棋子状态：存档中没有棋子数据")
+	else:
+		_log_warning("无法加载棋子状态：存档管理器不可用")
+
+# 保存棋子状态
+func save_chess_state() -> Dictionary:
+	var state = {}
+
+	# 保存商店库存
+	state["shop_inventory"] = []
+	for chess_id in _shop_inventory:
+		state["shop_inventory"].append(chess_id)
+
+	# 保存玩家棋子
+	state["player_pieces"] = []
+	var player = GameManager.player_manager.get_current_player()
+	if player:
+		# 棋盘上的棋子
+		for piece in player.chess_pieces:
+			if piece:
+				var piece_data = {
+					"id": piece.id,
+					"config_id": piece.config_id,
+					"star_level": piece.star_level,
+					"position": {"x": piece.board_position.x, "y": piece.board_position.y},
+					"health": piece.current_health,
+					"max_health": piece.max_health,
+					"items": [],  # 装备列表
+					"abilities": [],  # 技能列表
+					"synergies": piece.synergies,  # 羊结列表
+					"stats": {}  # 属性字典
+				}
+
+				# 保存装备
+				for item in piece.items:
+					piece_data["items"].append(item.id)
+
+				# 保存技能
+				for ability in piece.abilities:
+					piece_data["abilities"].append(ability.id)
+
+				# 保存属性
+				for stat_name in piece.stats:
+					piece_data["stats"][stat_name] = piece.stats[stat_name]
+
+				state["player_pieces"].append(piece_data)
+
+		# 备用区的棋子
+		state["bench_pieces"] = []
+		for piece in player.bench_pieces:
+			if piece:
+				var piece_data = {
+					"id": piece.id,
+					"config_id": piece.config_id,
+					"star_level": piece.star_level,
+					"position": {"x": -1, "y": -1},  # 备用区棋子没有棋盘位置
+					"health": piece.current_health,
+					"max_health": piece.max_health,
+					"items": [],
+					"abilities": [],
+					"synergies": piece.synergies,
+					"stats": {}
+				}
+
+				# 保存装备
+				for item in piece.items:
+					piece_data["items"].append(item.id)
+
+				# 保存技能
+				for ability in piece.abilities:
+					piece_data["abilities"].append(ability.id)
+
+				# 保存属性
+				for stat_name in piece.stats:
+					piece_data["stats"][stat_name] = piece.stats[stat_name]
+
+				state["bench_pieces"].append(piece_data)
+
+	_log_info("棋子状态已保存，棋盘棋子: " + str(state["player_pieces"].size()) + ", 备用区棋子: " + str(state.get("bench_pieces", []).size()))
+	return state
+
+# 加载棋子状态
+func load_chess_state(state: Dictionary) -> void:
+	if state.is_empty():
+		_log_warning("无法加载棋子状态：状态数据为空")
+		return
+
+	# 清理当前状态
+	_chess_cache.clear()
+	_shop_inventory.clear()
+
+	# 加载商店库存
+	if state.has("shop_inventory"):
+		for chess_id in state["shop_inventory"]:
+			_shop_inventory.append(chess_id)
+
+	# 获取玩家
+	var player = GameManager.player_manager.get_current_player()
+	if not player:
+		_log_warning("无法加载棋子状态：玩家不存在")
+		return
+
+	# 清理玩家棋子
+	for piece in player.chess_pieces:
+		if piece:
+			release_chess(piece)
+	player.chess_pieces.clear()
+
+	for piece in player.bench_pieces:
+		if piece:
+			release_chess(piece)
+	player.bench_pieces.clear()
+
+	# 加载棋盘上的棋子
+	if state.has("player_pieces"):
+		for piece_data in state["player_pieces"]:
+			# 创建棋子
+			var piece = create_chess_piece(
+				piece_data["config_id"],
+				piece_data["star_level"],
+				true  # 玩家棋子
+			)
+
+			if piece:
+				# 设置棋子ID
+				piece.id = piece_data["id"]
+
+				# 设置棋子位置
+				var pos_data = piece_data["position"]
+				piece.board_position = Vector2i(pos_data["x"], pos_data["y"])
+
+				# 设置生命值
+				piece.max_health = piece_data["max_health"]
+				piece.current_health = piece_data["health"]
+
+				# 设置属性
+				if piece_data.has("stats"):
+					for stat_name in piece_data["stats"]:
+						piece.stats[stat_name] = piece_data["stats"][stat_name]
+
+				# 添加装备
+				if piece_data.has("items"):
+					for item_id in piece_data["items"]:
+						# 这里需要调用装备管理器来创建装备
+						var item = GameManager.item_manager.create_item(item_id)
+						if item:
+							piece.add_item(item)
+
+				# 添加到玩家棋子列表
+				player.chess_pieces.append(piece)
+
+				# 更新棋子缓存
+				_chess_cache[piece.id] = piece
+
+	# 加载备用区的棋子
+	if state.has("bench_pieces"):
+		for piece_data in state["bench_pieces"]:
+			# 创建棋子
+			var piece = create_chess_piece(
+				piece_data["config_id"],
+				piece_data["star_level"],
+				true  # 玩家棋子
+			)
+
+			if piece:
+				# 设置棋子ID
+				piece.id = piece_data["id"]
+
+				# 设置生命值
+				piece.max_health = piece_data["max_health"]
+				piece.current_health = piece_data["health"]
+
+				# 设置属性
+				if piece_data.has("stats"):
+					for stat_name in piece_data["stats"]:
+						piece.stats[stat_name] = piece_data["stats"][stat_name]
+
+				# 添加装备
+				if piece_data.has("items"):
+					for item_id in piece_data["items"]:
+						# 这里需要调用装备管理器来创建装备
+						var item = GameManager.item_manager.create_item(item_id)
+						if item:
+							piece.add_item(item)
+
+				# 添加到玩家备用区列表
+				player.bench_pieces.append(piece)
+
+				# 更新棋子缓存
+				_chess_cache[piece.id] = piece
+
+	_log_info("棋子状态已加载，棋盘棋子: " + str(player.chess_pieces.size()) + ", 备用区棋子: " + str(player.bench_pieces.size()))
 
 # 重写重置方法
 func _do_reset() -> void:
@@ -295,6 +626,25 @@ func _do_reset() -> void:
 		chess_factory.warm_pool(20)  # 增加预热数量
 
 	_log_info("棋子管理器重置完成")
+
+# 断开事件
+func _disconnect_events() -> void:
+	# 战斗事件
+	EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
+
+	# 游戏状态事件
+	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+
+	# 棋子事件
+	EventBus.chess.disconnect_event("chess_piece_moved", _on_chess_piece_moved)
+	EventBus.chess.disconnect_event("chess_piece_placed", _on_chess_piece_placed)
+	EventBus.chess.disconnect_event("chess_piece_removed", _on_chess_piece_removed)
+
+	# 存档事件
+	EventBus.save.disconnect_event("save_game_requested", _on_save_game_requested)
+	EventBus.save.disconnect_event("load_game_requested", _on_load_game_requested)
+
+	_log_info("ChessManager 事件断开完成")
 
 # 重写清理方法
 func _do_cleanup() -> void:
@@ -320,8 +670,7 @@ func _do_cleanup() -> void:
 		chess_factory = null
 
 	# 断开事件连接
-	EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
-	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+	_disconnect_events()
 
 	_log_info("棋子管理器清理完成")
 
@@ -330,6 +679,153 @@ func get_chess_config(chess_id: String) -> Dictionary:
 	if _chess_configs.has(chess_id):
 		return _chess_configs[chess_id].duplicate()
 	return {}
+
+# 获取棋子预览数据
+func get_chess_preview_data(chess_id: String) -> Dictionary:
+	# 获取并返回棋子的详细信息
+	var preview_data = {}
+
+	# 获取基本配置
+	var chess_config = get_chess_config(chess_id)
+	if chess_config.is_empty():
+		_log_warning("无法获取棋子预览数据：找不到棋子 " + chess_id)
+		return {}
+
+	# 填充预览数据
+	preview_data["id"] = chess_id
+	preview_data["name"] = chess_config.get("name", "未知棋子")
+	preview_data["description"] = chess_config.get("description", "")
+	preview_data["cost"] = chess_config.get("cost", 1)
+	preview_data["tier"] = chess_config.get("tier", 1)
+	preview_data["synergies"] = chess_config.get("synergies", [])
+	preview_data["stats"] = chess_config.get("stats", {})
+	preview_data["abilities"] = chess_config.get("abilities", [])
+	preview_data["icon"] = chess_config.get("icon", "")
+	preview_data["model"] = chess_config.get("model", "")
+
+	# 添加额外的游戏相关数据
+	preview_data["available_count"] = get_available_count(chess_id)
+	preview_data["owned_count"] = get_owned_count(chess_id)
+
+	# 添加升级信息
+	preview_data["upgrade_info"] = get_upgrade_info(chess_id)
+
+	# 添加推荐装备
+	preview_data["recommended_items"] = get_recommended_items(chess_id)
+
+	return preview_data
+
+# 获取棋子在池中的可用数量
+func get_available_count(chess_id: String) -> int:
+	# 获取棋子配置
+	var chess_config = get_chess_config(chess_id)
+	if chess_config.is_empty():
+		return 0
+
+	# 获取棋子费用
+	var cost = chess_config.get("cost", 1)
+
+	# 根据费用确定棋子在池中的总数量
+	var total_count = _get_chess_pool_size(cost)
+
+	# 计算已经被购买的棋子数量
+	var purchased_count = 0
+	var player = GameManager.player_manager.get_current_player()
+	if player:
+		# 棋盘上的棋子
+		for piece in player.chess_pieces:
+			if piece.config_id == chess_id:
+				purchased_count += 1
+
+		# 备用区的棋子
+		for piece in player.bench_pieces:
+			if piece.config_id == chess_id:
+				purchased_count += 1
+
+	# 返回可用数量
+	return total_count - purchased_count
+
+# 获取玩家拥有的棋子数量
+func get_owned_count(chess_id: String) -> int:
+	var owned_count = 0
+	var player = GameManager.player_manager.get_current_player()
+
+	if player:
+		# 棋盘上的棋子
+		for piece in player.chess_pieces:
+			if piece.config_id == chess_id:
+				owned_count += 1
+
+		# 备用区的棋子
+		for piece in player.bench_pieces:
+			if piece.config_id == chess_id:
+				owned_count += 1
+
+	return owned_count
+
+# 获取棋子升级信息
+func get_upgrade_info(chess_id: String) -> Dictionary:
+	var upgrade_info = {}
+
+	# 获取棋子配置
+	var chess_config = get_chess_config(chess_id)
+	if chess_config.is_empty():
+		return upgrade_info
+
+	# 获取当前拥有的数量
+	var owned_count = get_owned_count(chess_id)
+
+	# 计算升级所需的数量
+	upgrade_info["current_count"] = owned_count
+	upgrade_info["needed_for_2_star"] = 3
+	upgrade_info["needed_for_3_star"] = 9
+	upgrade_info["can_upgrade_to_2_star"] = owned_count >= 3
+	upgrade_info["can_upgrade_to_3_star"] = owned_count >= 9
+
+	# 计算升级后的属性提升
+	var base_stats = chess_config.get("stats", {})
+	var stats_2_star = {}
+	var stats_3_star = {}
+
+	for stat_name in base_stats:
+		var base_value = base_stats[stat_name]
+		stats_2_star[stat_name] = base_value * 1.8  # 2星棋子属性提升系数
+		stats_3_star[stat_name] = base_value * 3.2  # 3星棋子属性提升系数
+
+	upgrade_info["stats_1_star"] = base_stats
+	upgrade_info["stats_2_star"] = stats_2_star
+	upgrade_info["stats_3_star"] = stats_3_star
+
+	return upgrade_info
+
+# 获取棋子推荐装备
+func get_recommended_items(chess_id: String) -> Array:
+	var recommended_items = []
+
+	# 获取棋子配置
+	var chess_config = get_chess_config(chess_id)
+	if chess_config.is_empty():
+		return recommended_items
+
+	# 获取棋子类型和羊结
+	var synergies = chess_config.get("synergies", [])
+
+	# 根据羊结和棋子类型推荐装备
+	# 这里只是示例，实际实现可能需要更复杂的逻辑
+	if "warrior" in synergies:
+		recommended_items.append("sword")
+		recommended_items.append("armor")
+	elif "mage" in synergies:
+		recommended_items.append("staff")
+		recommended_items.append("robe")
+	elif "assassin" in synergies:
+		recommended_items.append("dagger")
+		recommended_items.append("cloak")
+	elif "ranger" in synergies:
+		recommended_items.append("bow")
+		recommended_items.append("quiver")
+
+	return recommended_items
 
 # 获取所有棋子配置
 func get_all_chess_configs() -> Dictionary:
@@ -342,6 +838,89 @@ func get_chess_configs_by_tier(tier: int) -> Array:
 	for chess_id in _chess_configs:
 		var config = _chess_configs[chess_id]
 		if config.get("tier", 1) == tier:
+			result.append(chess_id)
+
+	return result
+
+# 根据羊结类型搜索棋子
+func get_chess_by_synergy(synergy_type: String) -> Array:
+	var result = []
+
+	for chess_id in _chess_configs:
+		var config = _chess_configs[chess_id]
+		var synergies = config.get("synergies", [])
+
+		if synergy_type in synergies:
+			result.append(chess_id)
+
+	return result
+
+# 根据费用范围搜索棋子
+func get_chess_by_cost_range(min_cost: int, max_cost: int) -> Array:
+	var result = []
+
+	for chess_id in _chess_configs:
+		var config = _chess_configs[chess_id]
+		var cost = config.get("cost", 1)
+
+		if cost >= min_cost and cost <= max_cost:
+			result.append(chess_id)
+
+	return result
+
+# 根据多个条件过滤棋子
+func filter_chess(filters: Dictionary) -> Array:
+	var result = []
+	var all_chess_ids = _chess_configs.keys()
+
+	# 如果没有过滤条件，返回所有棋子
+	if filters.is_empty():
+		return all_chess_ids
+
+	# 开始过滤
+	for chess_id in all_chess_ids:
+		var config = _chess_configs[chess_id]
+		var match_all = true
+
+		# 棋子费用过滤
+		if filters.has("min_cost") and filters.has("max_cost"):
+			var cost = config.get("cost", 1)
+			if cost < filters["min_cost"] or cost > filters["max_cost"]:
+				match_all = false
+
+		# 羊结类型过滤
+		if filters.has("synergy") and match_all:
+			var synergies = config.get("synergies", [])
+			if not filters["synergy"] in synergies:
+				match_all = false
+
+		# 等级过滤
+		if filters.has("tier") and match_all:
+			var tier = config.get("tier", 1)
+			if tier != filters["tier"]:
+				match_all = false
+
+		# 名称搜索
+		if filters.has("name_search") and match_all:
+			var name = config.get("name", "")
+			if not filters["name_search"].to_lower() in name.to_lower():
+				match_all = false
+
+		# 技能类型过滤
+		if filters.has("ability_type") and match_all:
+			var abilities = config.get("abilities", [])
+			var has_ability_type = false
+
+			for ability in abilities:
+				if ability.get("type", "") == filters["ability_type"]:
+					has_ability_type = true
+					break
+
+			if not has_ability_type:
+				match_all = false
+
+		# 如果所有条件都匹配，添加到结果中
+		if match_all:
 			result.append(chess_id)
 
 	return result

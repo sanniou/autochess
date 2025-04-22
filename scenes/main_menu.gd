@@ -174,7 +174,7 @@ func _on_map_test_button_pressed():
 
 	_play_button_sound()
 	# _transition_to_scene("res://scenes/test/map_test.tscn")
-	_transition_to_scene("res://scenes/test/new_map_test.tscn")
+	_transition_to_scene("res://scenes/test/map_integration_test.tscn")
 
 # 事件测试按钮处理
 func _on_event_test_button_pressed():

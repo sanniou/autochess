@@ -19,7 +19,6 @@ config/icon="res://assets/images/icons/app_icon.png"
 
 EventBus="*res://scripts/events/event_bus.gd"
 Utils="*res://scripts/utils/utils.gd"
-ConfigManager="*res://scripts/managers/system/config_manager.gd"
 ResourceManager="*res://scripts/autoload/resource_manager.gd"
 ObjectPool="*res://scripts/core/object_pool.gd"
 LocalizationManager="*res://scripts/autoload/localization_manager.gd"

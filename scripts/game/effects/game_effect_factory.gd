@@ -62,7 +62,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 	# 获取效果类型
 	var effect_type_str = effect_data.get("effect_type", "")
 	var effect_type_int = -1
-	
+
 	# 如果效果类型是字符串，转换为对应的类型
 	if effect_type_str is String:
 		if effect_type_map.has(effect_type_str):
@@ -76,10 +76,10 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 	else:
 		print("GameEffectFactory: 无效的效果类型: " + str(effect_type_str))
 		return null
-	
+
 	# 根据效果类型创建对应的效果
 	var effect = null
-	
+
 	match effect_type_int:
 		GameEffect.EffectType.STATUS:
 			effect = StatusEffect.new(
@@ -92,7 +92,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.DAMAGE:
 			effect = DamageEffect.new(
 				effect_data.get("id", ""),
@@ -105,7 +105,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.HEAL:
 			effect = HealEffect.new(
 				effect_data.get("id", ""),
@@ -117,7 +117,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.STAT_MOD:
 			effect = StatEffect.new(
 				effect_data.get("id", ""),
@@ -130,7 +130,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.DOT:
 			effect = DotEffect.new(
 				effect_data.get("id", ""),
@@ -144,7 +144,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.HOT:
 			effect = HotEffect.new(
 				effect_data.get("id", ""),
@@ -156,7 +156,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.SHIELD:
 			effect = ShieldEffect.new(
 				effect_data.get("id", ""),
@@ -168,19 +168,29 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.AURA:
+			# 处理旧的is_debuff参数，转换为新的aura_type参数
+			var aura_data = effect_data.duplicate()
+
+			# 如果没有提供aura_type参数，但提供了is_debuff参数
+			if not aura_data.has("aura_type") and aura_data.has("is_debuff"):
+				if aura_data.get("is_debuff", false):
+					aura_data["aura_type"] = AuraEffect.AuraType.DEBUFF
+				else:
+					aura_data["aura_type"] = AuraEffect.AuraType.BUFF
+
 			effect = AuraEffect.new(
-				effect_data.get("id", ""),
-				effect_data.get("name", "光环效果"),
-				effect_data.get("description", ""),
-				effect_data.get("duration", 0.0),
-				effect_data.get("aura_radius", 0.0),
+				aura_data.get("id", ""),
+				aura_data.get("name", "光环效果"),
+				aura_data.get("description", ""),
+				aura_data.get("duration", 0.0),
+				aura_data.get("aura_radius", 0.0),
 				source,
 				target,
-				effect_data
+				aura_data
 			)
-		
+
 		GameEffect.EffectType.TRIGGER:
 			effect = TriggerEffect.new(
 				effect_data.get("id", ""),
@@ -192,7 +202,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		GameEffect.EffectType.MOVEMENT:
 			effect = MovementEffect.new(
 				effect_data.get("id", ""),
@@ -205,7 +215,7 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-		
+
 		_:
 			# 如果是未知类型，创建基础效果
 			effect = GameEffect.new(
@@ -218,14 +228,14 @@ func create_effect(effect_data: Dictionary, source = null, target = null) -> Gam
 				target,
 				effect_data
 			)
-	
+
 	return effect
 
 # 从数据创建效果
 func create_effect_from_data(data: Dictionary, source = null, target = null) -> GameEffect:
 	# 检查效果类型
 	var effect_type = data.get("effect_type", -1)
-	
+
 	# 根据效果类型创建相应的效果
 	match effect_type:
 		GameEffect.EffectType.STATUS:
@@ -243,7 +253,17 @@ func create_effect_from_data(data: Dictionary, source = null, target = null) -> 
 		GameEffect.EffectType.SHIELD:
 			return ShieldEffect.create_from_data(data, source, target)
 		GameEffect.EffectType.AURA:
-			return AuraEffect.create_from_data(data, source, target)
+			# 处理旧的is_debuff参数，转换为新的aura_type参数
+			var aura_data = data.duplicate()
+
+			# 如果没有提供aura_type参数，但提供了is_debuff参数
+			if not aura_data.has("aura_type") and aura_data.has("is_debuff"):
+				if aura_data.get("is_debuff", false):
+					aura_data["aura_type"] = AuraEffect.AuraType.DEBUFF
+				else:
+					aura_data["aura_type"] = AuraEffect.AuraType.BUFF
+
+			return AuraEffect.create_from_data(aura_data, source, target)
 		GameEffect.EffectType.TRIGGER:
 			return TriggerEffect.create_from_data(data, source, target)
 		GameEffect.EffectType.MOVEMENT:

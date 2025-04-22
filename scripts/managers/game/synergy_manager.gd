@@ -67,7 +67,7 @@ func _load_synergy_configs() -> void:
 	var synergy_config_files = config_manager.get_config_files("synergies")
 
 	for file_path in synergy_config_files:
-		var synergy_config = config_manager.load_config(file_path, SynergyConfig)
+		var synergy_config = config_manager.load_config(file_path)
 
 		if synergy_config and synergy_config.is_valid():
 			var synergy_id = synergy_config.get_id()

@@ -19,9 +19,9 @@ func _ready() -> void:
 		# 尝试加载测试目标纹理
 		if ResourceLoader.exists("res://assets/textures/test/test_target.png"):
 			sprite.texture = load("res://assets/textures/test/test_target.png")
-		else:
+		#else:
 			# 如果没有测试目标纹理，使用默认图标
-			sprite.texture = get_theme_icon("Node", "EditorIcons")
+			#sprite.texture = get_theme_icon("Node", "EditorIcons")
 	
 	# 连接输入事件
 	test_target.input_event.connect(_on_test_target_input_event)
@@ -135,7 +135,7 @@ func _create_random_game_effect(position: Vector2) -> void:
 			var duration = randf_range(3.0, 8.0)
 			
 			var stats = {}
-			stats[stat_type] = is_debuff ? -stat_value : stat_value
+			stats[stat_type] =   -stat_value if is_debuff else stat_value
 			
 			effect = GameManager.game_effect_manager.create_stat_effect(
 				self,           # 源

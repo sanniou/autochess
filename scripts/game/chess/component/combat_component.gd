@@ -107,6 +107,10 @@ func take_damage(source, amount: float, damage_type: String = "physical", is_cri
 	if attribute_component.is_dead():
 		return 0.0
 
+	# 检查是否无敌
+	if "is_invulnerable" in owner and owner.is_invulnerable:
+		return 0.0
+
 	# 检查闪避
 	var dodge_chance = attribute_component.get_attribute("dodge_chance")
 	if randf() < dodge_chance:

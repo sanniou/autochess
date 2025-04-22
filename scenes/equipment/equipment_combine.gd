@@ -56,7 +56,7 @@ func _load_recipe_list():
 		child.queue_free()
 
 	# 获取所有装备配置
-	var all_equipments = ConfigManager.get_all_equipments()
+	var all_equipments = GameManager.config_manager.get_all_equipments()
 
 	# 添加配方到列表
 	for equipment_id in all_equipments:
@@ -112,8 +112,8 @@ func _create_recipe_item(equipment_data):
 	var ingredient2 = item.get_node("HBoxContainer/Ingredient2")
 
 	if equipment_data.recipe.size() >= 2:
-		var ingredient1_data = ConfigManager.get_equipment(equipment_data.recipe[0])
-		var ingredient2_data = ConfigManager.get_equipment(equipment_data.recipe[1])
+		var ingredient1_data = GameManager.config_manager.get_equipment(equipment_data.recipe[0])
+		var ingredient2_data = GameManager.config_manager.get_equipment(equipment_data.recipe[1])
 
 		if ingredient1_data and ingredient2_data:
 			var icon1_path = "res://assets/images/equipment/" + ingredient1_data.icon
@@ -185,7 +185,7 @@ func _update_combine_area():
 			result_id = selected_equipment2.get_combine_result(selected_equipment1)
 
 		if not result_id.is_empty():
-			var result_data = ConfigManager.get_equipment(result_id)
+			var result_data = GameManager.config_manager.get_equipment(result_id)
 			if result_data:
 				# 创建结果预览
 				var result_preview = _create_equipment_result_preview(result_data)

@@ -579,17 +579,3 @@ func show_achievement_notification(achievement_id: String, achievement_data: Dic
 	var audio_manager = get_node_or_null("/root/AudioManager")
 	if audio_manager:
 		audio_manager.play_sfx("achievement_unlock.ogg")
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

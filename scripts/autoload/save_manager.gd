@@ -100,7 +100,7 @@ func _save_metadata() -> void:
 	var metadata_path = SAVE_DIR + "metadata.json"
 
 	# 使用 ConfigManager 保存元数据
-	var result = ConfigManager.save_json(metadata_path, save_metadata)
+	var result = GameManager.config_manager.save_json(metadata_path, save_metadata)
 	if not result:
 		EventBus.debug.emit_event("debug_message", ["无法写入存档元数据文件", 2])
 
@@ -131,7 +131,7 @@ func save_game(slot_name: String = "") -> bool:
 	var save_path = SAVE_DIR + slot_name + SAVE_EXTENSION
 
 	# 使用 ConfigManager 保存存档文件
-	var result = ConfigManager.save_json(save_path, save_data)
+	var result = GameManager.config_manager.save_json(save_path, save_data)
 	if not result:
 		EventBus.debug.emit_event("debug_message", ["无法写入存档文件: " + save_path, 2])
 		return false
@@ -163,7 +163,7 @@ func load_game(slot_name: String) -> bool:
 		return false
 
 	# 使用 ConfigManager 加载存档文件
-	var save_data = ConfigManager.load_json(save_path)
+	var save_data = GameManager.config_manager.load_json(save_path)
 	if save_data.is_empty():
 		EventBus.debug.emit_event("debug_message", ["无法加载存档文件: " + save_path, 2])
 		return false
@@ -656,7 +656,7 @@ func save_achievement_data(data: Dictionary) -> bool:
 		save_path = SAVE_DIR + "global_achievements.json"
 
 	# 使用 ConfigManager 保存成就数据
-	var result = ConfigManager.save_json(save_path, data)
+	var result = GameManager.config_manager.save_json(save_path, data)
 	if not result:
 		EventBus.debug.emit_event("debug_message", ["无法写入成就数据文件: " + save_path, 2])
 		return false
@@ -683,7 +683,7 @@ func load_achievement_data() -> Dictionary:
 		return {}
 
 	# 使用 ConfigManager 加载成就数据
-	var data = ConfigManager.load_json(save_path)
+	var data = GameManager.config_manager.load_json(save_path)
 	if data.is_empty():
 		EventBus.debug.emit_event("debug_message", ["无法加载成就数据文件: " + save_path, 2])
 		return {}
@@ -702,7 +702,7 @@ func save_tutorial_data(data: Dictionary) -> bool:
 		save_path = SAVE_DIR + "global_tutorials.json"
 
 	# 使用 ConfigManager 保存教程数据
-	var result = ConfigManager.save_json(save_path, data)
+	var result = GameManager.config_manager.save_json(save_path, data)
 	if not result:
 		EventBus.debug.emit_event("debug_message", ["无法写入教程数据文件: " + save_path, 2])
 		return false
@@ -729,7 +729,7 @@ func load_tutorial_data() -> Dictionary:
 		return {}
 
 	# 使用 ConfigManager 加载教程数据
-	var data = ConfigManager.load_json(save_path)
+	var data = GameManager.config_manager.load_json(save_path)
 	if data.is_empty():
 		EventBus.debug.emit_event("debug_message", ["无法加载教程数据文件: " + save_path, 2])
 		return {}
@@ -754,17 +754,3 @@ func _on_game_state_changed(old_state, new_state) -> void:
 		if autosave_enabled and current_save_slot != "":
 			save_game(AUTOSAVE_NAME)
 			EventBus.debug.emit_event("debug_message", ["战斗结束后自动存档", 0])
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

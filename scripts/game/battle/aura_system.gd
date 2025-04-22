@@ -346,10 +346,18 @@ func _create_visual_effect() -> Node2D:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(
-		GameManager.effect_manager.VisualEffectType.BUFF,
-		visual,
-		params
-	)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.BUFF,
+			visual,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_combined_effect(
+			visual.global_position,
+			"buff_aura",
+			params
+		)
 
 	return visual

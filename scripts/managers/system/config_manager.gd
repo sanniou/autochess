@@ -1,4 +1,6 @@
 extends "res://scripts/managers/core/base_manager.gd"
+
+class_name ConfigManager
 ## 配置管理器
 ## 负责加载、验证和管理游戏配置数据
 
@@ -324,7 +326,7 @@ func load_config(config_type: String) -> bool:
 	return true
 
 ## 加载JSON文件
-func _load_json_file(file_path: String) -> Dictionary:
+static func _load_json_file(file_path: String) -> Dictionary:
 	# 检查文件是否存在
 	if not FileAccess.file_exists(file_path):
 		_log_warning("加载JSON文件失败: 文件不存在 - " + file_path)
@@ -504,7 +506,7 @@ func save_json(file_path: String, data: Variant) -> bool:
 	return true
 
 ## 加载指定配置
-func load_json(file_path: String) -> Variant:
+static func load_json(file_path: String) -> Variant:
 	return _load_json_file(file_path)
 
 ## 设置配置项

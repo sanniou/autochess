@@ -430,20 +430,6 @@ func _on_battle_ended(_result) -> void:
 	# 发送战斗结束信号
 	EventBus.board.emit_event("board_battle_ended", [_result])
 
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	push_error(error_message)
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	push_warning(warning_message)
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	print(info_message)
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写清理方法
 func _do_cleanup() -> void:

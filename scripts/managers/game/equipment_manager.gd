@@ -44,7 +44,7 @@ func get_equipment(equipment_id: String) -> Equipment:
 		return _equipment_cache[equipment_id]
 
 	# 从配置创建新实例
-	var config = ConfigManager.get_equipment(equipment_id)
+	var config = GameManager.config_manager.get_equipment(equipment_id)
 	if not config:
 		_log_warning("无法获取装备配置: " + equipment_id)
 		return null
@@ -152,17 +152,3 @@ func _do_reset() -> void:
 	_equipment_cache.clear()
 
 	_log_info("装备管理器重置完成")
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

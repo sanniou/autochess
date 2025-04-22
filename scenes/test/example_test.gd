@@ -66,7 +66,7 @@ func _run_async_tests() -> void:
 	# 等待时间
 	print("等待 1 秒...")
 	await wait(1.0)
-	pass("等待时间成功")
+	print("等待时间成功")
 	
 	# 等待信号
 	var timer = Timer.new()

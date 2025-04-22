@@ -158,46 +158,94 @@ func _on_owner_died() -> void:
 func _play_summon_effect(summon: ChessPieceEntity) -> void:
 
 	# 创建召唤特效参数
-	var params = {
-		"color": GameManager.effect_manager.get_effect_color("summon"),
-		"duration": 1.0
-	}
+	var params = {}
+
+	# 设置颜色
+	if GameManager and GameManager.game_effect_manager:
+		params["color"] = GameManager.game_effect_manager.get_effect_color("summon")
+	elif GameManager and GameManager.visual_manager:
+		params["color"] = Color(0.2, 0.8, 0.2, 0.8) # 绿色默认值
+	else:
+		params["color"] = Color(0.2, 0.8, 0.2, 0.8) # 绿色默认值
+
+	# 设置其他参数
+	params["duration"] = 1.0
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(
-		GameManager.effect_manager.VisualEffectType.SUMMON,
-		summon,
-		params
-	)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.BUFF, # 使用BUFF替代SUMMON，因为没有SUMMON类型
+			summon,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_combined_effect(
+			summon.global_position,
+			"summon",
+			params
+		)
 
 # 播放消失特效
 func _play_despawn_effect(summon: ChessPieceEntity) -> void:
 
 	# 创建消失特效参数
-	var params = {
-		"color": GameManager.effect_manager.get_effect_color("teleport"),
-		"duration": 1.0
-	}
+	var params = {}
+
+	# 设置颜色
+	if GameManager and GameManager.game_effect_manager:
+		params["color"] = GameManager.game_effect_manager.get_effect_color("teleport")
+	elif GameManager and GameManager.visual_manager:
+		params["color"] = Color(0.2, 0.6, 1.0, 0.8) # 蓝色默认值
+	else:
+		params["color"] = Color(0.2, 0.6, 1.0, 0.8) # 蓝色默认值
+
+	# 设置其他参数
+	params["duration"] = 1.0
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(
-		GameManager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
-		summon,
-		params
-	)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
+			summon,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_combined_effect(
+			summon.global_position,
+			"teleport_disappear",
+			params
+		)
 
 # 播放技能特效
 func _play_effect(target: ChessPieceEntity) -> void:
 	# 创建增益特效参数
-	var params = {
-		"color": GameManager.effect_manager.get_effect_color("buff"),
-		"duration": 1.0,
-		"buff_type": "summon_ability"
-	}
+	var params = {}
+
+	# 设置颜色
+	if GameManager and GameManager.game_effect_manager:
+		params["color"] = GameManager.game_effect_manager.get_effect_color("buff")
+	elif GameManager and GameManager.visual_manager:
+		params["color"] = Color(0, 0.8, 0.8, 0.8) # 青色默认值
+	else:
+		params["color"] = Color(0, 0.8, 0.8, 0.8) # 青色默认值
+
+	# 设置其他参数
+	params["duration"] = 1.0
+	params["buff_type"] = "summon_ability"
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(
-		GameManager.effect_manager.VisualEffectType.BUFF,
-		target,
-		params
-	)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.BUFF,
+			target,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_combined_effect(
+			target.global_position,
+			"buff_summon_ability",
+			params
+		)

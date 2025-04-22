@@ -248,7 +248,7 @@ func play_effect_animation(position: Vector2, effect_name: String, params: Dicti
 	var animation_id = _create_animation_id(AnimationType.EFFECT, effect_name)
 
 	# 获取特效动画控制器
-	var effect_animator = get_effect_animator()
+	var effect_animator = GameManager.animation_manager.get_effect_animator()
 	if not effect_animator:
 		_log_error("无法获取视觉效果动画器")
 		return ""
@@ -311,8 +311,6 @@ func cancel_animation(animation_id: String) -> bool:
 		result = true
 	elif animator is BattleAnimator:
 		result = animator.cancel_animation(animation_id)
-	elif animator is VisualEffectAnimator:
-		result = animator.cancel_animation(animation_id)
 
 	if result:
 		# 更新动画状态
@@ -358,8 +356,6 @@ func pause_animation(animation_id: String) -> bool:
 		result = true
 	elif animator is BattleAnimator:
 		result = animator.pause_animation(animation_id)
-	elif animator is VisualEffectAnimator:
-		result = animator.pause_animation(animation_id)
 
 	if result:
 		# 更新动画状态
@@ -403,8 +399,6 @@ func resume_animation(animation_id: String) -> bool:
 		result = true
 	elif animator is BattleAnimator:
 		result = animator.resume_animation(animation_id)
-	elif animator is VisualEffectAnimator:
-		result = animator.resume_animation(animation_id)
 
 	if result:
 		# 更新动画状态
@@ -447,8 +441,6 @@ func set_animation_speed(animation_id: String, speed: float) -> bool:
 		animation_data.speed = speed
 		result = true
 	elif animator is BattleAnimator:
-		result = animator.set_animation_speed(animation_id, speed)
-	elif animator is VisualEffectAnimator:
 		result = animator.set_animation_speed(animation_id, speed)
 
 	return result
@@ -643,8 +635,6 @@ func _process_queue(type: int) -> void:
 			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
 		elif animator is UIAnimator:
 			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
-		elif animator is VisualEffectAnimator:
-			animator.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
 
 # 动画完成处理
 func _on_animation_completed(animation_id: String) -> void:
@@ -677,9 +667,6 @@ func _on_animation_completed(animation_id: String) -> void:
 			if animator.animation_finished.is_connected(_on_animation_completed):
 				animator.animation_finished.disconnect(_on_animation_completed)
 		elif animator is BattleAnimator:
-			if animator.animation_completed.is_connected(_on_animation_completed):
-				animator.animation_completed.disconnect(_on_animation_completed)
-		elif animator is VisualEffectAnimator:
 			if animator.animation_completed.is_connected(_on_animation_completed):
 				animator.animation_completed.disconnect(_on_animation_completed)
 
@@ -731,20 +718,6 @@ func _on_game_paused(paused: bool) -> void:
 
 	# 更新处理状态
 	set_process(!paused)
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写重置方法
 func _do_reset() -> void:

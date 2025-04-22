@@ -116,7 +116,19 @@ func _play_disappear_effect() -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.TELEPORT_DISAPPEAR, owner, params)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
+			owner,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_combined_effect(
+			owner.global_position,
+			"teleport_disappear",
+			params
+		)
 
 	# 暂时隐藏所有者
 	owner.modulate.a = 0
@@ -129,7 +141,19 @@ func _play_appear_effect() -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.TELEPORT_APPEAR, owner, params)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.TELEPORT_APPEAR,
+			owner,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_combined_effect(
+			owner.global_position,
+			"teleport_appear",
+			params
+		)
 
 	# 显示所有者
 	var tween = owner.create_tween()
@@ -144,7 +168,20 @@ func _play_damage_effect(target: ChessPieceEntity) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.DAMAGE, target, params)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.DAMAGE,
+			target,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_damage_number(
+			target.global_position,
+			params.get("damage_amount", 0),
+			false,
+			{"damage_type": params.get("damage_type", "physical")}
+		)
 
 # 播放技能特效
 func _play_effect(target: ChessPieceEntity) -> void:
@@ -155,4 +192,17 @@ func _play_effect(target: ChessPieceEntity) -> void:
 	}
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(GameManager.effect_manager.VisualEffectType.DAMAGE, target, params)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.DAMAGE,
+			target,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_damage_number(
+			target.global_position,
+			params.get("damage_amount", 0),
+			false,
+			{"damage_type": params.get("damage_type", "physical")}
+		)

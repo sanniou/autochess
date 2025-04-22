@@ -186,19 +186,6 @@ func trigger_black_market() -> void:
 func trigger_mystery_shop() -> void:
 	shop_system.trigger_mystery_shop()
 
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写清理方法
 func _do_cleanup() -> void:

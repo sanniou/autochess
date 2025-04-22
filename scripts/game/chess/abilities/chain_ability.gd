@@ -36,16 +36,25 @@ func _execute_effect(target = null) -> void:
 	var current_damage = damage
 	# 创建伤害特效参数
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(
-		GameManager.effect_manager.VisualEffectType.DAMAGE,
-		target,
-		{
-		"color": GameManager.effect_manager.get_effect_color(damage_type),
-		"duration": 0.5,
-		"damage_type": damage_type,
-		"damage_amount": current_damage
-		}
-	)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.DAMAGE,
+			target,
+			{
+			"color": GameManager.game_effect_manager.get_effect_color(damage_type),
+			"duration": 0.5,
+			"damage_type": damage_type,
+			"damage_amount": current_damage
+			}
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_damage_number(
+			target.global_position,
+			current_damage,
+			false,
+			{"damage_type": damage_type}
+		)
 
 	# 直接造成伤害
 	target.take_damage(current_damage, damage_type, owner)
@@ -68,16 +77,25 @@ func _execute_effect(target = null) -> void:
 		hit_targets.append(next_target)
 
 		# 使用特效管理器创建特效
-		GameManager.effect_manager.create_visual_effect(
-			GameManager.effect_manager.VisualEffectType.DAMAGE,
-			next_target,
-			{
-			"color": GameManager.effect_manager.get_effect_color(damage_type),
-			"duration": 0.5,
-			"damage_type": damage_type,
-			"damage_amount": current_damage
-			}
-		)
+		if GameManager and GameManager.game_effect_manager:
+			GameManager.game_effect_manager.create_visual_effect(
+				GameManager.game_effect_manager.VisualEffectType.DAMAGE,
+				next_target,
+				{
+				"color": GameManager.game_effect_manager.get_effect_color(damage_type),
+				"duration": 0.5,
+				"damage_type": damage_type,
+				"damage_amount": current_damage
+				}
+			)
+		# 如果没有效果管理器，使用视觉管理器
+		elif GameManager and GameManager.visual_manager:
+			GameManager.visual_manager.create_damage_number(
+				next_target.global_position,
+				current_damage,
+				false,
+				{"damage_type": damage_type}
+			)
 
 		# 直接造成伤害
 		next_target.take_damage(current_damage, damage_type, owner)
@@ -134,20 +152,36 @@ func _play_chain_visual_effect(from_target: ChessPieceEntity, to_target: ChessPi
 	owner.get_parent().add_child(effect_node)
 
 	# 创建连锁特效参数
-	var params = {
-		"color": GameManager.effect_manager.get_effect_color(damage_type),
-		"duration": 0.5,
-		"damage_type": damage_type,
-		"from_position": from_target.position,
-		"to_position": to_target.position
-	}
+	var params = {}
+
+	# 设置颜色
+	if GameManager and GameManager.game_effect_manager:
+		params["color"] = GameManager.game_effect_manager.get_effect_color(damage_type)
+	elif GameManager and GameManager.visual_manager:
+		params["color"] = Color(0.2, 0.2, 0.8, 0.8) # 蓝色默认值
+	else:
+		params["color"] = Color(0.2, 0.2, 0.8, 0.8) # 蓝色默认值
+
+	# 设置其他参数
+	params["duration"] = 0.5
+	params["damage_type"] = damage_type
+	params["from_position"] = from_target.position
+	params["to_position"] = to_target.position
 
 	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_visual_effect(
-		GameManager.effect_manager.VisualEffectType.CHAIN,
-		effect_node,
-		params
-	)
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.CHAIN,
+			effect_node,
+			params
+		)
+	# 如果没有效果管理器，使用视觉管理器
+	elif GameManager and GameManager.visual_manager:
+		GameManager.visual_manager.create_combined_effect(
+			effect_node.global_position,
+			"chain_" + damage_type,
+			params
+		)
 
 	# 设置定时器删除节点
 	var timer = Timer.new()
@@ -170,19 +204,36 @@ func _play_ability_effect(targets: Array) -> void:
 	# 播放技能视觉效果
 	for target in targets:
 		# 创建视觉特效参数
-		var params = {
-			"color": GameManager.effect_manager.get_effect_color(damage_type),
-			"duration": 0.5,
-			"damage_type": damage_type,
-			"damage_amount": damage
-		}
+		var params = {}
+
+		# 设置颜色
+		if GameManager and GameManager.game_effect_manager:
+			params["color"] = GameManager.game_effect_manager.get_effect_color(damage_type)
+		elif GameManager and GameManager.visual_manager:
+			params["color"] = Color(0.2, 0.2, 0.8, 0.8) # 蓝色默认值
+		else:
+			params["color"] = Color(0.2, 0.2, 0.8, 0.8) # 蓝色默认值
+
+		# 设置其他参数
+		params["duration"] = 0.5
+		params["damage_type"] = damage_type
+		params["damage_amount"] = damage
 
 		# 使用特效管理器创建特效
-		GameManager.effect_manager.create_visual_effect(
-			GameManager.effect_manager.VisualEffectType.DAMAGE,
-			target,
-			params
-		)
+		if GameManager and GameManager.game_effect_manager:
+			GameManager.game_effect_manager.create_visual_effect(
+				GameManager.game_effect_manager.VisualEffectType.DAMAGE,
+				target,
+				params
+			)
+		# 如果没有效果管理器，使用视觉管理器
+		elif GameManager and GameManager.visual_manager:
+			GameManager.visual_manager.create_damage_number(
+				target.global_position,
+				damage,
+				false,
+				{"damage_type": damage_type}
+			)
 
 	# 播放技能施法者效果
 	_play_caster_effect()

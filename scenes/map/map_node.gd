@@ -146,7 +146,7 @@ func get_node_id() -> String:
 
 ## 获取节点图标路径
 func _get_icon_path(node_type: String) -> String:
-	var node_types = ConfigManager.map_nodes_config.node_types
+	var node_types = GameManager.config_manager.map_nodes_config.node_types
 	if node_types.has(node_type):
 		return "res://assets/images/map/" + node_types[node_type].icon
 
@@ -159,7 +159,7 @@ func _get_node_type_name(node_type: String) -> String:
 
 ## 获取节点颜色
 func _get_node_color(node_type: String) -> Color:
-	var node_types = ConfigManager.map_nodes_config.node_types
+	var node_types = GameManager.config_manager.map_nodes_config.node_types
 	if node_types.has(node_type):
 		return Color(node_types[node_type].color)
 

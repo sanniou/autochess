@@ -3,6 +3,9 @@ class_name SkinConfig
 ## 皮肤配置模型
 ## 提供皮肤配置数据的访问和验证
 
+# 引入常量
+const GameConsts = preload("res://scripts/constants/game_constants.gd")
+
 # 获取配置类型
 func _get_config_type() -> String:
 	return "skins"
@@ -101,15 +104,15 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 		var valid_types = ["theme", "chess", "board", "ui"]
 		if not valid_types.has(config_data.type):
 			validation_errors.append("皮肤类型必须是有效的类型: " + ", ".join(valid_types))
-	
+
 	# 验证稀有度范围
-	if config_data.has("rarity") and (config_data.rarity < 0 or config_data.rarity > 5):
-		validation_errors.append("稀有度必须在0-5之间")
-	
+	if config_data.has("rarity") and not GameConsts.is_valid_rarity(config_data.rarity):
+		validation_errors.append("稀有度必须是有效的 GameConstants.Rarity 枚举值: " + str(config_data.rarity))
+
 	# 验证价格
 	if config_data.has("price") and config_data.price < 0:
 		validation_errors.append("价格不能为负数")
-	
+
 	# 验证解锁条件
 	if config_data.has("unlock_condition") and config_data.unlock_condition is Dictionary:
 		if not config_data.unlock_condition.has("type"):
@@ -117,15 +120,15 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 		else:
 			var condition_type = config_data.unlock_condition.type
 			var valid_condition_types = ["gold", "achievement", "level", "win_count"]
-			
+
 			if not valid_condition_types.has(condition_type):
 				validation_errors.append("解锁条件类型必须是有效的类型: " + ", ".join(valid_condition_types))
-			
+
 			if not config_data.unlock_condition.has("value"):
 				validation_errors.append("解锁条件必须有value字段")
 			else:
 				var condition_value = config_data.unlock_condition.value
-				
+
 				match condition_type:
 					"achievement":
 						if not condition_value is String or condition_value.is_empty():
@@ -133,7 +136,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 					"level", "gold", "win_count":
 						if not condition_value is int or condition_value <= 0:
 							validation_errors.append(condition_type + "解锁条件必须是正整数")
-	
+
 	# 验证资源路径
 	if config_data.has("assets"):
 		if not config_data.assets is Dictionary:
@@ -162,7 +165,7 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 						# UI皮肤必须包含UI资源
 						if not config_data.assets.has("ui") or not config_data.assets.ui is Dictionary:
 							validation_errors.append("UI皮肤必须包含UI资源")
-			
+
 			# 验证资源路径是否有效
 			for asset_type in config_data.assets:
 				if config_data.assets[asset_type] is Dictionary:
@@ -228,16 +231,16 @@ func has_asset_type(asset_type: String) -> bool:
 # 检查是否满足解锁条件
 func meets_unlock_condition(player_data: Dictionary) -> bool:
 	var unlock_condition = get_unlock_condition()
-	
+
 	if unlock_condition.is_empty():
 		return true
-	
+
 	if not unlock_condition.has("type") or not unlock_condition.has("value"):
 		return false
-	
+
 	var condition_type = unlock_condition.type
 	var condition_value = unlock_condition.value
-	
+
 	match condition_type:
 		"achievement":
 			if not player_data.has("achievements") or not player_data.achievements.has(condition_value) or not player_data.achievements[condition_value]:
@@ -253,5 +256,5 @@ func meets_unlock_condition(player_data: Dictionary) -> bool:
 				return false
 		_:
 			return false
-	
+
 	return true

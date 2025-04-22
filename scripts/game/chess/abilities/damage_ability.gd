@@ -26,8 +26,9 @@ func _execute_effect(target = null) -> void:
 		"damage_type": damage_type,
 		"damage_amount": damage
 	}
-	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.DAMAGE, target, params)
+	# 使用游戏效果管理器创建特效
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_damage_effect(owner, target, damage, damage_type, params)
 
 	# 直接造成伤害
 	target.take_damage(damage, damage_type, owner)

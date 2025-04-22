@@ -20,6 +20,10 @@ var level: int = 1  # 棋子等级
 var is_player_piece: bool = true  # 是否是玩家棋子
 var is_initialized: bool = false  # 是否已初始化
 
+# 状态属性
+var is_invisible: bool = false  # 是否隐身
+var is_invulnerable: bool = false  # 是否无敌
+
 # 组件管理器
 var component_manager: ComponentManager = null
 
@@ -255,6 +259,10 @@ func deal_damage(target, amount: float, damage_type: String = "physical", is_cri
 
 # 受到伤害
 func take_damage(amount: float, damage_type: String = "physical", source = null) -> float:
+	# 如果处于无敌状态，不受伤害
+	if is_invulnerable:
+		return 0.0
+
 	var combat_component = get_component("CombatComponent")
 	if combat_component:
 		return combat_component.take_damage(source, amount, damage_type, false)

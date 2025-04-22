@@ -262,7 +262,7 @@ func _cmd_help(_args: Array) -> String:
 
 ## reload_configs命令处理
 func _cmd_reload_configs(_args: Array) -> String:
-	ConfigManager.reload_configs()
+	GameManager.config_manager.reload_configs()
 	return "配置已重新加载"
 
 ## give_gold命令处理
@@ -721,17 +721,3 @@ func _cmd_quit(_args: Array) -> String:
 	var timer = get_tree().create_timer(0.5)
 	timer.timeout.connect(func(): get_tree().quit())
 	return "正在退出游戏..."
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

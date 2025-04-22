@@ -38,7 +38,7 @@ func _init(effect_id: String = "", effect_name: String = "", effect_description:
 	
 	# 设置名称和描述
 	if name.is_empty():
-		name = is_debuff ? "减益效果" : "增益效果"
+		name =   "减益效果" if is_debuff else "增益效果"
 	
 	if description.is_empty():
 		description = _get_stat_description(stats, is_percentage, is_debuff)
@@ -103,8 +103,8 @@ func _get_stat_icon_path(is_debuff: bool) -> String:
 # 获取属性描述
 func _get_stat_description(stats: Dictionary, is_percentage: bool, is_debuff: bool) -> String:
 	var desc = ""
-	var prefix = is_debuff ? "降低" : "提高"
-	var suffix = is_percentage ? "%" : ""
+	var prefix =  "降低" if is_debuff else "提高"
+	var suffix =   "%" if is_percentage  else ""
 	
 	for stat_name in stats:
 		var value = stats[stat_name]

@@ -100,7 +100,7 @@ func _display_chess_items(chess_items: Array) -> void:
 			continue
 
 		# 获取棋子数据用于显示
-		var chess_config = ConfigManager.get_chess_piece_config(chess_id)
+		var chess_config = GameManager.config_manager.get_chess_piece_config(chess_id)
 		var chess_data = chess_config.get_data()
 
 		# 获取棋子价格
@@ -185,7 +185,7 @@ func _on_item_purchased(item_data: Dictionary, item_type: String, price: int) ->
 		var chess_index = -1
 		for i in range(shop_items.chess.size()):
 			var chess_id = shop_items.chess[i]
-			var chess_config = ConfigManager.get_chess_piece_config(chess_id)
+			var chess_config = GameManager.config_manager.get_chess_piece_config(chess_id)
 			if chess_config and chess_config.get_id() == item_data.id:
 				chess_index = i
 				break

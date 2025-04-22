@@ -76,7 +76,8 @@ func _do_initialize() -> void:
 func _process(delta):
 	# 如果战斗引擎存在，让它处理战斗逻辑
 	# 战斗引擎已经处理了所有逻辑，我们只需要更新战斗统计
-	_update_battle_stats()
+	if battle_engine:
+		_update_battle_stats()
 
 # 开始战斗
 func start_battle(player_team: Array = [], enemy_team: Array = []):
@@ -153,6 +154,10 @@ func _reset_battle_stats():
 func _on_battle_started():
 	_log_info("Battle started event received")
 
+	# 通知 GameEffectManager 战斗开始
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.on_battle_started()
+
 # 准备阶段开始事件处理
 func _on_battle_preparing_phase_started():
 	_log_info("Battle preparing phase started")
@@ -160,6 +165,10 @@ func _on_battle_preparing_phase_started():
 # 战斗结束事件处理
 func _on_battle_ended(result: Dictionary):
 	print("Battle ended with result: ", result)
+
+	# 通知 GameEffectManager 战斗结束
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.on_battle_ended(result)
 
 	# 处理战斗奖励
 	_process_battle_rewards(result)
@@ -214,6 +223,11 @@ func _cleanup_battle():
 	player_pieces.clear()
 	enemy_pieces.clear()
 
+	# 清理所有效果
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.clear_all_effects()
+		_log_info("清理所有效果")
+
 	_log_info("战场清理完成")
 
 # 重写清理方法
@@ -237,16 +251,35 @@ func _do_cleanup() -> void:
 
 # 应用效果
 func apply_effect(effect_data: Dictionary, source = null, target = null) -> GameEffect:
+	# 检查目标是否有效
+	if not target or not is_instance_valid(target):
+		_log_warning("无法应用效果: 目标无效")
+		return null
+
 	# 使用新的游戏效果管理器应用效果
 	if GameManager and GameManager.game_effect_manager:
-		return GameManager.game_effect_manager.apply_effect(effect_data, source, target)
+		var effect = GameManager.game_effect_manager.apply_effect(effect_data, source, target)
+		if effect:
+			_log_info("应用效果成功: " + effect.name + " 到 " + (target.name if target and target.has_method("get_name") else "未知目标"))
+		else:
+			_log_warning("应用效果失败: " + str(effect_data))
+		return effect
+
+	_log_error("无法应用效果: GameEffectManager 不可用")
 	return null
 
 # 移除效果
 func remove_effect(effect_id_or_effect) -> bool:
 	# 使用新的游戏效果管理器移除效果
 	if GameManager and GameManager.game_effect_manager:
-		return GameManager.game_effect_manager.remove_effect(effect_id_or_effect)
+		var result = GameManager.game_effect_manager.remove_effect(effect_id_or_effect)
+		if result:
+			_log_info("移除效果成功: " + str(effect_id_or_effect))
+		else:
+			_log_warning("移除效果失败: " + str(effect_id_or_effect))
+		return result
+
+	_log_error("无法移除效果: GameEffectManager 不可用")
 	return false
 
 # 移除目标的所有效果
@@ -276,45 +309,27 @@ func has_effect_type(target, effect_type: int) -> bool:
 		return not effects.is_empty()
 	return false
 
-# 检查目标是否有指定标签的效果
-func has_effect_tag(target, tag: String) -> bool:
-	# 使用效果管理器检查目标是否有指定标签的效果
-	if effect_manager:
-		return effect_manager.has_effect_tag(target, tag)
-	return false
-
-# 获取目标的指定类型效果
-func get_effects_by_type(target, effect_type: int) -> Array:
-	# 使用效果管理器获取目标的指定类型效果
-	if effect_manager:
-		return effect_manager.get_effects_by_type(target, effect_type)
-	return []
-
-# 获取目标的指定标签效果
-func get_effects_by_tag(target, tag: String) -> Array:
-	# 使用效果管理器获取目标的指定标签效果
-	if effect_manager:
-		return effect_manager.get_effects_by_tag(target, tag)
-	return []
-
 # 应用状态效果
-func apply_status_effect(source, target, status_type: int, duration: float, params: Dictionary = {}) -> BattleEffect:
+func apply_status_effect(source, target, status_type: int, duration: float, params: Dictionary = {}) -> GameEffect:
 	# 创建状态效果数据
 	var effect_data = {
-		"effect_type": BattleEffect.EffectType.STATUS,
+		"effect_type": GameEffect.EffectType.STATUS,
 		"status_type": status_type,
 		"duration": duration,
 		"params": params
 	}
 
 	# 应用效果
-	return apply_effect(effect_data, source, target)
+	var effect = apply_effect(effect_data, source, target)
+	if effect:
+		_log_info("应用状态效果: " + effect.name + " 到 " + (target.name if target and target.has_method("get_name") else "未知目标"))
+	return effect
 
 # 应用属性效果
-func apply_stat_effect(source, target, stats: Dictionary, duration: float, is_debuff: bool = false, params: Dictionary = {}) -> BattleEffect:
+func apply_stat_effect(source, target, stats: Dictionary, duration: float, is_debuff: bool = false, params: Dictionary = {}) -> GameEffect:
 	# 创建属性效果数据
 	var effect_data = {
-		"effect_type": BattleEffect.EffectType.STAT_MOD,
+		"effect_type": GameEffect.EffectType.STAT_MOD,
 		"stats": stats,
 		"duration": duration,
 		"is_percentage": params.get("is_percentage", false),
@@ -328,13 +343,16 @@ func apply_stat_effect(source, target, stats: Dictionary, duration: float, is_de
 		effect_data["tags"] = ["buff"]
 
 	# 应用效果
-	return apply_effect(effect_data, source, target)
+	var effect = apply_effect(effect_data, source, target)
+	if effect:
+		_log_info("应用属性效果: " + effect.name + " 到 " + (target.name if target and target.has_method("get_name") else "未知目标"))
+	return effect
 
 # 应用持续伤害效果
-func apply_dot_effect(source, target, dot_type: int, damage_per_second: float, duration: float, damage_type: String = "magical", params: Dictionary = {}) -> BattleEffect:
+func apply_dot_effect(source, target, dot_type: int, damage_per_second: float, duration: float, damage_type: String = "magical", params: Dictionary = {}) -> GameEffect:
 	# 创建持续伤害效果数据
 	var effect_data = {
-		"effect_type": BattleEffect.EffectType.DOT,
+		"effect_type": GameEffect.EffectType.DOT,
 		"dot_type": dot_type,
 		"damage_per_second": damage_per_second,
 		"duration": duration,
@@ -345,13 +363,16 @@ func apply_dot_effect(source, target, dot_type: int, damage_per_second: float, d
 	}
 
 	# 应用效果
-	return apply_effect(effect_data, source, target)
+	var effect = apply_effect(effect_data, source, target)
+	if effect:
+		_log_info("应用持续伤害效果: " + effect.name + " 到 " + (target.name if target and target.has_method("get_name") else "未知目标"))
+	return effect
 
 # 应用持续治疗效果
-func apply_hot_effect(source, target, hot_type: int, heal_per_second: float, duration: float, params: Dictionary = {}) -> BattleEffect:
+func apply_hot_effect(source, target, hot_type: int, heal_per_second: float, duration: float, params: Dictionary = {}) -> GameEffect:
 	# 创建持续治疗效果数据
 	var effect_data = {
-		"effect_type": BattleEffect.EffectType.HOT,
+		"effect_type": GameEffect.EffectType.HOT,
 		"hot_type": hot_type,
 		"heal_per_second": heal_per_second,
 		"duration": duration,
@@ -361,13 +382,16 @@ func apply_hot_effect(source, target, hot_type: int, heal_per_second: float, dur
 	}
 
 	# 应用效果
-	return apply_effect(effect_data, source, target)
+	var effect = apply_effect(effect_data, source, target)
+	if effect:
+		_log_info("应用持续治疗效果: " + effect.name + " 到 " + (target.name if target and target.has_method("get_name") else "未知目标"))
+	return effect
 
 # 应用护盾效果
-func apply_shield_effect(source, target, shield_type: int, shield_amount: float, duration: float, params: Dictionary = {}) -> BattleEffect:
+func apply_shield_effect(source, target, shield_type: int, shield_amount: float, duration: float, params: Dictionary = {}) -> GameEffect:
 	# 创建护盾效果数据
 	var effect_data = {
-		"effect_type": BattleEffect.EffectType.SHIELD,
+		"effect_type": GameEffect.EffectType.SHIELD,
 		"shield_type": shield_type,
 		"shield_amount": shield_amount,
 		"duration": duration,
@@ -378,7 +402,10 @@ func apply_shield_effect(source, target, shield_type: int, shield_amount: float,
 	}
 
 	# 应用效果
-	return apply_effect(effect_data, source, target)
+	var effect = apply_effect(effect_data, source, target)
+	if effect:
+		_log_info("应用护盾效果: " + effect.name + " 到 " + (target.name if target and target.has_method("get_name") else "未知目标"))
+	return effect
 
 # 应用伤害
 func apply_damage(source, target, damage: float, damage_type: String = "magical", is_critical: bool = false, is_dodgeable: bool = true) -> float:

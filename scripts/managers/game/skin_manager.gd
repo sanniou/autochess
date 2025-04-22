@@ -108,7 +108,7 @@ func _load_skin_configs() -> void:
 	ui_skins.clear()
 
 	# 使用 ConfigManager 加载皮肤配置
-	var skins_config = ConfigManager.get_all_config_models("skins")
+	var skins_config = GameManager.config_manager.get_all_config_models("skins")
 
 	if skins_config.is_empty():
 		_log_warning("皮肤配置为空")
@@ -407,19 +407,6 @@ func _apply_ui_skin() -> void:
 
 	_log_info("应用UI皮肤: " + skin_id)
 
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写重置方法
 func _do_reset() -> void:

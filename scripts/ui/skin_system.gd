@@ -49,7 +49,7 @@ func _ready() -> void:
 # 加载皮肤配置
 func _load_skin_config() -> void:
 	# 使用标准的ConfigManager方法获取皮肤配置
-	skin_config = ConfigManager.get_all_skins()
+	skin_config = GameManager.config_manager.get_all_skins()
 
 	if skin_config.is_empty():
 		# 创建默认配置
@@ -84,7 +84,7 @@ func _load_skin_config() -> void:
 		}
 
 		# 保存默认配置
-		ConfigManager.save_json(SKIN_CONFIG_PATH, skin_config)
+		GameManager.config_manager.save_json(SKIN_CONFIG_PATH, skin_config)
 
 # 加载已解锁的皮肤
 func _load_unlocked_skins() -> void:

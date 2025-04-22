@@ -57,7 +57,7 @@ func update_rewards() -> void:
 		
 		if relic_data.has("id"):
 			var relic_id = relic_data.id
-			var relic_config = ConfigManager.get_relic(relic_id)
+			var relic_config = GameManager.config_manager.get_relic(relic_id)
 			
 			if relic_config:
 				var relic_label = Label.new()
@@ -75,7 +75,7 @@ func update_rewards() -> void:
 		
 		if chess_data.has("id"):
 			var chess_id = chess_data.id
-			var chess_config = ConfigManager.get_chess(chess_id)
+			var chess_config = GameManager.config_manager.get_chess(chess_id)
 			
 			if chess_config:
 				var chess_label = Label.new()

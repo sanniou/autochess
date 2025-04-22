@@ -200,7 +200,7 @@ func _log_error(message: String) -> void:
 	error_occurred.emit(message)
 
 # 记录警告信息
-func _log_warning(message: String) -> void:
+static func _log_warning(message: String) -> void:
 	# 发送警告事件
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")

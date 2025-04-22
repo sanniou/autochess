@@ -39,7 +39,7 @@ func _do_initialize() -> void:
 	# 初始化遗物工厂
 func _initialize_relic_factory() -> void:
 	# 加载所有遗物配置
-	var relics_config = ConfigManager.get_all_relics()
+	var relics_config = GameManager.config_manager.get_all_relics()
 
 	# 创建遗物工厂
 	for relic_id in relics_config:
@@ -230,7 +230,7 @@ func get_relic_data(relic_id: String) -> Dictionary:
 		return relic_factory[relic_id].duplicate()
 	else:
 		# 尝试从配置管理器获取
-		var relic_model = ConfigManager.get_relic_config(relic_id)
+		var relic_model = GameManager.config_manager.get_relic_config(relic_id)
 		if relic_model:
 			return relic_model.get_data()
 	return {}
@@ -319,20 +319,6 @@ func load_relics_state(save_data: Array, player = null) -> void:
 			relic.is_active = relic_data.is_active
 			relic.charges = relic_data.charges
 			relic.current_cooldown = relic_data.current_cooldown
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写清理方法
 func _do_cleanup() -> void:

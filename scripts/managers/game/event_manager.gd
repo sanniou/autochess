@@ -30,7 +30,7 @@ func _do_initialize() -> void:
 # 初始化事件工厂
 func _initialize_event_factory() -> void:
 	# 加载所有事件配置
-	var events_config = ConfigManager.get_all_events()
+	var events_config = GameManager.config_manager.get_all_events()
 
 	# 创建事件工厂
 	for event_id in events_config:
@@ -199,7 +199,7 @@ func get_event_data(event_id: String) -> Dictionary:
 		return event_factory[event_id].duplicate()
 	else:
 		# 尝试从配置管理器获取
-		var event_model = ConfigManager.get_event_config(event_id)
+		var event_model = GameManager.config_manager.get_event_config(event_id)
 		if event_model:
 			return event_model.get_data()
 	return {}
@@ -327,20 +327,6 @@ func create_random_event_by_difficulty(difficulty: String) -> Event:
 
 	# 创建事件
 	return _create_event(random_event_id)
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写清理方法
 func _do_cleanup() -> void:

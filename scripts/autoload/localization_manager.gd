@@ -117,6 +117,8 @@ func _deferred_init() -> void:
 
 	# 连接信号
 	EventBus.localization.connect_event("request_language_code", _on_request_language_code)
+	EventBus.localization.connect_event("font_loaded", _on_font_loaded, CONNECT_ONE_SHOT)
+	
 
 	# 检测系统语言
 	if localization_settings.auto_detect_language and localization_settings.use_system_language:
@@ -185,7 +187,7 @@ func load_language(language: int) -> void:
 		return
 
 	# 使用 ConfigManager 加载语言文件
-	var translation_data = ConfigManager.load_json(file_path)
+	var translation_data = GameManager.config_manager.load_json(file_path)
 	if translation_data.is_empty():
 		EventBus.debug.emit_event("debug_message", ["无法加载语言文件: " + file_path, 2])
 
@@ -286,7 +288,6 @@ func _load_font(language: int) -> void:
 ## 请求字体
 func _request_font(font_name: String) -> void:
 	# 通过EventBus请求字体
-	EventBus.localization.connect_event("font_loaded", _on_font_loaded, CONNECT_ONE_SHOT)
 	EventBus.localization.emit_event("request_font", [font_name])
 	EventBus.debug.emit_event("debug_message", ["请求字体: " + font_name, 0])
 
@@ -393,7 +394,7 @@ func _create_empty_language_file(language_code: String) -> void:
 	}
 
 	# 使用 ConfigManager 保存语言文件
-	var result = ConfigManager.save_json(file_path, basic_translations)
+	var result = GameManager.config_manager.save_json(file_path, basic_translations)
 	if result:
 		EventBus.debug.emit_event("debug_message", ["创建了基本语言文件: " + file_path, 1])
 	else:
@@ -434,7 +435,7 @@ func _preload_language(language: int) -> void:
 ## 线程加载语言文件
 func _load_language_thread(file_path: String, language_code: String) -> void:
 	# 使用 ConfigManager 加载语言文件
-	var translation_data = ConfigManager.load_json(file_path)
+	var translation_data = GameManager.config_manager.load_json(file_path)
 	if not translation_data.is_empty():
 		# 将翻译数据存储到缓存
 		var cache_key = "translation_" + language_code
@@ -489,17 +490,3 @@ func ensure_initialized() -> void:
 ## 在主线程中发送预加载完成信号
 func _emit_preload_complete(language_code: String) -> void:
 	EventBus.debug.emit_event("debug_message", ["预加载语言完成: " + language_code, 0])
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

@@ -225,7 +225,7 @@ func _load_difficulty_settings() -> void:
 	_log_info("当前难度级别: " + str(difficulty_level))
 
 	# 从配置管理器获取难度配置
-	var difficulty_data = ConfigManager.get_config_item("difficulty", str(difficulty_level))
+	var difficulty_data = GameManager.config_manager.get_config_item("difficulty", str(difficulty_level))
 	if difficulty_data.is_empty():
 		_log_warning("难度配置不存在: " + str(difficulty_level) + "，使用默认难度设置")
 		return
@@ -268,20 +268,6 @@ func reset() -> bool:
 	# 重新加载难度设置
 	_load_difficulty_settings()
 	return true
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写清理方法
 func _do_cleanup() -> void:

@@ -161,7 +161,7 @@ func _update_equipment_list(equipment_list: Array) -> void:
 		var equipment_id = equipment_list[i]
 
 		# 获取装备数据
-		var equipment_data = ConfigManager.get_equipment(equipment_id)
+		var equipment_data = GameManager.config_manager.get_equipment(equipment_id)
 		if equipment_data == null:
 			continue
 

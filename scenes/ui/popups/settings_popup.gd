@@ -35,15 +35,15 @@ func _initialize() -> void:
 # 加载设置
 func _load_settings():
 	# 从配置管理器加载设置
-	var config = ConfigManager.get_config("settings")
+	var config = GameManager.config_manager.get_config("settings")
 	if config:
 		settings_data = config.duplicate(true)
 
 # 保存设置
 func _save_settings():
 	# 保存到配置管理器
-	ConfigManager.set_config("settings", settings_data)
-	ConfigManager.save_config("settings")
+	GameManager.config_manager.set_config("settings", settings_data)
+	GameManager.config_manager.save_config("settings")
 
 # 更新弹窗
 func _update_popup() -> void:

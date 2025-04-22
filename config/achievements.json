@@ -38,7 +38,7 @@
     "name": "装备收藏家",
     "requirements": {
       "all": true,
-      "rarity": "rare",
+      "rarity": 2,,
       "type": "equipment"
     },
     "rewards": {

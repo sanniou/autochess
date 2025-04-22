@@ -91,7 +91,7 @@ const DEFAULT_COOLDOWN_TIME = 60.0  # 默认冷却时间（60秒）
 # 生成随机装备
 func generate_random_equipment(base_equipment_id: String, tier: int = EquipmentTier.NORMAL) -> Equipment:
 	# 获取基础装备配置
-	var base_config: EquipmentConfig = ConfigManager.get_equipment_config(base_equipment_id)
+	var base_config: EquipmentConfig = GameManager.config_manager.get_equipment_config(base_equipment_id)
 
 	# 创建新的装备配置
 	var new_config = base_config.get_data()
@@ -112,7 +112,7 @@ func upgrade_equipment_tier(equipment: Equipment, new_tier: int) -> Equipment:
 
 	# 获取基础装备配置
 	var base_id = equipment.id.split("_")[0] if "_" in equipment.id else equipment.id
-	var base_config = ConfigManager.get_equipment_config(base_id)
+	var base_config = GameManager.config_manager.get_equipment_config(base_id)
 	if not base_config:
 		return null
 
@@ -473,20 +473,6 @@ func _generate_legendary_passive(equipment_type: String, multiplier: float) -> D
 			}
 
 	return passive_effect
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
 
 # 重写重置方法
 func _do_reset() -> void:

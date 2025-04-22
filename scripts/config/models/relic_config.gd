@@ -129,8 +129,8 @@ func _get_default_schema() -> Dictionary:
 # 验证自定义规则
 func _validate_custom_rules(config_data: Dictionary) -> void:
 	# 验证稀有度范围
-	if config_data.has("rarity") and (config_data.rarity < 0 or config_data.rarity > 5):
-		validation_errors.append("稀有度必须在0-5之间:"+config_data.rarity)
+	if config_data.has("rarity") and not GameConsts.is_valid_rarity(config_data.rarity):
+		validation_errors.append("稀有度必须是有效的 GameConstants.Rarity 枚举值: " + str(config_data.rarity))
 
 	# 验证冷却时间
 	if config_data.has("cooldown") and config_data.cooldown < 0:

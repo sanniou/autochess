@@ -10,7 +10,7 @@ signal map_generated(map_data)
 var map_config: MapConfig
 
 func _ready() -> void:
-	map_config = ConfigManager.get_map_config()
+	map_config = GameManager.config_manager.get_map_config()
 
 ## 生成地图
 ## 这是一个虚函数，子类需要实现

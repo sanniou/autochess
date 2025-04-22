@@ -68,7 +68,7 @@ func _update_rewards() -> void:
 		
 		if equipment_data.has("id"):
 			var equipment_id = equipment_data.id
-			var equipment_config = ConfigManager.get_equipment(equipment_id)
+			var equipment_config = GameManager.config_manager.get_equipment(equipment_id)
 			
 			if equipment_config:
 				var equipment_label = Label.new()
@@ -86,7 +86,7 @@ func _update_rewards() -> void:
 		
 		if relic_data.has("id"):
 			var relic_id = relic_data.id
-			var relic_config = ConfigManager.get_relic(relic_id)
+			var relic_config = GameManager.config_manager.get_relic(relic_id)
 			
 			if relic_config:
 				var relic_label = Label.new()

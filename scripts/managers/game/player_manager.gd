@@ -141,7 +141,7 @@ func purchase_chess_piece(piece_id: String) -> ChessPieceEntity:
 		return null
 
 	# 获取棋子配置
-	var piece_config = ConfigManager.get_chess_piece_config(piece_id)
+	var piece_config = GameManager.config_manager.get_chess_piece_config(piece_id)
 	if piece_config == null:
 		_log_warning("无法购买棋子：未找到棋子配置 %s" % piece_id)
 		return null
@@ -511,17 +511,3 @@ func _get_state_name(state: PlayerState) -> String:
 			return "EVENT"
 		_:
 			return "UNKNOWN"
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

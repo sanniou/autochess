@@ -74,7 +74,7 @@ func _do_initialize() -> void:
 ## 加载地图配置
 func _load_map_config() -> void:
 	# 使用ConfigManager获取地图配置
-	var config_model = ConfigManager.get_map_config()
+	var config_model = GameManager.config_manager.get_map_config()
 	if config_model:
 		# 复制配置数据
 		map_config.set_data(config_model.get_data())
@@ -720,17 +720,3 @@ func _generate_better_rewards(layer: int) -> Dictionary:
 		"relic_chance": min(0.5, 0.1 + layer * 0.05)  # 最高概率50%
 	}
 	return rewards
-
-# 记录错误信息
-func _log_error(error_message: String) -> void:
-	_error = error_message
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
-	error_occurred.emit(error_message)
-
-# 记录警告信息
-func _log_warning(warning_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
-
-# 记录信息
-func _log_info(info_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [info_message, 0])

@@ -23,8 +23,9 @@ func _execute_effect(target = null) -> void:
 	var params = {
 		"heal_amount": damage  # 使用damage字段作为基础治疗量
 	}
-	# 使用特效管理器创建特效
-	GameManager.effect_manager.create_effect(GameManager.effect_manager.EffectType.HEAL, target, params)
+	# 使用游戏效果管理器创建特效
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_heal_effect(owner, target, damage, params)
 
 	# 直接治疗目标
 	target.heal(damage)

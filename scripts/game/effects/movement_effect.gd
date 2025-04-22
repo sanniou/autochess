@@ -10,7 +10,8 @@ enum MovementType {
 	TELEPORT, # 传送
 	DASH,     # 冲刺
 	JUMP,     # 跳跃
-	KNOCKUP   # 击飞
+	KNOCKUP,   # 击飞
+	SWAP,        # 交换位置
 }
 
 # 移动类型
@@ -43,13 +44,13 @@ func _init(effect_id: String = "", effect_name: String = "", effect_description:
 		distance_param: float = 0.0, effect_source = null, effect_target = null, effect_params: Dictionary = {}):
 	super._init(effect_id, effect_name, effect_description, effect_duration,
 			EffectType.MOVEMENT, effect_source, effect_target, effect_params)
-	
+
 	movement_type = movement_type_param
 	distance = distance_param
-	
+
 	# 设置移动速度
 	speed = effect_params.get("speed", 200.0)
-	
+
 	# 设置移动方向
 	if effect_params.has("direction"):
 		direction = effect_params.direction
@@ -65,24 +66,24 @@ func _init(effect_id: String = "", effect_name: String = "", effect_description:
 			_:
 				# 其他类型：默认从源指向目标的方向
 				direction = (target.global_position - source.global_position).normalized()
-	
+
 	# 设置目标位置
 	if effect_params.has("target_position"):
 		target_position = effect_params.target_position
 	elif movement_type == MovementType.TELEPORT and effect_params.has("teleport_position"):
 		target_position = effect_params.teleport_position
-	
+
 	# 设置标签
 	if not tags.has("movement"):
 		tags.append("movement")
-	
+
 	# 设置图标路径
 	icon_path = _get_movement_icon_path(movement_type)
-	
+
 	# 设置名称和描述
 	if name.is_empty():
 		name = _get_movement_name(movement_type)
-	
+
 	if description.is_empty():
 		description = _get_movement_description(movement_type, distance)
 
@@ -90,40 +91,44 @@ func _init(effect_id: String = "", effect_name: String = "", effect_description:
 func apply() -> bool:
 	if not super.apply():
 		return false
-	
+
 	# 检查目标是否有效
 	if not target or not is_instance_valid(target):
 		return false
-	
+
 	# 检查目标是否是Node2D
 	if not target is Node2D:
 		return false
-	
+
 	# 保存初始位置
 	initial_position = target.global_position
-	
+
 	# 根据移动类型执行不同的移动
 	match movement_type:
 		MovementType.PUSH, MovementType.PULL:
 			# 推开或拉近：开始移动
 			is_moving = true
-		
+
 		MovementType.TELEPORT:
 			# 传送：立即移动到目标位置
 			_teleport_to_target()
-		
+
 		MovementType.DASH:
 			# 冲刺：开始移动
 			is_moving = true
-		
+
 		MovementType.JUMP:
 			# 跳跃：开始移动
 			is_moving = true
-		
+
 		MovementType.KNOCKUP:
 			# 击飞：开始移动
 			is_moving = true
-	
+
+		MovementType.SWAP:
+			# 交换位置：立即交换源和目标的位置
+			_swap_positions()
+
 	# 发送移动开始事件
 	if EventBus:
 		EventBus.emit_signal("movement_started", {
@@ -134,52 +139,52 @@ func apply() -> bool:
 			"direction": direction,
 			"initial_position": initial_position
 		})
-	
+
 	return true
 
 # 更新效果
 func update(delta: float) -> bool:
 	if not super.update(delta):
 		return false
-	
+
 	# 检查是否正在移动
 	if not is_moving:
 		return true
-	
+
 	# 检查目标是否有效
 	if not target or not is_instance_valid(target):
 		is_moving = false
 		return false
-	
+
 	# 检查目标是否是Node2D
 	if not target is Node2D:
 		is_moving = false
 		return false
-	
+
 	# 根据移动类型更新移动
 	match movement_type:
 		MovementType.PUSH, MovementType.PULL:
 			_update_push_pull(delta)
-		
+
 		MovementType.DASH:
 			_update_dash(delta)
-		
+
 		MovementType.JUMP:
 			_update_jump(delta)
-		
+
 		MovementType.KNOCKUP:
 			_update_knockup(delta)
-	
+
 	return true
 
 # 移除效果
 func remove() -> bool:
 	if not super.remove():
 		return false
-	
+
 	# 停止移动
 	is_moving = false
-	
+
 	# 发送移动结束事件
 	if EventBus and target and is_instance_valid(target):
 		EventBus.emit_signal("movement_ended", {
@@ -189,25 +194,25 @@ func remove() -> bool:
 			"distance": moved_distance,
 			"final_position": target.global_position
 		})
-	
+
 	return true
 
 # 更新推开或拉近
 func _update_push_pull(delta: float) -> void:
 	# 计算本帧移动距离
 	var frame_distance = speed * delta
-	
+
 	# 更新已移动距离
 	moved_distance += frame_distance
-	
+
 	# 检查是否达到总距离
 	if moved_distance >= distance:
 		# 移动到最终位置
 		target.global_position = initial_position + direction * distance
-		
+
 		# 停止移动
 		is_moving = false
-		
+
 		# 移除效果
 		remove()
 	else:
@@ -218,18 +223,18 @@ func _update_push_pull(delta: float) -> void:
 func _update_dash(delta: float) -> void:
 	# 计算本帧移动距离
 	var frame_distance = speed * delta
-	
+
 	# 更新已移动距离
 	moved_distance += frame_distance
-	
+
 	# 检查是否达到总距离
 	if moved_distance >= distance:
 		# 移动到最终位置
 		target.global_position = initial_position + direction * distance
-		
+
 		# 停止移动
 		is_moving = false
-		
+
 		# 移除效果
 		remove()
 	else:
@@ -240,31 +245,31 @@ func _update_dash(delta: float) -> void:
 func _update_jump(delta: float) -> void:
 	# 计算本帧移动距离
 	var frame_distance = speed * delta
-	
+
 	# 更新已移动距离
 	moved_distance += frame_distance
-	
+
 	# 计算跳跃进度
 	var progress = moved_distance / distance
-	
+
 	# 检查是否完成跳跃
 	if progress >= 1.0:
 		# 移动到最终位置
 		target.global_position = initial_position + direction * distance
-		
+
 		# 停止移动
 		is_moving = false
-		
+
 		# 移除效果
 		remove()
 	else:
 		# 计算水平位置
 		var horizontal_position = initial_position + direction * moved_distance
-		
+
 		# 计算垂直位置（抛物线）
 		var height = 50.0  # 跳跃高度
 		var vertical_offset = height * sin(progress * PI)  # 使用正弦函数创建抛物线
-		
+
 		# 移动目标
 		target.global_position = horizontal_position + Vector2(0, -vertical_offset)
 
@@ -272,31 +277,31 @@ func _update_jump(delta: float) -> void:
 func _update_knockup(delta: float) -> void:
 	# 计算本帧移动距离
 	var frame_distance = speed * delta
-	
+
 	# 更新已移动距离
 	moved_distance += frame_distance
-	
+
 	# 计算击飞进度
 	var progress = moved_distance / distance
-	
+
 	# 检查是否完成击飞
 	if progress >= 1.0:
 		# 移动到最终位置
 		target.global_position = initial_position + direction * distance
-		
+
 		# 停止移动
 		is_moving = false
-		
+
 		# 移除效果
 		remove()
 	else:
 		# 计算水平位置
 		var horizontal_position = initial_position + direction * moved_distance
-		
+
 		# 计算垂直位置（抛物线）
 		var height = 100.0  # 击飞高度
 		var vertical_offset = height * sin(progress * PI)  # 使用正弦函数创建抛物线
-		
+
 		# 移动目标
 		target.global_position = horizontal_position + Vector2(0, -vertical_offset)
 
@@ -305,21 +310,21 @@ func _teleport_to_target() -> void:
 	# 检查目标是否有效
 	if not target or not is_instance_valid(target):
 		return
-	
+
 	# 检查目标是否是Node2D
 	if not target is Node2D:
 		return
-	
+
 	# 如果有目标位置，直接传送
 	if target_position != Vector2.ZERO:
 		target.global_position = target_position
 	else:
 		# 否则，根据方向和距离计算目标位置
 		target.global_position = initial_position + direction * distance
-	
+
 	# 更新已移动距离
 	moved_distance = distance
-	
+
 	# 发送传送事件
 	if EventBus:
 		EventBus.emit_signal("teleport_completed", {
@@ -328,7 +333,7 @@ func _teleport_to_target() -> void:
 			"from": initial_position,
 			"to": target.global_position
 		})
-	
+
 	# 移除效果
 	remove()
 
@@ -347,7 +352,9 @@ func _get_movement_icon_path(movement_type: int) -> String:
 			return "res://assets/icons/movement/jump.png"
 		MovementType.KNOCKUP:
 			return "res://assets/icons/movement/knockup.png"
-	
+		MovementType.SWAP:
+			return "res://assets/icons/movement/swap.png"
+
 	return ""
 
 # 获取移动名称
@@ -365,7 +372,9 @@ func _get_movement_name(movement_type: int) -> String:
 			return "跳跃"
 		MovementType.KNOCKUP:
 			return "击飞"
-	
+		MovementType.SWAP:
+			return "交换位置"
+
 	return "未知移动"
 
 # 获取移动描述
@@ -383,7 +392,9 @@ func _get_movement_description(movement_type: int, distance: float) -> String:
 			return "使目标跳跃 " + str(distance) + " 距离"
 		MovementType.KNOCKUP:
 			return "将目标击飞 " + str(distance) + " 距离"
-	
+		MovementType.SWAP:
+			return "与目标交换位置"
+
 	return "移动目标 " + str(distance) + " 距离"
 
 # 获取效果数据
@@ -399,6 +410,94 @@ func get_data() -> Dictionary:
 	data["initial_position"] = {"x": initial_position.x, "y": initial_position.y}
 	return data
 
+# 交换位置
+func _swap_positions() -> void:
+	# 检查目标和源是否有效
+	if not target or not is_instance_valid(target) or not source or not is_instance_valid(source):
+		return
+
+	# 检查目标和源是否是Node2D
+	if not target is Node2D or not source is Node2D:
+		return
+
+	# 保存源和目标的位置
+	var source_position = source.global_position
+	var target_position = target.global_position
+
+	# 交换位置
+	source.global_position = target_position
+	target.global_position = source_position
+
+	# 更新已移动距离
+	moved_distance = source_position.distance_to(target_position)
+
+	# 发送交换位置事件
+	if EventBus:
+		EventBus.emit_signal("swap_completed", {
+			"source": source,
+			"target": target,
+			"source_from": source_position,
+			"source_to": target_position,
+			"target_from": target_position,
+			"target_to": source_position
+		})
+
+	# 创建交换位置的视觉效果
+	_create_swap_visual_effect(source, target)
+
+	# 移除效果
+	remove()
+
+# 创建交换位置的视觉效果
+func _create_swap_visual_effect(source_obj, target_obj) -> void:
+	# 检查GameManager和GameEffectManager是否可用
+	if not GameManager or not GameManager.game_effect_manager:
+		return
+
+	# 在源位置创建传送消失效果
+	if GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
+			source_obj,
+			{
+				"color": Color(0.2, 0.6, 1.0, 0.8),  # 蓝色
+				"duration": 0.5
+			}
+		)
+
+	# 在目标位置创建传送消失效果
+	if GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.TELEPORT_DISAPPEAR,
+			target_obj,
+			{
+				"color": Color(0.2, 0.6, 1.0, 0.8),  # 蓝色
+				"duration": 0.5
+			}
+		)
+
+	# 在源新位置创建传送出现效果
+	if GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.TELEPORT_APPEAR,
+			source_obj,
+			{
+				"color": Color(0.2, 0.6, 1.0, 0.8),  # 蓝色
+				"duration": 0.5
+			}
+		)
+
+	# 在目标新位置创建传送出现效果
+	if GameManager.game_effect_manager:
+		GameManager.game_effect_manager.create_visual_effect(
+			GameManager.game_effect_manager.VisualEffectType.TELEPORT_APPEAR,
+			target_obj,
+			{
+				"color": Color(0.2, 0.6, 1.0, 0.8),  # 蓝色
+				"duration": 0.5
+			}
+		)
+
 # 从数据创建效果
 static func create_from_data(data: Dictionary, source = null, target = null) -> MovementEffect:
 	var effect = MovementEffect.new(
@@ -412,22 +511,22 @@ static func create_from_data(data: Dictionary, source = null, target = null) -> 
 		target,
 		data.get("params", {})
 	)
-	
+
 	effect.speed = data.get("speed", 200.0)
-	
+
 	var dir_data = data.get("direction", {})
 	if dir_data.has("x") and dir_data.has("y"):
 		effect.direction = Vector2(dir_data.x, dir_data.y)
-	
+
 	var pos_data = data.get("target_position", {})
 	if pos_data.has("x") and pos_data.has("y"):
 		effect.target_position = Vector2(pos_data.x, pos_data.y)
-	
+
 	effect.is_moving = data.get("is_moving", false)
 	effect.moved_distance = data.get("moved_distance", 0.0)
-	
+
 	var init_pos_data = data.get("initial_position", {})
 	if init_pos_data.has("x") and init_pos_data.has("y"):
 		effect.initial_position = Vector2(init_pos_data.x, init_pos_data.y)
-	
+
 	return effect
