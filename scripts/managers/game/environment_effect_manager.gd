@@ -38,7 +38,7 @@ func _do_initialize() -> void:
 # 加载环境特效配置
 func _load_effect_configs() -> void:
 	# 从配置文件加载环境特效配置
-	var config_path = "res://configs/effects/environment_effects.json"
+	var config_path = "res://config/effects/environment_effects.json"
 
 	if FileAccess.file_exists(config_path):
 		var file = FileAccess.open(config_path, FileAccess.READ)

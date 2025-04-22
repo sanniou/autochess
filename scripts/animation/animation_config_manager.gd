@@ -16,7 +16,7 @@ enum ConfigType {
 }
 
 # 配置路径
-const CONFIG_PATH = "res://configs/animations/animation_config.json"
+const CONFIG_PATH = "res://config/animations/animation_config.json"
 
 # 配置数据
 var chess_animations = {}

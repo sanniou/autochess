@@ -28,11 +28,6 @@ enum AnimationState {
 	COMPLETED # 已完成
 }
 
-# 管理器引用
-var battle_manager = null
-var effect_animator: VisualEffectAnimator = null
-var damage_number_manager = null
-
 # 当前动画
 var current_animation = ""
 
@@ -49,8 +44,8 @@ var active_animations = {}
 var is_playing = false
 
 # 初始化
-func _init(manager) -> void:
-	battle_manager = manager
+func _init() -> void:
+	pass
 
 # 准备完成
 func _ready() -> void:
@@ -59,45 +54,21 @@ func _ready() -> void:
 
 # 获取依赖
 func _get_dependencies() -> void:
-	# 获取特效动画控制器
-	if battle_manager and battle_manager is AnimationManager:
-		effect_animator = battle_manager.get_effect_animator()
-		if effect_animator:
-			print("BattleAnimator: 成功获取VisualEffectAnimator")
-		else:
-			print("BattleAnimator: 无法获取VisualEffectAnimator")
-			# 如果无法获取，在下一帧重试
-			call_deferred("_get_dependencies")
-
-	# 获取伤害数字管理器
-	if Engine.has_singleton("GameManager"):
-		var game_manager = Engine.get_singleton("GameManager")
-		if game_manager and game_manager.has_method("get_manager"):
-			damage_number_manager = game_manager.get_manager("DamageNumberManager")
-		elif game_manager:
-			damage_number_manager = game_manager.damage_number_manager
+	pass
 
 # 显示伤害数字
 func _show_damage(target, amount: float, damage_type: String = "physical", is_critical: bool = false) -> void:
-	if damage_number_manager:
-		damage_number_manager.show_damage(
-			target.global_position,
-			amount,
-			damage_type,
-			is_critical
-		)
+	GameManager.damage_number_manager.show_damage(
+		target.global_position,
+		amount,
+		damage_type,
+		is_critical
+	)
 
 # 播放特效
 func _play_effect(position: Vector2, effect_name: String, params: Dictionary = {}) -> String:
-	# 检查特效动画器是否可用
-	if not effect_animator:
-		_get_dependencies()
-		if not effect_animator:
-			print("BattleAnimator: 无法播放特效，特效动画器不可用")
-			return ""
-
 	# 使用特效动画器播放组合特效
-	return effect_animator.play_combined_effect(
+	return GameManager.animation_manager.effect_animator.play_combined_effect(
 		position,
 		effect_name,
 		params
@@ -262,58 +233,52 @@ func _create_ranged_attack_animation(animation_data: Dictionary) -> void:
 		# 缩放动画
 		tween.tween_property(attacker, "scale", params.attack_scale, params.duration * 0.2)
 		tween.tween_property(attacker, "scale", original_scale, params.duration * 0.2).set_delay(params.duration * 0.2)
-
+	
 	# 使用EffectAnimator创建投射物特效
-	if effect_animator:
-		# 创建投射物特效
-		var projectile_effect_id = effect_animator.play_sprite_effect(
-			attacker.global_position,
-			"res://assets/images/vfx/projectile.png",
-			1,  # 帧数
-			params.duration * 0.6,  # 帧时长
-			{
-				"auto_remove": false,  # 不自动移除，我们将手动控制
-				"loop": false
-			}
-		)
+	var projectile_effect_id = GameManager.animation_manager.effect_animator.play_sprite_effect(
+		attacker.global_position,
+		"res://assets/images/vfx/projectile.png",
+		1,  # 帧数
+		params.duration * 0.6,  # 帧时长
+		{
+			"auto_remove": false,  # 不自动移除，我们将手动控制
+			"loop": false
+		}
+	)
 
-		# 获取特效节点
-		var projectile = null
-		if effect_animator.active_effects.has(projectile_effect_id):
-			projectile = effect_animator.active_effects[projectile_effect_id].node
-
+	# 获取特效节点
+	var projectile = null
+	if GameManager.animation_manager.effect_animator.active_effects.has(projectile_effect_id):
+		projectile = GameManager.animation_manager.effect_animator.active_effects[projectile_effect_id].node
 		# 创建移动动画
-		if projectile:
-			var projectile_tween = create_tween()
-			projectile_tween.tween_property(projectile, "global_position", target.global_position, params.duration * 0.6)
-			projectile_tween.tween_callback(func():
-				# 完成后清理特效
-				effect_animator._cleanup_effect(projectile_effect_id)
-				effect_animator.active_effects.erase(projectile_effect_id)
+	if projectile:
+		var projectile_tween = create_tween()
+		projectile_tween.tween_property(projectile, "global_position", target.global_position, params.duration * 0.6)
+		projectile_tween.tween_callback(func():
+			# 完成后清理特效
+			GameManager.animation_manager.effect_animator._cleanup_effect(projectile_effect_id)
+			GameManager.animation_manager.effect_animator.active_effects.erase(projectile_effect_id)
+		)
+		# 添加攻击特效
+		if params.effect_name != "":
+			# 播放特效
+			var effect_id = _play_effect(
+				target.global_position,
+				params.effect_name,
+				{"duration": params.duration * 0.4}
 			)
-			# 添加攻击特效
-			if params.effect_name != "":
-				# 播放特效
-				var effect_id = _play_effect(
-					target.global_position,
-					params.effect_name,
-					{"duration": params.duration * 0.4}
-				)
-
 				# 添加到特效列表
-				if effect_id != "":
-					animation_data.effects.append(effect_id)
-
+			if effect_id != "":
+				animation_data.effects.append(effect_id)
 			# 如果需要显示伤害数字
-			if params.show_damage_number:
-				# 显示伤害数字
-				_show_damage(
-					target,
-					params.get("damage", 0),
-					params.get("damage_type", "physical"),
-					false
-				)
-
+		if params.show_damage_number:
+			# 显示伤害数字
+			_show_damage(
+				target,
+				params.get("damage", 0),
+				params.get("damage_type", "physical"),
+				false
+			)
 	# 动画完成时回调
 	tween.tween_callback(func():
 		_on_animation_completed(animation_data.id)
@@ -338,59 +303,52 @@ func _create_magic_attack_animation(animation_data: Dictionary) -> void:
 		tween.tween_property(attacker, "scale", original_scale, params.duration * 0.3).set_delay(params.duration * 0.3)
 
 	# 使用EffectAnimator创建施法特效
-	if effect_animator:
-		# 创建施法特效
-		var cast_effect_id = effect_animator.play_sprite_effect(
-			attacker.global_position,
-			"res://assets/images/vfx/magic_cast.png",
-			1,  # 帧数
-			params.duration * 0.5,  # 帧时长
-			{
-				"auto_remove": false,  # 不自动移除，我们将手动控制
-				"loop": false,
-				"modulate": Color(1, 1, 1, 0)  # 初始透明
-			}
-		)
+	var cast_effect_id = GameManager.animation_manager.effect_animator.play_sprite_effect(
+		attacker.global_position,
+		"res://assets/images/vfx/magic_cast.png",
+		1,  # 帧数
+		params.duration * 0.5,  # 帧时长
+		{
+			"auto_remove": false,  # 不自动移除，我们将手动控制
+			"loop": false,
+			"modulate": Color(1, 1, 1, 0)  # 初始透明
+		}
+	)
 
-		# 获取特效节点
-		var cast_effect = null
-		if effect_animator.active_effects.has(cast_effect_id):
-			cast_effect = effect_animator.active_effects[cast_effect_id].node
-
+	# 获取特效节点
+	var cast_effect = null
+	if GameManager.animation_manager.effect_animator.active_effects.has(cast_effect_id):
+		cast_effect = GameManager.animation_manager.effect_animator.active_effects[cast_effect_id].node
 		# 创建淡入淡出动画
-		if cast_effect:
-			var cast_tween = create_tween()
-			cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 1), params.duration * 0.3)
-			cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 0), params.duration * 0.2)
-			cast_tween.tween_callback(func():
-				# 完成后清理特效
-				effect_animator._cleanup_effect(cast_effect_id)
-				effect_animator.active_effects.erase(cast_effect_id)
-			)
-
+	if cast_effect:
+		var cast_tween = create_tween()
+		cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 1), params.duration * 0.3)
+		cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 0), params.duration * 0.2)
+		cast_tween.tween_callback(func():
+			# 完成后清理特效
+			GameManager.animation_manager.effect_animator._cleanup_effect(cast_effect_id)
+			GameManager.animation_manager.effect_animator.active_effects.erase(cast_effect_id)
+		)
 			# 添加攻击特效
-			if params.effect_name != "":
-				# 播放特效
-				var effect_id = _play_effect(
-					target.global_position,
-					params.effect_name,
-					{"duration": params.duration * 0.5}
-				)
-
+		if params.effect_name != "":
+			# 播放特效
+			var effect_id = _play_effect(
+				target.global_position,
+				params.effect_name,
+				{"duration": params.duration * 0.5}
+			)
 				# 添加到特效列表
-				if effect_id != "":
-					animation_data.effects.append(effect_id)
-
+			if effect_id != "":
+				animation_data.effects.append(effect_id)
 			# 如果需要显示伤害数字
-			if params.show_damage_number:
-				# 显示伤害数字
-				_show_damage(
-					target,
-					params.get("damage", 0),
-					params.get("damage_type", "physical"),
-					false
-				)
-
+		if params.show_damage_number:
+			# 显示伤害数字
+			_show_damage(
+				target,
+				params.get("damage", 0),
+				params.get("damage_type", "physical"),
+				false
+			)
 	# 动画完成时回调
 	tween.tween_callback(func():
 		_on_animation_completed(animation_data.id)
@@ -617,9 +575,9 @@ func play_death_animation(target, params: Dictionary = {}) -> String:
 		tween.tween_property(target, "rotation", PI, params.duration)
 
 	# 如果需要粒子效果
-	if params.particles and effect_animator:
+	if params.particles:
 		# 播放粒子特效
-		var effect_id = effect_animator.play_particle_effect(
+		var effect_id = GameManager.animation_manager.effect_animator.play_particle_effect(
 			target.global_position,
 			"death_particles",
 			params.duration,
@@ -766,14 +724,14 @@ func play_movement_animation(piece, start_pos: Vector2, end_pos: Vector2, params
 		)
 
 	# 如果需要拖尾效果
-	if params.trail and effect_animator and effect_animator.effect_container:
+	if params.trail:
 		# 使用EffectAnimator创建线条特效
 		# 注意：由于拖尾需要自定义处理，我们仍然需要手动创建节点
 		# 但我们可以将其添加到EffectAnimator的容器中管理
 		var trail = Line2D.new()
 		trail.width = 5.0
 		trail.default_color = params.trail_color
-		effect_animator.effect_container.add_child(trail)
+		GameManager.animation_manager.effect_animator.effect_container.add_child(trail)
 
 		# 添加起点
 		trail.add_point(start_pos)
@@ -789,7 +747,7 @@ func play_movement_animation(piece, start_pos: Vector2, end_pos: Vector2, params
 			if trail.get_point_count() > 20:
 				trail.remove_point(0)
 		)
-		effect_animator.effect_container.add_child(timer)
+		GameManager.animation_manager.effect_animator.effect_container.add_child(timer)
 		timer.start()
 
 		# 移动结束后渐隐拖尾
@@ -1002,9 +960,9 @@ func cancel_animation(animation_id: String) -> bool:
 	var animation_data = active_animations[animation_id]
 
 	# 取消相关特效
-	if animation_data.has("effects") and effect_animator:
+	if animation_data.has("effects"):
 		for effect_id in animation_data.effects:
-			effect_animator.cancel_effect(effect_id)
+			GameManager.animation_manager.effect_animator.cancel_effect(effect_id)
 
 	# 清理动画资源
 	_cleanup_animation(animation_id)
@@ -1031,9 +989,9 @@ func pause_animation(animation_id: String) -> bool:
 		return false
 
 	# 暂停相关特效
-	if animation_data.has("effects") and effect_animator:
+	if animation_data.has("effects"):
 		for effect_id in animation_data.effects:
-			effect_animator.pause_effect(effect_id)
+			GameManager.animation_manager.effect_animator.pause_effect(effect_id)
 
 	# 更新动画状态
 	animation_data.state = AnimationState.PAUSED
@@ -1060,9 +1018,9 @@ func resume_animation(animation_id: String) -> bool:
 		return false
 
 	# 恢复相关特效
-	if animation_data.has("effects") and effect_animator:
+	if animation_data.has("effects"):
 		for effect_id in animation_data.effects:
-			effect_animator.resume_effect(effect_id)
+			GameManager.animation_manager.effect_animator.resume_effect(effect_id)
 
 	# 更新动画状态
 	animation_data.state = AnimationState.PLAYING
@@ -1183,6 +1141,6 @@ func _cleanup_animation(animation_id: String) -> void:
 	var animation_data = active_animations[animation_id]
 
 	# 清理相关特效
-	if animation_data.has("effects") and effect_animator:
+	if animation_data.has("effects"):
 		for effect_id in animation_data.effects:
-			effect_animator.cancel_effect(effect_id)
+			GameManager.animation_manager.effect_animator.cancel_effect(effect_id)

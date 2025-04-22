@@ -105,18 +105,22 @@ func _on_lod_changed(object, old_level: int, new_level: int) -> void:
 	# 记录日志
 	_log_info("对象LOD级别变化: " + str(object) + ", " + str(old_level) + " -> " + str(new_level))
 
+var battle_animator = null
+var ui_animator = null
+var effect_animator = null
+
 # 初始化动画控制器
 func _initialize_animators() -> void:
 	# 创建战斗动画控制器
-	var battle_animator = BattleAnimator.new(self)
+	battle_animator = BattleAnimator.new()
 	battle_animator.name = "BattleAnimator"
 
 	# 创建UI动画控制器
-	var ui_animator = UIAnimator.new()
+	ui_animator = UIAnimator.new()
 	ui_animator.name = "UIAnimator"
 
 	# 创建视觉效果动画控制器
-	var effect_animator = VisualEffectAnimator.new(get_tree().get_root())
+	effect_animator = VisualEffectAnimator.new(get_tree().get_root())
 	effect_animator.name = "VisualEffectAnimator"
 	_log_info("创建视觉效果动画器成功")
 
@@ -229,7 +233,6 @@ func play_ui_animation(ui_element, animation_name: String, params: Dictionary = 
 		return ""
 
 	# 获取UI动画控制器
-	var ui_animator = get_node_or_null("UIAnimator")
 	if not ui_animator:
 		return ""
 
@@ -285,7 +288,6 @@ func cancel_animation(animation_id: String) -> bool:
 
 	# 如果是UI动画，则使用UI动画控制器的cancel_animation方法
 	if animation_id.begins_with("ui_"):
-		var ui_animator = get_ui_animator()
 		if ui_animator:
 			return ui_animator.cancel_animation(animation_id)
 		return false
@@ -333,7 +335,6 @@ func pause_animation(animation_id: String) -> bool:
 
 	# 如果是UI动画，则使用UI动画控制器的pause_animation方法
 	if animation_id.begins_with("ui_"):
-		var ui_animator = get_ui_animator()
 		if ui_animator:
 			return ui_animator.pause_animation(animation_id)
 		return false
@@ -375,7 +376,6 @@ func resume_animation(animation_id: String) -> bool:
 
 	# 如果是UI动画，则使用UI动画控制器的resume_animation方法
 	if animation_id.begins_with("ui_"):
-		var ui_animator = get_ui_animator()
 		if ui_animator:
 			return ui_animator.resume_animation(animation_id)
 		return false
@@ -425,7 +425,6 @@ func set_animation_speed(animation_id: String, speed: float) -> bool:
 
 	# 如果是UI动画，则使用UI动画控制器的set_animation_speed方法
 	if animation_id.begins_with("ui_"):
-		var ui_animator = get_ui_animator()
 		if ui_animator:
 			return ui_animator.set_animation_speed(animation_id, speed)
 		return false
@@ -463,7 +462,6 @@ func get_animation_state(animation_id: String) -> int:
 
 	# 如果是UI动画，则使用UI动画控制器的get_animation_state方法
 	if animation_id.begins_with("ui_"):
-		var ui_animator = get_ui_animator()
 		if ui_animator:
 			return ui_animator.get_animation_state(animation_id)
 		return AnimationState.IDLE
@@ -481,7 +479,6 @@ func has_active_animations(type: int = -1) -> bool:
 	if type >= 0 and type < AnimationType.size():
 		# 如果是UI动画，还需要检查UI动画控制器
 		if type == AnimationType.UI:
-			var ui_animator = get_ui_animator()
 			if ui_animator and ui_animator.has_active_animations():
 				return true
 		return is_playing[type] or not animation_queues[type].is_empty()
@@ -492,7 +489,6 @@ func has_active_animations(type: int = -1) -> bool:
 			return true
 
 	# 检查UI动画控制器
-	var ui_animator = get_ui_animator()
 	if ui_animator and ui_animator.has_active_animations():
 		return true
 
@@ -522,9 +518,7 @@ func clear_animations(type: int = -1) -> void:
 
 		# 如果是UI动画，调用UI动画控制器的clear_animations方法
 		if type == AnimationType.UI:
-			var ui_animator = get_ui_animator()
-			if ui_animator:
-				ui_animator.clear_animations()
+			ui_animator.clear_animations()
 		return
 
 	# 如果没有指定类型，清除所有动画
@@ -542,9 +536,7 @@ func clear_animations(type: int = -1) -> void:
 	active_animations.clear()
 
 	# 清除UI动画控制器的动画
-	var ui_animator = get_ui_animator()
-	if ui_animator:
-		ui_animator.clear_animations()
+	ui_animator.clear_animations()
 
 # 创建动画ID
 func _create_animation_id(type: int, name: String) -> String:
@@ -620,14 +612,12 @@ func _process_queue(type: int) -> void:
 		)
 	elif type == AnimationType.UI:
 		# 直接使用UI动画控制器的play_animation方法
-		var ui_animator = get_ui_animator()
-		if ui_animator:
-			var animation_id = ui_animator.play_animation(
-				animation_data.ui_element,
-				animation_data.animation_name,
-				animation_data.params
-			)
-			result = animation_id != ""
+		var animation_id = ui_animator.play_animation(
+			animation_data.ui_element,
+			animation_data.animation_name,
+			animation_data.params
+		)
+		result = animation_id != ""
 	elif type == AnimationType.EFFECT:
 		# 播放特效动画
 		result = animator.play_animation(
@@ -721,7 +711,6 @@ func _on_game_paused(paused: bool) -> void:
 			pause_animation(animation_id)
 
 		# 暂停UI动画
-		var ui_animator = get_ui_animator()
 		if ui_animator and ui_animator.has_active_animations():
 			# 暂停所有UI动画
 			# 注意：这里我们无法获取所有UI动画ID，所以无法暂停它们
@@ -735,7 +724,6 @@ func _on_game_paused(paused: bool) -> void:
 				resume_animation(animation_id)
 
 		# 恢复UI动画
-		var ui_animator = get_ui_animator()
 		if ui_animator and ui_animator.has_active_animations():
 			# 恢复所有UI动画
 			# 注意：这里我们无法获取所有UI动画ID，所以无法恢复它们
@@ -786,17 +774,9 @@ func _on_ui_animation_cancelled(animation_id: String) -> void:
 	# 发送动画取消信号
 	animation_cancelled.emit(animation_id)
 
-# 获取UI动画器
-func get_ui_animator() -> UIAnimator:
-	return get_node_or_null("UIAnimator")
-
-# 获取战斗动画器
-func get_battle_animator() -> BattleAnimator:
-	return get_node_or_null("BattleAnimator")
-
 # 获取视觉效果动画器
 func get_effect_animator() -> VisualEffectAnimator:
-	var animator = get_node_or_null("VisualEffectAnimator")
+	var animator = effect_animator
 	if not animator:
 		_log_warning("无法获取VisualEffectAnimator，尝试创建新实例")
 		# 如果找不到，创建一个新的

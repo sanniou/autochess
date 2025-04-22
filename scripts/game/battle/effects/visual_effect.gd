@@ -27,46 +27,46 @@ var auto_free: bool = true
 var visual_node: Node2D = null
 
 # 初始化
-func _init(effect_id: String = "", effect_name: String = "", effect_description: String = "", 
-		effect_duration: float = 1.0, visual_type_value: int = VisualType.PARTICLE, 
-		scene_path_value: String = "", effect_source = null, effect_target = null, 
+func _init(effect_id: String = "", effect_name: String = "", effect_description: String = "",
+		effect_duration: float = 1.0, visual_type_value: int = VisualType.PARTICLE,
+		scene_path_value: String = "", effect_source = null, effect_target = null,
 		effect_params: Dictionary = {}):
-	super._init(effect_id, effect_name, effect_description, effect_duration, 
+	super._init(effect_id, effect_name, effect_description, effect_duration,
 			EffectType.VISUAL, effect_source, effect_target, effect_params)
-	
+
 	visual_type = visual_type_value
 	scene_path = scene_path_value
-	
+
 	# 设置属性
 	if effect_params.has("offset"):
 		offset = effect_params.offset
-	
+
 	if effect_params.has("scale"):
 		scale_value = effect_params.scale
-	
+
 	if effect_params.has("color"):
 		color = effect_params.color
-	
+
 	if effect_params.has("modulate"):
 		modulate_value = effect_params.modulate
-	
+
 	if effect_params.has("z_index"):
 		z_index = effect_params.z_index
-	
+
 	if effect_params.has("auto_free"):
 		auto_free = effect_params.auto_free
-	
+
 	# 如果没有指定场景路径，使用默认路径
 	if scene_path.is_empty():
 		scene_path = _get_default_scene_path(visual_type)
-	
+
 	# 设置图标路径
 	icon_path = _get_visual_icon_path(visual_type)
-	
+
 	# 设置名称和描述
 	if name.is_empty():
 		name = _get_visual_name(visual_type)
-	
+
 	if description.is_empty():
 		description = _get_visual_description(visual_type)
 
@@ -74,30 +74,30 @@ func _init(effect_id: String = "", effect_name: String = "", effect_description:
 func apply() -> bool:
 	if not super.apply():
 		return false
-	
+
 	# 创建视觉效果
 	_create_visual_node()
-	
+
 	return true
 
 # 移除效果
 func remove() -> bool:
 	if not super.remove():
 		return false
-	
+
 	# 移除视觉效果
 	_remove_visual_node()
-	
+
 	return true
 
 # 更新效果
 func update(delta: float) -> bool:
 	if not super.update(delta):
 		return false
-	
+
 	# 更新视觉效果
 	_update_visual_node(delta)
-	
+
 	return true
 
 # 创建视觉节点
@@ -105,27 +105,29 @@ func _create_visual_node() -> void:
 	# 检查场景路径
 	if scene_path.is_empty():
 		return
-	
-	# 加载场景资源
+
+	# 尝试加载场景资源
 	var scene_resource = load(scene_path)
 	if not scene_resource:
+		# 如果场景加载失败，使用VisualEffectAnimator创建效果
+		_create_effect_with_animator()
 		return
-	
+
 	# 实例化场景
 	visual_node = scene_resource.instantiate()
-	
+
 	# 设置属性
 	visual_node.position = offset
 	visual_node.scale = scale_value
 	visual_node.modulate = modulate_value
 	visual_node.z_index = z_index
-	
+
 	# 设置颜色（如果节点支持）
 	if visual_node.has_method("set_color"):
 		visual_node.set_color(color)
 	elif visual_node is GPUParticles2D and visual_node.process_material:
 		visual_node.process_material.color = color
-	
+
 	# 添加到目标
 	if target and is_instance_valid(target):
 		target.add_child(visual_node)
@@ -134,16 +136,16 @@ func _create_visual_node() -> void:
 	else:
 		var scene_root = Engine.get_main_loop().current_scene
 		scene_root.add_child(visual_node)
-	
+
 	# 如果是粒子效果，启动发射
 	if visual_node is GPUParticles2D:
 		visual_node.emitting = true
-	
+
 	# 如果是动画效果，播放动画
 	if visual_node.has_node("AnimationPlayer"):
 		var anim_player = visual_node.get_node("AnimationPlayer")
 		anim_player.play("default")
-	
+
 	# 如果是一次性效果，连接完成信号
 	if auto_free and visual_node is GPUParticles2D:
 		# 使用定时器等待粒子完成
@@ -154,33 +156,125 @@ func _create_visual_node() -> void:
 		timer.timeout.connect(_on_particles_finished.bind(visual_node))
 		timer.start()
 
+# 使用VisualEffectAnimator创建效果
+func _create_effect_with_animator() -> void:
+	# 检查GameManager和AnimationManager是否可用
+	if not GameManager or not GameManager.animation_manager:
+		return
+
+	# 获取效果动画器
+	var effect_animator = GameManager.animation_manager.get_effect_animator()
+	if not effect_animator:
+		return
+
+	# 确定效果类型和目标位置
+	var effect_name = _get_effect_name_for_animator(visual_type)
+	var target_position = Vector2.ZERO
+
+	if target and is_instance_valid(target):
+		target_position = target.global_position
+	elif source and is_instance_valid(source):
+		target_position = source.global_position
+	else:
+		# 如果没有目标和源，使用场景中心
+		var viewport = get_viewport()
+		if viewport:
+			target_position = viewport.get_visible_rect().size / 2
+
+	# 创建效果参数
+	var params = {
+		"duration": duration,
+		"scale": scale_value,
+		"color": color,
+		"modulate": modulate_value,
+		"offset": offset,
+		"z_index": z_index,
+		"auto_remove": auto_free
+	}
+
+	# 播放效果
+	var effect_id = effect_animator.play_combined_effect(target_position, effect_name, params)
+
+	# 创建一个空节点作为视觉节点的占位符
+	visual_node = Node2D.new()
+	visual_node.name = "EffectPlaceholder"
+	visual_node.position = offset
+
+	# 添加到目标
+	if target and is_instance_valid(target):
+		target.add_child(visual_node)
+	elif source and is_instance_valid(source):
+		source.add_child(visual_node)
+	else:
+		var scene_root = Engine.get_main_loop().current_scene
+		scene_root.add_child(visual_node)
+
+	# 存储效果 ID 以便于后续清理
+	visual_node.set_meta("effect_id", effect_id)
+
+# 根据视觉类型获取动画器效果名称
+func _get_effect_name_for_animator(visual_type: int) -> String:
+	match visual_type:
+		VisualType.PARTICLE:
+			return "particle"
+		VisualType.ANIMATION:
+			return "animation"
+		VisualType.SPRITE:
+			return "buff"
+		VisualType.TRAIL:
+			return "trail"
+		VisualType.BEAM:
+			return "beam"
+		VisualType.AREA:
+			return "area_damage"
+		VisualType.IMPACT:
+			return "damage"
+		VisualType.AURA:
+			return "buff"
+
+	return "particle"
+
 # 移除视觉节点
 func _remove_visual_node() -> void:
 	if visual_node and is_instance_valid(visual_node):
-		# 如果是粒子效果，停止发射
-		if visual_node is GPUParticles2D:
-			visual_node.emitting = false
-			
-			# 如果设置了自动释放，等待粒子完成后释放
-			if auto_free:
-				var timer = Timer.new()
-				visual_node.add_child(timer)
-				timer.wait_time = visual_node.lifetime
-				timer.one_shot = true
-				timer.timeout.connect(_on_particles_finished.bind(visual_node))
-				timer.start()
+		# 检查是否是使用VisualEffectAnimator创建的效果
+		if visual_node.has_meta("effect_id"):
+			# 获取效果 ID
+			var effect_id = visual_node.get_meta("effect_id")
+
+			# 如果有效果 ID，尝试取消效果
+			if effect_id and GameManager and GameManager.animation_manager:
+				var effect_animator = GameManager.animation_manager.get_effect_animator()
+				if effect_animator:
+					effect_animator.cancel_animation(effect_id)
+
+			# 移除占位符节点
+			visual_node.queue_free()
+		else:
+			# 如果是粒子效果，停止发射
+			if visual_node is GPUParticles2D:
+				visual_node.emitting = false
+
+				# 如果设置了自动释放，等待粒子完成后释放
+				if auto_free:
+					var timer = Timer.new()
+					visual_node.add_child(timer)
+					timer.wait_time = visual_node.lifetime
+					timer.one_shot = true
+					timer.timeout.connect(_on_particles_finished.bind(visual_node))
+					timer.start()
+				else:
+					visual_node.queue_free()
 			else:
 				visual_node.queue_free()
-		else:
-			visual_node.queue_free()
-		
+
 		visual_node = null
 
 # 更新视觉节点
 func _update_visual_node(delta: float) -> void:
 	if not visual_node or not is_instance_valid(visual_node):
 		return
-	
+
 	# 更新位置（如果目标移动）
 	if target and is_instance_valid(target):
 		visual_node.global_position = target.global_position + offset
@@ -191,7 +285,7 @@ func _update_visual_node(delta: float) -> void:
 func _on_particles_finished(particle_node: GPUParticles2D) -> void:
 	if particle_node and is_instance_valid(particle_node):
 		particle_node.queue_free()
-		
+
 		if visual_node == particle_node:
 			visual_node = null
 
@@ -199,22 +293,22 @@ func _on_particles_finished(particle_node: GPUParticles2D) -> void:
 func _get_default_scene_path(visual_type: int) -> String:
 	match visual_type:
 		VisualType.PARTICLE:
-			return "res://scenes/effects/particle_effect.tscn"
+			return "res://scripts/game/effects/visuals/damage_visual.tscn"
 		VisualType.ANIMATION:
-			return "res://scenes/effects/animation_effect.tscn"
+			return "res://scripts/game/effects/visuals/damage_visual.tscn"
 		VisualType.SPRITE:
-			return "res://scenes/effects/sprite_effect.tscn"
+			return "res://scripts/game/effects/visuals/buff_visual.tscn"
 		VisualType.TRAIL:
-			return "res://scenes/effects/trail_effect.tscn"
+			return "res://scripts/game/effects/visuals/damage_visual.tscn"
 		VisualType.BEAM:
-			return "res://scenes/effects/beam_effect.tscn"
+			return "res://scripts/game/effects/visuals/damage_visual.tscn"
 		VisualType.AREA:
-			return "res://scenes/effects/area_effect.tscn"
+			return "res://effects/area_damage_effect.tscn"
 		VisualType.IMPACT:
-			return "res://scenes/effects/impact_effect.tscn"
+			return "res://effects/damage_effect.tscn"
 		VisualType.AURA:
-			return "res://scenes/effects/aura_effect.tscn"
-	
+			return "res://effects/buff_effect.tscn"
+
 	return ""
 
 # 获取视觉类型图标路径
@@ -236,7 +330,7 @@ func _get_visual_icon_path(visual_type: int) -> String:
 			return "res://assets/icons/effects/impact.png"
 		VisualType.AURA:
 			return "res://assets/icons/effects/aura.png"
-	
+
 	return ""
 
 # 获取视觉类型名称
@@ -258,7 +352,7 @@ func _get_visual_name(visual_type: int) -> String:
 			return "冲击效果"
 		VisualType.AURA:
 			return "光环效果"
-	
+
 	return "未知视觉效果"
 
 # 获取视觉类型描述
@@ -280,7 +374,7 @@ func _get_visual_description(visual_type: int) -> String:
 			return "显示冲击效果"
 		VisualType.AURA:
 			return "显示光环效果"
-	
+
 	return "显示未知视觉效果"
 
 # 获取效果数据
@@ -309,31 +403,31 @@ static func create_from_data(data: Dictionary, source = null, target = null) -> 
 		target,
 		{}
 	)
-	
+
 	# 设置偏移
 	var offset_data = data.get("offset", {})
 	if offset_data.has("x") and offset_data.has("y"):
 		effect.offset = Vector2(offset_data.x, offset_data.y)
-	
+
 	# 设置缩放
 	var scale_data = data.get("scale", {})
 	if scale_data.has("x") and scale_data.has("y"):
 		effect.scale_value = Vector2(scale_data.x, scale_data.y)
-	
+
 	# 设置颜色
 	var color_data = data.get("color", {})
 	if color_data.has("r") and color_data.has("g") and color_data.has("b") and color_data.has("a"):
 		effect.color = Color(color_data.r, color_data.g, color_data.b, color_data.a)
-	
+
 	# 设置调制
 	var modulate_data = data.get("modulate", {})
 	if modulate_data.has("r") and modulate_data.has("g") and modulate_data.has("b") and modulate_data.has("a"):
 		effect.modulate_value = Color(modulate_data.r, modulate_data.g, modulate_data.b, modulate_data.a)
-	
+
 	# 设置Z索引
 	effect.z_index = data.get("z_index", 0)
-	
+
 	# 设置自动释放
 	effect.auto_free = data.get("auto_free", true)
-	
+
 	return effect

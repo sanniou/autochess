@@ -56,9 +56,6 @@ var effect_colors = {
 	"death": Color(0.3, 0.3, 0.3, 0.8)      # 死亡 - 灰色
 }
 
-# 视觉效果动画器引用
-var visual_effect_animator: VisualEffectAnimator = null
-
 # 当前活动的特效
 var active_effects = []
 
@@ -69,29 +66,10 @@ var active_logical_effects = {}  # 效果ID -> 效果对象
 func _do_initialize() -> void:
 	# 设置管理器名称
 	manager_name = "EffectManager"
-
-	# 获取视觉效果动画器
-	_get_visual_effect_animator()
-
 	# 连接信号
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
 
 	_log_info("效果管理器初始化完成")
-
-# 获取视觉效果动画器
-func _get_visual_effect_animator() -> void:
-	# 尝试从动画管理器获取视觉效果动画器
-	if GameManager.animation_manager:
-		visual_effect_animator = GameManager.animation_manager.get_effect_animator()
-		if visual_effect_animator:
-			_log_info("成功获取视觉效果动画器")
-			return
-
-	# 如果没有找到，在下一帧再次尝试
-	_log_warning("无法获取视觉效果动画器，将在下一帧重试")
-	call_deferred("_get_visual_effect_animator")
-
-
 
 # 从效果类型创建视觉特效
 ## 将EffectType转换为VisualEffectType并创建视觉效果
@@ -234,13 +212,6 @@ func create_visual_effect(visual_effect_type: int, target: Node2D, params: Dicti
 		_log_error("创建视觉效果失败：目标无效")
 		return ""
 
-	# 检查视觉效果动画器是否可用
-	if not visual_effect_animator:
-		_get_visual_effect_animator()
-		if not visual_effect_animator:
-			_log_error("无法获取视觉效果动画器")
-			return ""
-
 	# 准备视觉效果参数
 	var visual_params = params.duplicate()
 
@@ -308,7 +279,7 @@ func create_visual_effect(visual_effect_type: int, target: Node2D, params: Dicti
 			return ""
 
 	# 使用视觉效果动画器创建特效
-	return visual_effect_animator.play_combined_effect(target.global_position, visual_effect_name, visual_params)
+	return GameManager.animation_manager.get_effect_animator().play_combined_effect(target.global_position, visual_effect_name, visual_params)
 
 # 创建效果数据
 func _create_effect_data(effect_type: int, params: Dictionary) -> Dictionary:

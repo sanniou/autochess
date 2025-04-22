@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8q2vt5qjkuv7q"]
 
-[ext_resource type="Script" uid="uid://50fr1q3gibk6" path="res://scripts/ui/popups/templates/window_popup_template.gd" id="1_yvmqe"]
+[ext_resource type="Script" path="res://scripts/ui/popups/templates/window_popup_template.gd" id="1_yvmqe"]
 
 [node name="WindowPopupTemplate" type="Window"]
 title = "弹窗标题"

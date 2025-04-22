@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://brjqmp762phh4"]
 
-[ext_resource type="Script" uid="uid://dbbhhv7g1x66n" path="res://scripts/ui/popups/confirm_dialog_popup.gd" id="1_yvmqe"]
+[ext_resource type="Script" path="res://scripts/ui/popups/confirm_dialog_popup.gd" id="1_yvmqe"]
 
 [node name="ConfirmDialogPopup" type="Control"]
 layout_mode = 3

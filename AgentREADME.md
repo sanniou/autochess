@@ -57,12 +57,12 @@ autochess/
 
 ### 配置文件
 
-- **棋子配置**: `resources/configs/chess_pieces.json`
-- **羁绊配置**: `resources/configs/synergies.json`
-- **地图配置**: `resources/configs/map_nodes.json`
-- **战斗配置**: `resources/configs/battle_config.json`
-- **装备配置**: `resources/configs/equipment.json`
-- **遗物配置**: `resources/configs/relics.json`
+- **棋子配置**: `resources/config/chess_pieces.json`
+- **羁绊配置**: `resources/config/synergies.json`
+- **地图配置**: `resources/config/map_nodes.json`
+- **战斗配置**: `resources/config/battle_config.json`
+- **装备配置**: `resources/config/equipment.json`
+- **遗物配置**: `resources/config/relics.json`
 
 ## 代码模式和约定
 
@@ -187,7 +187,7 @@ func _on_event_name(event_data):
 
 ### 添加新棋子
 
-1. 在 `resources/configs/chess_pieces.json` 中添加棋子配置：
+1. 在 `resources/config/chess_pieces.json` 中添加棋子配置：
 ```json
 {
   "new_piece": {
@@ -221,7 +221,7 @@ func activate(target):
 
 ### 添加新羁绊效果
 
-1. 在 `resources/configs/synergies.json` 中添加羁绊配置：
+1. 在 `resources/config/synergies.json` 中添加羁绊配置：
 ```json
 {
   "new_synergy": {
@@ -241,7 +241,7 @@ func activate(target):
 
 ### 修改战斗平衡性
 
-1. 调整 `resources/configs/battle_config.json` 中的参数
+1. 调整 `resources/config/battle_config.json` 中的参数
 2. 不要直接修改 `BattleEngine` 中的硬编码值
 3. 所有平衡性参数应通过配置文件控制
 

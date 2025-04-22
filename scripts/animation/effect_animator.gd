@@ -64,9 +64,6 @@ func _init(container = null) -> void:
 	# 获取LOD系统
 	_get_lod_system()
 
-# LOD系统引用
-var lod_system = null
-
 # 准备完成
 func _ready() -> void:
 	# 初始化对象池
@@ -78,13 +75,7 @@ func _ready() -> void:
 ## 获取LOD系统
 func _get_lod_system() -> void:
 	# 尝试从动画管理器获取LOD系统
-	var animation_manager = get_node_or_null("/root/AnimationManager")
-	if animation_manager and animation_manager.has_node("AnimationLODSystem"):
-		lod_system = animation_manager.get_node("AnimationLODSystem")
-		return
-
-	# 如果没有找到，在下一帧再次尝试
-	call_deferred("_get_lod_system")
+	var animation_manager = GameManager.animation_manager.animation_lod_system
 
 # 初始化对象池
 func _initialize_ObjectPools() -> void:
@@ -185,8 +176,7 @@ func play_particle_effect(position: Vector2, effect_name: String, duration: floa
 	}
 
 	# 添加到LOD系统
-	if lod_system:
-		lod_system.add_object(particles, "effect")
+	GameManager.animation_manager.animation_lod_system.add_object(particles, "effect")
 
 	# 添加到活动特效
 	active_effects[effect_id] = effect_data
@@ -286,8 +276,7 @@ func play_sprite_effect(position: Vector2, texture_path: String, frame_count: in
 	}
 
 	# 添加到LOD系统
-	if lod_system:
-		lod_system.add_object(sprite, "effect")
+	GameManager.animation_manager.animation_lod_system.add_object(sprite, "effect")
 
 	# 添加到活动特效
 	active_effects[effect_id] = effect_data
@@ -494,8 +483,8 @@ func play_combined_effect(position: Vector2, effect_name: String, params: Dictio
 			effect_data.child_effects.append(child_effect_id)
 
 	# 添加到LOD系统
-	if lod_system and is_instance_valid(container):
-		lod_system.add_object(container, "effect")
+	if is_instance_valid(container):
+		GameManager.animation_manager.animation_lod_system.add_object(container, "effect")
 
 	# 发送特效开始信号
 	animation_started.emit(effect_id)
@@ -694,8 +683,8 @@ func _on_effect_completed(effect_id: String) -> void:
 	active_effects.erase(effect_id)
 
 	# 从LOD系统移除
-	if lod_system and effect_data.has("node") and is_instance_valid(effect_data.node):
-		lod_system.remove_object(effect_data.node)
+	if  effect_data.has("node") and is_instance_valid(effect_data.node):
+		GameManager.animation_manager.animation_lod_system.remove_object(effect_data.node)
 
 # 清理特效资源
 func _cleanup_effect(effect_id: String) -> void:

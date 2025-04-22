@@ -179,7 +179,7 @@ func _register_all_managers() -> void:
 	_register_manager("BattleManager", "res://scripts/managers/game/battle_manager.gd")
 	_register_manager("EconomyManager", "res://scripts/managers/game/economy_manager.gd")
 	_register_manager("ShopManager", "res://scripts/managers/game/shop_manager.gd")
-	_register_manager("ChessManager", "res://scripts/managers/game/chess_manager.gd")
+	#_register_manager("ChessManager", "res://scripts/managers/game/chess_manager.gd")
 	_register_manager("EquipmentManager", "res://scripts/managers/game/equipment_manager.gd")
 	_register_manager("RelicManager", "res://scripts/managers/game/relic_manager.gd")
 	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd")
@@ -187,25 +187,26 @@ func _register_all_managers() -> void:
 	_register_manager("StoryManager", "res://scripts/managers/game/story_manager.gd")
 	_register_manager("SynergyManager", "res://scripts/managers/game/synergy_manager_new.gd")
 
-	# 注册其他管理器
+	## 注册其他管理器
+	_register_manager("AnimationManager", "res://scripts/managers/game/animation_manager.gd")
 	_register_manager("NotificationSystem", "res://scripts/managers/ui/notification_system.gd")
 	_register_manager("TooltipSystem", "res://scripts/managers/ui/tooltip_system.gd")
 	_register_manager("SkinManager", "res://scripts/managers/game/skin_manager.gd")
-	_register_manager("EnvironmentEffectManager", "res://scripts/managers/game/environment_effect_manager.gd")
-	_register_manager("DamageNumberManager", "res://scripts/managers/game/damage_number_manager.gd")
-	_register_manager("AchievementManager", "res://scripts/managers/game/achievement_manager.gd")
-	_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd")
-	_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd")
-	_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd")
-	_register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd")
-	# ChessFactory 已被 ChessManager 替代
-
-	# 注册测试管理器
+	#_register_manager("EnvironmentEffectManager", "res://scripts/managers/game/environment_effect_manager.gd")
+	#_register_manager("DamageNumberManager", "res://scripts/managers/game/damage_number_manager.gd")
+	#_register_manager("AchievementManager", "res://scripts/managers/game/achievement_manager.gd")
+	#_register_manager("TutorialManager", "res://scripts/managers/game/tutorial_manager.gd")
+	#_register_manager("AbilityFactory", "res://scripts/managers/game/ability_factory.gd")
+	#_register_manager("RelicUIManager", "res://scripts/managers/ui/relic_ui_manager.gd")
+	# _register_manager("EffectManager", "res://scripts/managers/game/effect_manager.gd")
+#
+	## 注册测试管理器
 	_register_manager("UnifiedTestConfigManager", "res://scripts/test/unified_test_config_manager.gd")
 	_register_manager("TestManager", "res://scripts/managers/test/test_manager.gd")
 
 ## 注册单个管理器
 func _register_manager(manager_name: String, script_path: String) -> void:
+	_log_error("注册管理器脚本: " + script_path)
 	if not FileAccess.file_exists(script_path):
 		_log_error("管理器脚本不存在: " + script_path)
 		return
@@ -225,6 +226,12 @@ func _register_manager(manager_name: String, script_path: String) -> void:
 func _update_manager_reference(manager_name: String, manager_instance) -> void:
 	# 根据管理器名称更新对应的引用变量
 	match manager_name:
+		# 核心管理器
+		"UIThrottleManager": ui_throttle_manager = manager_instance
+		"UIManager": ui_manager = manager_instance
+		"ThemeManager": theme_manager = manager_instance
+		"HUDManager": hud_manager = manager_instance
+
 		# 系统管理器
 		"StateManager": state_manager = manager_instance
 		"NetworkManager": network_manager = manager_instance
@@ -246,13 +253,7 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"StoryManager": story_manager = manager_instance
 		"SynergyManager": synergy_manager = manager_instance
 
-		"UIThrottleManager": ui_throttle_manager = manager_instance
-		"UIManager": ui_manager = manager_instance
-		# "SceneManager": 现在是 Autoload 节点
-		"ThemeManager": theme_manager = manager_instance
-		"HUDManager": hud_manager = manager_instance
-
-		"UIAnimator": ui_animator = manager_instance
+		# 其他管理器
 		"AnimationManager": animation_manager = manager_instance
 		"NotificationSystem": notification_system = manager_instance
 		"TooltipSystem": tooltip_system = manager_instance
@@ -264,6 +265,8 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"AbilityFactory": ability_factory = manager_instance
 		"RelicUIManager": relic_ui_manager = manager_instance
 		"EffectManager": effect_manager = manager_instance
+		
+		#测试管理器
 		"TestManager": test_manager = manager_instance
 		"UnifiedTestConfigManager": unified_test_config_manager = manager_instance
 
@@ -346,6 +349,7 @@ func _initialize_all_managers() -> void:
 	_initialize_manager(MC.ManagerNames.UI_MANAGER)
 	_initialize_manager(MC.ManagerNames.THEME_MANAGER)
 	_initialize_manager(MC.ManagerNames.HUD_MANAGER)
+	_initialize_manager("AnimationManager")
 	_initialize_manager(MC.ManagerNames.NOTIFICATION_SYSTEM)
 	_initialize_manager(MC.ManagerNames.TOOLTIP_SYSTEM)
 	_initialize_manager(MC.ManagerNames.SKIN_MANAGER)

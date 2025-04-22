@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8qvt51qjkuv7q"]
 
-[ext_resource type="Script" uid="uid://ot4eahv0g60o" path="res://scenes/ui/popups/settings_popup.gd" id="1_yvmqe"]
+[ext_resource type="Script" path="res://scenes/ui/popups/settings_popup.gd" id="1_yvmqe"]
 
 [node name="SettingsPopup" type="Window"]
 title = "设置"
