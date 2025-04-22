@@ -34,9 +34,7 @@ func _initialize_ui() -> void:
 # 检查存档
 func _check_saves() -> void:
 	# 获取存档管理器
-	var save_manager = get_node_or_null("/root/SaveManager")
-	if save_manager == null:
-		return
+	var save_manager = SaveManager
 
 	# 获取存档列表
 	var saves = save_manager.get_save_list()

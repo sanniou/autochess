@@ -1,0 +1,488 @@
+extends Node2D
+class_name VisualRenderer
+## 视觉效果渲染器
+## 负责创建和渲染各种视觉效果
+
+# 信号
+signal effect_completed(effect_id)
+signal effect_cancelled(effect_id)
+
+# 效果节点字典 {效果ID: 效果节点}
+var _effect_nodes: Dictionary = {}
+
+# 效果池
+var _effect_pool = null
+
+# 对象池大小
+const POOL_SIZE = 20
+
+# 效果类型枚举
+enum EffectType {
+	PARTICLE,   # 粒子效果
+	SPRITE,     # 精灵效果
+	ANIMATION,  # 动画效果
+	SHADER,     # 着色器效果
+	COMBINED,   # 组合效果
+	TEXT,       # 文本效果
+	TRAIL,      # 轨迹效果
+	BEAM,       # 光束效果
+	AREA,       # 区域效果
+	IMPACT      # 冲击效果
+}
+
+# 初始化
+func _init() -> void:
+	# 创建效果池
+	_effect_pool = EffectPool.new()
+	add_child(_effect_pool)
+	
+	# 初始化效果池
+	_initialize_effect_pool()
+
+# 初始化效果池
+func _initialize_effect_pool() -> void:
+	# 初始化粒子效果池
+	_effect_pool.initialize_pool("particle", POOL_SIZE, _create_particle_effect_node)
+	
+	# 初始化精灵效果池
+	_effect_pool.initialize_pool("sprite", POOL_SIZE, _create_sprite_effect_node)
+	
+	# 初始化动画效果池
+	_effect_pool.initialize_pool("animation", POOL_SIZE, _create_animation_effect_node)
+	
+	# 初始化文本效果池
+	_effect_pool.initialize_pool("text", POOL_SIZE, _create_text_effect_node)
+
+# 创建效果
+func create_effect(effect_id: String, effect_type: String, position: Vector2, params: Dictionary = {}) -> void:
+	# 根据效果类型创建不同的效果
+	match effect_type:
+		"particle":
+			_create_particle_effect(effect_id, position, params)
+		
+		"sprite":
+			_create_sprite_effect(effect_id, position, params)
+		
+		"animation":
+			_create_animation_effect(effect_id, position, params)
+		
+		"shader":
+			_create_shader_effect(effect_id, position, params)
+		
+		"combined":
+			_create_combined_effect(effect_id, position, params)
+		
+		"damage_number":
+			_create_damage_number(effect_id, position, params)
+		
+		"heal_number":
+			_create_heal_number(effect_id, position, params)
+		
+		"status_icon":
+			_create_status_icon(effect_id, position, params)
+		
+		"trail":
+			_create_trail_effect(effect_id, position, params)
+		
+		"beam":
+			_create_beam_effect(effect_id, position, params)
+		
+		"area":
+			_create_area_effect(effect_id, position, params)
+		
+		"impact":
+			_create_impact_effect(effect_id, position, params)
+		
+		_:
+			print("VisualRenderer: 未知的效果类型: " + effect_type)
+
+# 取消效果
+func cancel_effect(effect_id: String) -> bool:
+	# 检查效果是否存在
+	if not _effect_nodes.has(effect_id):
+		return false
+	
+	# 获取效果节点
+	var effect_node = _effect_nodes[effect_id]
+	
+	# 检查效果节点是否有效
+	if not is_instance_valid(effect_node):
+		_effect_nodes.erase(effect_id)
+		return false
+	
+	# 如果是粒子效果，停止发射
+	if effect_node is GPUParticles2D:
+		effect_node.emitting = false
+	
+	# 如果是动画效果，停止动画
+	if effect_node.has_node("AnimationPlayer"):
+		var anim_player = effect_node.get_node("AnimationPlayer")
+		anim_player.stop()
+	
+	# 回收效果节点
+	_recycle_effect_node(effect_id, effect_node)
+	
+	# 发送效果取消信号
+	effect_cancelled.emit(effect_id)
+	
+	return true
+
+# 回收效果节点
+func _recycle_effect_node(effect_id: String, effect_node: Node) -> void:
+	# 从效果节点字典中移除
+	_effect_nodes.erase(effect_id)
+	
+	# 检查效果节点类型
+	if effect_node is GPUParticles2D:
+		# 回收粒子效果
+		_effect_pool.recycle("particle", effect_node)
+	elif effect_node is Sprite2D:
+		# 回收精灵效果
+		_effect_pool.recycle("sprite", effect_node)
+	elif effect_node.has_node("AnimationPlayer"):
+		# 回收动画效果
+		_effect_pool.recycle("animation", effect_node)
+	elif effect_node is Label:
+		# 回收文本效果
+		_effect_pool.recycle("text", effect_node)
+	else:
+		# 其他类型直接释放
+		effect_node.queue_free()
+
+# 创建粒子效果
+func _create_particle_effect(effect_id: String, position: Vector2, params: Dictionary) -> void:
+	# 从对象池获取粒子节点
+	var particle_node = _effect_pool.get("particle")
+	
+	# 如果没有可用的节点，创建一个新的
+	if not particle_node:
+		particle_node = _create_particle_effect_node()
+	
+	# 设置粒子属性
+	_setup_particle_effect(particle_node, position, params)
+	
+	# 添加到场景
+	add_child(particle_node)
+	
+	# 存储效果节点
+	_effect_nodes[effect_id] = particle_node
+	
+	# 设置效果ID
+	particle_node.set_meta("effect_id", effect_id)
+	
+	# 连接粒子完成信号
+	if not particle_node.tree_exited.is_connected(_on_particle_completed):
+		particle_node.tree_exited.connect(_on_particle_completed.bind(effect_id))
+	
+	# 启动粒子发射
+	particle_node.emitting = true
+	
+	# 如果设置了自动释放，添加定时器
+	if params.get("auto_free", true):
+		var lifetime = params.get("lifetime", particle_node.lifetime)
+		var timer = Timer.new()
+		particle_node.add_child(timer)
+		timer.wait_time = lifetime
+		timer.one_shot = true
+		timer.timeout.connect(_on_particle_timeout.bind(effect_id, particle_node))
+		timer.start()
+
+# 设置粒子效果属性
+func _setup_particle_effect(particle_node: GPUParticles2D, position: Vector2, params: Dictionary) -> void:
+	# 设置位置
+	particle_node.position = position
+	
+	# 设置粒子类型
+	var particle_type = params.get("particle_type", "default")
+	
+	# 设置粒子材质
+	if params.has("material"):
+		particle_node.process_material = params.material
+	elif particle_type != "default":
+		# 根据粒子类型加载材质
+		var material_path = "res://resources/particles/" + particle_type + ".tres"
+		var material = load(material_path)
+		if material:
+			particle_node.process_material = material
+	
+	# 设置粒子纹理
+	if params.has("texture"):
+		particle_node.texture = params.texture
+	elif particle_type != "default":
+		# 根据粒子类型加载纹理
+		var texture_path = "res://assets/particles/" + particle_type + ".png"
+		var texture = load(texture_path)
+		if texture:
+			particle_node.texture = texture
+	
+	# 设置粒子颜色
+	if params.has("color") and particle_node.process_material:
+		particle_node.process_material.color = params.color
+	
+	# 设置粒子数量
+	if params.has("amount"):
+		particle_node.amount = params.amount
+	
+	# 设置粒子生命周期
+	if params.has("lifetime"):
+		particle_node.lifetime = params.lifetime
+	
+	# 设置粒子速度
+	if params.has("speed_scale"):
+		particle_node.speed_scale = params.speed_scale
+	
+	# 设置粒子爆发
+	if params.has("explosiveness"):
+		particle_node.explosiveness = params.explosiveness
+	
+	# 设置粒子随机性
+	if params.has("randomness"):
+		particle_node.randomness = params.randomness
+	
+	# 设置粒子发射形状
+	if params.has("emission_shape") and particle_node.process_material:
+		particle_node.process_material.emission_shape = params.emission_shape
+	
+	# 设置粒子方向
+	if params.has("direction") and particle_node.process_material:
+		particle_node.process_material.direction = params.direction
+	
+	# 设置粒子重力
+	if params.has("gravity") and particle_node.process_material:
+		particle_node.process_material.gravity = params.gravity
+	
+	# 设置粒子缩放
+	if params.has("scale"):
+		particle_node.scale = params.scale
+	
+	# 设置粒子调制颜色
+	if params.has("modulate"):
+		particle_node.modulate = params.modulate
+	
+	# 设置粒子Z索引
+	if params.has("z_index"):
+		particle_node.z_index = params.z_index
+	
+	# 设置一次性发射
+	particle_node.one_shot = params.get("one_shot", true)
+
+# 创建粒子效果节点
+func _create_particle_effect_node() -> GPUParticles2D:
+	var particle_node = GPUParticles2D.new()
+	
+	# 设置默认属性
+	particle_node.emitting = false
+	particle_node.amount = 16
+	particle_node.lifetime = 1.0
+	particle_node.one_shot = true
+	particle_node.explosiveness = 0.8
+	particle_node.randomness = 0.5
+	
+	# 创建默认材质
+	var material = ParticleProcessMaterial.new()
+	material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_POINT
+	material.direction = Vector3(0, -1, 0)
+	material.spread = 45.0
+	material.gravity = Vector3(0, 98, 0)
+	material.initial_velocity_min = 50.0
+	material.initial_velocity_max = 100.0
+	material.color = Color(1, 1, 1, 1)
+	
+	particle_node.process_material = material
+	
+	return particle_node
+
+# 粒子超时处理
+func _on_particle_timeout(effect_id: String, particle_node: GPUParticles2D) -> void:
+	# 停止发射
+	particle_node.emitting = false
+	
+	# 回收粒子节点
+	_recycle_effect_node(effect_id, particle_node)
+	
+	# 发送效果完成信号
+	effect_completed.emit(effect_id)
+
+# 粒子完成处理
+func _on_particle_completed(effect_id: String) -> void:
+	# 从效果节点字典中移除
+	_effect_nodes.erase(effect_id)
+	
+	# 发送效果完成信号
+	effect_completed.emit(effect_id)
+
+# 创建精灵效果
+func _create_sprite_effect(effect_id: String, position: Vector2, params: Dictionary) -> void:
+	# 从对象池获取精灵节点
+	var sprite_node = _effect_pool.get("sprite")
+	
+	# 如果没有可用的节点，创建一个新的
+	if not sprite_node:
+		sprite_node = _create_sprite_effect_node()
+	
+	# 设置精灵属性
+	_setup_sprite_effect(sprite_node, position, params)
+	
+	# 添加到场景
+	add_child(sprite_node)
+	
+	# 存储效果节点
+	_effect_nodes[effect_id] = sprite_node
+	
+	# 设置效果ID
+	sprite_node.set_meta("effect_id", effect_id)
+	
+	# 如果设置了自动释放，添加定时器
+	if params.get("auto_free", true):
+		var duration = params.get("duration", 1.0)
+		var timer = Timer.new()
+		sprite_node.add_child(timer)
+		timer.wait_time = duration
+		timer.one_shot = true
+		timer.timeout.connect(_on_sprite_timeout.bind(effect_id, sprite_node))
+		timer.start()
+	
+	# 如果设置了动画，播放动画
+	if params.has("animation"):
+		_play_sprite_animation(sprite_node, params.animation, params)
+
+# 设置精灵效果属性
+func _setup_sprite_effect(sprite_node: Sprite2D, position: Vector2, params: Dictionary) -> void:
+	# 设置位置
+	sprite_node.position = position
+	
+	# 设置纹理
+	if params.has("texture_path"):
+		var texture = load(params.texture_path)
+		if texture:
+			sprite_node.texture = texture
+	elif params.has("texture"):
+		sprite_node.texture = params.texture
+	
+	# 设置缩放
+	if params.has("scale"):
+		sprite_node.scale = params.scale
+	
+	# 设置旋转
+	if params.has("rotation"):
+		sprite_node.rotation = params.rotation
+	
+	# 设置调制颜色
+	if params.has("modulate"):
+		sprite_node.modulate = params.modulate
+	
+	# 设置Z索引
+	if params.has("z_index"):
+		sprite_node.z_index = params.z_index
+	
+	# 设置混合模式
+	if params.has("blend_mode"):
+		match params.blend_mode:
+			"add":
+				sprite_node.self_modulate = Color(1, 1, 1, 1)
+				sprite_node.material = CanvasItemMaterial.new()
+				sprite_node.material.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+			"subtract":
+				sprite_node.self_modulate = Color(1, 1, 1, 1)
+				sprite_node.material = CanvasItemMaterial.new()
+				sprite_node.material.blend_mode = CanvasItemMaterial.BLEND_MODE_SUB
+			"multiply":
+				sprite_node.self_modulate = Color(1, 1, 1, 1)
+				sprite_node.material = CanvasItemMaterial.new()
+				sprite_node.material.blend_mode = CanvasItemMaterial.BLEND_MODE_MUL
+			_:
+				sprite_node.material = null
+
+# 播放精灵动画
+func _play_sprite_animation(sprite_node: Sprite2D, animation: String, params: Dictionary) -> void:
+	# 检查是否有动画播放器
+	if not sprite_node.has_node("AnimationPlayer"):
+		var anim_player = AnimationPlayer.new()
+		sprite_node.add_child(anim_player)
+	
+	var anim_player = sprite_node.get_node("AnimationPlayer")
+	
+	# 创建动画
+	var animation_name = animation
+	var duration = params.get("duration", 1.0)
+	
+	# 创建淡入淡出动画
+	if animation == "fade":
+		var anim = Animation.new()
+		var track_index = anim.add_track(Animation.TYPE_VALUE)
+		anim.track_set_path(track_index, ":modulate")
+		anim.track_insert_key(track_index, 0.0, Color(1, 1, 1, 0))
+		anim.track_insert_key(track_index, duration * 0.3, Color(1, 1, 1, 1))
+		anim.track_insert_key(track_index, duration * 0.7, Color(1, 1, 1, 1))
+		anim.track_insert_key(track_index, duration, Color(1, 1, 1, 0))
+		anim.length = duration
+		
+		anim_player.add_animation("fade", anim)
+		anim_player.play("fade")
+	
+	# 创建缩放动画
+	elif animation == "scale":
+		var anim = Animation.new()
+		var track_index = anim.add_track(Animation.TYPE_VALUE)
+		anim.track_set_path(track_index, ":scale")
+		anim.track_insert_key(track_index, 0.0, Vector2(0.1, 0.1))
+		anim.track_insert_key(track_index, duration * 0.3, Vector2(1.2, 1.2))
+		anim.track_insert_key(track_index, duration * 0.7, Vector2(1.2, 1.2))
+		anim.track_insert_key(track_index, duration, Vector2(0.1, 0.1))
+		anim.length = duration
+		
+		anim_player.add_animation("scale", anim)
+		anim_player.play("scale")
+	
+	# 创建旋转动画
+	elif animation == "rotate":
+		var anim = Animation.new()
+		var track_index = anim.add_track(Animation.TYPE_VALUE)
+		anim.track_set_path(track_index, ":rotation")
+		anim.track_insert_key(track_index, 0.0, 0)
+		anim.track_insert_key(track_index, duration, 2 * PI)
+		anim.length = duration
+		
+		anim_player.add_animation("rotate", anim)
+		anim_player.play("rotate")
+	
+	# 创建脉冲动画
+	elif animation == "pulse":
+		var anim = Animation.new()
+		var track_index = anim.add_track(Animation.TYPE_VALUE)
+		anim.track_set_path(track_index, ":scale")
+		anim.track_insert_key(track_index, 0.0, Vector2(1, 1))
+		anim.track_insert_key(track_index, duration * 0.25, Vector2(1.2, 1.2))
+		anim.track_insert_key(track_index, duration * 0.5, Vector2(1, 1))
+		anim.track_insert_key(track_index, duration * 0.75, Vector2(1.2, 1.2))
+		anim.track_insert_key(track_index, duration, Vector2(1, 1))
+		anim.length = duration
+		
+		anim_player.add_animation("pulse", anim)
+		anim_player.play("pulse")
+	
+	# 播放自定义动画
+	else:
+		# 尝试加载动画资源
+		var anim_path = "res://resources/animations/" + animation + ".tres"
+		var anim = load(anim_path)
+		if anim:
+			anim_player.add_animation(animation, anim)
+			anim_player.play(animation)
+
+# 创建精灵效果节点
+func _create_sprite_effect_node() -> Sprite2D:
+	var sprite_node = Sprite2D.new()
+	
+	# 设置默认属性
+	sprite_node.centered = true
+	
+	return sprite_node
+
+# 精灵超时处理
+func _on_sprite_timeout(effect_id: String, sprite_node: Sprite2D) -> void:
+	# 回收精灵节点
+	_recycle_effect_node(effect_id, sprite_node)
+	
+	# 发送效果完成信号
+	effect_completed.emit(effect_id)

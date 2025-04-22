@@ -41,7 +41,7 @@ func _process_update(delta: float) -> void:
 		current_cooldown -= delta
 		if current_cooldown < 0:
 			current_cooldown = 0
-		
+
 		# 发送冷却更新信号
 		ability_cooldown_updated.emit(current_cooldown, ability_cooldown)
 
@@ -57,15 +57,15 @@ func initialize_ability(ability_data: Dictionary) -> void:
 	ability_mana_cost = ability_data.get("mana_cost", 100.0)
 	ability_type = ability_data.get("type", "")
 	ability_target_type = ability_data.get("target_type", "enemy")
-	
+
 	# 加载技能图标
 	var icon_path = ability_data.get("icon", "")
 	if icon_path and ResourceLoader.exists(icon_path):
 		ability_icon = load(icon_path)
-	
+
 	# 创建技能实例
 	_create_ability_instance(ability_data)
-	
+
 	# 发送技能初始化信号
 	ability_initialized.emit(ability_data)
 
@@ -75,7 +75,7 @@ func _create_ability_instance(ability_data: Dictionary) -> void:
 	var ability_factory = GameManager.get_manager("AbilityFactory")
 	if not ability_factory:
 		return
-	
+
 	# 创建技能实例
 	ability_instance = ability_factory.create_ability(ability_data, owner)
 
@@ -85,21 +85,21 @@ func can_cast() -> bool:
 	var attribute_component = owner.get_component("AttributeComponent")
 	if not attribute_component:
 		return false
-	
+
 	# 检查法力值
 	var current_mana = attribute_component.get_attribute("current_mana")
 	if current_mana < ability_mana_cost:
 		return false
-	
+
 	# 检查冷却时间
 	if current_cooldown > 0:
 		return false
-	
+
 	# 检查状态组件
 	var state_component = owner.get_component("StateComponent")
 	if state_component and state_component.is_silenced:
 		return false
-	
+
 	return true
 
 # 施放技能
@@ -107,34 +107,34 @@ func cast_ability() -> bool:
 	# 检查是否可以施法
 	if not can_cast():
 		return false
-	
+
 	# 获取属性组件
 	var attribute_component = owner.get_component("AttributeComponent")
 	if not attribute_component:
 		return false
-	
+
 	# 消耗法力值
 	attribute_component.reduce_mana(ability_mana_cost)
-	
+
 	# 设置冷却时间
 	current_cooldown = ability_cooldown
-	
+
 	# 获取目标
 	var target = null
 	var target_component = owner.get_component("TargetComponent")
 	if target_component:
 		target = target_component.get_target()
-	
+
 	# 执行技能
 	if ability_instance:
 		ability_instance.activate(target)
 	else:
 		# 如果没有技能实例，使用默认技能逻辑
 		_execute_default_ability(target)
-	
+
 	# 发送技能施放信号
 	ability_cast.emit(target)
-	
+
 	# 发送事件
 	EventBus.chess.emit_event("chess_piece_ability_cast", [owner, target])
 	EventBus.battle.emit_event("ability_used", [owner, {
@@ -142,60 +142,59 @@ func cast_ability() -> bool:
 		"damage": ability_damage,
 		"target": target
 	}])
-	
+
 	return true
 
 # 执行默认技能
 func _execute_default_ability(target) -> void:
 	if not target:
 		return
-	
+
 	# 获取属性组件
 	var attribute_component = owner.get_component("AttributeComponent")
 	if not attribute_component:
 		return
-	
+
 	# 获取法术强度
 	var spell_power = attribute_component.get_attribute("spell_power")
-	
+
 	# 计算伤害
 	var damage = ability_damage + spell_power
-	
+
 	# 造成伤害
 	var combat_component = owner.get_component("CombatComponent")
 	if combat_component:
 		combat_component.deal_damage(target, damage, "magical", false)
-	
+
 	# 播放技能特效
 	_play_ability_effect(target)
 
 # 播放技能特效
 func _play_ability_effect(target) -> void:
-	# 获取特效管理器
-	var effect_manager = GameManager.get_manager("EffectManager")
-	if not effect_manager:
+	# 获取视觉效果管理器
+	if not GameManager or not GameManager.visual_manager:
 		return
-	
+
 	# 获取属性组件
 	var attribute_component = owner.get_component("AttributeComponent")
 	if not attribute_component:
 		return
-	
+
 	# 获取法术强度
 	var spell_power = attribute_component.get_attribute("spell_power")
-	
+
 	# 创建视觉特效参数
 	var params = {
-		"color": effect_manager.get_effect_color("magical"),
+		"color": Color(0.2, 0.2, 0.8, 0.8),  # 魔法伤害颜色（蓝色）
 		"duration": 0.5,
-		"damage_type": "magical",
-		"damage_amount": ability_damage + spell_power
+		"value": ability_damage + spell_power,
+		"is_critical": false
 	}
-	
+
 	# 创建特效
-	effect_manager.create_visual_effect(
-		effect_manager.VisualEffectType.DAMAGE,
-		target,
+	GameManager.visual_manager.create_combined_effect(
+		target.global_position,
+		"damage",
 		params
 	)
 
@@ -221,7 +220,7 @@ func get_current_cooldown() -> float:
 func get_cooldown_progress() -> float:
 	if ability_cooldown <= 0:
 		return 1.0
-	
+
 	return 1.0 - (current_cooldown / ability_cooldown)
 
 # 重置冷却时间

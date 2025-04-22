@@ -78,7 +78,8 @@ var achievement_manager: AchievementManager = null
 var tutorial_manager: TutorialManager = null
 var ability_factory: AbilityFactory = null
 var relic_ui_manager: RelicUiManager = null
-var effect_manager: EffectManager = null  # 特效管理器，负责协调逻辑效果和视觉效果
+var game_effect_manager: GameEffectManager = null  # 游戏效果管理器，负责管理所有影响游戏状态的效果
+var visual_manager: VisualManager = null  # 视觉效果管理器，负责管理所有视觉效果
 var test_manager: TestManager = null
 var unified_test_config_manager: UnifiedTestConfigManager = null
 
@@ -264,8 +265,9 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"TutorialManager": tutorial_manager = manager_instance
 		"AbilityFactory": ability_factory = manager_instance
 		"RelicUIManager": relic_ui_manager = manager_instance
-		"EffectManager": effect_manager = manager_instance
-		
+		"GameEffectManager": game_effect_manager = manager_instance
+		"VisualManager": visual_manager = manager_instance
+
 		#测试管理器
 		"TestManager": test_manager = manager_instance
 		"UnifiedTestConfigManager": unified_test_config_manager = manager_instance
@@ -359,7 +361,16 @@ func _initialize_all_managers() -> void:
 	_initialize_manager(MC.ManagerNames.TUTORIAL_MANAGER)
 	_initialize_manager(MC.ManagerNames.ABILITY_FACTORY)
 	_initialize_manager(MC.ManagerNames.RELIC_UI_MANAGER)
-	_initialize_manager(MC.ManagerNames.EFFECT_MANAGER)
+	# 初始化新的效果系统
+	# 创建游戏效果管理器
+	game_effect_manager = GameEffectManager.new()
+	add_child(game_effect_manager)
+	register_manager("GameEffectManager", game_effect_manager)
+
+	# 创建视觉效果管理器
+	visual_manager = VisualManager.new()
+	add_child(visual_manager)
+	register_manager("VisualManager", visual_manager)
 
 	# 4. 初始化测试管理器
 	_initialize_manager(MC.ManagerNames.UNIFIED_TEST_CONFIG_MANAGER)
@@ -398,7 +409,9 @@ func _reset_all_managers() -> void:
 	_reset_manager(MC.ManagerNames.UNIFIED_TEST_CONFIG_MANAGER)
 
 	# 2. 然后重置UI管理器
-	_reset_manager(MC.ManagerNames.EFFECT_MANAGER)
+	# 重置新的效果系统
+	_reset_manager("VisualManager")
+	_reset_manager("GameEffectManager")
 	_reset_manager(MC.ManagerNames.RELIC_UI_MANAGER)
 	_reset_manager(MC.ManagerNames.ABILITY_FACTORY)
 	_reset_manager(MC.ManagerNames.TUTORIAL_MANAGER)

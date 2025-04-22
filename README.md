@@ -84,6 +84,11 @@ autochess/
   - 路径：`scripts/game/battle/battle_engine.gd`
   - 功能：战斗流程控制、命令队列和AI决策
 
+- **效果系统**: 分离的游戏逻辑效果和视觉效果
+  - 游戏效果路径：`scripts/game/effects/game_effect_manager.gd`
+  - 视觉效果路径：`scripts/visual/visual_manager.gd`
+  - 功能：游戏状态效果管理、视觉效果渲染和效果注册
+
 - **商店系统**: 管理商店刷新和物品购买
   - 路径：`scripts/game/shop/shop_system.gd`
   - 功能：物品生成、刷新机制和购买逻辑
@@ -146,6 +151,25 @@ effect.initialize(effect_data)
 EffectPool.return_object(effect)
 ```
 
+### 策略模式
+
+在效果系统中实现不同类型的效果：
+
+```gdscript
+# 效果类型策略示例
+class_name DamageEffect
+extends GameEffect
+
+func apply() -> bool:
+    if not super.apply():
+        return false
+
+    # 对目标造成伤害
+    target.take_damage(damage_value, damage_type, source, is_critical)
+
+    return true
+```
+
 ## 当前状态与进展
 
 ### 已实现的核心功能
@@ -171,6 +195,7 @@ EffectPool.return_object(effect)
 - 实现对象池系统，减少内存分配和垃圾回收
 - 优化渲染性能，减少不必要的重绘
 - 实现动画系统的LOD（细节层次）机制
+- 重构效果系统，分离游戏逻辑效果和视觉效果，提高模块化和可维护性
 
 ### 下一步计划
 
@@ -179,16 +204,19 @@ EffectPool.return_object(effect)
    - 优化战斗系统，提高AI决策和战斗流畅度
    - 完善羁绊系统，增强策略性和多样性
    - 扩展地图系统，丰富节点类型和事件
+   - 扩展效果系统，增加更多类型的效果和视觉表现
 
 2. **性能优化**
    - 进一步优化对象池系统，减少内存占用
    - 实现渲染缓存和批处理，提高渲染效率
    - 优化事件处理机制，减少事件分发开销
+   - 优化效果系统的渲染性能，减少大量效果同时存在时的开销
 
 3. **用户体验提升**
    - 完善UI系统，提高界面反应速度和可用性
    - 增强视觉反馈，提供更直观的游戏信息
    - 实现教程系统，降低新手入门门槛
+   - 优化效果系统的视觉表现，提供更加丰富和直观的效果反馈
 
 ## 开发规范
 

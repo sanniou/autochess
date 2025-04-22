@@ -309,6 +309,14 @@ func _register_game_tests() -> void:
 		"scene_path": "res://scenes/test/synergy_test.tscn"
 	}
 
+	# 添加效果系统测试
+	game_module.tests["effect_test"] = {
+		"id": "effect_test",
+		"name": "效果系统",
+		"description": "测试游戏效果和视觉效果系统",
+		"scene_path": "res://scenes/test/effect_test.tscn"
+	}
+
 	# 注册游戏系统测试模块
 	test_modules["game"] = game_module
 

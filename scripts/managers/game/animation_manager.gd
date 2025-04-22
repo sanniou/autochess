@@ -107,7 +107,7 @@ func _on_lod_changed(object, old_level: int, new_level: int) -> void:
 
 var battle_animator = null
 var ui_animator = null
-var effect_animator = null
+# 不再使用旧的效果动画器
 
 # 初始化动画控制器
 func _initialize_animators() -> void:
@@ -119,20 +119,19 @@ func _initialize_animators() -> void:
 	ui_animator = UIAnimator.new()
 	ui_animator.name = "UIAnimator"
 
-	# 创建视觉效果动画控制器
-	effect_animator = VisualEffectAnimator.new(get_tree().get_root())
-	effect_animator.name = "VisualEffectAnimator"
-	_log_info("创建视觉效果动画器成功")
+	# 不再创建旧的视觉效果动画控制器
+	# 现在使用新的 VisualManager 和 GameEffectManager
 
 	# 添加为子节点以便生命周期管理
 	add_child(battle_animator)
 	add_child(ui_animator)
-	add_child(effect_animator)
 
 	# 连接信号
 	ui_animator.animation_started.connect(_on_ui_animation_started)
 	ui_animator.animation_completed.connect(_on_ui_animation_completed)
 	ui_animator.animation_cancelled.connect(_on_ui_animation_cancelled)
+
+	# 不再连接旧的效果动画器信号
 
 # 获取棋子视图组件
 func _get_chess_view_component(chess_piece) -> ViewComponent:
@@ -774,17 +773,14 @@ func _on_ui_animation_cancelled(animation_id: String) -> void:
 	# 发送动画取消信号
 	animation_cancelled.emit(animation_id)
 
-# 获取视觉效果动画器
-func get_effect_animator() -> VisualEffectAnimator:
-	var animator = effect_animator
-	if not animator:
-		_log_warning("无法获取VisualEffectAnimator，尝试创建新实例")
-		# 如果找不到，创建一个新的
-		animator = VisualEffectAnimator.new(get_tree().get_root())
-		animator.name = "VisualEffectAnimator"
-		add_child(animator)
-		_log_info("创建新的VisualEffectAnimator成功")
-	return animator
+# 获取视觉效果管理器
+func get_visual_manager():
+	# 返回新的视觉效果管理器
+	if GameManager and GameManager.visual_manager:
+		return GameManager.visual_manager
+
+	_log_warning("无法获取VisualManager")
+	return null
 
 # 获取动画配置管理器
 func get_animation_config_manager() -> AnimationConfigManager:

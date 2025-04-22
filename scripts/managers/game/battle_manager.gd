@@ -17,8 +17,8 @@ var Events = null
 # 战斗引擎
 var battle_engine: BattleEngine = null
 
-# 效果管理器
-var effect_manager: BattleEffectManager = null
+# 效果管理器 - 使用新的游戏效果管理器
+# 不再创建内部的BattleEffectManager
 
 # 战斗难度
 var difficulty: int = BC.AIDifficulty.NORMAL  # 当前难度
@@ -55,9 +55,8 @@ func _do_initialize() -> void:
 	# 加载事件定义
 	Events = load("res://scripts/events/event_definitions.gd")
 
-	# 创建效果管理器
-	effect_manager = BattleEffectManager.new()
-	add_child(effect_manager)
+	# 不再创建内部的效果管理器
+	# 现在使用GameManager.game_effect_manager
 
 	# 连接信号 - 使用规范的事件连接方式和常量
 	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_STARTED, _on_battle_started)
@@ -76,9 +75,8 @@ func _do_initialize() -> void:
 
 func _process(delta):
 	# 如果战斗引擎存在，让它处理战斗逻辑
-	if battle_engine:
-		# 战斗引擎已经处理了所有逻辑，我们只需要更新战斗统计
-		_update_battle_stats()
+	# 战斗引擎已经处理了所有逻辑，我们只需要更新战斗统计
+	_update_battle_stats()
 
 # 开始战斗
 func start_battle(player_team: Array = [], enemy_team: Array = []):
@@ -117,26 +115,22 @@ func _configure_battle_engine() -> void:
 
 # 结束战斗
 func end_battle(victory: bool = false):
-	if battle_engine:
-		# 使用战斗引擎结束战斗
-		battle_engine.end_battle(victory)
-		_log_info("战斗结束，胜利：" + str(victory))
-	else:
-		_log_error("战斗引擎不存在，无法结束战斗")
+	# 使用战斗引擎结束战斗
+	battle_engine.end_battle(victory)
+	_log_info("战斗结束，胜利：" + str(victory))
 
 # 更新战斗统计
 func _update_battle_stats() -> void:
 	# 如果战斗引擎存在，从战斗引擎获取最新的战斗统计
-	if battle_engine:
-		var engine_stats = battle_engine.get_battle_stats()
-		battle_stats.player_damage_dealt = engine_stats.player_damage_dealt
-		battle_stats.enemy_damage_dealt = engine_stats.enemy_damage_dealt
-		battle_stats.player_healing = engine_stats.player_healing
-		battle_stats.enemy_healing = engine_stats.enemy_healing
-		battle_stats.player_kills = engine_stats.player_kills
-		battle_stats.enemy_kills = engine_stats.enemy_kills
-		battle_stats.battle_duration = engine_stats.battle_duration
-		battle_stats.abilities_used = engine_stats.abilities_used
+	var engine_stats = battle_engine.get_battle_stats()
+	battle_stats.player_damage_dealt = engine_stats.player_damage_dealt
+	battle_stats.enemy_damage_dealt = engine_stats.enemy_damage_dealt
+	battle_stats.player_healing = engine_stats.player_healing
+	battle_stats.enemy_healing = engine_stats.enemy_healing
+	battle_stats.player_kills = engine_stats.player_kills
+	battle_stats.enemy_kills = engine_stats.enemy_kills
+	battle_stats.battle_duration = engine_stats.battle_duration
+	battle_stats.abilities_used = engine_stats.abilities_used
 
 # 战斗阶段开始事件处理
 func _on_battle_fighting_phase_started():
@@ -172,9 +166,8 @@ func _on_battle_ended(result: Dictionary):
 
 # 设置战斗速度
 func set_battle_speed(speed: float) -> void:
-	if battle_engine:
-		battle_engine.set_battle_speed(speed)
-		_log_info("战斗速度设置为：" + str(speed))
+	battle_engine.set_battle_speed(speed)
+	_log_info("战斗速度设置为：" + str(speed))
 
 # 棋子死亡事件处理
 func _on_unit_died(piece):
@@ -204,19 +197,18 @@ func _on_delayed_stun_removal(target, duration: float) -> void:
 # 清理战场
 func _cleanup_battle():
 	# 清理战斗引擎
-	if battle_engine:
-		# 断开所有信号连接
-		battle_engine.battle_state_changed.disconnect(_on_battle_engine_state_changed)
-		battle_engine.battle_phase_changed.disconnect(_on_battle_engine_phase_changed)
-		battle_engine.battle_round_started.disconnect(_on_battle_engine_round_started)
-		battle_engine.battle_round_ended.disconnect(_on_battle_engine_round_ended)
-		battle_engine.battle_ended.disconnect(_on_battle_engine_ended)
-		battle_engine.battle_command_executed.disconnect(_on_battle_engine_command_executed)
-		battle_engine.battle_event_triggered.disconnect(_on_battle_engine_event_triggered)
 
-		# 清理战斗引擎
-		battle_engine.queue_free()
-		battle_engine = null
+	# 断开所有信号连接
+	battle_engine.battle_state_changed.disconnect(_on_battle_engine_state_changed)
+	battle_engine.battle_phase_changed.disconnect(_on_battle_engine_phase_changed)
+	battle_engine.battle_round_started.disconnect(_on_battle_engine_round_started)
+	battle_engine.battle_round_ended.disconnect(_on_battle_engine_round_ended)
+	battle_engine.battle_ended.disconnect(_on_battle_engine_ended)
+	battle_engine.battle_command_executed.disconnect(_on_battle_engine_command_executed)
+	battle_engine.battle_event_triggered.disconnect(_on_battle_engine_event_triggered)
+	# 清理战斗引擎
+	battle_engine.queue_free()
+	battle_engine = null
 
 	# 清空数组
 	player_pieces.clear()
@@ -239,53 +231,49 @@ func _do_cleanup() -> void:
 			EventBus.battle.disconnect_event(Events.BattleEvents.HEAL_RECEIVED, _on_heal_received)
 			EventBus.battle.disconnect_event(Events.BattleEvents.ABILITY_USED, _on_ability_used)
 
-	# 清理效果管理器
-	if effect_manager:
-		effect_manager.queue_free()
-		effect_manager = null
+	# 不再需要清理内部的效果管理器
 
 # 新效果系统方法
 
 # 应用效果
-func apply_effect(effect_data: Dictionary, source = null, target = null) -> BattleEffect:
-	# 使用效果管理器应用效果
-	if effect_manager:
-		return effect_manager.apply_effect(effect_data, source, target)
+func apply_effect(effect_data: Dictionary, source = null, target = null) -> GameEffect:
+	# 使用新的游戏效果管理器应用效果
+	if GameManager and GameManager.game_effect_manager:
+		return GameManager.game_effect_manager.apply_effect(effect_data, source, target)
 	return null
 
 # 移除效果
-func remove_effect(effect: BattleEffect) -> bool:
-	# 使用效果管理器移除效果
-	if effect_manager:
-		return effect_manager.remove_effect(effect)
+func remove_effect(effect_id_or_effect) -> bool:
+	# 使用新的游戏效果管理器移除效果
+	if GameManager and GameManager.game_effect_manager:
+		return GameManager.game_effect_manager.remove_effect(effect_id_or_effect)
 	return false
 
 # 移除目标的所有效果
-func remove_all_effects_from_target(target) -> int:
-	# 使用效果管理器移除目标的所有效果
-	if effect_manager:
-		return effect_manager.remove_all_effects_from_target(target)
-	return 0
+func remove_all_effects_from_target(target) -> void:
+	# 使用新的游戏效果管理器移除目标的所有效果
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.clear_target_effects(target)
 
 # 移除所有战斗效果
-func remove_all_battle_effects() -> int:
-	# 使用效果管理器移除所有战斗效果
-	if effect_manager:
-		return effect_manager.remove_all_battle_effects()
-	return 0
+func remove_all_battle_effects() -> void:
+	# 使用新的游戏效果管理器移除所有效果
+	if GameManager and GameManager.game_effect_manager:
+		GameManager.game_effect_manager.clear_all_effects()
 
 # 获取目标的所有效果
 func get_target_effects(target) -> Array:
-	# 使用效果管理器获取目标的所有效果
-	if effect_manager:
-		return effect_manager.get_target_effects(target)
+	# 使用新的游戏效果管理器获取目标的所有效果
+	if GameManager and GameManager.game_effect_manager:
+		return GameManager.game_effect_manager.get_target_effects(target)
 	return []
 
 # 检查目标是否有指定类型的效果
 func has_effect_type(target, effect_type: int) -> bool:
-	# 使用效果管理器检查目标是否有指定类型的效果
-	if effect_manager:
-		return effect_manager.has_effect_type(target, effect_type)
+	# 使用新的游戏效果管理器检查目标是否有指定类型的效果
+	if GameManager and GameManager.game_effect_manager:
+		var effects = GameManager.game_effect_manager.get_target_effects_by_type(target, effect_type)
+		return not effects.is_empty()
 	return false
 
 # 检查目标是否有指定标签的效果
