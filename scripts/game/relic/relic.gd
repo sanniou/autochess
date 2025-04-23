@@ -496,6 +496,54 @@ func _remove_active_effect() -> void:
 	for child in $EffectContainer.get_children():
 		child.queue_free()
 
+# 更新遗物数据
+func update_data(relic_data: Dictionary) -> void:
+	# 保存当前状态
+	var was_active = is_active
+
+	# 如果遗物处于激活状态，先停用
+	if was_active:
+		deactivate()
+
+	# 更新基本属性
+	display_name = relic_data.name
+	description = relic_data.description
+	rarity = relic_data.rarity
+
+	# 更新效果
+	if relic_data.has("effects"):
+		effects = relic_data.effects
+
+	# 更新触发条件
+	if relic_data.has("trigger_conditions"):
+		trigger_conditions = relic_data.trigger_conditions
+
+	# 更新其他属性
+	if relic_data.has("cooldown"):
+		cooldown = relic_data.cooldown
+
+	if relic_data.has("is_passive"):
+		is_passive = relic_data.is_passive
+
+	if relic_data.has("charges") and charges != 0:  # 不更新已用完的遗物
+		charges = relic_data.charges
+
+	# 更新图标
+	if relic_data.has("icon_path"):
+		var icon_path = relic_data.icon_path
+		if ResourceLoader.exists(icon_path):
+			icon = load(icon_path)
+
+	# 更新视觉效果
+	_update_visuals()
+
+	# 如果之前是激活状态，重新激活
+	if was_active:
+		activate()
+
+	# 发送更新信号
+	EventBus.relic.emit_event("relic_updated", [self])
+
 # 获取遗物数据
 func get_data() -> Dictionary:
 	# 返回遗物的完整数据

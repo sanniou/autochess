@@ -39,7 +39,11 @@ func _do_initialize() -> void:
 	# 初始化遗物工厂
 func _initialize_relic_factory() -> void:
 	# 加载所有遗物配置
-	var relics_config = GameManager.config_manager.get_all_relics()
+	var relics_config = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.RELICS)
+
+	# 连接配置变更信号
+	if not GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+		GameManager.config_manager.config_changed.connect(_on_config_changed)
 
 	# 创建遗物工厂
 	for relic_id in relics_config:
@@ -56,6 +60,32 @@ func _initialize_relic_factory() -> void:
 			relic_factory[relic_id] = relic_data
 		else:
 			_log_warning("无法加载遗物配置: " + relic_id)
+
+	_log_info("遗物工厂初始化完成，共 " + str(relics_config.size()) + " 个遗物")
+
+## 配置变更回调
+func _on_config_changed(config_type: String, config_id: String) -> void:
+	# 检查是否是遗物配置
+	if config_type == ConfigTypes.to_string(ConfigTypes.Type.RELICS):
+		# 获取更新后的配置
+		var relic_model = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.RELICS, config_id)
+		if relic_model:
+			# 获取完整数据
+			var relic_data = relic_model.get_data()
+
+			# 确保触发条件字段存在
+			if not relic_data.has("trigger_conditions"):
+				relic_data["trigger_conditions"] = {}
+
+			# 更新工厂中的数据
+			relic_factory[config_id] = relic_data
+
+			# 更新现有遗物实例
+			var relic = _find_relic(config_id)
+			if relic:
+				relic.update_data(relic_data)
+
+			_log_info("遗物配置已更新: " + config_id)
 
 # 初始化可获取的遗物池
 func _initialize_available_relics() -> void:
@@ -226,13 +256,24 @@ func get_player_relics() -> Array:
 
 # 获取遗物数据
 func get_relic_data(relic_id: String) -> Dictionary:
+	# 先从工厂缓存中获取
 	if relic_factory.has(relic_id):
 		return relic_factory[relic_id].duplicate()
-	else:
-		# 尝试从配置管理器获取
-		var relic_model = GameManager.config_manager.get_relic_config(relic_id)
-		if relic_model:
-			return relic_model.get_data()
+
+	# 如果缓存中没有，从配置管理器获取
+	var relic_model = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.RELICS, relic_id)
+	if relic_model:
+		var relic_data = relic_model.get_data()
+
+		# 确保触发条件字段存在
+		if not relic_data.has("trigger_conditions"):
+			relic_data["trigger_conditions"] = {}
+
+		# 存储到工厂缓存
+		relic_factory[relic_id] = relic_data
+
+		return relic_data
+
 	return {}
 
 # 战斗结束事件处理
@@ -329,6 +370,11 @@ func _do_cleanup() -> void:
 			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
 			EventBus.event.disconnect_event("event_completed", _on_event_completed)
 			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+
+	# 断开配置变更信号连接
+	if GameManager and GameManager.config_manager:
+		if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+			GameManager.config_manager.config_changed.disconnect(_on_config_changed)
 
 	# 清理遗物
 	clear_all_relics()

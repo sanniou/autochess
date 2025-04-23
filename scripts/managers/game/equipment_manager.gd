@@ -35,7 +35,21 @@ func _do_initialize() -> void:
 	# 连接信号
 	EventBus.equipment.connect_event("equipment_combine_requested", _on_equipment_combine_requested)
 
+	# 连接配置变更信号
+	if not GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+		GameManager.config_manager.config_changed.connect(_on_config_changed)
+
 	_log_info("装备管理器初始化完成")
+
+## 配置变更回调
+func _on_config_changed(config_type: String, config_id: String) -> void:
+	# 检查是否是装备配置
+	if config_type == ConfigTypes.to_string(ConfigTypes.Type.EQUIPMENT):
+		# 如果缓存中存在该装备，则更新它
+		if _equipment_cache.has(config_id):
+			# 从缓存中移除
+			_equipment_cache.erase(config_id)
+			_log_info("装备配置已更新，已从缓存中移除: " + config_id)
 
 # 获取装备实例
 func get_equipment(equipment_id: String) -> Equipment:
@@ -44,7 +58,7 @@ func get_equipment(equipment_id: String) -> Equipment:
 		return _equipment_cache[equipment_id]
 
 	# 从配置创建新实例
-	var config = GameManager.config_manager.get_equipment(equipment_id)
+	var config = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.EQUIPMENT, equipment_id)
 	if not config:
 		_log_warning("无法获取装备配置: " + equipment_id)
 		return null
@@ -127,6 +141,11 @@ func _do_cleanup() -> void:
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
 			EventBus.equipment.disconnect_event("equipment_combine_requested", _on_equipment_combine_requested)
+
+	# 断开配置变更信号连接
+	if GameManager and GameManager.config_manager:
+		if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+			GameManager.config_manager.config_changed.disconnect(_on_config_changed)
 
 	# 清理装备缓存
 	_equipment_cache.clear()

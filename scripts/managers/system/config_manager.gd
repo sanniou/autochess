@@ -56,6 +56,9 @@ func _do_initialize() -> void:
 	# 注册默认配置类型
 	_register_default_config_types()
 
+	# 自动发现和注册其他配置
+	_discover_and_register_configs()
+
 	# 加载所有配置
 	load_all_configs()
 
@@ -64,6 +67,32 @@ func _do_initialize() -> void:
 
 	# 输出初始化完成信息
 	_log_info("ConfigManager 初始化完成")
+
+## 自动发现和注册配置
+func _discover_and_register_configs() -> void:
+	# 使用配置发现工具扫描配置目录
+	var discovered_configs = ConfigDiscovery.discover_configs(_config_dir)
+
+	# 记录发现的配置数量
+	var discovered_count = 0
+
+	# 注册发现的配置
+	for config_type in discovered_configs:
+		# 检查是否已经注册
+		if not _config_paths.has(config_type):
+			var file_path = discovered_configs[config_type]
+			var model_class_path = ConfigDiscovery.get_model_class_path(config_type)
+
+			# 检查模型类是否存在
+			if ResourceLoader.exists(model_class_path):
+				register_config_type(config_type, file_path, model_class_path)
+			else:
+				# 使用默认模型类
+				register_config_type(config_type, file_path)
+
+			discovered_count += 1
+
+	_log_info("自动发现并注册了 " + str(discovered_count) + " 个配置类型")
 
 ## 初始化配置类型映射
 func _initialize_config_type_map() -> void:
