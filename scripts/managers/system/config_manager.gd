@@ -22,6 +22,15 @@ var _config_dir: String = "res://config/"
 # 是否处于调试模式
 var debug_mode: bool = false
 
+# 是否启用热重载
+var hot_reload_enabled: bool = false
+
+# 配置文件监视器
+var _file_watcher: Timer = null
+
+# 文件修改时间缓存
+var _file_modified_times: Dictionary = {}
+
 # 配置类型映射（枚举值到字符串）
 var _config_type_map: Dictionary = {}
 
@@ -29,6 +38,7 @@ var _config_type_map: Dictionary = {}
 signal config_loaded(config_type: String)
 signal config_reloaded(config_type: String)
 signal config_validated(config_type: String, is_valid: bool, errors: Array)
+signal config_changed(config_type: String, config_id: String)
 signal all_configs_loaded()
 signal all_configs_reloaded()
 
@@ -49,6 +59,9 @@ func _do_initialize() -> void:
 	# 加载所有配置
 	load_all_configs()
 
+	# 初始化文件监视器
+	_initialize_file_watcher()
+
 	# 输出初始化完成信息
 	_log_info("ConfigManager 初始化完成")
 
@@ -58,6 +71,87 @@ func _initialize_config_type_map() -> void:
 	for type_value in ConfigTypes.Type.values():
 		# 将枚举值映射到字符串
 		_config_type_map[type_value] = ConfigTypes.to_string(type_value)
+
+## 初始化文件监视器
+func _initialize_file_watcher() -> void:
+	# 如果已经创建了监视器，则返回
+	if _file_watcher != null:
+		return
+
+	# 创建定时器
+	_file_watcher = Timer.new()
+	_file_watcher.name = "ConfigFileWatcher"
+	_file_watcher.wait_time = 2.0  # 每2秒检查一次
+	_file_watcher.autostart = false
+	_file_watcher.one_shot = false
+	add_child(_file_watcher)
+
+	# 连接定时器超时信号
+	_file_watcher.timeout.connect(_check_config_files)
+
+	# 缓存所有配置文件的修改时间
+	_cache_file_modified_times()
+
+	# 如果在调试模式下，默认启用热重载
+	if debug_mode:
+		enable_hot_reload(true)
+
+## 缓存所有配置文件的修改时间
+func _cache_file_modified_times() -> void:
+	_file_modified_times.clear()
+
+	# 遍历所有配置文件路径
+	for config_type in _config_paths:
+		var file_path = _config_paths[config_type]
+
+		# 检查文件是否存在
+		if FileAccess.file_exists(file_path):
+			# 获取文件修改时间
+			var modified_time = FileAccess.get_modified_time(file_path)
+			_file_modified_times[file_path] = modified_time
+
+## 检查配置文件是否发生变化
+func _check_config_files() -> void:
+	# 如果没有启用热重载，则返回
+	if not hot_reload_enabled:
+		return
+
+	# 遍历所有配置文件路径
+	for config_type in _config_paths:
+		var file_path = _config_paths[config_type]
+
+		# 检查文件是否存在
+		if FileAccess.file_exists(file_path):
+			# 获取文件当前修改时间
+			var current_modified_time = FileAccess.get_modified_time(file_path)
+
+			# 获取缓存的修改时间
+			var cached_modified_time = _file_modified_times.get(file_path, 0)
+
+			# 如果文件已经被修改
+			if current_modified_time > cached_modified_time:
+				_log_info("检测到配置文件变化: " + file_path)
+
+				# 重新加载配置
+				reload_config(config_type)
+
+				# 更新缓存的修改时间
+				_file_modified_times[file_path] = current_modified_time
+
+## 启用或禁用热重载
+func enable_hot_reload(enabled: bool = true) -> void:
+	hot_reload_enabled = enabled
+
+	if hot_reload_enabled:
+		# 启动文件监视器
+		if _file_watcher:
+			_file_watcher.start()
+			_log_info("配置热重载已启用")
+	else:
+		# 停止文件监视器
+		if _file_watcher:
+			_file_watcher.stop()
+			_log_info("配置热重载已禁用")
 
 ## 注册默认配置类型
 func _register_default_config_types() -> void:
@@ -664,6 +758,9 @@ func set_config_item(config_type: String, config_id: String, config_data: Dictio
 	# 更新配置数据
 	_config_cache[config_type][config_id] = config_data.duplicate(true)
 
+	# 发送配置变更信号
+	config_changed.emit(config_type, config_id)
+
 	return true
 
 ## 删除配置项（使用枚举）
@@ -693,6 +790,9 @@ func delete_config_item(config_type: String, config_id: String) -> bool:
 
 	# 删除配置项
 	_config_cache[config_type].erase(config_id)
+
+	# 发送配置变更信号
+	config_changed.emit(config_type, config_id)
 
 	return true
 
@@ -754,6 +854,15 @@ func _do_cleanup() -> void:
 
 	# 清除所有模型
 	_config_models.clear()
+
+	# 清理文件监视器
+	if _file_watcher:
+		_file_watcher.stop()
+		_file_watcher.queue_free()
+		_file_watcher = null
+
+	# 清理文件修改时间缓存
+	_file_modified_times.clear()
 
 	_log_info("ConfigManager 已清理")
 
@@ -876,3 +985,82 @@ func get_config(config_type: String) -> Dictionary:
 ## 获取配置（使用枚举）
 func get_config_enum(config_type: int) -> Dictionary:
 	return get_all_config_items_enum(config_type)
+
+## 查询配置
+## 根据条件查询配置项
+## @param config_type 配置类型（字符串或枚举）
+## @param query 查询条件，例如 {"rarity": "rare"}
+## @param as_model 是否返回模型对象
+## @return 符合条件的配置项字典
+func query(config_type, query: Dictionary = {}, as_model: bool = true) -> Dictionary:
+	# 获取所有配置项
+	var all_items: Dictionary
+	if config_type is int:
+		# 使用枚举版本
+		if as_model:
+			all_items = get_all_config_models_enum(config_type)
+		else:
+			all_items = get_all_config_items_enum(config_type)
+	elif config_type is String:
+		# 使用字符串版本
+		if as_model:
+			all_items = get_all_config_models(config_type)
+		else:
+			all_items = get_all_config_items(config_type)
+	else:
+		_log_warning("查询配置失败: 无效的配置类型参数类型")
+		return {}
+
+	# 如果没有查询条件，返回所有项
+	if query.is_empty():
+		return all_items
+
+	# 根据条件过滤
+	var result = {}
+	for item_id in all_items:
+		var item = all_items[item_id]
+		var match_all = true
+
+		# 检查每个查询条件
+		for key in query:
+			var value = query[key]
+
+			# 如果是模型对象
+			if item is ConfigModel:
+				# 使用 get_value 方法
+				if item.get_value(key, null) != value:
+					match_all = false
+					break
+			# 如果是字典
+			elif item is Dictionary:
+				# 直接检查键值
+				if not item.has(key) or item[key] != value:
+					match_all = false
+					break
+			else:
+				# 不支持的类型
+				match_all = false
+				break
+
+		# 如果所有条件都匹配，添加到结果中
+		if match_all:
+			result[item_id] = item
+
+	return result
+
+## 查询配置并返回数组
+## 根据条件查询配置项，返回数组形式
+## @param config_type 配置类型（字符串或枚举）
+## @param query 查询条件，例如 {"rarity": "rare"}
+## @param as_model 是否返回模型对象
+## @return 符合条件的配置项数组
+func query_array(config_type, query: Dictionary = {}, as_model: bool = true) -> Array:
+	# 使用查询方法获取结果字典
+	var result_dict = query(config_type, query, as_model)
+
+	# 转换为数组
+	var result_array = []
+	for item_id in result_dict:
+		result_array.append(result_dict[item_id])
+
+	return result_array

@@ -19,7 +19,7 @@ var _shop_inventory: Array = []
 const CHESS_PIECE_ENTITY_SCENE = "res://scenes/game/chess/chess_piece_entity.tscn"
 
 # 棋子配置缓存
-var _chess_configs: Dictionary = {}
+# 注意：我们不再维护自己的配置缓存，而是直接使用 ConfigManager
 
 # 棋子工厂
 var chess_factory: ChessPieceFactory = null
@@ -72,18 +72,25 @@ func _do_initialize() -> void:
 ## 加载棋子配置
 func _load_chess_configs() -> void:
 	# 从配置管理器获取棋子配置
-	var chess_configs = GameManager.config_manager.get_all_chess_pieces()
+	var chess_configs = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.CHESS_PIECES)
 
-	# 清空现有配置
-	_chess_configs.clear()
+	# 连接配置变更信号
+	if not GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+		GameManager.config_manager.config_changed.connect(_on_config_changed)
 
-	# 加载所有棋子配置
+	# 发送所有棋子的配置加载信号
 	for chess_id in chess_configs:
-		var chess_model = chess_configs[chess_id] as ChessPieceConfig
-		_chess_configs[chess_id] = chess_model.get_data()
-
-		# 发送配置加载信号
 		chess_config_loaded.emit(chess_id)
+
+	_log_info("棋子配置加载完成，共 " + str(chess_configs.size()) + " 个棋子")
+
+## 配置变更回调
+func _on_config_changed(config_type: String, config_id: String) -> void:
+	# 检查是否是棋子配置
+	if config_type == ConfigTypes.to_string(ConfigTypes.Type.CHESS_PIECES):
+		# 发送配置加载信号
+		chess_config_loaded.emit(config_id)
+		_log_info("棋子配置已更新: " + config_id)
 
 # 获取棋子实例
 func get_chess(chess_id: String) -> ChessPieceEntity:
@@ -615,7 +622,6 @@ func _do_reset() -> void:
 	# 清空缓存
 	_chess_cache.clear()
 	_shop_inventory.clear()
-	_chess_configs.clear()
 
 	# 重新加载棋子配置
 	_load_chess_configs()
@@ -672,12 +678,19 @@ func _do_cleanup() -> void:
 	# 断开事件连接
 	_disconnect_events()
 
+	# 断开配置变更信号连接
+	if GameManager and GameManager.config_manager:
+		if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+			GameManager.config_manager.config_changed.disconnect(_on_config_changed)
+
 	_log_info("棋子管理器清理完成")
 
 # 获取棋子配置
 func get_chess_config(chess_id: String) -> Dictionary:
-	if _chess_configs.has(chess_id):
-		return _chess_configs[chess_id].duplicate()
+	# 直接使用 ConfigManager 获取棋子配置
+	var chess_model = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.CHESS_PIECES, chess_id)
+	if chess_model:
+		return chess_model.get_data()
 	return {}
 
 # 获取棋子预览数据
