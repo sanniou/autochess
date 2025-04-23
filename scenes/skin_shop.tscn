@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c8qvt5qjkuv74q"]
 
-[ext_resource type="Script" uid="uid://blry7wntf8b5o" path="res://scenes/skin_shop.gd" id="1_yvmqe"]
+[ext_resource type="Script" path="res://scenes/skin_shop.gd" id="1_yvmqe"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 border_width_left = 2

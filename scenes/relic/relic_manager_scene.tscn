@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://c8qvt5qjkuv7qh"]
 
-[ext_resource type="Script" uid="uid://jetmjl1q5pvo" path="res://scenes/relic/relic_manager_scene.gd" id="1_yvmqe"]
+[ext_resource type="Script" path="res://scenes/relic/relic_manager_scene.gd" id="1_yvmqe"]
 
 [node name="RelicManagerScene" type="Control"]
 layout_mode = 3

@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://btnjjmtxndb30"]
 
-[ext_resource type="Script" uid="uid://cnpq2tlre3iaj" path="res://scripts/ui/popups/save_select_popup.gd" id="1_yvmqe"]
+[ext_resource type="Script" path="res://scripts/ui/popups/save_select_popup.gd" id="1_yvmqe"]
 
 [node name="SaveSelectPopup" type="Control"]
 layout_mode = 3

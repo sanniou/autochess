@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c8q1xr6j2yvdgx"]
 
-[ext_resource type="Script" uid="uid://wsvjrdq2wjur" path="res://scripts/ui/chess_info_panel.gd" id="1_yvnqm"]
+[ext_resource type="Script" path="res://scripts/ui/chess_info_panel.gd" id="1_yvnqm"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_8jnxu"]
 bg_color = Color(0.12549, 0.12549, 0.12549, 0.901961)

@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://bqnxqxq8yvdqw"]
 
-[ext_resource type="Script" uid="uid://d133ipyfi8llk" path="res://scripts/game/effects/visuals/buff_visual.gd" id="1_yvnqw"]
+[ext_resource type="Script" path="res://scripts/game/effects/visuals/buff_visual.gd" id="1_yvnqw"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_uxvs8"]
 particle_flag_disable_z = true

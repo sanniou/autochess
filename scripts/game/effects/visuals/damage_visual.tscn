@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://bia1fhupbml11"]
 
-[ext_resource type="Script" uid="uid://bup0bpcxukb52" path="res://scripts/game/effects/visuals/damage_visual.gd" id="1_yvnqw"]
+[ext_resource type="Script" path="res://scripts/game/effects/visuals/damage_visual.gd" id="1_yvnqw"]
 
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_uxvs8"]
 particle_flag_disable_z = true
