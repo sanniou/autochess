@@ -72,11 +72,14 @@ func _do_initialize() -> void:
 ## 加载棋子配置
 func _load_chess_configs() -> void:
 	# 从配置管理器获取棋子配置
+	# 不需要检查 GameManager 是否为空，如果为空应该直接崩溃
 	var chess_configs = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.CHESS_PIECES)
 
+	# 如果没有棋子配置，这是一个严重错误，应该直接崩溃
+	assert(not chess_configs.is_empty(), "无法加载棋子配置，这是一个严重错误")
+
 	# 连接配置变更信号
-	if not GameManager.config_manager.config_changed.is_connected(_on_config_changed):
-		GameManager.config_manager.config_changed.connect(_on_config_changed)
+	GameManager.config_manager.config_changed.connect(_on_config_changed)
 
 	# 发送所有棋子的配置加载信号
 	for chess_id in chess_configs:
@@ -134,23 +137,37 @@ func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: 
 
 # 释放棋子实例
 func release_chess(chess_piece: ChessPieceEntity) -> void:
-	if chess_piece:
-		# 获取棋子ID
-		var chess_id = chess_piece.id
+	# 如果棋子为空，直接返回，不需要抛出异常
+	if not chess_piece:
+		return
 
-		# 从缓存中移除
-		if not chess_id.is_empty() and _chess_cache.has(chess_id):
-			_chess_cache.erase(chess_id)
+	# 检查棋子是否有效
+	if not is_instance_valid(chess_piece):
+		_log_warning("尝试释放无效的棋子实例")
+		return
 
-		# 释放棋子
-		release_chess_piece(chess_piece)
+	# 获取棋子ID
+	var chess_id = chess_piece.id
 
-		# 发送释放信号
-		chess_released.emit(chess_piece)
+	# 从缓存中移除
+	if not chess_id.is_empty() and _chess_cache.has(chess_id):
+		_chess_cache.erase(chess_id)
+
+	# 释放棋子
+	release_chess_piece(chess_piece)
+
+	# 发送释放信号
+	chess_released.emit(chess_piece)
 
 ## 释放棋子
 func release_chess_piece(chess_piece: ChessPieceEntity) -> void:
+	# 如果棋子为空，直接返回
 	if not chess_piece:
+		return
+
+	# 检查棋子是否有效
+	if not is_instance_valid(chess_piece):
+		_log_warning("尝试回收无效的棋子实例")
 		return
 
 	# 使用棋子工厂回收棋子
@@ -657,9 +674,10 @@ func _do_cleanup() -> void:
 	# 清理棋子缓存
 	for chess_id in _chess_cache:
 		var chess_piece = _chess_cache[chess_id]
-		if chess_piece:
+		if is_instance_valid(chess_piece):
 			release_chess_piece(chess_piece)
 
+	# 清空缓存和库存
 	_chess_cache.clear()
 	_shop_inventory.clear()
 
@@ -679,9 +697,9 @@ func _do_cleanup() -> void:
 	_disconnect_events()
 
 	# 断开配置变更信号连接
-	if GameManager and GameManager.config_manager:
-		if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
-			GameManager.config_manager.config_changed.disconnect(_on_config_changed)
+	# 不需要检查 GameManager 是否为空，如果为空应该直接崩溃
+	if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+		GameManager.config_manager.config_changed.disconnect(_on_config_changed)
 
 	_log_info("棋子管理器清理完成")
 
@@ -964,8 +982,12 @@ func _setup_pool_monitoring() -> void:
 
 # 对象池监控定时器回调
 func _on_pool_monitor_timeout() -> void:
+	# 对象池大小上限，防止无限扩展
+	const MAX_POOL_SIZE = 200
+
 	# 检查对象池是否存在
 	if not ObjectPool._pools.has(chess_factory.CHESS_POOL_NAME):
+		_log_error("棋子对象池不存在，这是一个严重错误")
 		return
 
 	# 获取对象池统计信息
@@ -982,8 +1004,16 @@ func _on_pool_monitor_timeout() -> void:
 	else:
 		_log_info("棋子对象池状态: " + str(usage_rate) + "% (" + str(active_count) + "/" + str(total_count) + ")")
 
-	# 如果使用率过高，增加池大小
-	if usage_rate > 90:
-		var new_size = total_count + 10
+	# 如果使用率过高且池大小未超过上限，增加池大小
+	if usage_rate > 90 and total_count < MAX_POOL_SIZE:
+		# 动态计算新的池大小，根据当前使用情况进行调整
+		var increment = min(50, max(10, int(active_count * 0.2)))
+		var new_size = min(MAX_POOL_SIZE, total_count + increment)
+
 		ObjectPool.set_pool_size(chess_factory.CHESS_POOL_NAME, new_size)
-		_log_warning("自动增加棋子对象池大小至: " + str(new_size))
+		_log_warning("自动增加棋子对象池大小至: " + str(new_size) + " (增加" + str(increment) + ")")
+	elif total_count > MAX_POOL_SIZE:
+		# 如果池大小超过上限，进行缩减
+		var new_size = MAX_POOL_SIZE
+		ObjectPool.set_pool_size(chess_factory.CHESS_POOL_NAME, new_size)
+		_log_warning("棋子对象池大小超过上限，缩减至: " + str(new_size))
