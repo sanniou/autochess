@@ -66,7 +66,7 @@ func _initialize_relic_factory() -> void:
 ## 配置变更回调
 func _on_config_changed(config_type: String, config_id: String) -> void:
 	# 检查是否是遗物配置
-	if config_type == ConfigTypes.to_string(ConfigTypes.Type.RELICS):
+	if config_type == ConfigTypes.int_to_string(ConfigTypes.Type.RELICS):
 		# 获取更新后的配置
 		var relic_model = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.RELICS, config_id)
 		if relic_model:

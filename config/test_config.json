@@ -1,0 +1,30 @@
+{
+	"auto_discover": true,
+	"modules": {
+		"core": {
+			"description": "测试游戏的核心系统",
+			"enabled": true,
+			"name": "核心系统"
+		},
+		"game": {
+			"description": "测试游戏的核心玩法系统",
+			"enabled": true,
+			"name": "游戏系统"
+		},
+		"performance": {
+			"description": "测试游戏的性能",
+			"enabled": true,
+			"name": "性能测试"
+		},
+		"ui": {
+			"description": "测试游戏的UI系统",
+			"enabled": true,
+			"name": "UI系统"
+		}
+	},
+	"test_scene_dir": "res://scenes/test",
+	"test_scene_suffix": "_test.tscn",
+	"test_script_dir": "res://scripts/test",
+	"test_script_suffix": "_test.gd",
+	"test_timeout": 10.0
+}

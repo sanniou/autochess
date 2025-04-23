@@ -213,6 +213,9 @@ func get_components() -> Array:
 # 获取装备限制职业
 func get_restricted_classes() -> Array:
 	return data.get("restricted_classes", [])
+	
+func get_components_equipment() -> Array:
+	return data.get("components", [])
 
 # 获取特定属性值
 func get_stat(stat_name: String, default_value: Variant = 0) -> Variant:

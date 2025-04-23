@@ -895,6 +895,7 @@ func get_chess_by_cost_range(min_cost: int, max_cost: int) -> Array:
 
 # 根据多个条件过滤棋子
 func filter_chess(filters: Dictionary) -> Array:
+	var result = []
 	# 获取所有棋子配置
 	var chess_configs = get_all_chess_configs()
 	var all_chess_ids = chess_configs.keys()

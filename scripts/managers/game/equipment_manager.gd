@@ -44,7 +44,7 @@ func _do_initialize() -> void:
 ## 配置变更回调
 func _on_config_changed(config_type: String, config_id: String) -> void:
 	# 检查是否是装备配置
-	if config_type == ConfigTypes.to_string(ConfigTypes.Type.EQUIPMENT):
+	if config_type == ConfigTypes.int_to_string(ConfigTypes.Type.EQUIPMENT):
 		# 如果缓存中存在该装备，则更新它
 		if _equipment_cache.has(config_id):
 			# 从缓存中移除

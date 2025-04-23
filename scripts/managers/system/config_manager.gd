@@ -99,7 +99,7 @@ func _initialize_config_type_map() -> void:
 	# 遍历所有配置类型枚举值
 	for type_value in ConfigTypes.Type.values():
 		# 将枚举值映射到字符串
-		_config_type_map[type_value] = ConfigTypes.to_string(type_value)
+		_config_type_map[type_value] = ConfigTypes.int_to_string(type_value)
 
 ## 初始化文件监视器
 func _initialize_file_watcher() -> void:

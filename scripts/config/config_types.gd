@@ -23,7 +23,7 @@ enum Type {
 }
 
 ## 将枚举值转换为字符串
-static func to_string(type: int) -> String:
+static func int_to_string(type: int) -> String:
 	match type:
 		Type.CHESS_PIECES: return "chess_pieces"
 		Type.EQUIPMENT: return "equipment"

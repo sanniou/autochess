@@ -19,23 +19,23 @@ func _ready():
 # 加载合成配方
 func _load_combine_recipes():
 	# 使用 ConfigManager 的 get_equipment_recipes 方法获取所有装备合成配方
-	var recipes = GameManager.config_manager.get_all_equipment()
+	var recipes:Dictionary[String, EquipmentConfig] = GameManager.config_manager.get_all_equipment()
 
 	# 遍历所有配方
-	for recipe in recipes:
+	for recipeKey in recipes:
 		# 检查配方是否有效
-		if recipe.has("ingredients") and recipe.has("result"):
-			var ingredients = recipe.ingredients
+		var recipe = recipes[recipeKey]
+		var ingredients = recipe.get_components_equipment()
 
-			# 只处理需要两个材料的配方
-			if ingredients.size() == 2:
-				# 创建配方键（排序以确保顺序无关）
-				var recipe_key = ingredients.duplicate()
-				recipe_key.sort()
-				var key_str = JSON.stringify(recipe_key)
+		# 只处理需要两个材料的配方
+		if ingredients.size() == 2:
+			# 创建配方键（排序以确保顺序无关）
+			var recipe_key = ingredients.duplicate()
+			recipe_key.sort()
+			var key_str = JSON.stringify(recipe_key)
 
-				# 保存配方到内部字典
-				_combine_recipes[key_str] = recipe.result
+			# 保存配方到内部字典
+			_combine_recipes[key_str] = recipe.result
 
 	# 输出调试信息
 	print("Loaded " + str(_combine_recipes.size()) + " equipment recipes.")
