@@ -376,6 +376,55 @@ func _do_reset() -> void:
 
 	_log_info("VisualManager 已重置")
 
+# 根据ID移除效果
+func remove_effect_by_id(effect_id: String) -> bool:
+	# 检查效果ID是否有效
+	if effect_id.is_empty():
+		return false
+
+	# 如果效果ID在活动效果列表中，直接取消
+	if _active_effects.has(effect_id):
+		return cancel_effect(effect_id)
+
+	# 如果不在活动效果列表中，尝试从渲染器中移除
+	if visual_renderer:
+		return visual_renderer.remove_effect_by_id(effect_id)
+
+	return false
+
+# 根据ID恢复效果
+func resume_effect_by_id(effect_id: String) -> bool:
+	# 检查效果ID是否有效
+	if effect_id.is_empty():
+		return false
+
+	# 如果效果ID在活动效果列表中，尝试恢复
+	if _active_effects.has(effect_id):
+		# 获取效果数据
+		var effect_data = _active_effects[effect_id]
+
+		# 如果效果已经完成或取消，无法恢复
+		if effect_data.completed or effect_data.cancelled:
+			return false
+
+		# 尝试从渲染器中恢复
+		if visual_renderer:
+			return visual_renderer.resume_effect(effect_id)
+
+	return false
+
+# 移除效果节点
+func remove_effect(effect_node: Node) -> bool:
+	# 检查节点是否有效
+	if not effect_node or not is_instance_valid(effect_node):
+		return false
+
+	# 尝试从渲染器中移除
+	if visual_renderer:
+		return visual_renderer.remove_effect_node(effect_node)
+
+	return false
+
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 清理所有效果

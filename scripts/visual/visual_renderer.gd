@@ -267,6 +267,141 @@ func _on_object_pool_cleared(pool_name: String) -> void:
 	if pool_name.begins_with("visual_effect_"):
 		EventBus.debug.emit_event("debug_message", ["VisualRenderer: 检测到视觉效果池清理: " + pool_name, 0])
 
+# 根据ID移除效果
+func remove_effect_by_id(effect_id: String) -> bool:
+	# 检查效果ID是否有效
+	if effect_id.is_empty():
+		return false
+
+	# 检查效果是否存在
+	if not _effect_nodes.has(effect_id):
+		return false
+
+	# 获取效果节点
+	var effect_node = _effect_nodes[effect_id]
+
+	# 检查效果节点是否有效
+	if not is_instance_valid(effect_node):
+		_effect_nodes.erase(effect_id)
+		return false
+
+	# 停止效果
+	_stop_effect(effect_node)
+
+	# 回收效果节点
+	_recycle_effect_node(effect_id, effect_node)
+
+	# 移除效果节点引用
+	_effect_nodes.erase(effect_id)
+
+	# 发送效果取消信号
+	effect_cancelled.emit(effect_id)
+
+	return true
+
+# 移除效果节点
+func remove_effect_node(effect_node: Node) -> bool:
+	# 检查节点是否有效
+	if not effect_node or not is_instance_valid(effect_node):
+		return false
+
+	# 查找节点对应的效果ID
+	var effect_id = ""
+	for id in _effect_nodes.keys():
+		if _effect_nodes[id] == effect_node:
+			effect_id = id
+			break
+
+	# 如果找到了效果ID，使用remove_effect_by_id移除
+	if not effect_id.is_empty():
+		return remove_effect_by_id(effect_id)
+
+	# 如果没有找到效果ID，直接停止和回收节点
+	_stop_effect(effect_node)
+
+	# 尝试确定效果类型
+	var effect_type = ""
+	if effect_node is GPUParticles2D:
+		effect_type = "particle"
+	elif effect_node is Sprite2D:
+		effect_type = "sprite"
+	elif effect_node.has_node("AnimationPlayer"):
+		effect_type = "animation"
+	elif effect_node is ColorRect:
+		effect_type = "shader"
+	elif effect_node is Label:
+		effect_type = "text"
+
+	# 回收节点
+	if not effect_type.is_empty():
+		# 尝试使用全局对象池
+		var pool_name = "visual_effect_" + effect_type
+		if ObjectPool and ObjectPool.has_method("release_object") and ObjectPool._pools.has(pool_name):
+			# 重置效果节点
+			_reset_effect_node(effect_node, effect_type)
+
+			# 如果节点在场景树中，移除它
+			if effect_node.is_inside_tree():
+				effect_node.get_parent().remove_child(effect_node)
+
+			# 释放到全局对象池
+			ObjectPool.release_object(pool_name, effect_node)
+			return true
+
+		# 如果全局对象池不可用，使用内部对象池
+		if _effect_pool.has(effect_type):
+			# 重置效果节点
+			_reset_effect_node(effect_node, effect_type)
+
+			# 添加到对象池
+			_effect_pool[effect_type].append(effect_node)
+			return true
+
+	# 如果所有方法都失败，直接释放
+	effect_node.queue_free()
+	return true
+
+# 恢复效果
+func resume_effect(effect_id: String) -> bool:
+	# 检查效果ID是否有效
+	if effect_id.is_empty():
+		return false
+
+	# 检查效果是否存在
+	if not _effect_nodes.has(effect_id):
+		return false
+
+	# 获取效果节点
+	var effect_node = _effect_nodes[effect_id]
+
+	# 检查效果节点是否有效
+	if not is_instance_valid(effect_node):
+		_effect_nodes.erase(effect_id)
+		return false
+
+	# 根据节点类型恢复效果
+	if effect_node is GPUParticles2D:
+		# 恢复粒子发射
+		effect_node.emitting = true
+		return true
+
+	elif effect_node is AnimationPlayer:
+		# 恢复动画
+		if effect_node.is_paused():
+			effect_node.play()
+			return true
+
+	elif effect_node.has_node("AnimationPlayer"):
+		# 恢复动画
+		var anim_player = effect_node.get_node("AnimationPlayer")
+		if anim_player and anim_player.is_paused():
+			anim_player.play()
+			return true
+
+	# 显示效果节点
+	effect_node.show()
+	return true
+
 # 从对象池获取效果节点
 func _get_from_pool(effect_type: String) -> Node:
 	# 池名称

@@ -147,47 +147,40 @@ func set_animation_speed(speed: float) -> void:
 		animation_player.speed_scale = animation_speed
 
 # 添加视觉效果
-func add_visual_effect(effect_scene_path: String, params: Dictionary = {}) -> Node:
+func add_visual_effect(effect_name_or_path: String, params: Dictionary = {}) -> Node:
 	# 效果实例
 	var effect_instance = null
 
-	# 效果池名称
-	var pool_name = "visual_effect_" + effect_scene_path.get_file().get_basename()
+	# 获取视觉效果管理器
+	var visual_manager = GameManager.get_manager("VisualManager")
+	if not visual_manager:
+		push_error("ViewComponent: 无法获取视觉效果管理器")
+		return null
 
-	# 尝试从对象池获取
-	if ObjectPool and ObjectPool.has_method("get_object") and ObjectPool._pools.has(pool_name):
-		effect_instance = ObjectPool.get_object(pool_name)
+	# 准备参数
+	var effect_params = params.duplicate()
 
-	# 如果对象池没有提供实例，则创建新实例
-	if not effect_instance:
-		# 加载效果场景
-		var effect_scene = ResourceManager.load_resource(effect_scene_path)
-		if not effect_scene:
-			return null
-
-		# 实例化效果
-		effect_instance = effect_scene.instantiate()
-
-		# 创建对象池（如果不存在）
-		if ObjectPool and ObjectPool.has_method("create_pool") and not ObjectPool._pools.has(pool_name):
-			ObjectPool.create_pool(pool_name, effect_scene, 10, 5, 50)
-
-	# 添加到效果容器
+	# 设置效果容器
 	if effect_container:
-		effect_container.add_child(effect_instance)
+		effect_params["parent"] = effect_container
 	else:
-		owner.add_child(effect_instance)
+		effect_params["parent"] = owner
 
-	# 初始化效果
-	if effect_instance.has_method("initialize"):
-		effect_instance.initialize(params)
+	# 判断是效果名称还是路径
+	if effect_name_or_path.begins_with("res://"):
+		# 是路径，使用创建场景效果
+		effect_instance = visual_manager.create_scene_effect(effect_name_or_path, Vector2.ZERO, effect_params)
+	else:
+		# 是效果名称，使用创建效果
+		effect_instance = visual_manager.create_effect(effect_name_or_path, Vector2.ZERO, effect_params)
+
+	# 检查效果是否创建成功
+	if not effect_instance:
+		push_error("ViewComponent: 创建视觉效果失败: " + effect_name_or_path)
+		return null
 
 	# 添加到效果列表
 	visual_effects.append(effect_instance)
-
-	# 标记效果来源
-	effect_instance.set_meta("from_pool", ObjectPool._pools.has(pool_name))
-	effect_instance.set_meta("pool_name", pool_name)
 
 	# 添加到LOD系统
 	_add_to_lod_system(effect_instance)
@@ -207,21 +200,15 @@ func remove_visual_effect(effect: Node) -> void:
 		# 从LOD系统移除
 		_remove_from_lod_system(effect)
 
-		# 如果效果在场景树中，移除它
-		if effect.is_inside_tree():
-			effect.get_parent().remove_child(effect)
-
-		# 检查是否来自对象池
-		if effect.has_meta("from_pool") and effect.get_meta("from_pool") and effect.has_meta("pool_name"):
-			var pool_name = effect.get_meta("pool_name")
-			# 返回到对象池
-			if ObjectPool and ObjectPool.has_method("release_object"):
-				ObjectPool.release_object(pool_name, effect)
-				# 重置效果
-				if effect.has_method("reset"):
-					effect.reset()
+		# 获取视觉效果管理器
+		var visual_manager = GameManager.get_manager("VisualManager")
+		if visual_manager:
+			# 使用VisualManager移除效果
+			visual_manager.remove_effect(effect)
 		else:
-			# 否则销毁节点
+			# 如果无法获取VisualManager，则直接移除
+			if effect.is_inside_tree():
+				effect.get_parent().remove_child(effect)
 			effect.queue_free()
 
 	# 发送效果移除信号

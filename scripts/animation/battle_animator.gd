@@ -67,12 +67,22 @@ func _show_damage(target, amount: float, damage_type: String = "physical", is_cr
 
 # 播放特效
 func _play_effect(position: Vector2, effect_name: String, params: Dictionary = {}) -> String:
-	# 使用特效动画器播放组合特效
-	return GameManager.animation_manager.effect_animator.play_combined_effect(
-		position,
-		effect_name,
-		params
-	)
+	# 使用视觉效果管理器播放特效
+	var visual_manager = GameManager.get_manager("VisualManager")
+	if not visual_manager:
+		print("BattleAnimator: 无法获取视觉效果管理器")
+		return ""
+
+	# 创建唯一ID
+	var effect_id = "effect_" + effect_name + "_" + str(Time.get_unix_time_from_system())
+
+	# 创建效果
+	var effect_instance = visual_manager.create_effect(effect_name, position, params)
+	if not effect_instance:
+		print("BattleAnimator: 创建视觉效果失败: " + effect_name)
+		return ""
+
+	return effect_id
 
 # 播放攻击动画
 func play_attack_animation(attacker, target, params: Dictionary = {}) -> String:
@@ -233,31 +243,32 @@ func _create_ranged_attack_animation(animation_data: Dictionary) -> void:
 		# 缩放动画
 		tween.tween_property(attacker, "scale", params.attack_scale, params.duration * 0.2)
 		tween.tween_property(attacker, "scale", original_scale, params.duration * 0.2).set_delay(params.duration * 0.2)
-	
-	# 使用EffectAnimator创建投射物特效
-	var projectile_effect_id = GameManager.animation_manager.effect_animator.play_sprite_effect(
+
+	# 使用VisualManager创建投射物特效
+	var visual_manager = GameManager.get_manager("VisualManager")
+	if not visual_manager:
+		print("BattleAnimator: 无法获取视觉效果管理器")
+		return
+
+	# 创建投射物效果
+	var projectile = visual_manager.create_sprite_effect(
 		attacker.global_position,
 		"res://assets/images/vfx/projectile.png",
-		1,  # 帧数
-		params.duration * 0.6,  # 帧时长
 		{
+			"duration": params.duration * 0.6,
 			"auto_remove": false,  # 不自动移除，我们将手动控制
 			"loop": false
 		}
 	)
 
-	# 获取特效节点
-	var projectile = null
-	if GameManager.animation_manager.effect_animator.active_effects.has(projectile_effect_id):
-		projectile = GameManager.animation_manager.effect_animator.active_effects[projectile_effect_id].node
-		# 创建移动动画
+	# 创建移动动画
 	if projectile:
 		var projectile_tween = create_tween()
 		projectile_tween.tween_property(projectile, "global_position", target.global_position, params.duration * 0.6)
 		projectile_tween.tween_callback(func():
 			# 完成后清理特效
-			GameManager.animation_manager.effect_animator._cleanup_effect(projectile_effect_id)
-			GameManager.animation_manager.effect_animator.active_effects.erase(projectile_effect_id)
+			if is_instance_valid(projectile):
+				visual_manager.remove_effect(projectile)
 		)
 		# 添加攻击特效
 		if params.effect_name != "":
@@ -302,32 +313,33 @@ func _create_magic_attack_animation(animation_data: Dictionary) -> void:
 		tween.tween_property(attacker, "scale", params.attack_scale, params.duration * 0.3)
 		tween.tween_property(attacker, "scale", original_scale, params.duration * 0.3).set_delay(params.duration * 0.3)
 
-	# 使用EffectAnimator创建施法特效
-	var cast_effect_id = GameManager.animation_manager.effect_animator.play_sprite_effect(
+	# 使用VisualManager创建施法特效
+	var visual_manager = GameManager.get_manager("VisualManager")
+	if not visual_manager:
+		print("BattleAnimator: 无法获取视觉效果管理器")
+		return
+
+	# 创建施法效果
+	var cast_effect = visual_manager.create_sprite_effect(
 		attacker.global_position,
 		"res://assets/images/vfx/magic_cast.png",
-		1,  # 帧数
-		params.duration * 0.5,  # 帧时长
 		{
+			"duration": params.duration * 0.5,
 			"auto_remove": false,  # 不自动移除，我们将手动控制
 			"loop": false,
 			"modulate": Color(1, 1, 1, 0)  # 初始透明
 		}
 	)
 
-	# 获取特效节点
-	var cast_effect = null
-	if GameManager.animation_manager.effect_animator.active_effects.has(cast_effect_id):
-		cast_effect = GameManager.animation_manager.effect_animator.active_effects[cast_effect_id].node
-		# 创建淡入淡出动画
+	# 创建淡入淡出动画
 	if cast_effect:
 		var cast_tween = create_tween()
 		cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 1), params.duration * 0.3)
 		cast_tween.tween_property(cast_effect, "modulate", Color(1, 1, 1, 0), params.duration * 0.2)
 		cast_tween.tween_callback(func():
 			# 完成后清理特效
-			GameManager.animation_manager.effect_animator._cleanup_effect(cast_effect_id)
-			GameManager.animation_manager.effect_animator.active_effects.erase(cast_effect_id)
+			if is_instance_valid(cast_effect):
+				visual_manager.remove_effect(cast_effect)
 		)
 			# 添加攻击特效
 		if params.effect_name != "":
@@ -961,8 +973,12 @@ func cancel_animation(animation_id: String) -> bool:
 
 	# 取消相关特效
 	if animation_data.has("effects"):
-		for effect_id in animation_data.effects:
-			GameManager.animation_manager.effect_animator.cancel_effect(effect_id)
+		# 获取视觉效果管理器
+		var visual_manager = GameManager.get_manager("VisualManager")
+		if visual_manager:
+			for effect_id in animation_data.effects:
+				# 尝试找到并移除效果
+				visual_manager.remove_effect_by_id(effect_id)
 
 	# 清理动画资源
 	_cleanup_animation(animation_id)
@@ -1019,8 +1035,12 @@ func resume_animation(animation_id: String) -> bool:
 
 	# 恢复相关特效
 	if animation_data.has("effects"):
-		for effect_id in animation_data.effects:
-			GameManager.animation_manager.effect_animator.resume_effect(effect_id)
+		# 获取视觉效果管理器
+		var visual_manager = GameManager.get_manager("VisualManager")
+		if visual_manager:
+			for effect_id in animation_data.effects:
+				# 尝试找到并恢复效果
+				visual_manager.resume_effect_by_id(effect_id)
 
 	# 更新动画状态
 	animation_data.state = AnimationState.PLAYING
@@ -1142,5 +1162,9 @@ func _cleanup_animation(animation_id: String) -> void:
 
 	# 清理相关特效
 	if animation_data.has("effects"):
-		for effect_id in animation_data.effects:
-			GameManager.animation_manager.effect_animator.cancel_effect(effect_id)
+		# 获取视觉效果管理器
+		var visual_manager = GameManager.get_manager("VisualManager")
+		if visual_manager:
+			for effect_id in animation_data.effects:
+				# 尝试找到并移除效果
+				visual_manager.remove_effect_by_id(effect_id)

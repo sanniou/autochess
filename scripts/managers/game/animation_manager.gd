@@ -247,10 +247,10 @@ func play_effect_animation(position: Vector2, effect_name: String, params: Dicti
 	# 创建动画ID
 	var animation_id = _create_animation_id(AnimationType.EFFECT, effect_name)
 
-	# 获取特效动画控制器
-	var effect_animator = GameManager.animation_manager.get_effect_animator()
-	if not effect_animator:
-		_log_error("无法获取视觉效果动画器")
+	# 获取视觉效果管理器
+	var visual_manager = get_visual_manager()
+	if not visual_manager:
+		_log_error("无法获取视觉效果管理器")
 		return ""
 
 	# 合并默认参数
@@ -266,18 +266,34 @@ func play_effect_animation(position: Vector2, effect_name: String, params: Dicti
 		if not params.has(key):
 			params[key] = default_params[key]
 
-	# 创建动画数据
+	# 直接使用VisualManager创建效果
+	var effect_instance = visual_manager.create_effect(effect_name, position, params)
+	if not effect_instance:
+		_log_error("创建视觉效果失败: " + effect_name)
+		return ""
+
+	# 发送动画开始信号
+	animation_started.emit(animation_id)
+
+	# 如果效果有动画完成信号，连接它
+	if effect_instance.has_signal("animation_completed"):
+		effect_instance.animation_completed.connect(_on_animation_completed.bind(animation_id))
+
+	# 创建动画数据并添加到活动动画列表
 	var animation_data = {
 		"id": animation_id,
 		"position": position,
-		"animator": effect_animator,
+		"animator": visual_manager,
 		"effect_name": effect_name,
+		"effect_instance": effect_instance,
 		"params": params,
-		"state": AnimationState.IDLE
+		"state": AnimationState.PLAYING
 	}
 
-	# 添加到队列
-	return _add_to_queue(AnimationType.EFFECT, animation_data)
+	# 添加到活动动画列表
+	active_animations[animation_id] = animation_data
+
+	return animation_id
 
 # 取消动画
 func cancel_animation(animation_id: String) -> bool:
@@ -611,11 +627,25 @@ func _process_queue(type: int) -> void:
 		result = animation_id != ""
 	elif type == AnimationType.EFFECT:
 		# 播放特效动画
-		result = animator.play_animation(
-			animation_data.position,
-			animation_data.effect_name,
-			animation_data.params
-		)
+		# 直接使用VisualManager创建效果
+		var visual_manager = get_visual_manager()
+		if visual_manager:
+			var effect_instance = visual_manager.create_effect(
+				animation_data.effect_name,
+				animation_data.position,
+				animation_data.params
+			)
+			if effect_instance:
+				# 如果效果有动画完成信号，连接它
+				if effect_instance.has_signal("animation_completed"):
+					effect_instance.animation_completed.connect(_on_animation_completed.bind(animation_data.id))
+				# 保存效果实例
+				animation_data.effect_instance = effect_instance
+				result = true
+			else:
+				_log_error("创建视觉效果失败: " + animation_data.effect_name)
+		else:
+			_log_error("无法获取视觉效果管理器")
 
 	# 如果播放失败，则处理下一个动画
 	if not result:
