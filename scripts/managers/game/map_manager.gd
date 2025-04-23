@@ -73,11 +73,15 @@ func _do_initialize() -> void:
 
 ## 加载地图配置
 func _load_map_config() -> void:
-	# 使用ConfigManager获取地图配置
-	var config_model = GameManager.config_manager.get_map_config()
+	# 使用新的配置管理器API获取地图配置
+	var config_model = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.MAP_CONFIG, "map_config")
 	if config_model:
 		# 复制配置数据
 		map_config.set_data(config_model.get_data())
+
+		# 连接配置变更信号
+		if not GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+			GameManager.config_manager.config_changed.connect(_on_config_changed)
 	else:
 		_log_warning("无法加载地图配置")
 
@@ -720,3 +724,47 @@ func _generate_better_rewards(layer: int) -> Dictionary:
 		"relic_chance": min(0.5, 0.1 + layer * 0.05)  # 最高概率50%
 	}
 	return rewards
+
+## 重写清理方法
+func _do_cleanup() -> void:
+	# 断开信号连接
+	if map_controller:
+		map_controller.map_loaded.disconnect(_on_map_loaded)
+		map_controller.map_cleared.disconnect(_on_map_cleared)
+		map_controller.node_selected.disconnect(_on_node_selected)
+		map_controller.node_visited.disconnect(_on_node_visited)
+		map_controller.node_hovered.disconnect(_on_node_hovered)
+		map_controller.node_unhovered.disconnect(_on_node_unhovered)
+
+	# 断开事件总线信号
+	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+	EventBus.event.disconnect_event("event_completed", _on_event_completed)
+	EventBus.economy.disconnect_event("shop_closed", _on_shop_exited)
+
+	# 断开配置变更信号连接
+	if GameManager and GameManager.config_manager:
+		if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+			GameManager.config_manager.config_changed.disconnect(_on_config_changed)
+
+	# 清除地图
+	clear_map()
+
+	# 清理地图控制器
+	if map_controller:
+		map_controller.queue_free()
+		map_controller = null
+
+	# 清理地图生成器
+	if map_generator:
+		map_generator.queue_free()
+		map_generator = null
+
+	_log_info("地图管理器已清理")
+
+## 配置变更回调
+func _on_config_changed(config_type: String, config_id: String) -> void:
+	# 检查是否是地图配置
+	if config_type == ConfigTypes.to_string(ConfigTypes.Type.MAP_CONFIG) and config_id == "map_config":
+		# 重新加载地图配置
+		_log_info("地图配置已更新，重新加载")
+		_load_map_config()

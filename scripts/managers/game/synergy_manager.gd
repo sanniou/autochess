@@ -53,7 +53,33 @@ func _do_cleanup() -> void:
 	EventBus.chess.disconnect_event("chess_piece_added", _on_chess_piece_added)
 	EventBus.chess.disconnect_event("chess_piece_removed", _on_chess_piece_removed)
 
+	# 断开配置变更信号连接
+	if GameManager and GameManager.config_manager:
+		if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+			GameManager.config_manager.config_changed.disconnect(_on_config_changed)
+
 	_log_info("羁绊管理器已清理")
+
+## 配置变更回调
+func _on_config_changed(config_type: String, config_id: String) -> void:
+	# 检查是否是羁绊配置
+	if config_type == ConfigTypes.to_string(ConfigTypes.Type.SYNERGIES):
+		# 获取更新后的配置
+		var synergy_config = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.SYNERGIES, config_id)
+		if synergy_config:
+			# 更新配置
+			synergy_configs[config_id] = synergy_config
+			_log_info("羁绊配置已更新: " + config_id)
+
+			# 如果该羁绊当前处于激活状态，重新应用效果
+			if active_synergies.has(config_id):
+				var level = active_synergies[config_id]
+
+				# 先停用羁绊
+				_deactivate_synergy(config_id, level)
+
+				# 重新激活羁绊
+				_activate_synergy(config_id, level)
 
 # 加载羁绊配置
 func _load_synergy_configs() -> void:
@@ -63,16 +89,21 @@ func _load_synergy_configs() -> void:
 		_log_error("无法获取配置管理器")
 		return
 
-	# 加载所有羁绊配置
-	var synergy_config_files = config_manager.get_config_files("synergies")
+	# 清空现有配置
+	synergy_configs.clear()
 
-	for file_path in synergy_config_files:
-		var synergy_config = config_manager.load_config(file_path)
+	# 使用新的配置管理器API获取所有羁绊配置
+	var all_synergies = config_manager.get_all_config_models_enum(ConfigTypes.Type.SYNERGIES)
 
-		if synergy_config and synergy_config.is_valid():
-			var synergy_id = synergy_config.get_id()
-			synergy_configs[synergy_id] = synergy_config
-			_log_debug("加载羁绊配置: " + synergy_id)
+	# 存储配置
+	for synergy_id in all_synergies:
+		var synergy_config = all_synergies[synergy_id]
+		synergy_configs[synergy_id] = synergy_config
+		_log_debug("加载羁绊配置: " + synergy_id)
+
+	# 连接配置变更信号
+	if not config_manager.config_changed.is_connected(_on_config_changed):
+		config_manager.config_changed.connect(_on_config_changed)
 
 	_log_info("加载了 " + str(synergy_configs.size()) + " 个羁绊配置")
 
@@ -317,10 +348,25 @@ func get_synergy_counts() -> Dictionary:
 
 # 获取羁绊配置
 func get_synergy_config(synergy_id: String) -> SynergyConfig:
-	return synergy_configs.get(synergy_id)
+	# 先从缓存中获取
+	if synergy_configs.has(synergy_id):
+		return synergy_configs[synergy_id]
+
+	# 如果缓存中没有，从 ConfigManager 获取
+	var config = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.SYNERGIES, synergy_id)
+	if config:
+		# 更新缓存
+		synergy_configs[synergy_id] = config
+		return config
+
+	return null
 
 # 获取所有羁绊配置
 func get_all_synergy_configs() -> Dictionary:
+	# 如果缓存为空，重新加载
+	if synergy_configs.is_empty():
+		_load_synergy_configs()
+
 	return synergy_configs
 
 # 获取羁绊等级
