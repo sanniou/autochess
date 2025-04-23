@@ -548,31 +548,6 @@ func _on_shop_exited() -> void:
 	# 商店退出后的处理
 	pass
 
-# 重写清理方法
-func _do_cleanup() -> void:
-	# 断开事件连接
-	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
-	EventBus.event.disconnect_event("event_completed", _on_event_completed)
-	EventBus.economy.disconnect_event("shop_closed", _on_shop_exited)
-
-	# 清理地图控制器
-	if map_controller:
-		map_controller.queue_free()
-		map_controller = null
-
-	# 清理地图生成器
-	if map_generator:
-		map_generator.queue_free()
-		map_generator = null
-
-	# 清理地图数据
-	current_map = null
-	current_node = null
-	visited_nodes = {}
-	available_nodes = {}
-
-	_log_info("地图管理器清理完成")
-
 # 重写重置方法
 func _do_reset() -> void:
 	# 清理地图数据
@@ -764,7 +739,7 @@ func _do_cleanup() -> void:
 ## 配置变更回调
 func _on_config_changed(config_type: String, config_id: String) -> void:
 	# 检查是否是地图配置
-	if config_type == ConfigTypes.to_string(ConfigTypes.Type.MAP_CONFIG) and config_id == "map_config":
+	if config_type == ConfigTypes.int_to_string(ConfigTypes.Type.MAP_CONFIG) and config_id == "map_config":
 		# 重新加载地图配置
 		_log_info("地图配置已更新，重新加载")
 		_load_map_config()

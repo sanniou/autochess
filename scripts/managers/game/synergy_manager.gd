@@ -63,7 +63,7 @@ func _do_cleanup() -> void:
 ## 配置变更回调
 func _on_config_changed(config_type: String, config_id: String) -> void:
 	# 检查是否是羁绊配置
-	if config_type == ConfigTypes.to_string(ConfigTypes.Type.SYNERGIES):
+	if config_type == ConfigTypes.int_to_string(ConfigTypes.Type.SYNERGIES):
 		# 获取更新后的配置
 		var synergy_config = GameManager.config_manager.get_config_model_enum(ConfigTypes.Type.SYNERGIES, config_id)
 		if synergy_config:

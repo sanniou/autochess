@@ -103,4 +103,4 @@ position = Vector2(15, 0)
 color = Color(1, 0.8, 0, 1)
 polygon = PackedVector2Array(0, -5, 1.5, -1.5, 5, -1.5, 2.5, 1.5, 3.5, 5, 0, 3, -3.5, 5, -2.5, 1.5, -5, -1.5, -1.5, -1.5)
 
-[node name="EffectContainer" type="Node2D" parent=""]
+[node name="EffectContainer" type="Node2D" parent="."]

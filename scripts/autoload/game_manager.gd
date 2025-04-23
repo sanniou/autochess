@@ -182,7 +182,7 @@ func _register_all_managers() -> void:
 	_register_manager("BattleManager", "res://scripts/managers/game/battle_manager.gd")
 	_register_manager("EconomyManager", "res://scripts/managers/game/economy_manager.gd")
 	_register_manager("ShopManager", "res://scripts/managers/game/shop_manager.gd")
-	#_register_manager("ChessManager", "res://scripts/managers/game/chess_manager.gd")
+	_register_manager("ChessManager", "res://scripts/managers/game/chess_manager.gd")
 	_register_manager("EquipmentManager", "res://scripts/managers/game/equipment_manager.gd")
 	_register_manager("RelicManager", "res://scripts/managers/game/relic_manager.gd")
 	_register_manager("EventManager", "res://scripts/managers/game/event_manager.gd")
