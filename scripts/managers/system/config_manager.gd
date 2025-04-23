@@ -22,6 +22,9 @@ var _config_dir: String = "res://config/"
 # 是否处于调试模式
 var debug_mode: bool = false
 
+# 配置类型映射（枚举值到字符串）
+var _config_type_map: Dictionary = {}
+
 # 配置变更信号
 signal config_loaded(config_type: String)
 signal config_reloaded(config_type: String)
@@ -37,6 +40,9 @@ func _do_initialize() -> void:
 	# 设置调试模式
 	debug_mode = OS.is_debug_build()
 
+	# 初始化配置类型映射
+	_initialize_config_type_map()
+
 	# 注册默认配置类型
 	_register_default_config_types()
 
@@ -46,119 +52,140 @@ func _do_initialize() -> void:
 	# 输出初始化完成信息
 	_log_info("ConfigManager 初始化完成")
 
+## 初始化配置类型映射
+func _initialize_config_type_map() -> void:
+	# 遍历所有配置类型枚举值
+	for type_value in ConfigTypes.Type.values():
+		# 将枚举值映射到字符串
+		_config_type_map[type_value] = ConfigTypes.to_string(type_value)
+
 ## 注册默认配置类型
 func _register_default_config_types() -> void:
 	# 注册棋子配置
-	register_config_type(
-		"chess_pieces",
+	register_config_type_enum(
+		ConfigTypes.Type.CHESS_PIECES,
 		"res://config/chess_pieces.json",
 		"res://scripts/config/models/chess_piece_config.gd"
 	)
 
 	# 注册装备配置
-	register_config_type(
-		"equipment",
+	register_config_type_enum(
+		ConfigTypes.Type.EQUIPMENT,
 		"res://config/equipment.json",
 		"res://scripts/config/models/equipment_config.gd"
 	)
 
 	# 注册地图配置
-	register_config_type(
-		"map_config",
+	register_config_type_enum(
+		ConfigTypes.Type.MAP_CONFIG,
 		"res://config/map_config.json",
 		"res://scripts/config/models/map_config.gd"
 	)
 
 	# 注册遗物配置
-	register_config_type(
-		"relics",
+	register_config_type_enum(
+		ConfigTypes.Type.RELICS,
 		"res://config/relics/relics.json",
 		"res://scripts/config/models/relic_config.gd"
 	)
 
 	# 注册羁绊配置
-	register_config_type(
-		"synergies",
+	register_config_type_enum(
+		ConfigTypes.Type.SYNERGIES,
 		"res://config/synergies.json",
 		"res://scripts/config/models/synergy_config.gd"
 	)
 
 	# 注册事件配置
-	register_config_type(
-		"events",
+	register_config_type_enum(
+		ConfigTypes.Type.EVENTS,
 		"res://config/events/events.json",
 		"res://scripts/config/models/event_config.gd"
 	)
 
 	# 注册难度配置
-	register_config_type(
-		"difficulty",
+	register_config_type_enum(
+		ConfigTypes.Type.DIFFICULTY,
 		"res://config/difficulty.json",
 		"res://scripts/config/models/difficulty_config.gd"
 	)
 
 	# 注册成就配置
-	register_config_type(
-		"achievements",
+	register_config_type_enum(
+		ConfigTypes.Type.ACHIEVEMENTS,
 		"res://config/achievements.json",
 		"res://scripts/config/models/achievement_config.gd"
 	)
 
 	# 注册皮肤配置
-	register_config_type(
-		"skins",
+	register_config_type_enum(
+		ConfigTypes.Type.SKINS,
 		"res://config/skins.json",
 		"res://scripts/config/models/skin_config.gd"
 	)
 
 	# 注册教程配置
-	register_config_type(
-		"tutorials",
+	register_config_type_enum(
+		ConfigTypes.Type.TUTORIALS,
 		"res://config/tutorials.json",
 		"res://scripts/config/models/tutorial_config.gd"
 	)
 
 	# 注册动画配置
-	register_config_type(
-		"animation_config",
+	register_config_type_enum(
+		ConfigTypes.Type.ANIMATION_CONFIG,
 		"res://config/animations/animation_config.json",
 		"res://scripts/config/models/animation_config.gd"
 	)
 
 	# 注册环境效果配置
-	register_config_type(
-		"environment_effects",
+	register_config_type_enum(
+		ConfigTypes.Type.ENVIRONMENT_EFFECTS,
 		"res://config/effects/environment_effects.json",
 		"res://scripts/config/models/effect_config.gd"
 	)
 
 	# 注册技能效果配置
-	register_config_type(
-		"skill_effects",
+	register_config_type_enum(
+		ConfigTypes.Type.SKILL_EFFECTS,
 		"res://config/effects/skill_effects.json",
 		"res://scripts/config/models/effect_config.gd"
 	)
 
 	# 注册棋盘皮肤配置
-	register_config_type(
-		"board_skins",
+	register_config_type_enum(
+		ConfigTypes.Type.BOARD_SKINS,
 		"res://config/skins/board_skins.json",
 		"res://scripts/config/models/skin_config.gd"
 	)
 
 	# 注册棋子皮肤配置
-	register_config_type(
-		"chess_skins",
+	register_config_type_enum(
+		ConfigTypes.Type.CHESS_SKINS,
 		"res://config/skins/chess_skins.json",
 		"res://scripts/config/models/skin_config.gd"
 	)
 
 	# 注册UI皮肤配置
-	register_config_type(
-		"ui_skins",
+	register_config_type_enum(
+		ConfigTypes.Type.UI_SKINS,
 		"res://config/skins/ui_skins.json",
 		"res://scripts/config/models/skin_config.gd"
 	)
+
+## 注册配置类型（使用枚举）
+## 注册一个新的配置类型，指定其文件路径和模型类
+func register_config_type_enum(config_type: int, file_path: String, model_class_path: String = "") -> void:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("注册配置类型失败: 无效的配置类型枚举 - " + str(config_type))
+		return
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的注册方法
+	register_config_type(type_str, file_path, model_class_path)
 
 ## 注册配置类型
 ## 注册一个新的配置类型，指定其文件路径和模型类
@@ -171,6 +198,19 @@ func register_config_type(config_type: String, file_path: String, model_class_pa
 		_config_model_classes[config_type] = model_class_path
 
 	_log_info("注册配置类型: " + config_type + " -> " + file_path)
+
+## 取消注册配置类型（使用枚举）
+func unregister_config_type_enum(config_type: int) -> void:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("取消注册配置类型失败: 无效的配置类型枚举 - " + str(config_type))
+		return
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的取消注册方法
+	unregister_config_type(type_str)
 
 ## 取消注册配置类型
 func unregister_config_type(config_type: String) -> void:
@@ -302,6 +342,19 @@ func validate_config(config_type: String) -> Dictionary:
 		"errors": errors
 	}
 
+## 加载配置文件（使用枚举）
+func load_config_enum(config_type: int) -> bool:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("加载配置失败: 无效的配置类型枚举 - " + str(config_type))
+		return false
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的加载方法
+	return load_config(type_str)
+
 ## 加载配置文件
 func load_config(config_type: String) -> bool:
 	# 检查配置类型是否有效
@@ -357,6 +410,19 @@ static func _load_json_file(file_path: String) -> Dictionary:
 
 	return result
 
+## 获取配置项（使用枚举）
+func get_config_item_enum(config_type: int, config_id: String) -> Dictionary:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("获取配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		return {}
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的获取方法
+	return get_config_item(type_str, config_id)
+
 ## 获取配置项
 func get_config_item(config_type: String, config_id: String) -> Dictionary:
 	# 检查配置类型是否有效
@@ -373,6 +439,19 @@ func get_config_item(config_type: String, config_id: String) -> Dictionary:
 		return {}
 
 	return config_data[config_id].duplicate(true)
+
+## 获取配置模型（使用枚举）
+func get_config_model_enum(config_type: int, config_id: String) -> ConfigModel:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("获取配置模型失败: 无效的配置类型枚举 - " + str(config_type))
+		return null
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的获取方法
+	return get_config_model(type_str, config_id)
 
 ## 获取配置模型
 func get_config_model(config_type: String, config_id: String) -> ConfigModel:
@@ -398,6 +477,19 @@ func get_config_model(config_type: String, config_id: String) -> ConfigModel:
 	# 创建配置模型
 	return model_class.new(config_id, config_data[config_id])
 
+## 获取所有配置项（使用枚举）
+func get_all_config_items_enum(config_type: int) -> Dictionary:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("获取所有配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		return {}
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的获取方法
+	return get_all_config_items(type_str)
+
 ## 获取所有配置项
 func get_all_config_items(config_type: String) -> Dictionary:
 	# 检查配置类型是否有效
@@ -406,6 +498,19 @@ func get_all_config_items(config_type: String) -> Dictionary:
 		return {}
 
 	return _config_cache[config_type].duplicate(true)
+
+## 获取所有配置模型（使用枚举）
+func get_all_config_models_enum(config_type: int) -> Dictionary:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("获取所有配置模型失败: 无效的配置类型枚举 - " + str(config_type))
+		return {}
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的获取方法
+	return get_all_config_models(type_str)
 
 ## 获取所有配置模型
 func get_all_config_models(config_type: String) -> Dictionary:
@@ -437,6 +542,19 @@ func get_all_config_types() -> Array:
 ## 获取所有配置文件路径
 func get_all_config_paths() -> Dictionary:
 	return _config_paths.duplicate()
+
+## 重新加载配置（使用枚举）
+func reload_config_enum(config_type: int) -> bool:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("重新加载配置失败: 无效的配置类型枚举 - " + str(config_type))
+		return false
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的重新加载方法
+	return reload_config(type_str)
 
 ## 重新加载配置
 func reload_config(config_type: String) -> bool:
@@ -509,6 +627,19 @@ func save_json(file_path: String, data: Variant) -> bool:
 static func load_json(file_path: String) -> Variant:
 	return _load_json_file(file_path)
 
+## 设置配置项（使用枚举）
+func set_config_item_enum(config_type: int, config_id: String, config_data: Dictionary) -> bool:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("设置配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		return false
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的设置方法
+	return set_config_item(type_str, config_id, config_data)
+
 ## 设置配置项
 func set_config_item(config_type: String, config_id: String, config_data: Dictionary) -> bool:
 	# 检查配置类型是否有效
@@ -535,6 +666,19 @@ func set_config_item(config_type: String, config_id: String, config_data: Dictio
 
 	return true
 
+## 删除配置项（使用枚举）
+func delete_config_item_enum(config_type: int, config_id: String) -> bool:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		_log_warning("删除配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		return false
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 调用字符串版本的删除方法
+	return delete_config_item(type_str, config_id)
+
 ## 删除配置项
 func delete_config_item(config_type: String, config_id: String) -> bool:
 	# 检查配置类型是否有效
@@ -551,6 +695,24 @@ func delete_config_item(config_type: String, config_id: String) -> bool:
 	_config_cache[config_type].erase(config_id)
 
 	return true
+
+## 清除配置缓存（使用枚举）
+func clear_config_cache_enum(config_type: int = -1) -> void:
+	if config_type == -1:
+		# 清除所有缓存
+		_config_cache.clear()
+		_log_info("所有配置缓存已清除")
+	else:
+		# 检查配置类型是否有效
+		if not _config_type_map.has(config_type):
+			_log_warning("清除配置缓存失败: 无效的配置类型枚举 - " + str(config_type))
+			return
+
+		# 获取配置类型字符串
+		var type_str = _config_type_map[config_type]
+
+		# 调用字符串版本的清除方法
+		clear_config_cache(type_str)
 
 ## 清除配置缓存
 func clear_config_cache(config_type: String = "") -> void:
@@ -599,89 +761,94 @@ func _do_cleanup() -> void:
 
 ## 获取棋子配置
 func get_chess_piece_config(piece_id: String):
-	return get_config_model("chess_pieces", piece_id)
+	return get_config_model_enum(ConfigTypes.Type.CHESS_PIECES, piece_id)
 
 ## 获取所有棋子配置
 func get_all_chess_pieces() -> Dictionary:
-	return get_all_config_models("chess_pieces")
+	return get_all_config_models_enum(ConfigTypes.Type.CHESS_PIECES)
 
 ## 获取装备配置
 func get_equipment_config(equipment_id: String):
-	return get_config_model("equipment", equipment_id)
+	return get_config_model_enum(ConfigTypes.Type.EQUIPMENT, equipment_id)
 
 ## 获取所有装备配置
-func get_all_equipment() -> Dictionary:
-	return get_all_config_models("equipment")
+func get_all_equipment() -> Dictionary[String, EquipmentConfig]:
+	var raw_dict = get_all_config_models_enum(ConfigTypes.Type.EQUIPMENT)
+	# 转换为目标类型
+	var equipment_dict: Dictionary[String, EquipmentConfig] = {}
+	for key in raw_dict:
+		equipment_dict[key] = raw_dict[key]
+	return equipment_dict
 
 ## 获取地图配置
 func get_map_config():
-	return get_config_model("map_config", "map_config")
+	return get_config_model_enum(ConfigTypes.Type.MAP_CONFIG, "map_config")
 
 ## 获取地图配置数据
 func get_map_config_data() -> Dictionary:
-	return get_all_config_items("map_config")
+	return get_all_config_items_enum(ConfigTypes.Type.MAP_CONFIG)
 
 ## 获取遗物配置
 func get_relic_config(relic_id: String):
-	return get_config_model("relics", relic_id)
+	return get_config_model_enum(ConfigTypes.Type.RELICS, relic_id)
 
 ## 获取所有遗物配置
 func get_all_relics() -> Dictionary:
-	return get_all_config_models("relics")
+	return get_all_config_models_enum(ConfigTypes.Type.RELICS)
 
 ## 获取羁绊配置
 func get_synergy_config(synergy_id: String):
-	return get_config_model("synergies", synergy_id)
+	return get_config_model_enum(ConfigTypes.Type.SYNERGIES, synergy_id)
 
 ## 获取所有羁绊配置
 func get_all_synergies() -> Dictionary:
-	return get_all_config_models("synergies")
+	return get_all_config_models_enum(ConfigTypes.Type.SYNERGIES)
 
 ## 获取事件配置
 func get_event_config(event_id: String):
-	return get_config_model("events", event_id)
+	return get_config_model_enum(ConfigTypes.Type.EVENTS, event_id)
 
 ## 获取所有事件配置
 func get_all_events() -> Dictionary:
-	return get_all_config_models("events")
+	return get_all_config_models_enum(ConfigTypes.Type.EVENTS)
 
 ## 获取难度配置
 func get_difficulty_config(difficulty_level: int):
 	var difficulty_key = str(difficulty_level)
-	return get_config_model("difficulty", difficulty_key)
+	return get_config_model_enum(ConfigTypes.Type.DIFFICULTY, difficulty_key)
 
 ## 获取所有难度配置
 func get_all_difficulty() -> Dictionary:
-	return get_all_config_models("difficulty")
+	return get_all_config_models_enum(ConfigTypes.Type.DIFFICULTY)
 
 ## 获取成就配置
 func get_achievement_config(achievement_id: String):
-	return get_config_model("achievements", achievement_id)
+	return get_config_model_enum(ConfigTypes.Type.ACHIEVEMENTS, achievement_id)
 
 ## 获取所有成就配置
 func get_all_achievements() -> Dictionary:
-	return get_all_config_models("achievements")
+	return get_all_config_models_enum(ConfigTypes.Type.ACHIEVEMENTS)
 
 ## 获取皮肤配置
 func get_skin_config(skin_id: String):
-	return get_config_model("skins", skin_id)
+	return get_config_model_enum(ConfigTypes.Type.SKINS, skin_id)
 
 ## 获取所有皮肤配置
 func get_all_skins() -> Dictionary:
-	return get_all_config_models("skins")
+	return get_all_config_models_enum(ConfigTypes.Type.SKINS)
 
 ## 获取教程配置
 func get_tutorial_config(tutorial_id: String):
-	return get_config_model("tutorials", tutorial_id)
+	return get_config_model_enum(ConfigTypes.Type.TUTORIALS, tutorial_id)
 
 ## 获取所有教程配置
 func get_all_tutorials() -> Dictionary:
-	return get_all_config_models("tutorials")
+	return get_all_config_models_enum(ConfigTypes.Type.TUTORIALS)
 
 ## 获取棋子配置（按羁绊）
 func get_chess_pieces_by_synergy(synergy_id: String) -> Array:
 	var result = []
-	var all_pieces = get_all_chess_pieces()
+	var all_pieces = get_all_config_models_enum(ConfigTypes.Type.CHESS_PIECES)
 
 	for piece_id in all_pieces:
 		var piece = all_pieces[piece_id]
@@ -693,7 +860,7 @@ func get_chess_pieces_by_synergy(synergy_id: String) -> Array:
 ## 获取棋子配置（按费用）
 func get_chess_pieces_by_cost(costs: Array) -> Array:
 	var result = []
-	var all_pieces = get_all_chess_pieces()
+	var all_pieces = get_all_config_models_enum(ConfigTypes.Type.CHESS_PIECES)
 
 	for piece_id in all_pieces:
 		var piece = all_pieces[piece_id]
@@ -705,3 +872,7 @@ func get_chess_pieces_by_cost(costs: Array) -> Array:
 ## 获取配置
 func get_config(config_type: String) -> Dictionary:
 	return get_all_config_items(config_type)
+
+## 获取配置（使用枚举）
+func get_config_enum(config_type: int) -> Dictionary:
+	return get_all_config_items_enum(config_type)
