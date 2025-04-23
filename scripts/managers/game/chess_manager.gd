@@ -87,7 +87,7 @@ func _load_chess_configs() -> void:
 ## 配置变更回调
 func _on_config_changed(config_type: String, config_id: String) -> void:
 	# 检查是否是棋子配置
-	if config_type == ConfigTypes.to_string(ConfigTypes.Type.CHESS_PIECES):
+	if config_type == ConfigTypes.int_to_string(ConfigTypes.Type.CHESS_PIECES):
 		# 发送配置加载信号
 		chess_config_loaded.emit(config_id)
 		_log_info("棋子配置已更新: " + config_id)
@@ -108,17 +108,17 @@ func get_chess(chess_id: String) -> ChessPieceEntity:
 
 ## 创建棋子
 func create_chess_piece(chess_id: String, star_level: int = 1, is_player_piece: bool = true) -> ChessPieceEntity:
+	# 获取棋子配置
+	var chess_config = get_chess_config(chess_id)
+
 	# 检查棋子配置是否存在
-	if not _chess_configs.has(chess_id):
+	if chess_config.is_empty():
 		_log_warning("未知的棋子配置: " + chess_id)
 		return null
 
-	# 获取棋子数据
-	var chess_data = _chess_configs[chess_id].duplicate()
-
 	# 设置星级和所属
-	chess_data["level"] = star_level
-	chess_data["is_player_piece"] = is_player_piece
+	chess_config["level"] = star_level
+	chess_config["is_player_piece"] = is_player_piece
 
 	# 使用棋子工厂创建棋子
 	var chess_piece = chess_factory.create_from_config(chess_id, is_player_piece)
@@ -842,39 +842,51 @@ func get_recommended_items(chess_id: String) -> Array:
 
 # 获取所有棋子配置
 func get_all_chess_configs() -> Dictionary:
-	return _chess_configs.duplicate()
+	# 使用 ConfigManager 获取所有棋子配置
+	var chess_models = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.CHESS_PIECES)
+
+	# 转换为数据字典
+	var result = {}
+	for chess_id in chess_models:
+		var chess_model = chess_models[chess_id]
+		result[chess_id] = chess_model.get_data()
+
+	return result
 
 # 获取指定等级的棋子配置
 func get_chess_configs_by_tier(tier: int) -> Array:
-	var result = []
+	# 使用配置查询功能
+	var chess_models = GameManager.config_manager.query_array(ConfigTypes.Type.CHESS_PIECES, {"tier": tier})
 
-	for chess_id in _chess_configs:
-		var config = _chess_configs[chess_id]
-		if config.get("tier", 1) == tier:
-			result.append(chess_id)
+	# 提取棋子ID
+	var result = []
+	for chess_model in chess_models:
+		result.append(chess_model.get_id())
 
 	return result
 
 # 根据羊结类型搜索棋子
 func get_chess_by_synergy(synergy_type: String) -> Array:
+	# 使用配置查询功能
+	var chess_models = GameManager.config_manager.query_array(ConfigTypes.Type.CHESS_PIECES, {"synergies": [synergy_type]})
+
+	# 提取棋子ID
 	var result = []
-
-	for chess_id in _chess_configs:
-		var config = _chess_configs[chess_id]
-		var synergies = config.get("synergies", [])
-
-		if synergy_type in synergies:
-			result.append(chess_id)
+	for chess_model in chess_models:
+		result.append(chess_model.get_id())
 
 	return result
 
 # 根据费用范围搜索棋子
 func get_chess_by_cost_range(min_cost: int, max_cost: int) -> Array:
-	var result = []
+	# 获取所有棋子配置
+	var chess_models = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.CHESS_PIECES)
 
-	for chess_id in _chess_configs:
-		var config = _chess_configs[chess_id]
-		var cost = config.get("cost", 1)
+	# 根据费用范围过滤
+	var result = []
+	for chess_id in chess_models:
+		var chess_model = chess_models[chess_id]
+		var cost = chess_model.get_cost()
 
 		if cost >= min_cost and cost <= max_cost:
 			result.append(chess_id)
@@ -883,8 +895,9 @@ func get_chess_by_cost_range(min_cost: int, max_cost: int) -> Array:
 
 # 根据多个条件过滤棋子
 func filter_chess(filters: Dictionary) -> Array:
-	var result = []
-	var all_chess_ids = _chess_configs.keys()
+	# 获取所有棋子配置
+	var chess_configs = get_all_chess_configs()
+	var all_chess_ids = chess_configs.keys()
 
 	# 如果没有过滤条件，返回所有棋子
 	if filters.is_empty():
@@ -892,7 +905,7 @@ func filter_chess(filters: Dictionary) -> Array:
 
 	# 开始过滤
 	for chess_id in all_chess_ids:
-		var config = _chess_configs[chess_id]
+		var config = chess_configs[chess_id]
 		var match_all = true
 
 		# 棋子费用过滤
