@@ -48,8 +48,8 @@ class StatusEffectEntity:
 # 初始化
 func _ready():
 	# 连接信号
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 
 # 处理攻击
 func process_attack(attacker: ChessPieceEntity, defender: ChessPieceEntity) -> Dictionary:
@@ -219,7 +219,7 @@ func apply_damage(attacker: ChessPieceEntity, defender: ChessPieceEntity, damage
 	# 优化：只在伤害超过一定阈值时发送事件
 	# 或者当伤害类型不是普通物理伤害时发送
 	if actual_damage > 5.0 or damage_type_str != "physical":
-		EventBus.battle.emit_event("damage_dealt", [attacker, defender, actual_damage, damage_type_str])
+		GlobalEventBus.battle.dispatch_event(BattleEvents.DamageDealtEvent.new(attacker, defender, actual_damage, damage_type_str))
 
 # 触发攻击效果
 func _trigger_attack_effects(attacker: ChessPieceEntity, defender: ChessPieceEntity, damage_result: Dictionary) -> void:

@@ -66,7 +66,7 @@ func _do_initialize() -> void:
 	map_controller.path_highlight_cleared.connect(_on_path_highlight_cleared)
 
 	# 连接事件总线信号
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 	EventBus.event.connect_event("event_completed", _on_event_completed)
 	EventBus.economy.connect_event("shop_closed", _on_shop_exited)
 
@@ -570,7 +570,7 @@ func _trigger_mystery_node(node: MapNode) -> void:
 			mystery_node.heal_amount = 30 + node.layer * 5  # 神秘休息点治疗量更高
 
 	# 显示提示
-	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.mystery_revealed").format({"type": LocalizationManager.tr("ui.map.node_" + random_type)})])
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(LocalizationManager.tr("ui.map.mystery_revealed").format({"type": LocalizationManager.tr("ui.map.node_" + random_type)})))
 
 	# 触发对应类型的节点事件
 	_trigger_node_event(mystery_node)
@@ -682,7 +682,7 @@ func _do_cleanup() -> void:
 		map_controller.node_unhovered.disconnect(_on_node_unhovered)
 
 	# 断开事件总线信号
-	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 	EventBus.event.disconnect_event("event_completed", _on_event_completed)
 	EventBus.economy.disconnect_event("shop_closed", _on_shop_exited)
 

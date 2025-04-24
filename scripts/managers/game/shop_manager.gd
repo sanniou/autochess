@@ -35,7 +35,7 @@ func _do_initialize() -> void:
 	# 连接游戏事件
 	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
 	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
-	EventBus.game.connect_event("difficulty_changed", _on_difficulty_changed)
+	GlobalEventBus.game.add_listener("difficulty_changed", _on_difficulty_changed)
 
 	_log_info("商店管理器初始化完成")
 

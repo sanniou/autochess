@@ -156,13 +156,13 @@ func _on_delete_confirmed() -> void:
 	
 	if success:
 		# 显示成功提示
-		EventBus.ui.emit_event("show_toast", [tr("ui.save.delete_success"), 2.0])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.delete_success"), 2.0))
 		
 		# 重新加载存档列表
 		_load_save_list()
 	else:
 		# 显示失败提示
-		EventBus.ui.emit_event("show_toast", [tr("ui.save.delete_failed"), 2.0])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.delete_failed"), 2.0))
 
 # 取消按钮点击处理
 func _on_cancel_button_pressed() -> void:

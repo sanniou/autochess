@@ -32,7 +32,7 @@ func _do_initialize() -> void:
 	_initialize_available_relics()
 
 	# 连接信号
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 	EventBus.event.connect_event("event_completed", _on_event_completed)
 	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
 
@@ -99,12 +99,12 @@ func _initialize_available_relics() -> void:
 func acquire_relic(relic_id: String, player = null) -> Relic:
 	# 检查是否已达到最大遗物数量
 	if player_relics.size() >= MAX_RELICS:
-		EventBus.debug.emit_event("debug_message", ["已达到最大遗物数量", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("已达到最大遗物数量", 1))
 		return null
 
 	# 检查遗物是否存在
 	if not relic_factory.has(relic_id):
-		EventBus.debug.emit_event("debug_message", ["遗物不存在: " + relic_id, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("遗物不存在: " + relic_id, 2))
 		return null
 
 	# 创建遗物实例
@@ -367,7 +367,7 @@ func _do_cleanup() -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
-			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 			EventBus.event.disconnect_event("event_completed", _on_event_completed)
 			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
 

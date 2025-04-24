@@ -273,7 +273,7 @@ func _perform_sacrifice(item_data: Dictionary) -> void:
 	update_hud()
 	
 	# 显示提示
-	EventBus.ui.emit_event("show_toast", [tr("ui.altar.sacrifice_success", [item_data.name, str(item_data.value])]))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.altar.sacrifice_success", [item_data.name, str(item_data.value))]))
 
 # 牺牲棋子
 func _sacrifice_chess(item_data: Dictionary) -> void:

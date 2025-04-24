@@ -87,7 +87,7 @@ func _on_map_node_hovered(node_data: MapNode) -> void:
 # 地图完成处理
 func _on_map_completed() -> void:
 	# 显示地图完成提示
-	EventBus.ui.emit_event("show_toast", [tr("ui.map.completed")])
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.map.completed")))
 
 	# 播放完成音效
 	AudioManager.play_sfx("map_completed.ogg")

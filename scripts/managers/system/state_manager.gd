@@ -36,7 +36,7 @@ func _do_initialize() -> void:
 	# 连接事件总线
 	_connect_event_bus()
 
-	EventBus.debug.emit_event("debug_message", ["状态管理器初始化完成", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("状态管理器初始化完成", 0))
 
 ## 初始化状态
 func _initialize_state() -> void:
@@ -52,15 +52,15 @@ func _initialize_state() -> void:
 ## 连接事件总线
 func _connect_event_bus() -> void:
 	# 连接游戏事件
-	EventBus.game.connect_event("game_started", _on_game_started)
-	EventBus.game.connect_event("game_ended", _on_game_ended)
-	EventBus.game.connect_event("game_paused", _on_game_paused)
-	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.add_listener("game_started", _on_game_started)
+	GlobalEventBus.game.add_listener("game_ended", _on_game_ended)
+	GlobalEventBus.game.add_listener("game_paused", _on_game_paused)
+	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 连接玩家事件
-	EventBus.game.connect_event("player_health_changed", _on_player_health_changed)
-	EventBus.game.connect_event("player_level_changed", _on_player_level_changed)
-	EventBus.game.connect_event("player_died", _on_player_died)
+	GlobalEventBus.game.add_listener("player_health_changed", _on_player_health_changed)
+	GlobalEventBus.game.add_listener("player_level_changed", _on_player_level_changed)
+	GlobalEventBus.game.add_listener("player_died", _on_player_died)
 
 	# 连接棋盘事件
 	EventBus.board.connect_event("board_initialized", _on_board_initialized)
@@ -70,8 +70,8 @@ func _connect_event_bus() -> void:
 	EventBus.board.connect_event("board_locked", _on_board_locked)
 
 	# 连接战斗事件
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 
 	# 连接经济事件
 	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
@@ -460,15 +460,15 @@ func _do_cleanup() -> void:
 # 断开事件总线
 func _disconnect_event_bus() -> void:
 	# 断开游戏事件
-	EventBus.game.disconnect_event("game_started", _on_game_started)
-	EventBus.game.disconnect_event("game_ended", _on_game_ended)
-	EventBus.game.disconnect_event("game_paused", _on_game_paused)
-	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.remove_listener("game_started", _on_game_started)
+	GlobalEventBus.game.remove_listener("game_ended", _on_game_ended)
+	GlobalEventBus.game.remove_listener("game_paused", _on_game_paused)
+	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
 
 	# 断开玩家事件
-	EventBus.game.disconnect_event("player_health_changed", _on_player_health_changed)
-	EventBus.game.disconnect_event("player_level_changed", _on_player_level_changed)
-	EventBus.game.disconnect_event("player_died", _on_player_died)
+	GlobalEventBus.game.remove_listener("player_health_changed", _on_player_health_changed)
+	GlobalEventBus.game.remove_listener("player_level_changed", _on_player_level_changed)
+	GlobalEventBus.game.remove_listener("player_died", _on_player_died)
 
 	# 断开棋盘事件
 	EventBus.board.disconnect_event("board_initialized", _on_board_initialized)
@@ -478,8 +478,8 @@ func _disconnect_event_bus() -> void:
 	EventBus.board.disconnect_event("board_locked", _on_board_locked)
 
 	# 断开战斗事件
-	EventBus.battle.disconnect_event("battle_started", _on_battle_started)
-	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.remove_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 
 	# 断开经济事件
 	EventBus.economy.disconnect_event("gold_changed", _on_gold_changed)

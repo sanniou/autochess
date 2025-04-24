@@ -87,13 +87,13 @@ func load_theme(theme_name: String) -> void:
 
 	# 检查主题是否存在
 	if not ResourceLoader.exists(theme_path):
-		EventBus.debug.emit_event("debug_message", ["主题不存在: " + theme_path, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("主题不存在: " + theme_path, 1))
 		return
 
 	# 加载主题
 	var theme = ResourceLoader.load(theme_path)
 	if theme == null:
-		EventBus.debug.emit_event("debug_message", ["无法加载主题: " + theme_path, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载主题: " + theme_path, 1))
 		return
 
 	# 缓存主题
@@ -347,7 +347,7 @@ func save_theme(theme_name: String, theme: Theme) -> void:
 	# 保存主题
 	var err = ResourceSaver.save(theme, theme_path)
 	if err != OK:
-		EventBus.debug.emit_event("debug_message", ["无法保存主题: " + theme_path + ", 错误: " + str(err), 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法保存主题: " + theme_path + ", 错误: " + str(err), 1))
 		return
 
 	# 缓存主题

@@ -223,12 +223,12 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 
 	# 显示节点信息提示
 	var node_type_name = LocalizationManager.tr("ui.map.node_" + node_data.type)
-	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name})])
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name})))
 
 ## 地图完成处理
 func _on_map_completed() -> void:
 	# 地图完成后的处理
-	EventBus.ui.emit_event("show_toast", [LocalizationManager.tr("ui.map.completed")])
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(LocalizationManager.tr("ui.map.completed")))
 	# 播放完成音效
 	AudioManager.play_sfx("victory.ogg")
 
@@ -434,7 +434,7 @@ func _show_best_path_to_boss() -> void:
 					break
 
 		# 显示提示
-		EventBus.ui.emit_event("show_toast", ["已显示到Boss的最佳路径", 2.0])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("已显示到Boss的最佳路径", 2.0))
 
 ## 更新连接线状态
 func _update_connection_states(current_node) -> void:

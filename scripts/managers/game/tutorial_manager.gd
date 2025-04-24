@@ -60,7 +60,7 @@ func _load_tutorial_configs() -> void:
 # 连接信号
 func _connect_signals() -> void:
 	# 连接游戏状态变化信号
-	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 连接教程相关信号
 	EventBus.tutorial.connect_event("start_tutorial", start_tutorial)
@@ -95,7 +95,7 @@ func _save_tutorial_data() -> void:
 func start_tutorial(tutorial_id: String) -> bool:
 	# 检查教程是否存在
 	if not tutorial_configs.has(tutorial_id):
-		EventBus.debug.emit_event("debug_message", ["教程不存在: " + tutorial_id, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("教程不存在: " + tutorial_id, 1))
 		return false
 
 	# 检查教程是否已完成或已跳过
@@ -583,7 +583,7 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
 	EventBus.tutorial.disconnect_event("start_tutorial", start_tutorial)
 	EventBus.tutorial.disconnect_event("skip_tutorial", skip_tutorial)
 	EventBus.tutorial.disconnect_event("complete_tutorial", complete_tutorial)

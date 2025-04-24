@@ -47,7 +47,7 @@ func initialize() -> void:
 	font_manager = get_node_or_null("/root/FontManager")
 
 	_initialized = true
-	EventBus.debug.emit_event("debug_message", ["Utils 初始化完成", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("Utils 初始化完成", 0))
 
 #region 文本工具函数
 

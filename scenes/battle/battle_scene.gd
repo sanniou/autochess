@@ -174,7 +174,7 @@ func _on_battle_ended(victory: bool) -> void:
 	var result = BattleResult.create_simple(victory)
 
 	# 发送战斗结束信号
-	EventBus.battle.emit_event("battle_ended", [result.to_dict()])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleEndedEvent.new(result.to_dict()))
 	EventBus.battle.emit_event("battle_round_ended", [current_round])
 
 	# 延迟返回地图
@@ -206,7 +206,7 @@ func _on_skip_button_pressed() -> void:
 	if current_state == BattleState.PREPARE or current_state == BattleState.FIGHTING:
 		# 直接结束战斗
 		if current_state == BattleState.PREPARE:
-			EventBus.battle.emit_event("battle_started", [])
+			GlobalEventBus.battle.dispatch_event(BattleEvents.BattleStartedEvent.new())
 
 		_on_battle_ended(randf() > 0.5)  # 跳过时随机结果
 

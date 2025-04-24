@@ -30,10 +30,10 @@ func _connect_events() -> void:
 	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
 
 	# 游戏状态事件
-	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 棋子事件
-	EventBus.chess.connect_event("chess_piece_moved", _on_chess_piece_moved)
+	GlobalEventBus.chess.add_listener("chess_piece_moved", _on_chess_piece_moved)
 	EventBus.chess.connect_event("chess_piece_placed", _on_chess_piece_placed)
 	EventBus.chess.connect_event("chess_piece_removed", _on_chess_piece_removed)
 
@@ -656,10 +656,10 @@ func _disconnect_events() -> void:
 	EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
 
 	# 游戏状态事件
-	EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
 
 	# 棋子事件
-	EventBus.chess.disconnect_event("chess_piece_moved", _on_chess_piece_moved)
+	GlobalEventBus.chess.remove_listener("chess_piece_moved", _on_chess_piece_moved)
 	EventBus.chess.disconnect_event("chess_piece_placed", _on_chess_piece_placed)
 	EventBus.chess.disconnect_event("chess_piece_removed", _on_chess_piece_removed)
 

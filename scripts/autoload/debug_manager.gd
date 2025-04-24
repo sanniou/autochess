@@ -103,7 +103,7 @@ func _do_initialize() -> void:
 
 	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.debug.connect_event("debug_message", _on_debug_message)
+	GlobalEventBus.debug.add_listener("debug_message", _on_debug_message)
 
 	# 注册控制台命令
 	_register_console_commands()
@@ -205,7 +205,7 @@ func log_message(message: String, level: int = DebugLevel.INFO) -> void:
 		_write_to_log_file(formatted_message)
 
 	# 发送调试消息信号
-	EventBus.debug.emit_event("debug_message", [message, level])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, level))
 
 ## 写入日志文件
 func _write_to_log_file(message: String) -> void:
@@ -618,7 +618,7 @@ func _emit_performance_warning(message: String, level: int) -> void:
 	log_message("性能警告: " + message, level)
 
 	# 发送性能警告信号
-	EventBus.debug.emit_event("performance_warning", [message, level])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.PerformanceWarningEvent.new(message, level))
 
 ## 记录性能数据到文件
 func _log_performance_to_file() -> void:

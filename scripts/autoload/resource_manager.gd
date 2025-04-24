@@ -701,14 +701,14 @@ func _emit_resource_loaded(path: String) -> void:
 # 记录错误信息
 func _log_error(error_message: String) -> void:
 	push_error(error_message)
-	EventBus.debug.emit_event("debug_message", [error_message, 2])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(error_message, 2))
 
 # 记录警告信息
 func _log_warning(warning_message: String) -> void:
 	push_warning(warning_message)
-	EventBus.debug.emit_event("debug_message", [warning_message, 1])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(warning_message, 1))
 
 # 记录信息
 func _log_info(info_message: String) -> void:
 	print(info_message)
-	EventBus.debug.emit_event("debug_message", [info_message, 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(info_message, 0))

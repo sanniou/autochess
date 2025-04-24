@@ -398,7 +398,7 @@ func _on_confirm_button_pressed() -> void:
 	var player_manager = GameManager.player_manager
 	if player_manager == null or player_manager.get_gold() < price:
 		# 显示金币不足提示
-		EventBus.ui.emit_event("show_toast", [tr("ui.blacksmith.not_enough_gold")])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.blacksmith.not_enough_gold")))
 		return
 	
 	# 扣除金币
@@ -412,7 +412,7 @@ func _on_confirm_button_pressed() -> void:
 		play_ui_sound("blacksmith_success.ogg")
 		
 		# 显示成功提示
-		EventBus.ui.emit_event("show_toast", [_get_service_success_message(current_service)])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(_get_service_success_message(current_service)))
 		
 		# 发送装备升级信号
 		EventBus.map.emit_event("equipment_upgraded", [selected_equipment, true])
@@ -427,7 +427,7 @@ func _on_confirm_button_pressed() -> void:
 		play_ui_sound("blacksmith_fail.ogg")
 		
 		# 显示失败提示
-		EventBus.ui.emit_event("show_toast", [_get_service_fail_message(current_service)])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(_get_service_fail_message(current_service)))
 		
 		# 发送装备升级信号
 		EventBus.map.emit_event("equipment_upgraded", [selected_equipment, false])

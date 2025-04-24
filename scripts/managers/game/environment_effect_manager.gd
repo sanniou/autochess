@@ -51,15 +51,15 @@ func _load_effect_configs() -> void:
 		if error == OK:
 			effect_configs = json.data
 		else:
-			EventBus.debug.emit_event("debug_message", ["无法解析环境特效配置文件: " + json.get_error_message(), 1])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法解析环境特效配置文件: " + json.get_error_message(), 1))
 	else:
-		EventBus.debug.emit_event("debug_message", ["环境特效配置文件不存在: " + config_path, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("环境特效配置文件不存在: " + config_path, 1))
 
 # 启动环境特效
 func start_effect(effect_type: String, params: Dictionary = {}) -> String:
 	# 检查特效类型是否存在
 	if not effect_configs.has(effect_type):
-		EventBus.debug.emit_event("debug_message", ["未知的环境特效类型: " + effect_type, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("未知的环境特效类型: " + effect_type, 1))
 		return ""
 
 	# 获取特效配置
@@ -196,13 +196,13 @@ func _create_effect_instance(effect_type: String, params: Dictionary) -> Node:
 	if scene_path.is_empty():
 		var script_path = config.get("script_path", "")
 		if script_path.is_empty():
-			EventBus.debug.emit_event("debug_message", ["环境特效没有场景或脚本路径: " + effect_type, 1])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("环境特效没有场景或脚本路径: " + effect_type, 1))
 			return null
 
 		# 加载脚本
 		var script = load(script_path)
 		if not script:
-			EventBus.debug.emit_event("debug_message", ["无法加载环境特效脚本: " + script_path, 1])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载环境特效脚本: " + script_path, 1))
 			return null
 
 		# 创建实例
@@ -218,7 +218,7 @@ func _create_effect_instance(effect_type: String, params: Dictionary) -> Node:
 	# 加载场景
 	var scene = load(scene_path)
 	if not scene:
-		EventBus.debug.emit_event("debug_message", ["无法加载环境特效场景: " + scene_path, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载环境特效场景: " + scene_path, 1))
 		return null
 
 	# 实例化场景

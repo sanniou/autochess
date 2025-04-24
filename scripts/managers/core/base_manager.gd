@@ -101,7 +101,7 @@ func add_dependency(dependency_name: String) -> bool:
 
 	# 添加依赖
 	_dependencies.append(dependency_name)
-	EventBus.debug.emit_event("debug_message", ["添加依赖: " + manager_name + " -> " + dependency_name, 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("添加依赖: " + manager_name + " -> " + dependency_name, 0))
 	dependency_added.emit(dependency_name)
 	return true
 
@@ -113,7 +113,7 @@ func remove_dependency(dependency_name: String) -> bool:
 
 	# 移除依赖
 	_dependencies.erase(dependency_name)
-	EventBus.debug.emit_event("debug_message", ["移除依赖: " + manager_name + " -> " + dependency_name, 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("移除依赖: " + manager_name + " -> " + dependency_name, 0))
 	dependency_removed.emit(dependency_name)
 	return true
 
@@ -195,7 +195,7 @@ func _log_error(message: String) -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus and EventBus.has_method("emit_event"):
-			EventBus.debug.emit_event("debug_message", [message, 2])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 2))
 
 	error_occurred.emit(message)
 
@@ -205,7 +205,7 @@ static func _log_warning(message: String) -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus and EventBus.has_method("emit_event"):
-			EventBus.debug.emit_event("debug_message", [message, 1])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 1))
 
 # 记录信息
 func _log_info(message: String) -> void:
@@ -213,8 +213,8 @@ func _log_info(message: String) -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus and EventBus.has_method("emit_event"):
-			EventBus.debug.emit_event("debug_message", [message, 0])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 0))
 
 # 记录调试信息
 func _log_debug(debug_message: String) -> void:
-	EventBus.debug.emit_event("debug_message", [debug_message, 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(debug_message, 0))

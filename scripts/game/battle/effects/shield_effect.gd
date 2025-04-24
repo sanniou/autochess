@@ -61,7 +61,7 @@
 # 	_create_shield_visual()
 	
 # 	# 连接伤害事件
-# 	EventBus.battle.connect_event("damage_dealt", _on_damage_dealt)
+# 	GlobalEventBus.battle.add_listener("damage_dealt", _on_damage_dealt)
 	
 # 	return true
 
@@ -74,7 +74,7 @@
 # 	_remove_shield_visual()
 	
 # 	# 断开伤害事件
-# 	EventBus.battle.disconnect_event("damage_dealt", _on_damage_dealt)
+# 	GlobalEventBus.battle.remove_listener("damage_dealt", _on_damage_dealt)
 	
 # 	return true
 

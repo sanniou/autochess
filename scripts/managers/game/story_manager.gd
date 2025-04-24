@@ -29,7 +29,7 @@ func set_flag(flag_name: String, value = true) -> void:
 	story_flags[flag_name] = value
 
 	# 发送剧情标记设置信号
-	EventBus.debug.emit_event("debug_message", ["设置剧情标记: " + flag_name + " = " + str(value), 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("设置剧情标记: " + flag_name + " = " + str(value), 0))
 
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -45,7 +45,7 @@ func set_branch(branch_name: String, path: String) -> void:
 	story_branches[branch_name] = path
 
 	# 发送剧情分支设置信号
-	EventBus.debug.emit_event("debug_message", ["设置剧情分支: " + branch_name + " = " + path, 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("设置剧情分支: " + branch_name + " = " + path, 0))
 
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()
@@ -61,7 +61,7 @@ func advance_story(amount: int = 1) -> void:
 	story_progress += amount
 
 	# 发送剧情进度更新信号
-	EventBus.debug.emit_event("debug_message", ["剧情进度更新: " + str(story_progress), 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("剧情进度更新: " + str(story_progress), 0))
 
 	# 检查是否触发新的剧情事件
 	_check_story_triggers()

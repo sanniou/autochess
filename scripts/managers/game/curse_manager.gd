@@ -44,13 +44,13 @@ func _do_initialize() -> void:
 	# 连接信号
 	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
 	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
 
 # 应用诅咒
 func apply_curse(curse_type: String, duration: int) -> bool:
 	# 检查诅咒类型是否有效
 	if not curse_effects.has(curse_type):
-		EventBus.debug.emit_event("debug_message", ["无效的诅咒类型: " + curse_type, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无效的诅咒类型: " + curse_type, 2))
 		return false
 
 	# 获取诅咒效果
@@ -63,7 +63,7 @@ func apply_curse(curse_type: String, duration: int) -> bool:
 	}
 
 	# 发送诅咒应用信号
-	EventBus.debug.emit_event("debug_message", ["应用诅咒: " + effect.name + ", 持续" + str(duration) + "回合", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用诅咒: " + effect.name + ", 持续" + str(duration) + "回合", 0))
 
 	# 立即应用持续性诅咒效果
 	_apply_persistent_curse_effects()
@@ -84,7 +84,7 @@ func remove_curse(curse_type: String) -> bool:
 	active_curses.erase(curse_type)
 
 	# 发送诅咒移除信号
-	EventBus.debug.emit_event("debug_message", ["移除诅咒: " + effect.name, 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("移除诅咒: " + effect.name, 0))
 
 	# 移除持续性诅咒效果
 	_remove_persistent_curse_effects(curse_type)
@@ -201,8 +201,8 @@ func _apply_mirror_curse() -> void:
 	random_piece.max_health = attack
 
 	# 发送诅咒效果应用信号
-	EventBus.debug.emit_event("debug_message", ["镜像诅咒效果: 交换了" + random_piece.name + "的攻击力和生命值", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.curse.mirror_applied"), random_piece.name])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("镜像诅咒效果: 交换了" + random_piece.name + "的攻击力和生命值", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.curse.mirror_applied"), random_piece.name))
 
 # 应用贪婪诅咒效果
 func _apply_greed_curse(old_amount: int, new_amount: int) -> void:
@@ -218,8 +218,8 @@ func _apply_greed_curse(old_amount: int, new_amount: int) -> void:
 			player.gold -= 1
 
 			# 发送诅咒效果应用信号
-			EventBus.debug.emit_event("debug_message", ["贪婪诅咒效果: 减少1金币", 0])
-			EventBus.ui.emit_event("show_toast", [tr("ui.curse.greed_applied")])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("贪婪诅咒效果: 减少1金币", 0))
+			GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.curse.greed_applied")))
 
 # 应用虚弱诅咒效果
 func _apply_weakness_curse() -> void:
@@ -236,8 +236,8 @@ func _apply_weakness_curse() -> void:
 		piece.attack_damage = int(original_attack * 0.85)
 
 	# 发送诅咒效果应用信号
-	EventBus.debug.emit_event("debug_message", ["虚弱诅咒效果: 所有棋子攻击力降低15%", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.curse.weakness_applied")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("虚弱诅咒效果: 所有棋子攻击力降低15%", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.curse.weakness_applied")))
 
 # 移除虚弱诅咒效果
 func _remove_weakness_curse() -> void:
@@ -254,8 +254,8 @@ func _remove_weakness_curse() -> void:
 		piece.attack_damage = int(current_attack / 0.85)
 
 	# 发送诅咒效果移除信号
-	EventBus.debug.emit_event("debug_message", ["虚弱诅咒效果已移除", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.curse.weakness_removed")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("虚弱诅咒效果已移除", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.curse.weakness_removed")))
 
 # 应用脆弱诅咒效果
 func _apply_fragility_curse() -> void:
@@ -273,8 +273,8 @@ func _apply_fragility_curse() -> void:
 		piece.current_health = min(piece.current_health, piece.max_health)
 
 	# 发送诅咒效果应用信号
-	EventBus.debug.emit_event("debug_message", ["脆弱诅咒效果: 所有棋子生命值降低15%", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.curse.fragility_applied")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("脆弱诅咒效果: 所有棋子生命值降低15%", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.curse.fragility_applied")))
 
 # 移除脆弱诅咒效果
 func _remove_fragility_curse() -> void:
@@ -295,8 +295,8 @@ func _remove_fragility_curse() -> void:
 		piece.current_health += health_diff
 
 	# 发送诅咒效果移除信号
-	EventBus.debug.emit_event("debug_message", ["脆弱诅咒效果已移除", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.curse.fragility_removed")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("脆弱诅咒效果已移除", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.curse.fragility_removed")))
 
 # 应用混乱诅咒效果
 func _apply_confusion_curse() -> void:
@@ -330,7 +330,7 @@ func _apply_confusion_curse() -> void:
 		board_manager.move_piece(piece2, pos1)
 
 		# 发送诅咒效果应用信号
-		EventBus.debug.emit_event("debug_message", ["混乱诅咒效果: 交换了" + piece1.name + "和" + piece2.name + "的位置", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("混乱诅咒效果: 交换了" + piece1.name + "和" + piece2.name + "的位置", 0))
 		EventBus.ui.emit_event("show_toast", [tr("ui.curse.confusion_applied"), [piece1.name, piece2.name]])
 
 
@@ -350,7 +350,7 @@ func _do_cleanup() -> void:
 	# 断开事件连接
 	EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
 	EventBus.economy.disconnect_event("gold_changed", _on_gold_changed)
-	EventBus.battle.disconnect_event("battle_started", _on_battle_started)
+	GlobalEventBus.battle.remove_listener("battle_started", _on_battle_started)
 
 	# 移除所有诅咒
 	var curse_types = active_curses.keys()

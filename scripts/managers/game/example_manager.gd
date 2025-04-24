@@ -16,8 +16,8 @@ func _do_initialize() -> void:
 	add_dependency("PlayerManager")
 
 	# 连接事件
-	EventBus.game.connect_event("game_started", _on_game_started)
-	EventBus.game.connect_event("game_ended", _on_game_ended)
+	GlobalEventBus.game.add_listener("game_started", _on_game_started)
+	GlobalEventBus.game.add_listener("game_ended", _on_game_ended)
 
 	# 初始化数据
 	_initialize_data()
@@ -50,8 +50,8 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.game.disconnect_event("game_started", _on_game_started)
-	EventBus.game.disconnect_event("game_ended", _on_game_ended)
+	GlobalEventBus.game.remove_listener("game_started", _on_game_started)
+	GlobalEventBus.game.remove_listener("game_ended", _on_game_ended)
 
 	# 清空数据
 	example_data.clear()

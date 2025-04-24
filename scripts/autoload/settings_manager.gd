@@ -74,7 +74,7 @@ func load_settings() -> void:
 			# 合并设置
 			_merge_settings(current_settings, data)
 		else:
-			EventBus.debug.emit_event("debug_message", ["无法解析设置文件: " + json.get_error_message(), 1])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法解析设置文件: " + json.get_error_message(), 1))
 
 	# 发送设置变化信号
 	settings_changed.emit(current_settings)
@@ -123,7 +123,7 @@ func apply_settings() -> void:
 	if current_settings.game.language < language_codes.size():
 		var language_code = language_codes[current_settings.game.language]
 		EventBus.localization.emit_event("language_changed", [language_code])
-		EventBus.debug.emit_event("debug_message", ["通过EventBus设置语言: " + language_code, 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("通过EventBus设置语言: " + language_code, 0))
 
 # 获取设置
 func get_settings() -> Dictionary:

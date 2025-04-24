@@ -259,13 +259,13 @@ func _reset_effect_node(effect_node: Node, effect_type: String) -> void:
 func _on_object_pool_created(pool_name: String, initial_size: int) -> void:
 	# 检查是否是视觉效果池
 	if pool_name.begins_with("visual_effect_"):
-		EventBus.debug.emit_event("debug_message", ["VisualRenderer: 检测到视觉效果池创建: " + pool_name, 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("VisualRenderer: 检测到视觉效果池创建: " + pool_name, 0))
 
 # 对象池清理事件处理
 func _on_object_pool_cleared(pool_name: String) -> void:
 	# 检查是否是视觉效果池
 	if pool_name.begins_with("visual_effect_"):
-		EventBus.debug.emit_event("debug_message", ["VisualRenderer: 检测到视觉效果池清理: " + pool_name, 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("VisualRenderer: 检测到视觉效果池清理: " + pool_name, 0))
 
 # 根据ID移除效果
 func remove_effect_by_id(effect_id: String) -> bool:

@@ -41,8 +41,8 @@ func _initialize() -> void:
 	battle_manager = GameManager.battle_manager
 
 	# 连接战斗信号
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
 	EventBus.battle.connect_event("battle_round_ended", _on_battle_round_ended)
 	EventBus.battle.connect_event("battle_preparing_phase_started", _on_battle_preparing_phase_started)

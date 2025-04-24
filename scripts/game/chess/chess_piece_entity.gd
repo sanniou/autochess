@@ -459,7 +459,7 @@ func _on_attribute_changed(attribute_name: String, old_value, new_value) -> void
 
 		# 发送事件
 		EventBus.chess.emit_event("chess_piece_died", [self])
-		EventBus.battle.emit_event("unit_died", [self])
+		GlobalEventBus.battle.dispatch_event(BattleEvents.UnitDiedEvent.new(self))
 
 # 状态变化回调
 func _on_state_changed(old_state: int, new_state: int) -> void:
@@ -474,7 +474,7 @@ func _on_state_changed(old_state: int, new_state: int) -> void:
 
 		# 发送事件
 		EventBus.chess.emit_event("chess_piece_died", [self])
-		EventBus.battle.emit_event("unit_died", [self])
+		GlobalEventBus.battle.dispatch_event(BattleEvents.UnitDiedEvent.new(self))
 
 # 伤害回调
 func _on_damage_taken(source, amount: float, damage_type: String, is_critical: bool) -> void:

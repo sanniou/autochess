@@ -33,8 +33,8 @@ func _ready():
 
 	# 连接信号
 	battle_speed_slider.value_changed.connect(_on_speed_slider_changed)
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
 
 	# 获取战斗管理器引用

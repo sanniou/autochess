@@ -41,12 +41,12 @@ func _initialize_stats() -> void:
 # 连接事件
 func _connect_events() -> void:
 	# 游戏事件
-	EventBus.game.connect_event("game_started", _on_game_started)
-	EventBus.game.connect_event("game_ended", _on_game_ended)
+	GlobalEventBus.game.add_listener("game_started", _on_game_started)
+	GlobalEventBus.game.add_listener("game_ended", _on_game_ended)
 
 	# 战斗事件
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
-	EventBus.battle.connect_event("damage_dealt", _on_damage_dealt)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("damage_dealt", _on_damage_dealt)
 	EventBus.battle.connect_event("healing_done", _on_healing_done)
 
 	# 经济事件
@@ -56,7 +56,7 @@ func _connect_events() -> void:
 
 	# 棋子事件
 	EventBus.chess.connect_event("chess_piece_bought", _on_chess_piece_bought)
-	EventBus.chess.connect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
+	GlobalEventBus.chess.add_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 
 	# 羁绊事件
 	EventBus.chess.connect_event("synergy_activated", _on_synergy_activated)
@@ -308,12 +308,12 @@ func _do_cleanup() -> void:
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
 			# 断开游戏事件
-			EventBus.game.disconnect_event("game_started", _on_game_started)
-			EventBus.game.disconnect_event("game_ended", _on_game_ended)
+			GlobalEventBus.game.remove_listener("game_started", _on_game_started)
+			GlobalEventBus.game.remove_listener("game_ended", _on_game_ended)
 
 			# 断开战斗事件
-			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
-			EventBus.battle.disconnect_event("damage_dealt", _on_damage_dealt)
+			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
+			GlobalEventBus.battle.remove_listener("damage_dealt", _on_damage_dealt)
 			EventBus.battle.disconnect_event("healing_done", _on_healing_done)
 
 			# 断开经济事件
@@ -323,7 +323,7 @@ func _do_cleanup() -> void:
 
 			# 断开棋子事件
 			EventBus.chess.disconnect_event("chess_piece_bought", _on_chess_piece_bought)
-			EventBus.chess.disconnect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
+			GlobalEventBus.chess.remove_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 
 			# 断开羁绊事件
 			EventBus.chess.disconnect_event("synergy_activated", _on_synergy_activated)

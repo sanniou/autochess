@@ -74,12 +74,12 @@ func _connect_signals() -> void:
 func _on_skin_changed(skin_type: String, skin_id: String) -> void:
 	# 检查皮肤类型是否有效
 	if not selected_skins.has(skin_type):
-		EventBus.debug.emit_event("debug_message", ["无效的皮肤类型: " + skin_type, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无效的皮肤类型: " + skin_type, 1))
 		return
 
 	# 检查皮肤是否已解锁
 	if not is_skin_unlocked(skin_id, skin_type):
-		EventBus.debug.emit_event("debug_message", ["皮肤未解锁: " + skin_id, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("皮肤未解锁: " + skin_id, 1))
 		return
 
 	# 更新选中的皮肤
@@ -323,7 +323,7 @@ func apply_skins(skins: Dictionary) -> void:
 		var skin_id = skins[skin_type]
 
 		if not is_skin_unlocked(skin_id, skin_type):
-			EventBus.debug.emit_event("debug_message", ["皮肤未解锁: " + skin_id, 1])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("皮肤未解锁: " + skin_id, 1))
 			continue
 
 		# 应用皮肤

@@ -100,9 +100,9 @@ func _do_initialize() -> void:
 	_managers.clear()
 
 	# 连接必要的信号
-	EventBus.game.connect_event("game_started", _on_game_started)
-	EventBus.game.connect_event("game_ended", _on_game_ended)
-	EventBus.game.connect_event("player_died", _on_player_died)
+	GlobalEventBus.game.add_listener("game_started", _on_game_started)
+	GlobalEventBus.game.add_listener("game_ended", _on_game_ended)
+	GlobalEventBus.game.add_listener("player_died", _on_player_died)
 	EventBus.map.connect_event("map_completed", _on_map_completed)
 
 	# 注册所有管理器
@@ -327,7 +327,7 @@ func change_state(new_state: int) -> void:
 			_enter_victory_state()
 
 	# 发送状态变更信号
-	EventBus.game.emit_event("game_state_changed", [old_state, new_state])
+	GlobalEventBus.game.dispatch_event(GameEvents.GameStateChangedEvent.new(old_state, new_state))
 
 ## 初始化所有管理器
 func _initialize_all_managers() -> void:
@@ -494,10 +494,10 @@ func start_new_game(difficulty: int = 1) -> void:
 	change_state(GameState.MAP)
 
 	# 发送游戏开始信号
-	EventBus.game.emit_event("game_started", [])
+	GlobalEventBus.game.dispatch_event(GameEvents.GameStartedEvent.new())
 
 	# 触发自动存档
-	EventBus.save.emit_event("autosave_triggered", [])
+	EventBus.save.emit_event("autosave_triggered")
 
 ## 加载存档
 func load_game(save_slot: String) -> bool:
@@ -511,7 +511,7 @@ func load_game(save_slot: String) -> bool:
 		change_state(GameState.MAP)
 
 		# 发送游戏开始信号
-		EventBus.game.emit_event("game_started", [])
+		GlobalEventBus.game.dispatch_event(GameEvents.GameStartedEvent.new())
 
 		return true
 	else:
@@ -526,10 +526,10 @@ func save_game(save_slot: String = "") -> bool:
 	# 保存游戏
 	var success = save_manager.save_game(save_slot)
 	if success:
-		EventBus.debug.emit_event("debug_message", ["游戏已成功保存", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("游戏已成功保存", 0))
 		return true
 	else:
-		EventBus.debug.emit_event("debug_message", ["保存游戏失败", 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("保存游戏失败", 2))
 		return false
 
 ## 暂停游戏
@@ -539,7 +539,7 @@ func pause_game() -> void:
 
 	is_paused = true
 	get_tree().paused = true
-	EventBus.game.emit_event("game_paused", [true])
+	GlobalEventBus.game.dispatch_event(GameEvents.GamePausedEvent.new(true))
 
 ## 恢复游戏
 func resume_game() -> void:
@@ -548,7 +548,7 @@ func resume_game() -> void:
 
 	is_paused = false
 	get_tree().paused = false
-	EventBus.game.emit_event("game_paused", [false])
+	GlobalEventBus.game.dispatch_event(GameEvents.GamePausedEvent.new(false))
 
 ## 退出游戏
 func quit_game() -> void:
@@ -559,7 +559,7 @@ func quit_game() -> void:
 		save_manager.trigger_autosave()
 	else:
 		# 如果无法获取存档管理器，使用信号
-		EventBus.save.emit_event("autosave_triggered", [])
+		EventBus.save.emit_event("autosave_triggered")
 
 	# 退出游戏
 	get_tree().quit()
@@ -621,7 +621,7 @@ func _enter_game_over_state() -> void:
 	SceneManager.load_scene("game_over", true)
 
 	# 发送游戏结束信号
-	EventBus.game.emit_event("game_ended", [false])
+	GlobalEventBus.game.dispatch_event(GameEvents.GameEndedEvent.new(false))
 
 ## 进入胜利状态
 func _enter_victory_state() -> void:
@@ -629,7 +629,7 @@ func _enter_victory_state() -> void:
 	SceneManager.load_scene("victory", true)
 
 	# 发送游戏结束信号
-	EventBus.game.emit_event("game_ended", [true])
+	GlobalEventBus.game.dispatch_event(GameEvents.GameEndedEvent.new(true))
 
 ## 游戏开始事件处理
 func _on_game_started() -> void:

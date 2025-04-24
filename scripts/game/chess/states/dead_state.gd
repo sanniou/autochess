@@ -59,7 +59,7 @@ func _process_death() -> void:
 
 		# 发送事件
 		EventBus.chess.emit_event("chess_piece_died", [owner])
-		EventBus.battle.emit_event("unit_died", [owner])
+		GlobalEventBus.battle.dispatch_event(BattleEvents.UnitDiedEvent.new(owner))
 
 		# 处理死亡效果
 		if owner.has_method("process_death"):

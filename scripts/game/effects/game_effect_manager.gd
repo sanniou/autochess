@@ -39,8 +39,8 @@ func _do_initialize() -> void:
 
 	# 连接战斗事件
 	if EventBus:
-		EventBus.battle.connect_event("battle_started", on_battle_started)
-		EventBus.battle.connect_event("battle_ended", on_battle_ended)
+		GlobalEventBus.battle.add_listener("battle_started", on_battle_started)
+		GlobalEventBus.battle.add_listener("battle_ended", on_battle_ended)
 		EventBus.battle.connect_event("battle_preparing_phase_started", on_battle_preparing_phase_started)
 		EventBus.battle.connect_event("battle_fighting_phase_started", on_battle_fighting_phase_started)
 		EventBus.battle.connect_event("battle_result_phase_started", on_battle_result_phase_started)
@@ -526,7 +526,7 @@ func _get_dot_color(dot_type: int) -> Color:
 func create_visual_effect(effect_type: int, target, params: Dictionary = {}) -> void:
 	# 检查目标是否有效
 	if not is_instance_valid(target):
-		EventBus.debug.emit_event("debug_message", ["GameEffectManager: 无法创建视觉效果，目标无效", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 无法创建视觉效果，目标无效", 1))
 		return
 
 	# 委托给 VisualManager 创建视觉效果
@@ -535,7 +535,7 @@ func create_visual_effect(effect_type: int, target, params: Dictionary = {}) -> 
 		return
 
 	# 如果 VisualManager 不可用，记录错误
-	EventBus.debug.emit_event("debug_message", ["GameEffectManager: 无法创建视觉效果，VisualManager 不可用", 1])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 无法创建视觉效果，VisualManager 不可用", 1))
 
 # 获取效果颜色
 func get_effect_color(effect_type: String) -> Color:
@@ -568,7 +568,7 @@ func get_effect_color(effect_type: String) -> Color:
 # 战斗生命周期方法
 func on_battle_started() -> void:
 	# 记录日志
-	EventBus.debug.emit_event("debug_message", ["GameEffectManager: 战斗开始，初始化效果系统", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 战斗开始，初始化效果系统", 0))
 
 	# 清理所有效果，确保战斗开始时没有遗留效果
 	clear_all_effects()
@@ -576,7 +576,7 @@ func on_battle_started() -> void:
 # 战斗结束事件处理
 func on_battle_ended(result = null) -> void:
 	# 记录日志
-	EventBus.debug.emit_event("debug_message", ["GameEffectManager: 战斗结束，清理所有效果", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 战斗结束，清理所有效果", 0))
 
 	# 清理所有效果
 	clear_all_effects()
@@ -584,17 +584,17 @@ func on_battle_ended(result = null) -> void:
 # 战斗准备阶段开始事件处理
 func on_battle_preparing_phase_started() -> void:
 	# 记录日志
-	EventBus.debug.emit_event("debug_message", ["GameEffectManager: 战斗准备阶段开始", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 战斗准备阶段开始", 0))
 
 # 战斗战斗阶段开始事件处理
 func on_battle_fighting_phase_started() -> void:
 	# 记录日志
-	EventBus.debug.emit_event("debug_message", ["GameEffectManager: 战斗战斗阶段开始", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 战斗战斗阶段开始", 0))
 
 # 战斗结算阶段开始事件处理
 func on_battle_result_phase_started() -> void:
 	# 记录日志
-	EventBus.debug.emit_event("debug_message", ["GameEffectManager: 战斗结算阶段开始", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 战斗结算阶段开始", 0))
 
 # 重写重置方法
 func _do_reset() -> void:
@@ -610,8 +610,8 @@ func _do_cleanup() -> void:
 
 	# 断开所有信号连接
 	if EventBus:
-		EventBus.battle.disconnect_event("battle_started", on_battle_started)
-		EventBus.battle.disconnect_event("battle_ended", on_battle_ended)
+		GlobalEventBus.battle.remove_listener("battle_started", on_battle_started)
+		GlobalEventBus.battle.remove_listener("battle_ended", on_battle_ended)
 		EventBus.battle.disconnect_event("battle_preparing_phase_started", on_battle_preparing_phase_started)
 		EventBus.battle.disconnect_event("battle_fighting_phase_started", on_battle_fighting_phase_started)
 		EventBus.battle.disconnect_event("battle_result_phase_started", on_battle_result_phase_started)

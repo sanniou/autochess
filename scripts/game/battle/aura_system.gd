@@ -50,10 +50,10 @@ var active_auras: Array = []
 # 初始化
 func _ready():
 	# 连接信号
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
-	EventBus.chess.connect_event("chess_piece_moved", _on_chess_piece_moved)
-	EventBus.battle.connect_event("unit_died", _on_unit_died)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
+	GlobalEventBus.chess.add_listener("chess_piece_moved", _on_chess_piece_moved)
+	GlobalEventBus.battle.add_listener("unit_died", _on_unit_died)
 
 # 更新所有光环
 func update_all_auras() -> void:

@@ -144,7 +144,7 @@ func set_difficulty(level: int) -> void:
 	var event_definitions = load("res://scripts/events/event_definitions.gd")
 	EventBus.game.emit_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, [old_level, current_difficulty])
 
-	EventBus.debug.emit_event("debug_message", ["难度级别已设置为: " + _get_difficulty_name(level), 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("难度级别已设置为: " + _get_difficulty_name(level), 0))
 
 ## 获取当前难度参数
 func get_difficulty_parameters() -> Dictionary:
@@ -161,17 +161,17 @@ func set_custom_difficulty_parameters(parameters: Dictionary) -> void:
 	if current_difficulty == DifficultyLevel.CUSTOM:
 		balance_parameters_adjusted.emit(difficulty_parameters[DifficultyLevel.CUSTOM])
 
-	EventBus.debug.emit_event("debug_message", ["自定义难度参数已更新", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("自定义难度参数已更新", 0))
 
 ## 启用动态难度调整
 func enable_dynamic_difficulty() -> void:
 	dynamic_difficulty_settings.enabled = true
-	EventBus.debug.emit_event("debug_message", ["动态难度调整已启用", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("动态难度调整已启用", 0))
 
 ## 禁用动态难度调整
 func disable_dynamic_difficulty() -> void:
 	dynamic_difficulty_settings.enabled = false
-	EventBus.debug.emit_event("debug_message", ["动态难度调整已禁用", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("动态难度调整已禁用", 0))
 
 ## 设置动态难度调整设置
 func set_dynamic_difficulty_settings(settings: Dictionary) -> void:
@@ -185,7 +185,7 @@ func set_dynamic_difficulty_settings(settings: Dictionary) -> void:
 			else:
 				dynamic_difficulty_settings[key] = settings[key]
 
-	EventBus.debug.emit_event("debug_message", ["动态难度调整设置已更新", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("动态难度调整设置已更新", 0))
 
 ## 更新玩家性能数据
 func update_player_performance(performance_data: Dictionary) -> void:
@@ -358,7 +358,7 @@ func _check_difficulty_adjustment() -> void:
 			var event_definitions = load("res://scripts/events/event_definitions.gd")
 			EventBus.game.emit_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, [old_difficulty, current_difficulty])
 
-			EventBus.debug.emit_event("debug_message", ["难度已动态调整为: " + _get_difficulty_name(current_difficulty) + "，性能得分: " + str(avg_score), 0])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("难度已动态调整为: " + _get_difficulty_name(current_difficulty) + "，性能得分: " + str(avg_score), 0))
 
 ## 获取难度名称
 func _get_difficulty_name(level: int) -> String:
@@ -400,4 +400,4 @@ func reset_player_performance() -> void:
 
 	_performance_history.clear()
 
-	EventBus.debug.emit_event("debug_message", ["玩家性能数据已重置", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("玩家性能数据已重置", 0))

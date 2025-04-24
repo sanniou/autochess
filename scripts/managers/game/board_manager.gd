@@ -53,8 +53,8 @@ func _do_initialize() -> void:
 	_initialize_data_structures()
 
 	# 连接信号
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 
 	_log_info("棋盘管理器初始化完成")
 
@@ -265,7 +265,7 @@ func reset_board():
 
 	# 发送棋盘重置信号
 	board_reset.emit()
-	EventBus.board.emit_event("board_reset", [])
+	EventBus.board.emit_event("board_reset")
 
 # 生成特殊格子
 func generate_special_cells() -> void:
@@ -366,7 +366,7 @@ func upgrade_piece(piece_id: String) -> ChessPieceEntity:
 
 	# 发送升级信号
 	piece_combined.emit(piece_id, upgraded_piece.star_level, first_cell.grid_position if first_cell else Vector2i(-1, -1))
-	EventBus.chess.emit_event("chess_piece_upgraded", [upgraded_piece])
+	GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceUpgradedEvent.new(upgraded_piece))
 
 	return upgraded_piece
 
@@ -423,7 +423,7 @@ func try_combine_pieces(piece: ChessPieceEntity) -> bool:
 # 战斗开始事件处理
 func _on_battle_started() -> void:
 	# 发送战斗开始信号
-	EventBus.board.emit_event("board_battle_started", [])
+	EventBus.board.emit_event("board_battle_started")
 
 # 战斗结束事件处理
 func _on_battle_ended(_result) -> void:
@@ -437,8 +437,8 @@ func _do_cleanup() -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
-			EventBus.battle.disconnect_event("battle_started", _on_battle_started)
-			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+			GlobalEventBus.battle.remove_listener("battle_started", _on_battle_started)
+			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 
 	# 清理数据结构
 	_initialize_data_structures()

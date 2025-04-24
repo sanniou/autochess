@@ -349,7 +349,7 @@
 	
 # 	# 连接伤害事件，用于吸血
 # 	if not EventBus.battle.is_connected("damage_dealt", _on_vampiric_damage_dealt):
-# 		EventBus.battle.connect_event("damage_dealt", _on_vampiric_damage_dealt)
+# 		GlobalEventBus.battle.add_listener("damage_dealt", _on_vampiric_damage_dealt)
 
 # # 吸血伤害事件处理
 # func _on_vampiric_damage_dealt(source, damage_target, damage_amount: float, damage_type: String) -> void:

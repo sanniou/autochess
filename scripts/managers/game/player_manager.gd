@@ -41,14 +41,14 @@ func _do_initialize() -> void:
 ## 连接事件信号
 func _connect_event_signals() -> void:
 	# 游戏事件
-	EventBus.game.connect_event("game_started", _on_game_started)
-	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.add_listener("game_started", _on_game_started)
+	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 战斗事件
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 
 	# 棋子事件
-	EventBus.chess.connect_event("chess_piece_created", _on_chess_piece_created)
+	GlobalEventBus.chess.add_listener("chess_piece_created", _on_chess_piece_created)
 
 	# 经济事件
 	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
@@ -344,14 +344,14 @@ func _do_cleanup() -> void:
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
 			# 游戏事件
-			EventBus.game.disconnect_event("game_started", _on_game_started)
-			EventBus.game.disconnect_event("game_state_changed", _on_game_state_changed)
+			GlobalEventBus.game.remove_listener("game_started", _on_game_started)
+			GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
 
 			# 战斗事件
-			EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 
 			# 棋子事件
-			EventBus.chess.disconnect_event("chess_piece_created", _on_chess_piece_created)
+			GlobalEventBus.chess.remove_listener("chess_piece_created", _on_chess_piece_created)
 
 			# 经济事件
 			EventBus.economy.disconnect_event("item_purchased", _on_item_purchased)

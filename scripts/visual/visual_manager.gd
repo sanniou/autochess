@@ -35,7 +35,7 @@ func _do_initialize() -> void:
 
 	# 连接战斗事件
 	if EventBus:
-		EventBus.battle.connect_event("battle_ended", on_battle_ended)
+		GlobalEventBus.battle.add_listener("battle_ended", on_battle_ended)
 
 	_log_info("VisualManager 初始化完成")
 
@@ -245,7 +245,7 @@ func _generate_effect_id() -> String:
 func create_effect_for_game_effect(effect_type: int, target, params: Dictionary = {}) -> void:
 	# 检查目标是否有效
 	if not is_instance_valid(target):
-		EventBus.debug.emit_event("debug_message", ["VisualManager: 无法创建效果，目标无效", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("VisualManager: 无法创建效果，目标无效", 1))
 		return
 
 	# 获取目标位置
@@ -363,7 +363,7 @@ func on_battle_ended() -> void:
 	clear_all_effects()
 
 	# 记录日志
-	EventBus.debug.emit_event("debug_message", ["VisualManager: 战斗结束，清理所有视觉效果", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("VisualManager: 战斗结束，清理所有视觉效果", 0))
 
 # 处理效果完成
 func _on_effect_completed(effect_id: String) -> void:
@@ -432,7 +432,7 @@ func _do_cleanup() -> void:
 
 	# 断开所有信号连接
 	if EventBus:
-		EventBus.battle.disconnect_event("battle_ended", on_battle_ended)
+		GlobalEventBus.battle.remove_listener("battle_ended", on_battle_ended)
 
 	# 清理渲染器和注册表
 	if visual_renderer:

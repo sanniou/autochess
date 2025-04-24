@@ -88,11 +88,11 @@ func _do_initialize() -> void:
 	ui_throttle_manager = GameManager.get_manager("UIThrottleManager")
 
 	# 连接信号
-	EventBus.ui.connect_event("show_toast", show_toast)
+	GlobalEventBus.ui.add_listener("show_toast", show_toast)
 	EventBus.ui.connect_event("show_popup", show_popup)
 	EventBus.ui.connect_event("close_popup", close_popup)
 	EventBus.ui.connect_event("start_transition", start_transition)
-	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 创建 UI 容器
 	_create_ui_containers()
@@ -234,7 +234,7 @@ func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictio
 		var popup_scene = load(popup_path)
 
 		if popup_scene == null:
-			EventBus.debug.emit_event("debug_message", ["无法加载弹窗: " + popup_path, 1])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载弹窗: " + popup_path, 1))
 			return null
 
 		# 实例化弹窗
@@ -442,7 +442,7 @@ func start_transition(transition_type: String = "fade", duration: float = TRANSI
 			var tween = create_tween()
 			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
-			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint", []))
+			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint"))
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 		_:
@@ -450,7 +450,7 @@ func start_transition(transition_type: String = "fade", duration: float = TRANSI
 			var tween = create_tween()
 			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
-			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint", []))
+			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint"))
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 
@@ -564,7 +564,7 @@ func show_achievement_notification(achievement_id: String, achievement_data: Dic
 	var notification_scene = load(notification_path)
 
 	if notification_scene == null:
-		EventBus.debug.emit_event("debug_message", ["无法加载成就通知: " + notification_path, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载成就通知: " + notification_path, 1))
 		return
 
 	# 实例化成就通知

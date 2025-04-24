@@ -50,7 +50,7 @@ func _do_initialize() -> void:
 
 	# 连接信号
 	EventBus.save.connect_event("autosave_triggered", _on_autosave_triggered)
-	EventBus.game.connect_event("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 设置自动存档计时器
 	if autosave_enabled:
@@ -63,7 +63,7 @@ func _process(delta):
 		if _autosave_timer <= 0:
 			_autosave_timer = autosave_interval
 			save_game(AUTOSAVE_NAME)
-			EventBus.debug.emit_event("debug_message", ["游戏已自动存档", 0])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("游戏已自动存档", 0))
 
 ## 确保存档目录存在
 func _ensure_save_directory() -> void:
@@ -86,14 +86,14 @@ func load_save_metadata() -> void:
 	# 使用 ConfigManager 加载元数据
 	var metadata = ConfigManager.load_json(metadata_path)
 	if metadata.is_empty():
-		EventBus.debug.emit_event("debug_message", ["无法加载存档元数据", 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载存档元数据", 2))
 		return
 
 	save_metadata = metadata
 
 	# 版本兼容性检查
 	if not save_metadata.has("version") or save_metadata.version != SAVE_VERSION:
-		EventBus.debug.emit_event("debug_message", ["存档版本不兼容，可能需要迁移", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("存档版本不兼容，可能需要迁移", 1))
 
 ## 保存元数据
 func _save_metadata() -> void:
@@ -102,7 +102,7 @@ func _save_metadata() -> void:
 	# 使用 ConfigManager 保存元数据
 	var result = GameManager.config_manager.save_json(metadata_path, save_metadata)
 	if not result:
-		EventBus.debug.emit_event("debug_message", ["无法写入存档元数据文件", 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法写入存档元数据文件", 2))
 
 ## 保存游戏
 func save_game(slot_name: String = "") -> bool:
@@ -110,7 +110,7 @@ func save_game(slot_name: String = "") -> bool:
 	if slot_name == "":
 		slot_name = current_save_slot
 		if slot_name == "":
-			EventBus.debug.emit_event("debug_message", ["未指定存档槽", 2])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("未指定存档槽", 2))
 			return false
 
 	# 准备存档数据
@@ -133,7 +133,7 @@ func save_game(slot_name: String = "") -> bool:
 	# 使用 ConfigManager 保存存档文件
 	var result = GameManager.config_manager.save_json(save_path, save_data)
 	if not result:
-		EventBus.debug.emit_event("debug_message", ["无法写入存档文件: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法写入存档文件: " + save_path, 2))
 		return false
 
 	# 更新元数据
@@ -159,18 +159,18 @@ func save_game(slot_name: String = "") -> bool:
 func load_game(slot_name: String) -> bool:
 	var save_path = SAVE_DIR + slot_name + SAVE_EXTENSION
 	if not FileAccess.file_exists(save_path):
-		EventBus.debug.emit_event("debug_message", ["存档文件不存在: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("存档文件不存在: " + save_path, 2))
 		return false
 
 	# 使用 ConfigManager 加载存档文件
 	var save_data = GameManager.config_manager.load_json(save_path)
 	if save_data.is_empty():
-		EventBus.debug.emit_event("debug_message", ["无法加载存档文件: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载存档文件: " + save_path, 2))
 		return false
 
 	# 版本兼容性检查
 	if not save_data.has("version") or save_data.version != SAVE_VERSION:
-		EventBus.debug.emit_event("debug_message", ["存档版本不兼容，可能无法正确加载", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("存档版本不兼容，可能无法正确加载", 1))
 
 	# 应用存档数据
 	_apply_player_save_data(save_data.player)
@@ -212,12 +212,12 @@ func get_save_info(slot_name: String) -> Dictionary:
 func delete_save(slot_name: String) -> bool:
 	var save_path = SAVE_DIR + slot_name + SAVE_EXTENSION
 	if not FileAccess.file_exists(save_path):
-		EventBus.debug.emit_event("debug_message", ["存档文件不存在: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("存档文件不存在: " + save_path, 2))
 		return false
 
 	var dir = DirAccess.open(SAVE_DIR)
 	if dir.remove(slot_name + SAVE_EXTENSION) != OK:
-		EventBus.debug.emit_event("debug_message", ["无法删除存档文件: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法删除存档文件: " + save_path, 2))
 		return false
 
 	# 更新元数据
@@ -496,9 +496,9 @@ func _apply_player_save_data(data: Dictionary) -> void:
 	if player_manager and not data.is_empty():
 		# 设置玩家数据
 		player_manager.load_player_data(data)
-		EventBus.debug.emit_event("debug_message", ["应用玩家存档数据成功", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用玩家存档数据成功", 0))
 	else:
-		EventBus.debug.emit_event("debug_message", ["无法应用玩家存档数据", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法应用玩家存档数据", 1))
 
 ## 应用地图存档数据
 func _apply_map_save_data(data: Dictionary) -> void:
@@ -546,9 +546,9 @@ func _apply_map_save_data(data: Dictionary) -> void:
 
 		# 加载地图
 		map_manager.load_map(map_data)
-		EventBus.debug.emit_event("debug_message", ["应用地图存档数据成功", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用地图存档数据成功", 0))
 	else:
-		EventBus.debug.emit_event("debug_message", ["无法应用地图存档数据", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法应用地图存档数据", 1))
 
 ## 应用棋子存档数据
 func _apply_chess_pieces_save_data(data: Array) -> void:
@@ -557,9 +557,9 @@ func _apply_chess_pieces_save_data(data: Array) -> void:
 	if chess_manager and data.size() > 0:
 		# 设置棋子数据
 		chess_manager.load_chess_pieces_data(data)
-		EventBus.debug.emit_event("debug_message", ["应用棋子存档数据成功", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用棋子存档数据成功", 0))
 	else:
-		EventBus.debug.emit_event("debug_message", ["无法应用棋子存档数据", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法应用棋子存档数据", 1))
 
 ## 应用装备存档数据
 func _apply_equipment_save_data(data: Array) -> void:
@@ -568,9 +568,9 @@ func _apply_equipment_save_data(data: Array) -> void:
 	if equipment_manager and data.size() > 0:
 		# 设置装备数据
 		equipment_manager.load_equipment_data(data)
-		EventBus.debug.emit_event("debug_message", ["应用装备存档数据成功", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用装备存档数据成功", 0))
 	else:
-		EventBus.debug.emit_event("debug_message", ["无法应用装备存档数据", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法应用装备存档数据", 1))
 
 ## 应用遗物存档数据
 func _apply_relics_save_data(data: Array) -> void:
@@ -579,9 +579,9 @@ func _apply_relics_save_data(data: Array) -> void:
 	if relic_manager and data.size() > 0:
 		# 设置遗物数据
 		relic_manager.load_relics_data(data)
-		EventBus.debug.emit_event("debug_message", ["应用遗物存档数据成功", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用遗物存档数据成功", 0))
 	else:
-		EventBus.debug.emit_event("debug_message", ["无法应用遗物存档数据", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法应用遗物存档数据", 1))
 
 ## 应用成就存档数据
 func _apply_achievements_save_data(data: Dictionary) -> void:
@@ -589,7 +589,7 @@ func _apply_achievements_save_data(data: Dictionary) -> void:
 	var achievement_manager = get_node_or_null("/root/GameManager/AchievementManager")
 	if achievement_manager and not data.is_empty():
 		achievement_manager.load_achievement_data(data)
-	EventBus.debug.emit_event("debug_message", ["应用成就存档数据", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用成就存档数据", 0))
 
 ## 应用教程存档数据
 func _apply_tutorials_save_data(data: Dictionary) -> void:
@@ -605,7 +605,7 @@ func _apply_tutorials_save_data(data: Dictionary) -> void:
 		if data.has("skipped_tutorials"):
 			for tutorial_id in data.skipped_tutorials:
 				tutorial_manager.mark_tutorial_skipped(tutorial_id)
-	EventBus.debug.emit_event("debug_message", ["应用教程存档数据", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用教程存档数据", 0))
 
 ## 应用设置存档数据
 func _apply_settings_save_data(data: Dictionary) -> void:
@@ -640,9 +640,9 @@ func _apply_settings_save_data(data: Dictionary) -> void:
 
 		# 保存设置
 		settings_manager.save_settings()
-		EventBus.debug.emit_event("debug_message", ["应用设置存档数据成功", 0])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用设置存档数据成功", 0))
 	else:
-		EventBus.debug.emit_event("debug_message", ["无法应用设置存档数据", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法应用设置存档数据", 1))
 
 ## 保存成就数据
 func save_achievement_data(data: Dictionary) -> bool:
@@ -658,7 +658,7 @@ func save_achievement_data(data: Dictionary) -> bool:
 	# 使用 ConfigManager 保存成就数据
 	var result = GameManager.config_manager.save_json(save_path, data)
 	if not result:
-		EventBus.debug.emit_event("debug_message", ["无法写入成就数据文件: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法写入成就数据文件: " + save_path, 2))
 		return false
 
 	return true
@@ -685,7 +685,7 @@ func load_achievement_data() -> Dictionary:
 	# 使用 ConfigManager 加载成就数据
 	var data = GameManager.config_manager.load_json(save_path)
 	if data.is_empty():
-		EventBus.debug.emit_event("debug_message", ["无法加载成就数据文件: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载成就数据文件: " + save_path, 2))
 		return {}
 
 	return data
@@ -704,7 +704,7 @@ func save_tutorial_data(data: Dictionary) -> bool:
 	# 使用 ConfigManager 保存教程数据
 	var result = GameManager.config_manager.save_json(save_path, data)
 	if not result:
-		EventBus.debug.emit_event("debug_message", ["无法写入教程数据文件: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法写入教程数据文件: " + save_path, 2))
 		return false
 
 	return true
@@ -731,7 +731,7 @@ func load_tutorial_data() -> Dictionary:
 	# 使用 ConfigManager 加载教程数据
 	var data = GameManager.config_manager.load_json(save_path)
 	if data.is_empty():
-		EventBus.debug.emit_event("debug_message", ["无法加载教程数据文件: " + save_path, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载教程数据文件: " + save_path, 2))
 		return {}
 
 	return data
@@ -753,4 +753,4 @@ func _on_game_state_changed(old_state, new_state) -> void:
 	if old_state == GameManager.GameState.BATTLE and new_state != GameManager.GameState.GAME_OVER:
 		if autosave_enabled and current_save_slot != "":
 			save_game(AUTOSAVE_NAME)
-			EventBus.debug.emit_event("debug_message", ["战斗结束后自动存档", 0])
+			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("战斗结束后自动存档", 0))

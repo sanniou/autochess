@@ -109,8 +109,8 @@ func _connect_signals():
 	GameManager.board_manager.board_reset.connect(_on_board_reset)
 
 	# 连接战斗信号
-	EventBus.battle.connect_event("battle_started", _on_battle_started)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 
 # 格子点击处理
 func _on_cell_clicked(cell: BoardCell):
@@ -159,7 +159,7 @@ func _on_cell_exited(cell: BoardCell):
 
 	# 如果格子有棋子，隐藏棋子信息
 	if cell.current_piece:
-		EventBus.chess.emit_event("hide_chess_info", [])
+		EventBus.chess.emit_event("hide_chess_info")
 
 	# 发送格子离开信号
 	EventBus.board.emit_event("cell_exited", [cell])
@@ -259,7 +259,7 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
 		EventBus.audio.emit_event("play_sound", ["piece_placed"])
 
 		# 发送移动信号
-		EventBus.chess.emit_event("chess_piece_moved", [dragging_piece, drag_start_cell.grid_position, target_cell.grid_position])
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceMovedEvent.new(dragging_piece, drag_start_cell.grid_position, target_cell.grid_position))
 	else:
 		# 创建返回动画
 		var tween = create_tween()

@@ -229,8 +229,8 @@ func trigger_black_market() -> void:
 		black_market.refresh(player.level)
 
 	# 发送黑市商人触发信号
-	EventBus.debug.emit_event("debug_message", ["黑市商人出现了！", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.shop.black_market_appeared")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("黑市商人出现了！", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.black_market_appeared")))
 
 # 触发神秘商店
 func trigger_mystery_shop() -> void:
@@ -246,8 +246,8 @@ func trigger_mystery_shop() -> void:
 		mystery_shop.refresh(player.level)
 
 	# 发送神秘商店触发信号
-	EventBus.debug.emit_event("debug_message", ["神秘商店出现了！", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.shop.mystery_shop_appeared")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("神秘商店出现了！", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.mystery_shop_appeared")))
 
 # 设置目标棋子（用于保底机制）
 func set_target_chess(chess_id: String) -> void:
@@ -376,8 +376,8 @@ func trigger_equipment_shop() -> void:
 		_shops[SC.ShopType.EQUIPMENT].refresh(player.level)
 
 	# 发送装备商店触发信号
-	EventBus.debug.emit_event("debug_message", ["装备商店出现了！", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.shop.equipment_shop_appeared")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("装备商店出现了！", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.equipment_shop_appeared")))
 
 # 触发遗物商店
 func trigger_relic_shop() -> void:
@@ -390,8 +390,8 @@ func trigger_relic_shop() -> void:
 		_shops[SC.ShopType.RELIC].refresh(player.level)
 
 	# 发送遗物商店触发信号
-	EventBus.debug.emit_event("debug_message", ["遗物商店出现了！", 0])
-	EventBus.ui.emit_event("show_toast", [tr("ui.shop.relic_shop_appeared")])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("遗物商店出现了！", 0))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.relic_shop_appeared")))
 
 # 添加特殊道具
 func add_special_items(count: int = 1) -> void:

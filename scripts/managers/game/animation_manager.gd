@@ -60,7 +60,7 @@ func _do_initialize() -> void:
 
 	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.game.connect_event("game_paused", _on_game_paused)
+	GlobalEventBus.game.add_listener("game_paused", _on_game_paused)
 
 	# 初始化动画控制器
 	_initialize_animators()
@@ -792,7 +792,7 @@ func get_animation_config_manager() -> AnimationConfigManager:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.game.disconnect_event("game_paused", _on_game_paused)
+	GlobalEventBus.game.remove_listener("game_paused", _on_game_paused)
 
 	# 清除所有动画
 	clear_animations()

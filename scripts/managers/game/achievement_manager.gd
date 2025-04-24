@@ -47,21 +47,21 @@ func _load_achievement_configs() -> void:
 # 连接信号
 func _connect_signals() -> void:
 	# 连接游戏事件信号
-	EventBus.chess.connect_event("chess_piece_created", _on_chess_piece_created)
-	EventBus.chess.connect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
-	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.chess.add_listener("chess_piece_created", _on_chess_piece_created)
+	GlobalEventBus.chess.add_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
+	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 	EventBus.event.connect_event("event_completed", _on_event_completed)
 	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
 	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
 	EventBus.chess.connect_event("synergy_activated", _on_synergy_activated)
 	# 使用正确的事件连接方式
-	EventBus.game.connect_event("game_ended", _on_game_completed)
+	GlobalEventBus.game.add_listener("game_ended", _on_game_completed)
 
 # 解锁成就
 func unlock_achievement(achievement_id: String) -> bool:
 	# 检查成就是否存在
 	if not achievement_configs.has(achievement_id):
-		EventBus.debug.emit_event("debug_message", ["成就不存在: " + achievement_id, 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("成就不存在: " + achievement_id, 1))
 		return false
 
 	# 检查成就是否已解锁
@@ -575,14 +575,14 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.chess.disconnect_event("chess_piece_created", _on_chess_piece_created)
-	EventBus.chess.disconnect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
-	EventBus.battle.disconnect_event("battle_ended", _on_battle_ended)
+	GlobalEventBus.chess.remove_listener("chess_piece_created", _on_chess_piece_created)
+	GlobalEventBus.chess.remove_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
+	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 	EventBus.event.disconnect_event("event_completed", _on_event_completed)
 	EventBus.relic.disconnect_event("relic_acquired", _on_relic_acquired)
 	EventBus.economy.disconnect_event("gold_changed", _on_gold_changed)
 	EventBus.chess.disconnect_event("synergy_activated", _on_synergy_activated)
-	EventBus.game.disconnect_event("game_ended", _on_game_completed)
+	GlobalEventBus.game.remove_listener("game_ended", _on_game_completed)
 
 	# 清空成就数据
 	achievement_configs.clear()

@@ -41,12 +41,12 @@ func _initialize_event_factory() -> void:
 func trigger_event(event_id: String) -> bool:
 	# 检查事件是否存在
 	if not event_factory.has(event_id):
-		EventBus.debug.emit_event("debug_message", ["事件不存在: " + event_id, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("事件不存在: " + event_id, 2))
 		return false
 
 	# 检查是否已有正在进行的事件
 	if current_event != null:
-		EventBus.debug.emit_event("debug_message", ["已有正在进行的事件", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("已有正在进行的事件", 1))
 		return false
 
 	# 创建事件实例
@@ -93,7 +93,7 @@ func trigger_random_event(context: Dictionary = {}, event_type: String = "") -> 
 
 	# 如果没有符合条件的事件，返回失败
 	if eligible_events.is_empty():
-		EventBus.debug.emit_event("debug_message", ["没有符合条件的事件可触发", 1])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("没有符合条件的事件可触发", 1))
 		return false
 
 	# 根据权重随机选择一个事件
@@ -237,7 +237,7 @@ func reset_events() -> void:
 func modify_event_weight(event_id: String, weight_modifier: float) -> void:
 	# 检查事件是否存在
 	if not event_factory.has(event_id):
-		EventBus.debug.emit_event("debug_message", ["事件不存在: " + event_id, 2])
+		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("事件不存在: " + event_id, 2))
 		return
 
 	# 获取当前权重
@@ -250,7 +250,7 @@ func modify_event_weight(event_id: String, weight_modifier: float) -> void:
 	event_factory[event_id].weight = new_weight
 
 	# 发送事件权重修改信号
-	EventBus.debug.emit_event("debug_message", ["事件权重修改: " + event_id + ", " + str(current_weight) + " -> " + str(new_weight), 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("事件权重修改: " + event_id + ", " + str(current_weight) + " -> " + str(new_weight), 0))
 
 # 获取事件权重
 func get_event_weight(event_id: String) -> int:

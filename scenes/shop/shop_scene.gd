@@ -451,10 +451,10 @@ func _purchase_item(item_data: Dictionary):
 		# TODO: 添加音效
 
 		# 显示购买成功提示
-		EventBus.ui.emit_event("show_toast", ["购买成功！"])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("购买成功！"))
 	else:
 		# 购买失败，显示提示
-		EventBus.ui.emit_event("show_toast", ["金币不足或物品已售出！"])
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("金币不足或物品已售出！"))
 
 # 信号处理函数
 func _on_chess_button_pressed():

@@ -421,7 +421,7 @@ func set_sync_config(config: Dictionary) -> void:
 		if sync_config.has(key):
 			sync_config[key] = config[key]
 
-	EventBus.debug.emit_event("debug_message", ["同步配置已更新", 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("同步配置已更新", 0))
 
 
 # 重写重置方法

@@ -107,10 +107,10 @@ func _do_initialize() -> void:
 # 连接信号
 func _connect_signals() -> void:
 	# 连接伤害信号
-	EventBus.battle.connect_event("damage_dealt", _on_damage_dealt)
+	GlobalEventBus.battle.add_listener("damage_dealt", _on_damage_dealt)
 
 	# 连接治疗信号
-	EventBus.battle.connect_event("heal_received", _on_heal_received)
+	GlobalEventBus.battle.add_listener("heal_received", _on_heal_received)
 
 	# 连接状态效果信号
 	EventBus.status_effect.connect_event("status_effect_added", _on_status_effect_added)
@@ -120,7 +120,7 @@ func _connect_signals() -> void:
 	EventBus.battle.connect_event("mana_changed", _on_mana_changed)
 
 	# 连接升级信号
-	EventBus.chess.connect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
+	GlobalEventBus.chess.add_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 
 # 显示伤害数字
 func show_damage(position: Vector2, amount: float, damage_type: String = "physical", is_critical: bool = false) -> void:
@@ -265,12 +265,12 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开信号连接
-	EventBus.battle.disconnect_event("damage_dealt", _on_damage_dealt)
-	EventBus.battle.disconnect_event("heal_received", _on_heal_received)
+	GlobalEventBus.battle.remove_listener("damage_dealt", _on_damage_dealt)
+	GlobalEventBus.battle.remove_listener("heal_received", _on_heal_received)
 	EventBus.status_effect.disconnect_event("status_effect_added", _on_status_effect_added)
 	EventBus.status_effect.disconnect_event("status_effect_resisted", _on_status_effect_resisted)
 	EventBus.battle.disconnect_event("mana_changed", _on_mana_changed)
-	EventBus.chess.disconnect_event("chess_piece_upgraded", _on_chess_piece_upgraded)
+	GlobalEventBus.chess.remove_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 
 	# 移除所有伤害数字
 	for child in get_children():
