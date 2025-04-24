@@ -56,9 +56,6 @@ func _do_initialize() -> void:
 	# 注册默认配置类型
 	_register_default_config_types()
 
-	# 自动发现和注册其他配置
-	_discover_and_register_configs()
-
 	# 加载所有配置
 	load_all_configs()
 
@@ -298,17 +295,33 @@ func _register_default_config_types() -> void:
 
 ## 注册配置类型（使用枚举）
 ## 注册一个新的配置类型，指定其文件路径和模型类
+## @param config_type 配置类型枚举
+## @param file_path 配置文件路径
+## @param model_class_path 配置模型类路径
 func register_config_type_enum(config_type: int, file_path: String, model_class_path: String = "") -> void:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("注册配置类型失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
+		return
+
+	# 检查文件路径是否有效
+	if file_path.is_empty():
+		push_error("致命错误: 配置文件路径为空 - " + str(config_type))
+		assert(false, "配置文件路径为空")
 		return
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的注册方法
-	register_config_type(type_str, file_path, model_class_path)
+	# 注册配置路径
+	_config_paths[type_str] = file_path
+
+	# 注册配置模型类
+	if not model_class_path.is_empty():
+		_config_model_classes[type_str] = model_class_path
+
+	_log_info("注册配置类型: " + type_str + " -> " + file_path)
 
 ## 注册配置类型
 ## 注册一个新的配置类型，指定其文件路径和模型类
@@ -323,17 +336,39 @@ func register_config_type(config_type: String, file_path: String, model_class_pa
 	_log_info("注册配置类型: " + config_type + " -> " + file_path)
 
 ## 取消注册配置类型（使用枚举）
+## 取消注册指定类型的配置
+## @param config_type 配置类型枚举
 func unregister_config_type_enum(config_type: int) -> void:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("取消注册配置类型失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的取消注册方法
-	unregister_config_type(type_str)
+	# 检查配置类型是否已注册
+	if not _config_paths.has(type_str):
+		push_warning("取消注册配置类型失败: 配置类型未注册 - " + type_str)
+		return
+
+	# 移除配置路径
+	_config_paths.erase(type_str)
+
+	# 移除配置模型类
+	if _config_model_classes.has(type_str):
+		_config_model_classes.erase(type_str)
+
+	# 清除缓存
+	if _config_cache.has(type_str):
+		_config_cache.erase(type_str)
+
+	# 清除模型
+	if _config_models.has(type_str):
+		_config_models.erase(type_str)
+
+	_log_info("取消注册配置类型: " + type_str)
 
 ## 取消注册配置类型
 func unregister_config_type(config_type: String) -> void:
@@ -360,13 +395,18 @@ func unregister_config_type(config_type: String) -> void:
 	_log_info("取消注册配置类型: " + config_type)
 
 ## 加载所有配置文件
+## 加载所有已注册的配置文件
 func load_all_configs() -> void:
 	# 加载配置模型类
 	_load_config_model_classes()
 
 	# 加载所有配置文件
-	for config_type in _config_paths:
-		load_config(config_type)
+	for config_type in _config_type_map:
+		var type_str = _config_type_map[config_type]
+
+		# 检查配置类型是否已注册
+		if _config_paths.has(type_str):
+			load_config_enum(config_type)
 
 	# 验证所有配置文件
 	if debug_mode:
@@ -376,9 +416,16 @@ func load_all_configs() -> void:
 	all_configs_loaded.emit()
 
 ## 加载配置模型类
+## 加载所有已注册的配置模型类
 func _load_config_model_classes() -> void:
 	# 加载基础配置模型类
-	var base_model = load("res://scripts/config/config_model.gd")
+	var base_model_path = "res://scripts/config/config_model.gd"
+	if not ResourceLoader.exists(base_model_path):
+		push_error("致命错误: 基础配置模型类不存在 - " + base_model_path)
+		assert(false, "基础配置模型类不存在")
+		return
+
+	var base_model = load(base_model_path)
 
 	# 加载所有配置模型类
 	for config_type in _config_model_classes:
@@ -393,15 +440,25 @@ func _load_config_model_classes() -> void:
 			_config_models[config_type] = base_model
 
 			if debug_mode:
-				_log_warning("配置模型类不存在: " + model_path + "，使用基础模型类")
+				push_warning("配置模型类不存在: " + model_path + "，使用基础模型类")
 
 ## 验证所有配置文件
+## 验证所有已加载的配置数据是否符合要求
+## @return 是否所有配置都验证通过
 func validate_all_configs() -> bool:
 	var all_valid = true
 	var all_errors = []
 
-	for config_type in _config_cache:
-		var result = validate_config(config_type)
+	# 遍历所有配置类型枚举
+	for config_type in _config_type_map:
+		var type_str = _config_type_map[config_type]
+
+		# 检查配置是否已加载
+		if not _config_cache.has(type_str):
+			continue
+
+		# 验证配置
+		var result = validate_config_enum(config_type)
 		if not result.valid:
 			all_valid = false
 			all_errors.append_array(result.errors)
@@ -415,8 +472,83 @@ func validate_all_configs() -> bool:
 
 	return all_valid
 
-## 验证配置文件
+## 验证配置文件（使用枚举）
+## 验证指定类型的配置数据是否符合要求
+## @param config_type 配置类型枚举
+## @return 验证结果，包含是否成功和错误信息
+func validate_config_enum(config_type: int) -> Dictionary:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		var error = "验证配置失败: 无效的配置类型枚举 - " + str(config_type)
+		push_error("致命错误: " + error)
+		assert(false, "配置类型不存在")
+		return {
+			"valid": false,
+			"errors": [error]
+		}
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 获取配置数据
+	if not _config_cache.has(type_str):
+		var error = "验证配置失败: 配置类型未加载 - " + type_str
+		push_error("致命错误: " + error)
+		assert(false, "配置类型未加载")
+		return {
+			"valid": false,
+			"errors": [error]
+		}
+
+	var config_data = _config_cache[type_str]
+
+	# 获取配置模型类
+	var model_class = _config_models.get(type_str)
+	if not model_class:
+		var error = "验证配置失败: 配置模型类不存在 - " + type_str
+		push_error("致命错误: " + error)
+		assert(false, "配置模型类不存在")
+		return {
+			"valid": false,
+			"errors": [error]
+		}
+
+	# 验证配置数据
+	var errors = []
+	var all_valid = true
+
+	for config_id in config_data:
+		var model = model_class.new(config_id, config_data[config_id])
+		if not model.validation_errors.is_empty():
+			all_valid = false
+			for error in model.validation_errors:
+				errors.append(type_str + "." + config_id + ": " + error)
+
+	# 发送验证结果信号
+	config_validated.emit(type_str, all_valid, errors)
+
+	if not all_valid:
+		_log_warning("配置验证失败: " + type_str + " - " + str(errors.size()) + " 个错误")
+		for error in errors:
+			_log_warning(error)
+	else:
+		_log_info("配置验证通过: " + type_str)
+
+	return {
+		"valid": all_valid,
+		"errors": errors
+	}
+
+# 以下方法已弃用，请使用 validate_config_enum 代替
 func validate_config(config_type: String) -> Dictionary:
+	push_warning("弃用警告: validate_config 已弃用，请使用 validate_config_enum 代替")
+
+	# 尝试将字符串转换为枚举
+	var enum_type = ConfigTypes.from_string(config_type)
+	if enum_type != -1:
+		return validate_config_enum(enum_type)
+
+	# 如果无法转换，使用旧的实现
 	# 检查配置类型是否有效
 	if not _config_cache.has(config_type):
 		var error = "验证配置失败: 配置类型不存在 - " + config_type
@@ -466,17 +598,47 @@ func validate_config(config_type: String) -> Dictionary:
 	}
 
 ## 加载配置文件（使用枚举）
+## 加载指定类型的配置文件
+## @param config_type 配置类型枚举
+## @return 是否加载成功
 func load_config_enum(config_type: int) -> bool:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("加载配置失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return false
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的加载方法
-	return load_config(type_str)
+	# 检查配置类型是否已注册
+	if not _config_paths.has(type_str):
+		push_error("致命错误: 配置类型未注册 - " + type_str)
+		assert(false, "配置类型未注册")
+		return false
+
+	# 获取配置文件路径
+	var file_path = _config_paths[type_str]
+
+	# 检查文件是否存在
+	if not FileAccess.file_exists(file_path):
+		push_error("致命错误: 配置文件不存在 - " + file_path)
+		assert(false, "配置文件不存在")
+		return false
+
+	# 加载配置文件
+	var config_data = _load_json_file(file_path)
+	if config_data.is_empty():
+		push_error("致命错误: 配置文件为空 - " + file_path)
+		assert(false, "配置文件为空")
+		return false
+
+	# 缓存配置数据
+	_config_cache[type_str] = config_data
+
+	_log_info(type_str + " 配置加载完成")
+	config_loaded.emit(type_str)
+	return true
 
 ## 加载配置文件
 func load_config(config_type: String) -> bool:
@@ -502,52 +664,91 @@ func load_config(config_type: String) -> bool:
 	return true
 
 ## 加载JSON文件
+## 加载并解析JSON文件
+## @param file_path JSON文件路径
+## @return JSON数据字典
 static func _load_json_file(file_path: String) -> Dictionary:
 	# 检查文件是否存在
 	if not FileAccess.file_exists(file_path):
-		_log_warning("加载JSON文件失败: 文件不存在 - " + file_path)
+		push_error("致命错误: JSON文件不存在 - " + file_path)
+		assert(false, "JSON文件不存在")
 		return {}
 
 	# 打开文件
 	var file = FileAccess.open(file_path, FileAccess.READ)
 	if file == null:
-		_log_warning("加载JSON文件失败: 无法打开文件 - " + file_path)
+		push_error("致命错误: 无法打开JSON文件 - " + file_path + ", 错误码: " + str(FileAccess.get_open_error()))
+		assert(false, "无法打开JSON文件")
 		return {}
 
 	# 读取文件内容
 	var json_text = file.get_as_text()
 	file.close()
 
+	# 检查文件内容是否为空
+	if json_text.is_empty():
+		push_error("致命错误: JSON文件为空 - " + file_path)
+		assert(false, "JSON文件为空")
+		return {}
+
 	# 解析JSON
 	var json = JSON.new()
 	var error = json.parse(json_text)
 	if error != OK:
-		_log_warning("加载JSON文件失败: JSON解析错误 - " + file_path + " - " + json.get_error_message() + " at line " + str(json.get_error_line()))
+		push_error("致命错误: JSON解析错误 - " + file_path + " - " + json.get_error_message() + " at line " + str(json.get_error_line()))
+		assert(false, "JSON解析错误")
 		return {}
 
 	# 获取解析结果
 	var result = json.get_data()
 	if not result is Dictionary:
-		_log_warning("加载JSON文件失败: JSON根节点不是字典 - " + file_path)
+		push_error("致命错误: JSON根节点不是字典 - " + file_path)
+		assert(false, "JSON根节点不是字典")
 		return {}
 
 	return result
 
 ## 获取配置项（使用枚举）
+## 根据配置类型枚举和ID获取配置项
+## @param config_type 配置类型枚举
+## @param config_id 配置ID
+## @return 配置项数据
 func get_config_item_enum(config_type: int, config_id: String) -> Dictionary:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("获取配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return {}
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的获取方法
-	return get_config_item(type_str, config_id)
+	# 获取配置数据
+	if not _config_cache.has(type_str):
+		push_error("致命错误: 配置类型未加载 - " + type_str)
+		assert(false, "配置类型未加载")
+		return {}
 
-## 获取配置项
+	var config_data = _config_cache[type_str]
+
+	# 检查配置ID是否存在
+	if not config_data.has(config_id):
+		push_error("致命错误: 配置ID不存在 - " + type_str + "." + config_id)
+		assert(false, "配置ID不存在")
+		return {}
+
+	return config_data[config_id].duplicate(true)
+
+# 以下方法已弃用，请使用 get_config_item_enum 代替
 func get_config_item(config_type: String, config_id: String) -> Dictionary:
+	push_warning("弃用警告: get_config_item 已弃用，请使用 get_config_item_enum 代替")
+
+	# 尝试将字符串转换为枚举
+	var enum_type = ConfigTypes.from_string(config_type)
+	if enum_type != -1:
+		return get_config_item_enum(enum_type, config_id)
+
+	# 如果无法转换，使用旧的实现
 	# 检查配置类型是否有效
 	if not _config_cache.has(config_type):
 		_log_warning("获取配置项失败: 配置类型不存在 - " + config_type)
@@ -564,20 +765,54 @@ func get_config_item(config_type: String, config_id: String) -> Dictionary:
 	return config_data[config_id].duplicate(true)
 
 ## 获取配置模型（使用枚举）
+## 根据配置类型枚举和ID获取配置模型对象
+## @param config_type 配置类型枚举
+## @param config_id 配置ID
+## @return 配置模型对象
 func get_config_model_enum(config_type: int, config_id: String) -> ConfigModel:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("获取配置模型失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return null
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的获取方法
-	return get_config_model(type_str, config_id)
+	# 获取配置数据
+	if not _config_cache.has(type_str):
+		push_error("致命错误: 配置类型未加载 - " + type_str)
+		assert(false, "配置类型未加载")
+		return null
 
-## 获取配置模型
+	var config_data = _config_cache[type_str]
+
+	# 检查配置ID是否存在
+	if not config_data.has(config_id):
+		push_error("致命错误: 配置ID不存在 - " + type_str + "." + config_id)
+		assert(false, "配置ID不存在")
+		return null
+
+	# 获取配置模型类
+	var model_class = _config_models.get(type_str)
+	if not model_class:
+		push_error("致命错误: 配置模型类不存在 - " + type_str)
+		assert(false, "配置模型类不存在")
+		return null
+
+	# 创建配置模型
+	return model_class.new(config_id, config_data[config_id])
+
+# 以下方法已弃用，请使用 get_config_model_enum 代替
 func get_config_model(config_type: String, config_id: String) -> ConfigModel:
+	push_warning("弃用警告: get_config_model 已弃用，请使用 get_config_model_enum 代替")
+
+	# 尝试将字符串转换为枚举
+	var enum_type = ConfigTypes.from_string(config_type)
+	if enum_type != -1:
+		return get_config_model_enum(enum_type, config_id)
+
+	# 如果无法转换，使用旧的实现
 	# 检查配置类型是否有效
 	if not _config_cache.has(config_type):
 		_log_warning("获取配置模型失败: 配置类型不存在 - " + config_type)
@@ -601,20 +836,37 @@ func get_config_model(config_type: String, config_id: String) -> ConfigModel:
 	return model_class.new(config_id, config_data[config_id])
 
 ## 获取所有配置项（使用枚举）
+## 根据配置类型枚举获取所有配置项
+## @param config_type 配置类型枚举
+## @return 配置项字典，键为配置ID，值为配置数据
 func get_all_config_items_enum(config_type: int) -> Dictionary:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("获取所有配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return {}
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的获取方法
-	return get_all_config_items(type_str)
+	# 获取配置数据
+	if not _config_cache.has(type_str):
+		push_error("致命错误: 配置类型未加载 - " + type_str)
+		assert(false, "配置类型未加载")
+		return {}
 
-## 获取所有配置项
+	return _config_cache[type_str].duplicate(true)
+
+# 以下方法已弃用，请使用 get_all_config_items_enum 代替
 func get_all_config_items(config_type: String) -> Dictionary:
+	push_warning("弃用警告: get_all_config_items 已弃用，请使用 get_all_config_items_enum 代替")
+
+	# 尝试将字符串转换为枚举
+	var enum_type = ConfigTypes.from_string(config_type)
+	if enum_type != -1:
+		return get_all_config_items_enum(enum_type)
+
+	# 如果无法转换，使用旧的实现
 	# 检查配置类型是否有效
 	if not _config_cache.has(config_type):
 		_log_warning("获取所有配置项失败: 配置类型不存在 - " + config_type)
@@ -623,20 +875,51 @@ func get_all_config_items(config_type: String) -> Dictionary:
 	return _config_cache[config_type].duplicate(true)
 
 ## 获取所有配置模型（使用枚举）
+## 根据配置类型枚举获取所有配置模型对象
+## @param config_type 配置类型枚举
+## @return 配置模型对象字典，键为配置ID，值为配置模型对象
 func get_all_config_models_enum(config_type: int) -> Dictionary:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("获取所有配置模型失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return {}
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的获取方法
-	return get_all_config_models(type_str)
+	# 获取配置数据
+	if not _config_cache.has(type_str):
+		push_error("致命错误: 配置类型未加载 - " + type_str)
+		assert(false, "配置类型未加载")
+		return {}
 
-## 获取所有配置模型
+	var config_data = _config_cache[type_str]
+
+	# 获取配置模型类
+	var model_class = _config_models.get(type_str)
+	if not model_class:
+		push_error("致命错误: 配置模型类不存在 - " + type_str)
+		assert(false, "配置模型类不存在")
+		return {}
+
+	# 创建配置模型
+	var models = {}
+	for config_id in config_data:
+		models[config_id] = model_class.new(config_id, config_data[config_id])
+
+	return models
+
+# 以下方法已弃用，请使用 get_all_config_models_enum 代替
 func get_all_config_models(config_type: String) -> Dictionary:
+	push_warning("弃用警告: get_all_config_models 已弃用，请使用 get_all_config_models_enum 代替")
+
+	# 尝试将字符串转换为枚举
+	var enum_type = ConfigTypes.from_string(config_type)
+	if enum_type != -1:
+		return get_all_config_models_enum(enum_type)
+
+	# 如果无法转换，使用旧的实现
 	# 检查配置类型是否有效
 	if not _config_cache.has(config_type):
 		_log_warning("获取所有配置模型失败: 配置类型不存在 - " + config_type)
@@ -667,17 +950,35 @@ func get_all_config_paths() -> Dictionary:
 	return _config_paths.duplicate()
 
 ## 重新加载配置（使用枚举）
+## 重新加载指定类型的配置
+## @param config_type 配置类型枚举
+## @return 是否重新加载成功
 func reload_config_enum(config_type: int) -> bool:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("重新加载配置失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return false
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的重新加载方法
-	return reload_config(type_str)
+	# 检查配置类型是否已注册
+	if not _config_paths.has(type_str):
+		push_error("致命错误: 配置类型未注册 - " + type_str)
+		assert(false, "配置类型未注册")
+		return false
+
+	# 清除缓存
+	if _config_cache.has(type_str):
+		_config_cache.erase(type_str)
+
+	# 加载配置
+	var result = load_config_enum(config_type)
+	if result:
+		config_reloaded.emit(type_str)
+
+	return result
 
 ## 重新加载配置
 func reload_config(config_type: String) -> bool:
@@ -697,6 +998,7 @@ func reload_config(config_type: String) -> bool:
 	return result
 
 ## 重新加载所有配置
+## 重新加载所有已注册的配置
 func reload_all_configs() -> void:
 	# 清除所有缓存
 	_config_cache.clear()
@@ -707,8 +1009,56 @@ func reload_all_configs() -> void:
 	_log_info("所有配置已重新加载")
 	all_configs_reloaded.emit()
 
+## 保存配置（使用枚举）
+## 保存指定类型的配置到文件
+## @param config_type 配置类型枚举
+## @return 是否保存成功
+func save_config_enum(config_type: int) -> bool:
+	# 检查配置类型是否有效
+	if not _config_type_map.has(config_type):
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
+		return false
+
+	# 获取配置类型字符串
+	var type_str = _config_type_map[config_type]
+
+	# 检查配置类型是否已注册
+	if not _config_paths.has(type_str):
+		push_error("致命错误: 配置类型未注册 - " + type_str)
+		assert(false, "配置类型未注册")
+		return false
+
+	# 检查配置是否已加载
+	if not _config_cache.has(type_str):
+		push_error("致命错误: 配置未加载 - " + type_str)
+		assert(false, "配置未加载")
+		return false
+
+	# 获取配置文件路径
+	var file_path = _config_paths[type_str]
+
+	# 获取配置数据
+	var config_data = _config_cache[type_str]
+
+	# 保存配置文件
+	var result = save_json(file_path, config_data)
+	if result:
+		_log_info("配置已保存: " + type_str)
+
+	return result
+
 ## 保存配置
+## 保存指定类型的配置到文件
+## @param config_type 配置类型字符串
+## @return 是否保存成功
 func save_config(config_type: String) -> bool:
+	# 尝试将字符串转换为枚举
+	var enum_type = ConfigTypes.from_string(config_type)
+	if enum_type != -1:
+		return save_config_enum(enum_type)
+
+	# 如果无法转换，使用旧的实现
 	# 检查配置类型是否有效
 	if not _config_paths.has(config_type):
 		_log_warning("保存配置失败: 无效的配置类型 - " + config_type)
@@ -729,21 +1079,46 @@ func save_config(config_type: String) -> bool:
 	return save_json(file_path, config_data)
 
 ## 保存JSON文件
+## 将数据保存为JSON文件
+## @param file_path 文件路径
+## @param data 要保存的数据
+## @return 是否保存成功
 func save_json(file_path: String, data: Variant) -> bool:
+	# 检查文件路径是否有效
+	if file_path.is_empty():
+		push_error("致命错误: 文件路径为空")
+		assert(false, "文件路径为空")
+		return false
+
+	# 创建目录
 	var dir_path = file_path.get_base_dir()
 	var dir = DirAccess.open("res://")
 	if not dir.dir_exists(dir_path):
-		dir.make_dir_recursive(dir_path)
+		var err = dir.make_dir_recursive(dir_path)
+		if err != OK:
+			push_error("致命错误: 无法创建目录 - " + dir_path + ", 错误码: " + str(err))
+			assert(false, "无法创建目录")
+			return false
 
+	# 打开文件
 	var file = FileAccess.open(file_path, FileAccess.WRITE)
 	if file == null:
-		_log_warning("无法打开配置文件进行写入: " + file_path)
+		push_error("致命错误: 无法打开文件进行写入 - " + file_path + ", 错误码: " + str(FileAccess.get_open_error()))
+		assert(false, "无法打开文件进行写入")
 		return false
 
+	# 序列化数据
 	var json_text = JSON.stringify(data, "\t")
+	if json_text.is_empty():
+		push_error("致命错误: JSON序列化失败 - " + file_path)
+		assert(false, "JSON序列化失败")
+		file.close()
+		return false
+
+	# 写入文件
 	file.store_string(json_text)
 	file.close()
-	_log_info("配置文件已保存: " + file_path)
+
 	return true
 
 ## 加载指定配置
@@ -751,17 +1126,62 @@ static func load_json(file_path: String) -> Variant:
 	return _load_json_file(file_path)
 
 ## 设置配置项（使用枚举）
+## 设置指定类型和ID的配置项数据
+## @param config_type 配置类型枚举
+## @param config_id 配置ID
+## @param config_data 配置数据
+## @return 是否设置成功
 func set_config_item_enum(config_type: int, config_id: String, config_data: Dictionary) -> bool:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("设置配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return false
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的设置方法
-	return set_config_item(type_str, config_id, config_data)
+	# 检查配置ID是否有效
+	if config_id.is_empty():
+		push_error("致命错误: 配置ID为空 - " + type_str)
+		assert(false, "配置ID为空")
+		return false
+
+	# 检查配置数据是否有效
+	if config_data.is_empty():
+		push_error("致命错误: 配置数据为空 - " + type_str + "." + config_id)
+		assert(false, "配置数据为空")
+		return false
+
+	# 检查配置类型是否已加载
+	if not _config_cache.has(type_str):
+		push_error("致命错误: 配置类型未加载 - " + type_str)
+		assert(false, "配置类型未加载")
+		return false
+
+	# 获取配置模型类
+	var model_class = _config_models.get(type_str)
+	if not model_class:
+		push_error("致命错误: 配置模型类不存在 - " + type_str)
+		assert(false, "配置模型类不存在")
+		return false
+
+	# 验证配置数据
+	var model = model_class.new(config_id, config_data)
+	if not model.validation_errors.is_empty():
+		push_error("致命错误: 配置数据验证失败 - " + type_str + "." + config_id)
+		for error in model.validation_errors:
+			push_error("- " + error)
+		assert(false, "配置数据验证失败")
+		return false
+
+	# 更新配置数据
+	_config_cache[type_str][config_id] = config_data.duplicate(true)
+
+	# 发送配置变更信号
+	config_changed.emit(type_str, config_id)
+
+	return true
 
 ## 设置配置项
 func set_config_item(config_type: String, config_id: String, config_data: Dictionary) -> bool:
@@ -793,17 +1213,45 @@ func set_config_item(config_type: String, config_id: String, config_data: Dictio
 	return true
 
 ## 删除配置项（使用枚举）
+## 删除指定类型和ID的配置项
+## @param config_type 配置类型枚举
+## @param config_id 配置ID
+## @return 是否删除成功
 func delete_config_item_enum(config_type: int, config_id: String) -> bool:
 	# 检查配置类型是否有效
 	if not _config_type_map.has(config_type):
-		_log_warning("删除配置项失败: 无效的配置类型枚举 - " + str(config_type))
+		push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+		assert(false, "配置类型不存在")
 		return false
 
 	# 获取配置类型字符串
 	var type_str = _config_type_map[config_type]
 
-	# 调用字符串版本的删除方法
-	return delete_config_item(type_str, config_id)
+	# 检查配置ID是否有效
+	if config_id.is_empty():
+		push_error("致命错误: 配置ID为空 - " + type_str)
+		assert(false, "配置ID为空")
+		return false
+
+	# 检查配置类型是否已加载
+	if not _config_cache.has(type_str):
+		push_error("致命错误: 配置类型未加载 - " + type_str)
+		assert(false, "配置类型未加载")
+		return false
+
+	# 检查配置ID是否存在
+	if not _config_cache[type_str].has(config_id):
+		push_error("致命错误: 配置ID不存在 - " + type_str + "." + config_id)
+		assert(false, "配置ID不存在")
+		return false
+
+	# 删除配置项
+	_config_cache[type_str].erase(config_id)
+
+	# 发送配置变更信号
+	config_changed.emit(type_str, config_id)
+
+	return true
 
 ## 删除配置项
 func delete_config_item(config_type: String, config_id: String) -> bool:
@@ -826,6 +1274,8 @@ func delete_config_item(config_type: String, config_id: String) -> bool:
 	return true
 
 ## 清除配置缓存（使用枚举）
+## 清除指定类型或所有类型的配置缓存
+## @param config_type 配置类型枚举，-1表示清除所有缓存
 func clear_config_cache_enum(config_type: int = -1) -> void:
 	if config_type == -1:
 		# 清除所有缓存
@@ -834,14 +1284,19 @@ func clear_config_cache_enum(config_type: int = -1) -> void:
 	else:
 		# 检查配置类型是否有效
 		if not _config_type_map.has(config_type):
-			_log_warning("清除配置缓存失败: 无效的配置类型枚举 - " + str(config_type))
+			push_error("致命错误: 无效的配置类型枚举 - " + str(config_type))
+			assert(false, "配置类型不存在")
 			return
 
 		# 获取配置类型字符串
 		var type_str = _config_type_map[config_type]
 
-		# 调用字符串版本的清除方法
-		clear_config_cache(type_str)
+		# 清除指定配置缓存
+		if _config_cache.has(type_str):
+			_config_cache.erase(type_str)
+			_log_info("配置缓存已清除: " + type_str)
+		else:
+			push_warning("清除配置缓存: 配置类型未加载 - " + type_str)
 
 ## 清除配置缓存
 func clear_config_cache(config_type: String = "") -> void:
@@ -1015,30 +1470,28 @@ func get_config(config_type: String) -> Dictionary:
 func get_config_enum(config_type: int) -> Dictionary:
 	return get_all_config_items_enum(config_type)
 
+## 创建查询构建器
+## 提供链式调用API，简化配置查询
+## @param config_type 配置类型枚举
+## @return 配置查询构建器
+func create_query(config_type: int) -> ConfigQuery:
+	return ConfigQuery.new(self, config_type)
+
 ## 查询配置
 ## 根据条件查询配置项
-## @param config_type 配置类型（字符串或枚举）
+## @param config_type 配置类型（枚举）
 ## @param query 查询条件，例如 {"rarity": "rare"}
 ## @param as_model 是否返回模型对象
 ## @return 符合条件的配置项字典
-func query(config_type, query: Dictionary = {}, as_model: bool = true) -> Dictionary:
+func query(config_type: int, query: Dictionary = {}, as_model: bool = true) -> Dictionary:
 	# 获取所有配置项
 	var all_items: Dictionary
-	if config_type is int:
-		# 使用枚举版本
-		if as_model:
-			all_items = get_all_config_models_enum(config_type)
-		else:
-			all_items = get_all_config_items_enum(config_type)
-	elif config_type is String:
-		# 使用字符串版本
-		if as_model:
-			all_items = get_all_config_models(config_type)
-		else:
-			all_items = get_all_config_items(config_type)
+
+	# 使用枚举版本
+	if as_model:
+		all_items = get_all_config_models_enum(config_type)
 	else:
-		_log_warning("查询配置失败: 无效的配置类型参数类型")
-		return {}
+		all_items = get_all_config_items_enum(config_type)
 
 	# 如果没有查询条件，返回所有项
 	if query.is_empty():
@@ -1079,11 +1532,11 @@ func query(config_type, query: Dictionary = {}, as_model: bool = true) -> Dictio
 
 ## 查询配置并返回数组
 ## 根据条件查询配置项，返回数组形式
-## @param config_type 配置类型（字符串或枚举）
+## @param config_type 配置类型（枚举）
 ## @param query 查询条件，例如 {"rarity": "rare"}
 ## @param as_model 是否返回模型对象
 ## @return 符合条件的配置项数组
-func query_array(config_type, query: Dictionary = {}, as_model: bool = true) -> Array:
+func query_array(config_type: int, query: Dictionary = {}, as_model: bool = true) -> Array:
 	# 使用查询方法获取结果字典
 	var result_dict = query(config_type, query, as_model)
 
