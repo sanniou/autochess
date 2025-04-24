@@ -51,7 +51,7 @@ var _event_mapping: Dictionary = {
 ## @param old_event_name 旧事件名称
 ## @param args 事件参数
 ## @return 新事件实例
-func create_event(old_event_name: String, args: Array) -> Event:
+func create_event(old_event_name: String, args: Array) ->BusEvent:
     # 获取新事件类型
     var new_event_type = _get_new_event_type(old_event_name)
     if new_event_type.is_empty():

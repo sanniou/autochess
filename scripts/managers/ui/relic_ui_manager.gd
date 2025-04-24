@@ -32,9 +32,9 @@ func _do_initialize() -> void:
 	relic_manager = get_node_or_null("/root/GameManager/RelicManager")
 
 	# 连接信号
-	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
-	EventBus.relic.connect_event("show_relic_info", _on_show_relic_info)
-	EventBus.relic.connect_event("hide_relic_info", _on_hide_relic_info)
+	GlobalEventBus.relic.add_listener("relic_acquired", _on_relic_acquired)
+	GlobalEventBus.relic.add_listener("show_relic_info", _on_show_relic_info)
+	GlobalEventBus.relic.add_listener("hide_relic_info", _on_hide_relic_info)
 	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	## 显示遗物面板
@@ -144,9 +144,9 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开信号连接
-	EventBus.relic.disconnect_event("relic_acquired", _on_relic_acquired)
-	EventBus.relic.disconnect_event("show_relic_info", _on_show_relic_info)
-	EventBus.relic.disconnect_event("hide_relic_info", _on_hide_relic_info)
+	GlobalEventBus.relic.remove_listener("relic_acquired", _on_relic_acquired)
+	GlobalEventBus.relic.remove_listener("show_relic_info", _on_show_relic_info)
+	GlobalEventBus.relic.remove_listener("hide_relic_info", _on_hide_relic_info)
 	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
 
 	# 清理遗物面板

@@ -65,7 +65,7 @@ func initialize(event_data: Dictionary) -> void:
 # 开始事件
 func start() -> void:
 	# 发送事件触发信号
-	EventBus.event.emit_event("event_triggered", [self])
+	GlobalEventBus.event.dispatch_event(EventEvents.EventStartedEvent.new(id,result))
 
 	# 显示事件界面
 	_show_event_ui()
@@ -82,7 +82,7 @@ func make_choice(choice_index: int) -> void:
 
 	# 发送选择信号
 	choice_made.emit(choice)
-	EventBus.event.emit_event("event_choice_made", [self, choice])
+	GlobalEventBus.event.dispatch_event(EventEvents.EventOptionSelectedEvent.new(id, str(choice_index),choice))
 
 	# 完成事件
 	complete(choice)
@@ -100,7 +100,7 @@ func complete(choice_data: Dictionary = {}) -> void:
 
 	# 发送事件完成信号
 	event_completed.emit(result)
-	EventBus.event.emit_event("event_completed", [self, result])
+	GlobalEventBus.event.dispatch_event(EventEvents.EventCompletedEvent.new(id, result))
 
 	# 隐藏事件界面
 	_hide_event_ui()
@@ -411,7 +411,7 @@ func _apply_curse_effect(curse_type: String, duration: int) -> void:
 	var curse_manager = GameManager.curse_manager
 	curse_manager.apply_curse(curse_type, duration)
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("应用诅咒效果: " + curse_type + ", 持续" + str(duration) + "回合", 0))
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.event.curse_applied", tr("curse." + curse_type))))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.event.curse_applied"), tr("curse." + curse_type)))
 
 # 设置剧情标记
 func _set_story_flag(flag: String) -> void:

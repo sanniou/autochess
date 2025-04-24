@@ -172,7 +172,7 @@ func execute_command(command_text: String) -> String:
 		return "未知命令: " + command_name
 
 	var result = console_commands[command_name].callback.call(args)
-	EventBus.debug.emit_event("debug_command_executed", [command_name, result])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugCommandExecutedEvent.new(command_name, result))
 
 	return result
 
@@ -572,7 +572,7 @@ func _update_performance_data() -> void:
 		_log_performance_to_file()
 
 	# 发送更新信号
-	EventBus.debug.emit_event("performance_data_updated", [performance_data])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.PerformanceDataUpdatedEvent.new(performance_data))
 
 ## 更新历史数据
 func _update_history_data() -> void:

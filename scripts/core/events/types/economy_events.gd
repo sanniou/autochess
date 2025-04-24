@@ -4,7 +4,7 @@ class_name EconomyEvents
 ## 定义与经济系统相关的事件
 
 ## 金币变化事件
-class GoldChangedEvent extends Event:
+class GoldChangedEvent extends BusEvent:
 	## 旧金币数量
 	var old_amount: int
 	
@@ -31,7 +31,7 @@ class GoldChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = GoldChangedEvent.new(old_amount, new_amount, reason)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -39,7 +39,7 @@ class GoldChangedEvent extends Event:
 		return event
 
 ## 商店刷新事件
-class ShopRefreshedEvent extends Event:
+class ShopRefreshedEvent extends BusEvent:
 	## 商店ID
 	var shop_id: String
 	
@@ -66,7 +66,7 @@ class ShopRefreshedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ShopRefreshedEvent.new(shop_id, items.duplicate(), is_manual)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -74,7 +74,14 @@ class ShopRefreshedEvent extends Event:
 		return event
 
 ## 商店手动刷新事件
-class ShopManuallyRefreshedEvent extends Event:
+class ShopRefreshRequestedEvent extends BusEvent:
+	var player_level: int
+	
+	func _init(player_level: int):
+		self.player_level = player_level
+	
+## 商店手动刷新事件
+class ShopManuallyRefreshedEvent extends BusEvent:
 	## 商店ID
 	var shop_id: String
 	
@@ -97,7 +104,7 @@ class ShopManuallyRefreshedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ShopManuallyRefreshedEvent.new(shop_id, refresh_cost)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -105,7 +112,7 @@ class ShopManuallyRefreshedEvent extends Event:
 		return event
 
 ## 物品购买事件
-class ItemPurchasedEvent extends Event:
+class ItemPurchasedEvent extends BusEvent:
 	## 商店ID
 	var shop_id: String
 	
@@ -136,7 +143,7 @@ class ItemPurchasedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ItemPurchasedEvent.new(shop_id, item_id, item_data.duplicate(), price)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -144,7 +151,7 @@ class ItemPurchasedEvent extends Event:
 		return event
 
 ## 物品出售事件
-class ItemSoldEvent extends Event:
+class ItemSoldEvent extends BusEvent:
 	## 物品ID
 	var item_id: String
 	
@@ -171,7 +178,7 @@ class ItemSoldEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ItemSoldEvent.new(item_id, item_data.duplicate(), price)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -179,7 +186,7 @@ class ItemSoldEvent extends Event:
 		return event
 
 ## 商店折扣应用事件
-class ShopDiscountAppliedEvent extends Event:
+class ShopDiscountAppliedEvent extends BusEvent:
 	## 商店ID
 	var shop_id: String
 	
@@ -206,7 +213,7 @@ class ShopDiscountAppliedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ShopDiscountAppliedEvent.new(shop_id, discount_percent, reason)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -214,32 +221,22 @@ class ShopDiscountAppliedEvent extends Event:
 		return event
 
 ## 棋子商店库存更新事件
-class ChessShopInventoryUpdatedEvent extends Event:
+class ChessShopInventoryUpdatedEvent extends BusEvent:
 	## 商店ID
-	var shop_id: String
+	#var shop_id: String
 	
 	## 棋子列表
 	var chess_pieces: Array
 	
 	## 初始化
-	func _init(p_shop_id: String, p_chess_pieces: Array):
-		shop_id = p_shop_id
+	func _init(p_chess_pieces: Array):
 		chess_pieces = p_chess_pieces
+
+class IncomeGrantedEvent extends BusEvent:
 	
-	## 获取事件类型
-	func get_type() -> String:
-		return "economy.chess_shop_inventory_updated"
+	## 棋子列表
+	var income: int
 	
-	## 获取事件的字符串表示
-	func _to_string() -> String:
-		return "ChessShopInventoryUpdatedEvent[shop_id=%s, chess_pieces=%d]" % [
-			shop_id, chess_pieces.size()
-		]
-	
-	## 克隆事件
-	func clone() -> Event:
-		var event = ChessShopInventoryUpdatedEvent.new(shop_id, chess_pieces.duplicate())
-		event.timestamp = timestamp
-		event.canceled = canceled
-		event.source = source
-		return event
+	## 初始化
+	func _init(p_income: int):
+		income = p_income

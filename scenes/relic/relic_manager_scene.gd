@@ -20,8 +20,8 @@ func _ready():
 	_load_relic_list()
 	
 	# 连接信号
-	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
-	EventBus.relic.connect_event("relic_activated", _on_relic_activated)
+	GlobalEventBus.relic.add_listener("relic_acquired", _on_relic_acquired)
+	GlobalEventBus.relic.add_listener("relic_activated", _on_relic_activated)
 
 # 加载遗物列表
 func _load_relic_list():

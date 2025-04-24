@@ -29,8 +29,8 @@ func _do_initialize() -> void:
 	_load_synergy_configs()
 
 	# 连接事件
-	EventBus.chess.connect_event("chess_piece_added", _on_chess_piece_added)
-	EventBus.chess.connect_event("chess_piece_removed", _on_chess_piece_removed)
+	GlobalEventBus.chess.add_listener("chess_piece_added", _on_chess_piece_added)
+	GlobalEventBus.chess.add_listener("chess_piece_removed", _on_chess_piece_removed)
 
 	_log_info("羁绊管理器初始化完成")
 
@@ -50,8 +50,8 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.chess.disconnect_event("chess_piece_added", _on_chess_piece_added)
-	EventBus.chess.disconnect_event("chess_piece_removed", _on_chess_piece_removed)
+	GlobalEventBus.chess.remove_listener("chess_piece_added", _on_chess_piece_added)
+	GlobalEventBus.chess.remove_listener("chess_piece_removed", _on_chess_piece_removed)
 
 	# 断开配置变更信号连接
 	if GameManager and GameManager.config_manager:

@@ -328,7 +328,7 @@ func _process_elemental_effect(target) -> void:
 				else:
 					# 如果无法创建定时器，使用其他方式处理
 					# 可以通过事件总线或其他方式实现
-					EventBus.battle.emit_event("delayed_stun_removal", [target, 1.0])
+					GlobalEventBus.battle.dispatch_event(BattleEvents.DelayedStunRemovalEvent.new(target, 1.0))
 		"poison":
 			# 毒元素：持续伤害和减益
 			battle_manager.apply_dot_effect(owner, target, 1, 5.0, 5.0, "magical")
@@ -350,7 +350,7 @@ func _process_elemental_effect(target) -> void:
 	elemental_effect_triggered.emit(target, elemental_type)
 
 	# 发送事件
-	EventBus.chess.emit_event("chess_piece_elemental_effect_triggered", [owner, target, elemental_type])
+	GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceElementalEffectTriggeredEvent.new(owner, target, elemental_type))
 
 # 设置元素类型
 func set_elemental_type(type: String) -> void:

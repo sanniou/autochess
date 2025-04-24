@@ -27,19 +27,19 @@ var chess_factory: ChessPieceFactory = null
 # 连接事件
 func _connect_events() -> void:
 	# 战斗事件
-	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
+	GlobalEventBus.battle.add_listener("battle_round_started", _on_battle_round_started)
 
 	# 游戏状态事件
 	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 棋子事件
 	GlobalEventBus.chess.add_listener("chess_piece_moved", _on_chess_piece_moved)
-	EventBus.chess.connect_event("chess_piece_placed", _on_chess_piece_placed)
-	EventBus.chess.connect_event("chess_piece_removed", _on_chess_piece_removed)
+	GlobalEventBus.chess.add_listener("chess_piece_placed", _on_chess_piece_placed)
+	GlobalEventBus.chess.add_listener("chess_piece_removed", _on_chess_piece_removed)
 
 	# 存档事件
-	EventBus.save.connect_event("save_game_requested", _on_save_game_requested)
-	EventBus.save.connect_event("load_game_requested", _on_load_game_requested)
+	GlobalEventBus.save.add_listener("save_game_requested", _on_save_game_requested)
+	GlobalEventBus.save.add_listener("load_game_requested", _on_load_game_requested)
 
 	_log_info("ChessManager 事件连接完成")
 
@@ -239,7 +239,7 @@ func refresh_shop_inventory(count: int = 5, player_level: int = 1) -> void:
 			_shop_inventory.append(chess_id)
 
 	# 发送商店刷新信号
-	EventBus.economy.emit_event("chess_shop_inventory_updated", [_shop_inventory])
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.ChessShopInventoryUpdatedEvent.new(_shop_inventory))
 
 # 获取商店库存
 func get_shop_inventory() -> Array:
@@ -653,19 +653,19 @@ func _do_reset() -> void:
 # 断开事件
 func _disconnect_events() -> void:
 	# 战斗事件
-	EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
+	GlobalEventBus.battle.remove_listener("battle_round_started", _on_battle_round_started)
 
 	# 游戏状态事件
 	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
 
 	# 棋子事件
 	GlobalEventBus.chess.remove_listener("chess_piece_moved", _on_chess_piece_moved)
-	EventBus.chess.disconnect_event("chess_piece_placed", _on_chess_piece_placed)
-	EventBus.chess.disconnect_event("chess_piece_removed", _on_chess_piece_removed)
+	GlobalEventBus.chess.remove_listener("chess_piece_placed", _on_chess_piece_placed)
+	GlobalEventBus.chess.remove_listener("chess_piece_removed", _on_chess_piece_removed)
 
 	# 存档事件
-	EventBus.save.disconnect_event("save_game_requested", _on_save_game_requested)
-	EventBus.save.disconnect_event("load_game_requested", _on_load_game_requested)
+	GlobalEventBus.save.remove_listener("save_game_requested", _on_save_game_requested)
+	GlobalEventBus.save.remove_listener("load_game_requested", _on_load_game_requested)
 
 	_log_info("ChessManager 事件断开完成")
 

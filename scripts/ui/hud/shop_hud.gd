@@ -35,11 +35,11 @@ func _initialize() -> void:
 	economy_manager = GameManager.economy_manager
 
 	# 连接商店信号
-	EventBus.economy.connect_event("shop_refreshed", _on_shop_refreshed)
-	EventBus.economy.connect_event("shop_manually_refreshed", _on_shop_manually_refreshed)
-	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
-	EventBus.economy.connect_event("item_sold", _on_item_sold)
-	EventBus.economy.connect_event("shop_discount_applied", _on_shop_discount_applied)
+	GlobalEventBus.economy.add_listener("shop_refreshed", _on_shop_refreshed)
+	GlobalEventBus.economy.add_listener("shop_manually_refreshed", _on_shop_manually_refreshed)
+	GlobalEventBus.economy.add_listener("item_purchased", _on_item_purchased)
+	GlobalEventBus.economy.add_listener("item_sold", _on_item_sold)
+	GlobalEventBus.economy.add_listener("shop_discount_applied", _on_shop_discount_applied)
 
 	# 更新显示
 	update_hud()

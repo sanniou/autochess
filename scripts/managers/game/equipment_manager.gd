@@ -33,7 +33,7 @@ func _do_initialize() -> void:
 	add_child(effect_system)
 
 	# 连接信号
-	EventBus.equipment.connect_event("equipment_combine_requested", _on_equipment_combine_requested)
+	GlobalEventBus.equipment.add_listener("equipment_combine_requested", _on_equipment_combine_requested)
 
 	# 连接配置变更信号
 	if not GameManager.config_manager.config_changed.is_connected(_on_config_changed):
@@ -87,7 +87,7 @@ func combine_equipments(equipment1: Equipment, equipment2: Equipment) -> Equipme
 
 	if result_equipment:
 		# 发送合成成功信号
-		EventBus.equipment.emit_event("equipment_combined", [equipment1, equipment2, result_equipment])
+		GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentCombinedEvent.new([equipment1.id, equipment2.id], result_equipment.id,result_equipment))
 
 	return result_equipment
 
@@ -140,7 +140,7 @@ func _do_cleanup() -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
-			EventBus.equipment.disconnect_event("equipment_combine_requested", _on_equipment_combine_requested)
+			GlobalEventBus.equipment.remove_listener("equipment_combine_requested", _on_equipment_combine_requested)
 
 	# 断开配置变更信号连接
 	if GameManager and GameManager.config_manager:

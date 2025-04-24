@@ -15,9 +15,9 @@ func _initialize() -> void:
 	event_manager = GameManager.event_manager
 	
 	# 连接事件信号
-	EventBus.event.connect_event("event_started", _on_event_started)
-	EventBus.event.connect_event("event_option_selected", _on_event_option_selected)
-	EventBus.event.connect_event("event_completed", _on_event_completed)
+	GlobalEventBus.event.add_listener("event_started", _on_event_started)
+	GlobalEventBus.event.add_listener("event_option_selected", _on_event_option_selected)
+	GlobalEventBus.event.add_listener("event_completed", _on_event_completed)
 	
 	# 更新显示
 	update_hud()

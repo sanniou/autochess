@@ -4,7 +4,7 @@ class_name EventSystemEvents
 ## 定义与事件系统本身相关的事件
 
 ## 事件触发事件
-class EventTriggeredEvent extends Event:
+class EventTriggeredEvent extends BusEvent:
     ## 事件对象
     var event_object
     
@@ -25,7 +25,7 @@ class EventTriggeredEvent extends Event:
         return "EventTriggeredEvent[event_object=%s, event_type=%s]" % [event_object, event_type]
     
     ## 克隆事件
-    func clone() -> Event:
+    func clone() ->BusEvent:
         var event = EventTriggeredEvent.new(event_object, event_type)
         event.timestamp = timestamp
         event.canceled = canceled
@@ -33,7 +33,7 @@ class EventTriggeredEvent extends Event:
         return event
 
 ## 事件选择事件
-class EventChoiceMadeEvent extends Event:
+class EventChoiceMadeEvent extends BusEvent:
     ## 事件对象
     var event_object
     
@@ -56,7 +56,7 @@ class EventChoiceMadeEvent extends Event:
         ]
     
     ## 克隆事件
-    func clone() -> Event:
+    func clone() ->BusEvent:
         var event = EventChoiceMadeEvent.new(event_object, choice_data.duplicate())
         event.timestamp = timestamp
         event.canceled = canceled
@@ -64,7 +64,7 @@ class EventChoiceMadeEvent extends Event:
         return event
 
 ## 事件完成事件
-class EventCompletedEvent extends Event:
+class EventCompletedEvent extends BusEvent:
     ## 事件对象
     var event_object
     
@@ -87,7 +87,7 @@ class EventCompletedEvent extends Event:
         ]
     
     ## 克隆事件
-    func clone() -> Event:
+    func clone() ->BusEvent:
         var event = EventCompletedEvent.new(event_object, result_data.duplicate())
         event.timestamp = timestamp
         event.canceled = canceled
@@ -95,7 +95,7 @@ class EventCompletedEvent extends Event:
         return event
 
 ## 事件效果应用事件
-class EventEffectAppliedEvent extends Event:
+class EventEffectAppliedEvent extends BusEvent:
     ## 事件对象
     var event_object
     
@@ -118,7 +118,7 @@ class EventEffectAppliedEvent extends Event:
         ]
     
     ## 克隆事件
-    func clone() -> Event:
+    func clone() ->BusEvent:
         var event = EventEffectAppliedEvent.new(event_object, effect_data.duplicate())
         event.timestamp = timestamp
         event.canceled = canceled
@@ -126,7 +126,7 @@ class EventEffectAppliedEvent extends Event:
         return event
 
 ## 事件奖励授予事件
-class EventRewardGrantedEvent extends Event:
+class EventRewardGrantedEvent extends BusEvent:
     ## 事件对象
     var event_object
     
@@ -149,7 +149,7 @@ class EventRewardGrantedEvent extends Event:
         ]
     
     ## 克隆事件
-    func clone() -> Event:
+    func clone() ->BusEvent:
         var event = EventRewardGrantedEvent.new(event_object, reward_data.duplicate())
         event.timestamp = timestamp
         event.canceled = canceled

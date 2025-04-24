@@ -25,9 +25,9 @@ func _ready():
 	_load_chess_list()
 
 	# 连接信号
-	EventBus.equipment.connect_event("equipment_equipped", _on_equipment_equipped)
-	EventBus.equipment.connect_event("equipment_unequipped", _on_equipment_unequipped)
-	EventBus.equipment.connect_event("equipment_created", _on_equipment_created)
+	GlobalEventBus.equipment.add_listener("equipment_equipped", _on_equipment_equipped)
+	GlobalEventBus.equipment.add_listener("equipment_unequipped", _on_equipment_unequipped)
+	GlobalEventBus.equipment.add_listener("equipment_created", _on_equipment_created)
 
 # 加载装备列表
 func _load_equipment_list():

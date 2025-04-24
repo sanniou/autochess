@@ -4,7 +4,7 @@ class_name AchievementEvents
 ## 定义与成就系统相关的事件
 
 ## 成就解锁事件
-class AchievementUnlockedEvent extends Event:
+class AchievementUnlockedEvent extends BusEvent:
 	## 成就ID
 	var achievement_id: String
 	
@@ -25,7 +25,7 @@ class AchievementUnlockedEvent extends Event:
 		return "AchievementUnlockedEvent[achievement_id=%s]" % [achievement_id]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = AchievementUnlockedEvent.new(achievement_id, achievement_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -33,7 +33,7 @@ class AchievementUnlockedEvent extends Event:
 		return event
 
 ## 成就进度更新事件
-class AchievementProgressUpdatedEvent extends Event:
+class AchievementProgressUpdatedEvent extends BusEvent:
 	## 成就ID
 	var achievement_id: String
 	
@@ -64,7 +64,7 @@ class AchievementProgressUpdatedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = AchievementProgressUpdatedEvent.new(achievement_id, old_progress, new_progress, target_progress)
 		event.timestamp = timestamp
 		event.canceled = canceled

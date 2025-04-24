@@ -136,7 +136,7 @@ func cast_ability() -> bool:
 	ability_cast.emit(target)
 
 	# 发送事件
-	EventBus.chess.emit_event("chess_piece_ability_cast", [owner, target])
+	GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceAbilityCastEvent.new(owner, target))
 	GlobalEventBus.battle.dispatch_event(BattleEvents.AbilityUsedEvent.new(owner, {
 		"name": ability_name, "damage": ability_damage, "target": target
 	}))

@@ -371,7 +371,7 @@
 # 			battle_manager.apply_heal(source, target, lifesteal_amount)
 		
 # 		# 发送吸血事件
-# 		EventBus.battle.emit_event("vampiric_heal", [target, lifesteal_amount, damage_target])
+# 		GlobalEventBus.battle.dispatch_event(BattleEvents.VampiricHealEvent.new(target, lifesteal_amount, damage_target))
 
 # # 创建光环视觉效果
 # func _create_aura_visual() -> void:

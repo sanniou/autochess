@@ -244,7 +244,7 @@ func _apply_tier_to_config(config: Dictionary, tier: int) -> Dictionary:
 	config["tier"] = tier
 
 	# 触发装备品质变化事件
-	EventBus.equipment.emit_event("equipment_tier_changed", [original_id, tier, config])
+	GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentTierChangedEvent.new(original_id, tier, config))
 	return config
 
 # 获取品质颜色

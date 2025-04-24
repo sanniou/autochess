@@ -199,7 +199,7 @@ func get_mapping(old_event_name: String) -> Dictionary:
 ## @param old_event_name 旧事件名称
 ## @param args 事件参数
 ## @return 新事件实例
-func create_event(old_event_name: String, args: Array) -> Event:
+func create_event(old_event_name: String, args: Array) ->BusEvent:
     # 获取映射
     var mapping = get_mapping(old_event_name)
     if mapping.is_empty():

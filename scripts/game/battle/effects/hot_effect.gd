@@ -94,7 +94,7 @@
 # 		total_healing += actual_healing
 
 # 	# 触发治疗事件
-# 	EventBus.battle.emit_event("hot_healing", [source, target, heal_amount, hot_type])
+# 	GlobalEventBus.battle.dispatch_event(BattleEvents.HotHealingEvent.new(source, target, heal_amount, hot_type))
 
 # 	# 创建治疗视觉效果
 # 	_create_healing_visual(heal_amount)

@@ -34,7 +34,7 @@ func add_synergy_type(synergy_type: String) -> void:
 	synergy_levels[synergy_type] = 0
 
 	# 发送事件
-	EventBus.synergy.emit_event("synergy_type_added", [owner, synergy_type])
+	GlobalEventBus.synergy.dispatch_event(ChessEvents.SynergyTypeAddedEvent.new(owner, synergy_type))
 
 	# 发送信号
 	synergy_added.emit(synergy_type, 0)
@@ -62,7 +62,7 @@ func remove_synergy_type(synergy_type: String) -> void:
 	synergy_removed.emit(synergy_type)
 
 	# 发送事件
-	EventBus.synergy.emit_event("synergy_type_removed", [owner, synergy_type])
+	GlobalEventBus.synergy.dispatch_event(ChessEvents.SynergyTypeRemovedEvent.new(owner, synergy_type))
 
 # 设置羁绊等级
 func set_synergy_level(synergy_type: String, level: int) -> void:
@@ -87,7 +87,7 @@ func set_synergy_level(synergy_type: String, level: int) -> void:
 	synergy_level_changed.emit(synergy_type, old_level, level)
 
 	# 发送事件
-	EventBus.synergy.emit_event("synergy_level_changed", [owner, synergy_type, old_level, level])
+	GlobalEventBus.synergy.dispatch_event(ChessEvents.SynergyLevelChangedEvent.new(owner, synergy_type, old_level, level))
 
 # 获取羁绊等级
 func get_synergy_level(synergy_type: String) -> int:

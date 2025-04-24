@@ -49,7 +49,7 @@ func _do_initialize() -> void:
 	load_save_metadata()
 
 	# 连接信号
-	EventBus.save.connect_event("autosave_triggered", _on_autosave_triggered)
+	GlobalEventBus.save.add_listener("autosave_triggered", _on_autosave_triggered)
 	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 设置自动存档计时器
@@ -151,7 +151,7 @@ func save_game(slot_name: String = "") -> bool:
 	current_save_slot = slot_name
 
 	# 发送存档信号
-	EventBus.save.emit_event("game_saved", [slot_name])
+	GlobalEventBus.save.dispatch_event(SaveEvents.GameSavedEvent.new(slot_name))
 
 	return true
 
@@ -187,7 +187,7 @@ func load_game(slot_name: String) -> bool:
 	current_save_slot = slot_name
 
 	# 发送加载信号
-	EventBus.save.emit_event("game_loaded", [slot_name])
+	GlobalEventBus.save.dispatch_event(SaveEvents.GameLoadedEvent.new(slot_name))
 
 	return true
 

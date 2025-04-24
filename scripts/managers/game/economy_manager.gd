@@ -48,16 +48,12 @@ func _do_initialize() -> void:
 	add_dependency("StatsManager")
 	add_dependency("RelicManager")
 
-	# 原 _ready 函数的内容
-	# 加载事件定义
-	var event_definitions = load("res://scripts/events/event_definitions.gd")
-
 	# 连接信号 - 使用规范的事件连接方式
-	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
-	EventBus.economy.connect_event("shop_refreshed", _on_shop_refreshed)
-	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
-	EventBus.economy.connect_event("item_sold", _on_item_sold)
-	EventBus.game.connect_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, _on_difficulty_changed)
+	GlobalEventBus.battle.add_listener("battle_round_started", _on_battle_round_started)
+	GlobalEventBus.economy.add_listener("shop_refreshed", _on_shop_refreshed)
+	GlobalEventBus.economy.add_listener("item_purchased", _on_item_purchased)
+	GlobalEventBus.economy.add_listener("item_sold", _on_item_sold)
+	GlobalEventBus.economy.add_listener("GameEvents.DIFFICULTY_CHANGED", _on_difficulty_changed)
 
 	# 加载难度设置
 	_load_difficulty_settings()
@@ -148,7 +144,7 @@ func _on_battle_round_started(round_number: int) -> void:
 		player.add_gold(income)
 
 		# 发送收入发放信号
-		EventBus.economy.emit_event("income_granted", [income])
+		GlobalEventBus.economy.dispatch_event(EconomyEvents.IncomeGrantedEvent.new(income))
 
 		# 添加自动经验
 		player.add_exp(2)
@@ -275,10 +271,10 @@ func _do_cleanup() -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
-			EventBus.battle.disconnect_event("battle_round_started", _on_battle_round_started)
-			EventBus.economy.disconnect_event("shop_refreshed", _on_shop_refreshed)
-			EventBus.economy.disconnect_event("item_purchased", _on_item_purchased)
-			EventBus.economy.disconnect_event("item_sold", _on_item_sold)
+			GlobalEventBus.battle.remove_listener("battle_round_started", _on_battle_round_started)
+			GlobalEventBus.economy.remove_listener("shop_refreshed", _on_shop_refreshed)
+			GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
+			GlobalEventBus.economy.remove_listener("item_sold", _on_item_sold)
 
 			# 断开难度变化事件
 			var event_definitions = load("res://scripts/events/event_definitions.gd")

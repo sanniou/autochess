@@ -82,7 +82,7 @@ func refresh_shop(shop_type: SC.ShopType, force: bool = false) -> bool:
 	if result:
 		# 发送商店刷新信号
 		shop_refreshed.emit(shop_type)
-		EventBus.economy.emit_event("shop_refreshed", [shop_type])
+		GlobalEventBus.economy.dispatch_event(EconomyEvents.ShopRefreshedEvent.new(str(shop_type),result))
 
 	return result
 
@@ -105,7 +105,7 @@ func refresh_all_shops(force: bool = false) -> bool:
 	if result:
 		# 发送商店刷新信号
 		shop_refreshed.emit(-1) # -1 表示所有商店
-		EventBus.economy.emit_event("shop_refreshed", [-1])
+		GlobalEventBus.economy.dispatch_event(EconomyEvents.ShopRefreshedEvent.new("-1",result))
 
 	return result
 
@@ -134,7 +134,7 @@ func manual_refresh_shop(shop_type: SC.ShopType = -1) -> bool:
 
 		# 发送刷新事件
 		if result:
-			EventBus.economy.emit_event("shop_manually_refreshed", [refresh_cost])
+			GlobalEventBus.economy.dispatch_event(EconomyEvents.ShopManuallyRefreshedEvent.new(str(shop_type),refresh_cost))
 
 		return result
 
@@ -180,7 +180,7 @@ func apply_discount(discount_rate: float, shop_type: SC.ShopType = -1) -> void:
 
 	# 发送折扣应用信号
 	discount_applied.emit(discount_rate)
-	EventBus.economy.emit_event("shop_discount_applied", [discount_rate])
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.ShopDiscountAppliedEvent.new(str(shop_type),discount_rate))
 
 # 获取商店物品
 func get_shop_items(shop_type) -> Array:
@@ -230,7 +230,7 @@ func trigger_black_market() -> void:
 
 	# 发送黑市商人触发信号
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("黑市商人出现了！", 0))
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.black_market_appeared")))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo", tr("ui.shop.black_market_appeared")))
 
 # 触发神秘商店
 func trigger_mystery_shop() -> void:
@@ -247,7 +247,7 @@ func trigger_mystery_shop() -> void:
 
 	# 发送神秘商店触发信号
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("神秘商店出现了！", 0))
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.mystery_shop_appeared")))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.shop.mystery_shop_appeared")))
 
 # 设置目标棋子（用于保底机制）
 func set_target_chess(chess_id: String) -> void:
@@ -377,7 +377,7 @@ func trigger_equipment_shop() -> void:
 
 	# 发送装备商店触发信号
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("装备商店出现了！", 0))
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.equipment_shop_appeared")))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.shop.equipment_shop_appeared")))
 
 # 触发遗物商店
 func trigger_relic_shop() -> void:
@@ -391,7 +391,7 @@ func trigger_relic_shop() -> void:
 
 	# 发送遗物商店触发信号
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("遗物商店出现了！", 0))
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.relic_shop_appeared")))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.shop.relic_shop_appeared")))
 
 # 添加特殊道具
 func add_special_items(count: int = 1) -> void:

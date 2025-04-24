@@ -120,7 +120,7 @@ func _start_prepare_phase() -> void:
 	$BottomPanel/ButtonContainer/SkipButton.disabled = false
 
 	# 发送战斗准备信号
-	EventBus.battle.emit_event("battle_round_started", [current_round])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleRoundStartedEvent.new(current_round))
 
 ## 开始战斗阶段
 func _start_fighting_phase() -> void:
@@ -175,7 +175,7 @@ func _on_battle_ended(victory: bool) -> void:
 
 	# 发送战斗结束信号
 	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleEndedEvent.new(result.to_dict()))
-	EventBus.battle.emit_event("battle_round_ended", [current_round])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleRoundEndedEvent.new(current_round))
 
 	# 延迟返回地图
 	var timer = Timer.new()

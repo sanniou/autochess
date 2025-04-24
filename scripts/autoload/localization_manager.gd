@@ -116,8 +116,8 @@ func _do_initialize() -> void:
 func _deferred_init() -> void:
 
 	# 连接信号
-	EventBus.localization.connect_event("request_language_code", _on_request_language_code)
-	EventBus.localization.connect_event("font_loaded", _on_font_loaded, CONNECT_ONE_SHOT)
+	GlobalEventBus.localization.add_listener("request_language_code", _on_request_language_code)
+	GlobalEventBus.localization.add_listener("font_loaded", _on_font_loaded, CONNECT_ONE_SHOT)
 	
 
 	# 检测系统语言
@@ -135,13 +135,13 @@ func _deferred_init() -> void:
 		_load_font(current_language)
 
 	# 连接信号
-	EventBus.localization.connect_event("language_changed", _on_language_changed)
+	GlobalEventBus.localization.add_listener("language_changed", _on_language_changed)
 
 	# 标记初始化完成
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("本地化管理器初始化完成", 0))
 
 	# 通知其他系统当前语言
-	EventBus.localization.emit_event("language_changed", [get_current_language_code()])
+	GlobalEventBus.localization.dispatch_event(LocalizationEvents.LanguageChangedEvent.new(get_current_language_code(),get_current_language_name()))
 
 ## 检测系统语言
 func _detect_system_language() -> void:
@@ -160,7 +160,7 @@ func _detect_system_language() -> void:
 
 	# 设置当前语言
 	current_language = detected_language
-	EventBus.debug.emit_event("debug_message", ["检测到系统语言: " + LANGUAGE_NAMES[current_language], 0])
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("检测到系统语言: " + LANGUAGE_NAMES[current_language], 0))
 
 ## 加载指定语言
 func load_language(language: int) -> void:
@@ -288,7 +288,7 @@ func _load_font(language: int) -> void:
 ## 请求字体
 func _request_font(font_name: String) -> void:
 	# 通过EventBus请求字体
-	EventBus.localization.emit_event("request_font", [font_name])
+	GlobalEventBus.localization.dispatch_event(LocalizationEvents.RequestFontEvent.new(font_name,12))
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("请求字体: " + font_name, 0))
 
 ## 处理字体加载完成
@@ -453,7 +453,7 @@ func _on_language_changed(new_language: String) -> void:
 func _on_request_language_code() -> void:
 	# 发送当前语言代码
 	if _initialized:
-		EventBus.localization.emit_event("language_changed", [get_current_language_code()])
+		GlobalEventBus.localization.dispatch_event(LocalizationEvents.LanguageChangedEvent.new(get_current_language_code(),get_current_language_name()))
 
 ## 等待线程完成
 func _wait_for_thread(thread: Thread) -> void:

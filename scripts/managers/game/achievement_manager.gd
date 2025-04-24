@@ -50,10 +50,10 @@ func _connect_signals() -> void:
 	GlobalEventBus.chess.add_listener("chess_piece_created", _on_chess_piece_created)
 	GlobalEventBus.chess.add_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
-	EventBus.event.connect_event("event_completed", _on_event_completed)
-	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
-	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
-	EventBus.chess.connect_event("synergy_activated", _on_synergy_activated)
+	GlobalEventBus.event.add_listener("event_completed", _on_event_completed)
+	GlobalEventBus.relic.add_listener("relic_acquired", _on_relic_acquired)
+	GlobalEventBus.economy.add_listener("gold_changed", _on_gold_changed)
+	GlobalEventBus.chess.add_listener("synergy_activated", _on_synergy_activated)
 	# 使用正确的事件连接方式
 	GlobalEventBus.game.add_listener("game_ended", _on_game_completed)
 
@@ -578,10 +578,10 @@ func _do_cleanup() -> void:
 	GlobalEventBus.chess.remove_listener("chess_piece_created", _on_chess_piece_created)
 	GlobalEventBus.chess.remove_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
-	EventBus.event.disconnect_event("event_completed", _on_event_completed)
-	EventBus.relic.disconnect_event("relic_acquired", _on_relic_acquired)
-	EventBus.economy.disconnect_event("gold_changed", _on_gold_changed)
-	EventBus.chess.disconnect_event("synergy_activated", _on_synergy_activated)
+	GlobalEventBus.event.remove_listener("event_completed", _on_event_completed)
+	GlobalEventBus.relic.remove_listener("relic_acquired", _on_relic_acquired)
+	GlobalEventBus.economy.remove_listener("gold_changed", _on_gold_changed)
+	GlobalEventBus.chess.remove_listener("synergy_activated", _on_synergy_activated)
 	GlobalEventBus.game.remove_listener("game_ended", _on_game_completed)
 
 	# 清空成就数据

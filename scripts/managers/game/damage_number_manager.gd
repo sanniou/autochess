@@ -113,11 +113,11 @@ func _connect_signals() -> void:
 	GlobalEventBus.battle.add_listener("heal_received", _on_heal_received)
 
 	# 连接状态效果信号
-	EventBus.status_effect.connect_event("status_effect_added", _on_status_effect_added)
-	EventBus.status_effect.connect_event("status_effect_resisted", _on_status_effect_resisted)
+	GlobalEventBus.status_effect.add_listener("status_effect_added", _on_status_effect_added)
+	GlobalEventBus.status_effect.add_listener("status_effect_resisted", _on_status_effect_resisted)
 
 	# 连接法力值信号
-	EventBus.battle.connect_event("mana_changed", _on_mana_changed)
+	GlobalEventBus.battle.add_listener("mana_changed", _on_mana_changed)
 
 	# 连接升级信号
 	GlobalEventBus.chess.add_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
@@ -206,7 +206,7 @@ func _on_damage_dealt(source: ChessPieceEntity, target: ChessPieceEntity, amount
 	if is_crit:
 		create_floating_text(target.global_position, str(int(amount)), TextType.CRITICAL)
 		# 发送暴击信号
-		EventBus.battle.emit_event("critical_hit", [source, target, amount])
+		GlobalEventBus.battle.dispatch_event(BattleEvents.CriticalHitEvent.new(source, target, amount))
 	else:
 		show_damage(target.global_position, amount, damage_type, false)
 
@@ -267,9 +267,9 @@ func _do_cleanup() -> void:
 	# 断开信号连接
 	GlobalEventBus.battle.remove_listener("damage_dealt", _on_damage_dealt)
 	GlobalEventBus.battle.remove_listener("heal_received", _on_heal_received)
-	EventBus.status_effect.disconnect_event("status_effect_added", _on_status_effect_added)
-	EventBus.status_effect.disconnect_event("status_effect_resisted", _on_status_effect_resisted)
-	EventBus.battle.disconnect_event("mana_changed", _on_mana_changed)
+	GlobalEventBus.status_effect.remove_listener("status_effect_added", _on_status_effect_added)
+	GlobalEventBus.status_effect.remove_listener("status_effect_resisted", _on_status_effect_resisted)
+	GlobalEventBus.battle.remove_listener("mana_changed", _on_mana_changed)
 	GlobalEventBus.chess.remove_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 
 	# 移除所有伤害数字

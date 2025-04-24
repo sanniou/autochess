@@ -93,7 +93,7 @@ func activate() -> bool:
 
 	# 发送激活信号
 	activated.emit()
-	EventBus.relic.emit_event("relic_activated", [self])
+	GlobalEventBus.relic.dispatch_event(RelicEvents.RelicActivatedEvent.new(self))
 
 	return true
 
@@ -130,7 +130,7 @@ func trigger_effect(trigger_type: String, context: Dictionary = {}) -> bool:
 
 		# 发送效果触发信号
 		effect_triggered.emit(effect)
-		EventBus.relic.emit_event("relic_effect_triggered", [self, effect])
+		GlobalEventBus.relic.dispatch_event(RelicEvents.RelicEffectTriggeredEvent.new(self, effect))
 
 	return true
 
@@ -542,7 +542,7 @@ func update_data(relic_data: Dictionary) -> void:
 		activate()
 
 	# 发送更新信号
-	EventBus.relic.emit_event("relic_updated", [self])
+	GlobalEventBus.relic.dispatch_event(RelicEvents.RelicUpdatedEvent.new(self))
 
 # 获取遗物数据
 func get_data() -> Dictionary:

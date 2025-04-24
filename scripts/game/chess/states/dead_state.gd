@@ -58,7 +58,7 @@ func _process_death() -> void:
 			owner.died.emit()
 
 		# 发送事件
-		EventBus.chess.emit_event("chess_piece_died", [owner])
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceDiedEvent.new(owner))
 		GlobalEventBus.battle.dispatch_event(BattleEvents.UnitDiedEvent.new(owner))
 
 		# 处理死亡效果

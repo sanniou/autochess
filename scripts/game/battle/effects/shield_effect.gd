@@ -118,7 +118,7 @@
 # 	remaining_shield -= absorbed_damage
 	
 # 	# 发送护盾吸收事件
-# 	EventBus.battle.emit_event("shield_absorbed", [target, absorbed_damage, self])
+# 	GlobalEventBus.battle.dispatch_event(BattleEvents.ShieldAbsorbedEvent.new(target, absorbed_damage, self))
 	
 # 	# 如果有伤害反射，反射部分伤害
 # 	if reflect_percent > 0 and source and is_instance_valid(source):
@@ -130,7 +130,7 @@
 # 			battle_manager.apply_damage(target, source, reflect_damage, "reflected")
 		
 # 		# 发送伤害反射事件
-# 		EventBus.battle.emit_event("damage_reflected", [target, source, reflect_damage])
+# 		GlobalEventBus.battle.dispatch_event(BattleEvents.DamageReflectedEvent.new(target, source, reflect_damage))
 	
 # 	# 如果护盾已经耗尽，移除效果
 # 	if remaining_shield <= 0:

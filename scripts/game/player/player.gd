@@ -84,7 +84,7 @@ func take_damage(amount: int) -> void:
 
 	# 发送生命值变化信号
 	health_changed.emit(old_health, current_health)
-	GlobalEventBus.game.dispatch_event(GameEvents.PlayerHealthChangedEvent.new(old_health, current_health))
+	GlobalEventBus.game.dispatch_event(GameEvents.PlayerHealthChangedEvent.new(old_health, current_health , max_health))
 
 	# 检查是否死亡
 	if current_health <= 0:
@@ -97,7 +97,7 @@ func heal(amount: int) -> void:
 
 	# 发送生命值变化信号
 	health_changed.emit(old_health, current_health)
-	GlobalEventBus.game.dispatch_event(GameEvents.PlayerHealthChangedEvent.new(old_health, current_health))
+	GlobalEventBus.game.dispatch_event(GameEvents.PlayerHealthChangedEvent.new(old_health, current_health, max_health))
 
 # 增加金币
 func add_gold(amount: int) -> void:
@@ -106,7 +106,7 @@ func add_gold(amount: int) -> void:
 
 	# 发送金币变化信号
 	gold_changed.emit(old_gold, gold)
-	EventBus.economy.emit_event("gold_changed", [old_gold, gold])
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.GoldChangedEvent.new(old_gold, gold))
 
 # 扣除金币
 func spend_gold(amount: int) -> bool:
@@ -118,7 +118,7 @@ func spend_gold(amount: int) -> bool:
 
 	# 发送金币变化信号
 	gold_changed.emit(old_gold, gold)
-	EventBus.economy.emit_event("gold_changed", [old_gold, gold])
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.GoldChangedEvent.new(old_gold, gold))
 
 	return true
 
@@ -141,11 +141,11 @@ func add_exp(amount: int) -> void:
 
 		# 发送生命值变化信号
 		health_changed.emit(current_health - 10, current_health)
-		GlobalEventBus.game.dispatch_event(GameEvents.PlayerHealthChangedEvent.new(current_health - 10, current_health))
+		GlobalEventBus.game.dispatch_event(GameEvents.PlayerHealthChangedEvent.new(current_health - 10, current_health,max_health))
 
 	# 发送经验变化信号
 	exp_changed.emit(old_exp, exp)
-	EventBus.game.emit_event("player_exp_changed", [old_exp, exp])
+	GlobalEventBus.game.dispatch_event(GameEvents.PlayerExpChangedEvent.new(old_exp, exp))
 
 	# 如果等级变化，发送等级变化信号
 	if level != old_level:
@@ -270,7 +270,7 @@ func sell_chess_piece(piece: ChessPieceEntity) -> bool:
 		add_gold(piece.cost * piece.star_level)
 
 		# 发送棋子出售信号
-		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceSoldEvent.new(piece))
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceSoldEvent.new(piece,piece.cost * piece.star_level))
 
 		return true
 
@@ -281,7 +281,7 @@ func add_equipment(equipment: Equipment) -> bool:
 	equipments.append(equipment)
 
 	# 发送装备获取信号
-	EventBus.equipment.emit_event("equipment_created", [equipment])
+	GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentCreatedEvent.new(equipment))
 
 	return true
 
@@ -298,7 +298,7 @@ func add_relic(relic) -> bool:
 	relics.append(relic)
 
 	# 发送遗物获取信号
-	EventBus.relic.emit_event("relic_acquired", [relic])
+	GlobalEventBus.relic.dispatch_event(RelicEvents.RelicAcquiredEvent.new(relic))
 
 	return true
 

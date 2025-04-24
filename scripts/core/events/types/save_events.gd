@@ -4,7 +4,7 @@ class_name SaveEvents
 ## 定义与存档系统相关的事件
 
 ## 存档请求事件
-class SaveGameRequestedEvent extends Event:
+class SaveGameRequestedEvent extends BusEvent:
 	## 存档ID
 	var save_id: String
 	
@@ -25,7 +25,7 @@ class SaveGameRequestedEvent extends Event:
 		return "SaveGameRequestedEvent[save_id=%s]" % [save_id]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = SaveGameRequestedEvent.new(save_id, save_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -33,7 +33,7 @@ class SaveGameRequestedEvent extends Event:
 		return event
 
 ## 加载请求事件
-class LoadGameRequestedEvent extends Event:
+class LoadGameRequestedEvent extends BusEvent:
 	## 存档ID
 	var save_id: String
 	
@@ -50,7 +50,7 @@ class LoadGameRequestedEvent extends Event:
 		return "LoadGameRequestedEvent[save_id=%s]" % [save_id]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = LoadGameRequestedEvent.new(save_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -58,7 +58,7 @@ class LoadGameRequestedEvent extends Event:
 		return event
 
 ## 游戏已加载事件
-class GameLoadedEvent extends Event:
+class GameLoadedEvent extends BusEvent:
 	## 存档ID
 	var save_id: String
 	
@@ -79,7 +79,7 @@ class GameLoadedEvent extends Event:
 		return "GameLoadedEvent[save_id=%s]" % [save_id]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = GameLoadedEvent.new(save_id, save_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -87,7 +87,7 @@ class GameLoadedEvent extends Event:
 		return event
 
 ## 自动存档触发事件
-class AutosaveTriggeredEvent extends Event:
+class AutosaveTriggeredEvent extends BusEvent:
 	## 初始化
 	func _init():
 		pass
@@ -101,7 +101,7 @@ class AutosaveTriggeredEvent extends Event:
 		return "AutosaveTriggeredEvent[]"
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = AutosaveTriggeredEvent.new()
 		event.timestamp = timestamp
 		event.canceled = canceled

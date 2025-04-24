@@ -25,7 +25,7 @@ func _do_initialize() -> void:
 	_initialize_event_factory()
 
 	# 连接信号
-	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
 
 # 初始化事件工厂
 func _initialize_event_factory() -> void:
@@ -334,7 +334,7 @@ func _do_cleanup() -> void:
 	if Engine.has_singleton("EventBus"):
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
-			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+			GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
 
 	# 清理当前事件
 	clear_current_event()

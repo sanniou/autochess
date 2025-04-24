@@ -4,7 +4,7 @@ class_name SkinEvents
 ## 定义与皮肤系统相关的事件
 
 ## 皮肤变更事件
-class SkinChangedEvent extends Event:
+class SkinChangedEvent extends BusEvent:
 	## 皮肤类型
 	var skin_type: String
 	
@@ -31,7 +31,7 @@ class SkinChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = SkinChangedEvent.new(skin_type, old_skin_id, new_skin_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -39,7 +39,7 @@ class SkinChangedEvent extends Event:
 		return event
 
 ## 皮肤解锁事件
-class SkinUnlockedEvent extends Event:
+class SkinUnlockedEvent extends BusEvent:
 	## 皮肤类型
 	var skin_type: String
 	
@@ -62,7 +62,7 @@ class SkinUnlockedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = SkinUnlockedEvent.new(skin_type, skin_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -70,7 +70,7 @@ class SkinUnlockedEvent extends Event:
 		return event
 
 ## 棋子皮肤变更事件
-class ChessSkinChangedEvent extends Event:
+class ChessSkinChangedEvent extends BusEvent:
 	## 棋子ID
 	var chess_id: String
 	
@@ -97,7 +97,7 @@ class ChessSkinChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessSkinChangedEvent.new(chess_id, old_skin_id, new_skin_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -105,7 +105,7 @@ class ChessSkinChangedEvent extends Event:
 		return event
 
 ## 棋盘皮肤变更事件
-class BoardSkinChangedEvent extends Event:
+class BoardSkinChangedEvent extends BusEvent:
 	## 旧皮肤ID
 	var old_skin_id: String
 	
@@ -128,7 +128,7 @@ class BoardSkinChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = BoardSkinChangedEvent.new(old_skin_id, new_skin_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -136,7 +136,7 @@ class BoardSkinChangedEvent extends Event:
 		return event
 
 ## UI皮肤变更事件
-class UISkinChangedEvent extends Event:
+class UISkinChangedEvent extends BusEvent:
 	## 旧皮肤ID
 	var old_skin_id: String
 	
@@ -159,7 +159,7 @@ class UISkinChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = UISkinChangedEvent.new(old_skin_id, new_skin_id)
 		event.timestamp = timestamp
 		event.canceled = canceled

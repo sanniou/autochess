@@ -54,10 +54,10 @@ func play_animation() -> void:
 	# 播放音效
 	match relic.rarity:
 		0: # 普通
-			EventBus.audio.emit_event("play_sound", ["relic_common"])
+			GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("relic_common"))
 		1: # 稀有
-			EventBus.audio.emit_event("play_sound", ["relic_rare"])
+			GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("relic_rare"))
 		2: # 史诗
-			EventBus.audio.emit_event("play_sound", ["relic_epic"])
+			GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("relic_epic"))
 		3: # 传说
-			EventBus.audio.emit_event("play_sound", ["relic_legendary"])
+			GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("relic_legendary"))

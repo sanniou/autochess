@@ -89,9 +89,9 @@ func _do_initialize() -> void:
 
 	# 连接信号
 	GlobalEventBus.ui.add_listener("show_toast", show_toast)
-	EventBus.ui.connect_event("show_popup", show_popup)
-	EventBus.ui.connect_event("close_popup", close_popup)
-	EventBus.ui.connect_event("start_transition", start_transition)
+	GlobalEventBus.ui.add_listener("show_popup", show_popup)
+	GlobalEventBus.ui.add_listener("close_popup", close_popup)
+	GlobalEventBus.ui.add_listener("start_transition", start_transition)
 	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 创建 UI 容器
@@ -442,7 +442,7 @@ func start_transition(transition_type: String = "fade", duration: float = TRANSI
 			var tween = create_tween()
 			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
-			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint"))
+			tween.tween_callback(func(): GlobalEventBus.ui.dispatch_event(UIEvents.TransitionMidpointEvent.new()))
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 		_:
@@ -450,7 +450,7 @@ func start_transition(transition_type: String = "fade", duration: float = TRANSI
 			var tween = create_tween()
 			transition_node.set_meta("tween", tween)
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 1), duration / 2)
-			tween.tween_callback(func(): EventBus.ui.emit_event("transition_midpoint"))
+			tween.tween_callback(func(): GlobalEventBus.ui.dispatch_event(UIEvents.TransitionMidpointEvent.new()))
 			tween.tween_property(color_rect, "color", Color(0, 0, 0, 0), duration / 2)
 			tween.tween_callback(func(): _on_transition_finished(transition_type))
 
@@ -512,11 +512,11 @@ func _configure_ui_throttling() -> void:
 	ui_throttle_manager.set_global_config(config)
 
 	# 注册常用UI节流器
-	EventBus.ui.emit_event("register_ui_throttler", ["hud", config])
-	EventBus.ui.emit_event("register_ui_throttler", ["popup", config])
-	EventBus.ui.emit_event("register_ui_throttler", ["battle", config])
-	EventBus.ui.emit_event("register_ui_throttler", ["shop", config])
-	EventBus.ui.emit_event("register_ui_throttler", ["map", config])
+	GlobalEventBus.ui.dispatch_event(UIEvents.RegisterUIThrottlerEvent.new("hud", config))
+	GlobalEventBus.ui.dispatch_event(UIEvents.RegisterUIThrottlerEvent.new("popup", config))
+	GlobalEventBus.ui.dispatch_event(UIEvents.RegisterUIThrottlerEvent.new("battle", config))
+	GlobalEventBus.ui.dispatch_event(UIEvents.RegisterUIThrottlerEvent.new("shop", config))
+	GlobalEventBus.ui.dispatch_event(UIEvents.RegisterUIThrottlerEvent.new("map", config))
 
 # 获取UI节流器
 func get_throttler(ui_id: String) -> UIThrottler:

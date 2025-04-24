@@ -265,7 +265,7 @@ func reset_board():
 
 	# 发送棋盘重置信号
 	board_reset.emit()
-	EventBus.board.emit_event("board_reset")
+	GlobalEventBus.board.dispatch_event(BoardEvents.BoardResetEvent.new("todo"))
 
 # 生成特殊格子
 func generate_special_cells() -> void:
@@ -366,7 +366,7 @@ func upgrade_piece(piece_id: String) -> ChessPieceEntity:
 
 	# 发送升级信号
 	piece_combined.emit(piece_id, upgraded_piece.star_level, first_cell.grid_position if first_cell else Vector2i(-1, -1))
-	GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceUpgradedEvent.new(upgraded_piece))
+	GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceLevelChangedEvent.new(upgraded_piece,same_pieces[0].star_level,upgraded_piece.star_level))
 
 	return upgraded_piece
 
@@ -405,14 +405,14 @@ func try_combine_pieces(piece: ChessPieceEntity) -> bool:
 	# 如果有足够的棋子，进行合成
 	if same_pieces.size() >= 3:
 		# 播放合成音效
-		EventBus.audio.emit_event("play_sound", ["combine_start"])
+		GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("combine_start"))
 
 		# 合成棋子
 		var upgraded_piece = upgrade_piece(piece.id)
 
 		# 播放合成完成音效
 		if upgraded_piece:
-			EventBus.audio.emit_event("play_sound", ["combine_complete"])
+			GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("combine_complete"))
 
 			# 发送合成信号
 			piece_combined.emit(piece.id, upgraded_piece.star_level, upgraded_piece.board_position)
@@ -423,12 +423,12 @@ func try_combine_pieces(piece: ChessPieceEntity) -> bool:
 # 战斗开始事件处理
 func _on_battle_started() -> void:
 	# 发送战斗开始信号
-	EventBus.board.emit_event("board_battle_started")
+	GlobalEventBus.board.dispatch_event(BoardEvents.BoardBattleStartedEvent.new())
 
 # 战斗结束事件处理
 func _on_battle_ended(_result) -> void:
 	# 发送战斗结束信号
-	EventBus.board.emit_event("board_battle_ended", [_result])
+	GlobalEventBus.board.dispatch_event(BoardEvents.BoardBattleEndedEvent.new(_result))
 
 
 # 重写清理方法

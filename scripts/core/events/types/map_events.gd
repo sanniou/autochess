@@ -4,7 +4,7 @@ class_name MapEvents
 ## 定义与地图系统相关的事件
 
 ## 地图生成事件
-class MapGeneratedEvent extends Event:
+class MapGeneratedEvent extends BusEvent:
 	## 地图ID
 	var map_id: String
 	
@@ -27,7 +27,7 @@ class MapGeneratedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = MapGeneratedEvent.new(map_id, map_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -35,7 +35,7 @@ class MapGeneratedEvent extends Event:
 		return event
 
 ## 地图节点选择事件
-class MapNodeSelectedEvent extends Event:
+class MapNodeSelectedEvent extends BusEvent:
 	## 节点ID
 	var node_id: String
 	
@@ -62,7 +62,7 @@ class MapNodeSelectedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = MapNodeSelectedEvent.new(node_id, node_type, node_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -70,7 +70,7 @@ class MapNodeSelectedEvent extends Event:
 		return event
 
 ## 地图节点悬停事件
-class MapNodeHoveredEvent extends Event:
+class MapNodeHoveredEvent extends BusEvent:
 	## 节点ID
 	var node_id: String
 	
@@ -101,7 +101,7 @@ class MapNodeHoveredEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = MapNodeHoveredEvent.new(node_id, node_type, node_data.duplicate(true), is_hovered)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -109,7 +109,7 @@ class MapNodeHoveredEvent extends Event:
 		return event
 
 ## 地图完成事件
-class MapCompletedEvent extends Event:
+class MapCompletedEvent extends BusEvent:
 	## 地图ID
 	var map_id: String
 	
@@ -136,7 +136,7 @@ class MapCompletedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = MapCompletedEvent.new(map_id, completion_time, visited_nodes)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -144,7 +144,7 @@ class MapCompletedEvent extends Event:
 		return event
 
 ## 装备升级事件
-class EquipmentUpgradedEvent extends Event:
+class EquipmentUpgradedEvent extends BusEvent:
 	## 装备ID
 	var equipment_id: String
 	
@@ -175,7 +175,7 @@ class EquipmentUpgradedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = EquipmentUpgradedEvent.new(equipment_id, old_level, new_level, upgrade_cost)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -183,7 +183,7 @@ class EquipmentUpgradedEvent extends Event:
 		return event
 
 ## 祭坛献祭事件
-class AltarSacrificeMadeEvent extends Event:
+class AltarSacrificeMadeEvent extends BusEvent:
 	## 献祭的棋子ID
 	var chess_id: String
 	
@@ -210,7 +210,7 @@ class AltarSacrificeMadeEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = AltarSacrificeMadeEvent.new(chess_id, chess_data.duplicate(true), rewards.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled

@@ -61,7 +61,7 @@ func _on_map_loaded(map_data: MapData) -> void:
 	_create_map_connections(map_data)
 
 	# 连接节点悬停信号
-	EventBus.map.connect_event("map_node_hovered", _on_map_node_hovered)
+	GlobalEventBus.map.add_listener("map_node_hovered", _on_map_node_hovered)
 
 	# 节点离开
 	EventBus.map_node_unhovered.connect(_on_map_node_unhovered)

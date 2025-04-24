@@ -69,7 +69,7 @@ func _do_initialize() -> void:
 	EventBus.battle.connect_event(Events.BattleEvents.ABILITY_USED, _on_ability_used)
 
 	# 连接自定义事件
-	EventBus.battle.connect_event("delayed_stun_removal", _on_delayed_stun_removal)
+	GlobalEventBus.battle.add_listener("delayed_stun_removal", _on_delayed_stun_removal)
 
 	_log_info("战斗管理器初始化完成")
 

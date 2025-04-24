@@ -125,7 +125,7 @@ func _on_cell_clicked(cell: BoardCell):
 		# 结束拖拽
 		end_drag_piece(cell)
 
-	EventBus.board.emit_event("cell_clicked", [cell])
+	GlobalEventBus.board.dispatch_event(BoardEvents.CellClickedEvent.new(cell))
 
 # 格子悬停处理
 func _on_cell_hovered(cell: BoardCell):
@@ -146,10 +146,10 @@ func _on_cell_hovered(cell: BoardCell):
 
 	# 如果格子有棋子且不在拖拽状态，显示棋子信息
 	if cell.current_piece and not dragging_piece:
-		EventBus.chess.emit_event("show_chess_info", [cell.current_piece])
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ShowChessInfoEvent.new(cell.current_piece))
 
 	# 发送格子悬停信号
-	EventBus.board.emit_event("cell_hovered", [cell])
+	GlobalEventBus.board.dispatch_event(BoardEvents.CellHoveredEvent.new(cell))
 
 # 格子离开处理
 func _on_cell_exited(cell: BoardCell):
@@ -159,30 +159,30 @@ func _on_cell_exited(cell: BoardCell):
 
 	# 如果格子有棋子，隐藏棋子信息
 	if cell.current_piece:
-		EventBus.chess.emit_event("hide_chess_info")
+		GlobalEventBus.chess.dispatch_event(ChessEvents.HideChessInfoEvent.new())
 
 	# 发送格子离开信号
-	EventBus.board.emit_event("cell_exited", [cell])
+	GlobalEventBus.board.dispatch_event(BoardEvents.CellExitedEvent.new(cell))
 
 # 棋子放置处理
 func _on_piece_placed(piece: ChessPieceEntity):
 	GameManager.board_manager.add_piece(piece, false)
-	EventBus.board.emit_event("piece_placed_on_board", [piece])
+	GlobalEventBus.board.dispatch_event(BoardEvents.PiecePlacedOnBoardEvent.new(piece))
 
 # 棋子移除处理
 func _on_piece_removed(piece: ChessPieceEntity):
 	GameManager.board_manager.remove_piece(piece, false)
-	EventBus.board.emit_event("piece_removed_from_board", [piece])
+	GlobalEventBus.board.dispatch_event(BoardEvents.PieceRemovedFromBoardEvent.new(piece))
 
 # 备战区棋子放置处理
 func _on_bench_piece_placed(piece: ChessPieceEntity):
 	GameManager.board_manager.add_piece(piece, true)
-	EventBus.board.emit_event("piece_placed_on_bench", [piece])
+	GlobalEventBus.board.dispatch_event(BoardEvents.PiecePlacedOnBenchEvent.new(piece))
 
 # 备战区棋子移除处理
 func _on_bench_piece_removed(piece: ChessPieceEntity):
 	GameManager.board_manager.remove_piece(piece, true)
-	EventBus.board.emit_event("piece_removed_from_bench", [piece])
+	GlobalEventBus.board.dispatch_event(BoardEvents.PieceRemovedFromBenchEvent.new(piece))
 
 # 开始拖拽棋子
 func start_drag_piece(cell: BoardCell) -> void:
@@ -211,7 +211,7 @@ func start_drag_piece(cell: BoardCell) -> void:
 	dragging_piece.add_child(shadow)
 
 	# 播放拖拽音效
-	EventBus.audio.emit_event("play_sound", ["drag_start"])
+	GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("drag_start"))
 
 	# 高亮可放置的格子
 	_highlight_valid_cells()
@@ -256,7 +256,7 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
 		effect_tween.tween_callback(effect.queue_free)
 
 		# 播放放置音效
-		EventBus.audio.emit_event("play_sound", ["piece_placed"])
+		GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("piece_placed"))
 
 		# 发送移动信号
 		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceMovedEvent.new(dragging_piece, drag_start_cell.grid_position, target_cell.grid_position))
@@ -271,7 +271,7 @@ func end_drag_piece(target_cell: BoardCell = null) -> void:
 		drag_start_cell.place_piece(dragging_piece)
 
 		# 播放取消音效
-		EventBus.audio.emit_event("play_sound", ["piece_return"])
+		GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("piece_return"))
 
 	dragging_piece = null
 	drag_start_cell = null

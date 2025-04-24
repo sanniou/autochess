@@ -267,7 +267,7 @@ func _perform_sacrifice(item_data: Dictionary) -> void:
 	AudioManager.play_sfx("altar_sacrifice.ogg")
 	
 	# 发送牺牲信号
-	EventBus.map.emit_event("altar_sacrifice_made", [altar_type, item_data])
+	GlobalEventBus.map.dispatch_event(MapEvents.AltarSacrificeMadeEvent.new(altar_type, item_data))
 	
 	# 更新显示
 	update_hud()

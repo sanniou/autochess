@@ -20,13 +20,13 @@ func initialize() -> void:
     
     print("[EventSystem] 初始化事件系统...")
     
-    # 创建全局事件总线
-    var global_event_bus = load("res://scripts/core/events/global_event_bus.gd").new()
-    global_event_bus.name = "GlobalEventBus"
-    add_child(global_event_bus)
+    # # 创建全局事件总线
+    # var global_event_bus = load("res://scripts/core/events/global_event_bus.gd").new()
+    # global_event_bus.name = "GlobalEventBus"
+    # add_child(global_event_bus)
     
-    # 将全局事件总线添加到自动加载
-    Engine.register_singleton("GlobalEventBus", global_event_bus)
+    # # 将全局事件总线添加到自动加载
+    # Engine.register_singleton("GlobalEventBus", global_event_bus)
     
     # 预加载事件类型
     _preload_event_types()

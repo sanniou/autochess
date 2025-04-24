@@ -4,7 +4,7 @@ class_name EventEvents
 ## 定义与事件系统相关的事件
 
 ## 事件开始事件
-class EventStartedEvent extends Event:
+class EventStartedEvent extends BusEvent:
 	## 事件ID
 	var event_id: String
 	
@@ -25,7 +25,7 @@ class EventStartedEvent extends Event:
 		return "EventStartedEvent[event_id=%s]" % [event_id]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() -> BusEvent:
 		var event = EventStartedEvent.new(event_id, event_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -33,7 +33,7 @@ class EventStartedEvent extends Event:
 		return event
 
 ## 事件选项选择事件
-class EventOptionSelectedEvent extends Event:
+class EventOptionSelectedEvent extends BusEvent:
 	## 事件ID
 	var event_id: String
 	
@@ -60,7 +60,7 @@ class EventOptionSelectedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = EventOptionSelectedEvent.new(event_id, option_id, option_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -68,7 +68,7 @@ class EventOptionSelectedEvent extends Event:
 		return event
 
 ## 事件完成事件
-class EventCompletedEvent extends Event:
+class EventCompletedEvent extends BusEvent:
 	## 事件ID
 	var event_id: String
 	
@@ -91,7 +91,7 @@ class EventCompletedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = EventCompletedEvent.new(event_id, result.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled

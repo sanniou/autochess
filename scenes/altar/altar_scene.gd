@@ -14,7 +14,7 @@ func _ready() -> void:
 		altar_type = altar_params.get("altar_type", "")
 
 	# 连接信号
-	EventBus.map.connect_event("altar_sacrifice_made", _on_altar_sacrifice_made)
+	GlobalEventBus.map.add_listener("altar_sacrifice_made", _on_altar_sacrifice_made)
 
 	# 播放背景音乐
 	AudioManager.play_music("altar_theme.ogg")

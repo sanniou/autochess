@@ -63,9 +63,9 @@ func _connect_signals() -> void:
 	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 
 	# 连接教程相关信号
-	EventBus.tutorial.connect_event("start_tutorial", start_tutorial)
-	EventBus.tutorial.connect_event("skip_tutorial", skip_tutorial)
-	EventBus.tutorial.connect_event("complete_tutorial", complete_tutorial)
+	GlobalEventBus.tutorial.add_listener("start_tutorial", start_tutorial)
+	GlobalEventBus.tutorial.add_listener("skip_tutorial", skip_tutorial)
+	GlobalEventBus.tutorial.add_listener("complete_tutorial", complete_tutorial)
 
 # 加载教程数据
 func _load_tutorial_data() -> void:
@@ -584,9 +584,9 @@ func _do_reset() -> void:
 func _do_cleanup() -> void:
 	# 断开事件连接
 	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
-	EventBus.tutorial.disconnect_event("start_tutorial", start_tutorial)
-	EventBus.tutorial.disconnect_event("skip_tutorial", skip_tutorial)
-	EventBus.tutorial.disconnect_event("complete_tutorial", complete_tutorial)
+	GlobalEventBus.tutorial.remove_listener("start_tutorial", start_tutorial)
+	GlobalEventBus.tutorial.remove_listener("skip_tutorial", skip_tutorial)
+	GlobalEventBus.tutorial.remove_listener("complete_tutorial", complete_tutorial)
 
 	# 停止当前激活的教程
 	if active_tutorial != "":

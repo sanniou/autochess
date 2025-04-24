@@ -43,10 +43,10 @@ func _initialize() -> void:
 	# 连接战斗信号
 	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
 	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
-	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
-	EventBus.battle.connect_event("battle_round_ended", _on_battle_round_ended)
-	EventBus.battle.connect_event("battle_preparing_phase_started", _on_battle_preparing_phase_started)
-	EventBus.battle.connect_event("battle_fighting_phase_started", _on_battle_fighting_phase_started)
+	GlobalEventBus.battle.add_listener("battle_round_started", _on_battle_round_started)
+	GlobalEventBus.battle.add_listener("battle_round_ended", _on_battle_round_ended)
+	GlobalEventBus.battle.add_listener("battle_preparing_phase_started", _on_battle_preparing_phase_started)
+	GlobalEventBus.battle.add_listener("battle_fighting_phase_started", _on_battle_fighting_phase_started)
 
 	# 创建回合计时器
 	round_timer = Timer.new()

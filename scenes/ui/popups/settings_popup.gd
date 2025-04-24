@@ -101,7 +101,7 @@ func _apply_settings():
 
 	# 应用语言设置
 	TranslationServer.set_locale(settings_data.language)
-	EventBus.localization.emit_event("language_changed", [settings_data.language])
+	GlobalEventBus.localization.dispatch_event(LocalizationEvents.LanguageChangedEvent.new(settings_data.language))
 
 	# 应用音频设置
 	GameManager.audio_manager.set_master_volume(settings_data.master_volume)

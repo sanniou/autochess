@@ -51,17 +51,17 @@ func _connect_event_signals() -> void:
 	GlobalEventBus.chess.add_listener("chess_piece_created", _on_chess_piece_created)
 
 	# 经济事件
-	EventBus.economy.connect_event("item_purchased", _on_item_purchased)
+	GlobalEventBus.economy.add_listener("item_purchased", _on_item_purchased)
 
 	# 装备事件
-	EventBus.equipment.connect_event("equipment_created", _on_equipment_created)
+	GlobalEventBus.equipment.add_listener("equipment_created", _on_equipment_created)
 
 	# 遗物事件
-	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
+	GlobalEventBus.relic.add_listener("relic_acquired", _on_relic_acquired)
 
 	# 地图事件
-	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
-	EventBus.map.connect_event("rest_completed", _on_rest_completed)
+	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.map.add_listener("rest_completed", _on_rest_completed)
 
 	## 初始化玩家
 ## @param player_name 玩家名称
@@ -69,7 +69,7 @@ func _connect_event_signals() -> void:
 func initialize_player(player_name: String = "玩家") -> void:
 	current_player = Player.new(player_name)
 	_log_info("玩家 '%s' 初始化完成" % player_name)
-	EventBus.game.emit_event("player_initialized", [current_player])
+	GlobalEventBus.game.dispatch_event(GameEvents.PlayerInitializedEvent.new(current_player))
 
 ## 初始化AI对手
 ## @param count 创建AI对手的数量
@@ -84,7 +84,7 @@ func initialize_ai_opponents(count: int = 7) -> void:
 		ai_opponents.append(ai_player)
 
 	_log_info("AI对手初始化完成，共 %d 个" % count)
-	EventBus.game.emit_event("ai_opponents_initialized", [ai_opponents])
+	GlobalEventBus.game.dispatch_event(GameEvents.AIOpponentsInitializedEvent.new(ai_opponents))
 
 ## 选择当前对手
 ## @return 选中的对手，如果没有对手则返回 null
@@ -98,7 +98,7 @@ func select_opponent() -> Player:
 	current_opponent = ai_opponents[index]
 
 	_log_info("选择对手: %s" % current_opponent.player_name)
-	EventBus.battle.emit_event("opponent_selected", [current_opponent])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.OpponentSelectedEvent.new(current_opponent))
 	return current_opponent
 
 ## 获取当前玩家
@@ -163,7 +163,7 @@ func purchase_chess_piece(piece_id: String) -> ChessPieceEntity:
 		if current_player.add_chess_piece(piece):
 			_log_info("玩家购买棋子: %s, 花费: %d 金币" % [piece_id, piece_config.cost])
 			# 发送棋子购买信号
-			EventBus.chess.emit_event("chess_piece_purchased", [piece, piece_config.cost])
+			GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPiecePurchasedEvent.new(piece, piece_config.cost))
 			return piece
 		else:
 			_log_warning("无法购买棋子：添加棋子到玩家失败")
@@ -202,12 +202,12 @@ func on_round_start() -> void:
 	_log_info("玩家回合开始，自动获得基础收入和经验")
 
 	# 自动刷新商店
-	EventBus.economy.emit_event("shop_refresh_requested", [current_player.level])
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.ShopRefreshRequestedEvent.new(current_player.level))
 	_log_info("商店自动刷新，玩家等级: %d" % current_player.level)
 
 	# 更新玩家状态
+	GlobalEventBus.game.dispatch_event(GameEvents.PlayerStateChangedEvent.new(current_state,PlayerState.PREPARING))
 	current_state = PlayerState.PREPARING
-	EventBus.game.emit_event("player_state_changed", [PlayerState.PREPARING])
 
 ## 战斗结束处理
 ## @param result 战斗结果字典
@@ -254,7 +254,7 @@ func _on_chess_piece_created(piece: ChessPieceEntity) -> void:
 	if current_player != null:
 		if current_player.chess_pieces.has(piece) or current_player.bench_pieces.has(piece):
 			# 更新玩家棋子统计
-			EventBus.game.emit_event("player_chess_updated", [current_player.chess_pieces.size(), current_player.bench_pieces.size()])
+			GlobalEventBus.game.dispatch_event(GameEvents.PlayerChessUpdatedEvent.new(current_player.chess_pieces.size(), current_player.bench_pieces.size()))
 
 ## 物品购买事件处理
 ## @param item_data 购买的物品数据
@@ -267,7 +267,7 @@ func _on_item_purchased(item_data: Dictionary) -> void:
 
 	# 更新玩家物品统计
 	if current_player != null:
-		EventBus.game.emit_event("player_inventory_updated", [current_player.gold])
+		GlobalEventBus.game.dispatch_event(GameEvents.PlayerInventoryUpdatedEvent.new(current_player.gold))
 
 ## 装备创建事件处理
 ## @param equipment 创建的装备
@@ -280,7 +280,7 @@ func _on_equipment_created(equipment: Equipment) -> void:
 
 	# 更新玩家装备统计
 	if current_player != null:
-		EventBus.game.emit_event("player_equipment_updated", [current_player.equipments.size()])
+		GlobalEventBus.game.dispatch_event(GameEvents.PlayerEquipmentUpdatedEvent.new(current_player.equipments.size()))
 
 ## 遗物获取事件处理
 ## @param relic 获取的遗物
@@ -293,7 +293,7 @@ func _on_relic_acquired(relic) -> void:
 
 	# 更新玩家遗物统计
 	if current_player != null:
-		EventBus.game.emit_event("player_relic_updated", [current_player.relics.size()])
+		GlobalEventBus.game.dispatch_event(GameEvents.PlayerRelicUpdatedEvent.new(current_player.relics.size()))
 
 ## 获取玩家存档数据
 ## @return 玩家存档数据字典
@@ -354,17 +354,17 @@ func _do_cleanup() -> void:
 			GlobalEventBus.chess.remove_listener("chess_piece_created", _on_chess_piece_created)
 
 			# 经济事件
-			EventBus.economy.disconnect_event("item_purchased", _on_item_purchased)
+			GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
 
 			# 装备事件
-			EventBus.equipment.disconnect_event("equipment_created", _on_equipment_created)
+			GlobalEventBus.equipment.remove_listener("equipment_created", _on_equipment_created)
 
 			# 遗物事件
-			EventBus.relic.disconnect_event("relic_acquired", _on_relic_acquired)
+			GlobalEventBus.relic.remove_listener("relic_acquired", _on_relic_acquired)
 
 			# 地图事件
-			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
-			EventBus.map.disconnect_event("rest_completed", _on_rest_completed)
+			GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
+			GlobalEventBus.map.remove_listener("rest_completed", _on_rest_completed)
 
 	# 清理玩家数据
 	if current_player != null:
@@ -420,7 +420,7 @@ func _on_game_state_changed(old_state: int, new_state: int) -> void:
 	# 如果状态发生变化，发送信号
 	if old_player_state != current_state:
 		_log_info("玩家状态变化: %s -> %s" % [_get_state_name(old_player_state), _get_state_name(current_state)])
-		EventBus.game.emit_event("player_state_changed", [old_player_state, current_state])
+		GlobalEventBus.game.dispatch_event(GameEvents.PlayerStateChangedEvent.new(old_player_state, current_state))
 
 ## 地图节点选择处理
 ## @param node_data 选择的地图节点数据

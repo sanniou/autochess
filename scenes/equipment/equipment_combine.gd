@@ -28,8 +28,8 @@ func _ready():
 	_clear_combine_area()
 
 	# 连接信号
-	EventBus.equipment.connect_event("equipment_created", _on_equipment_created)
-	EventBus.equipment.connect_event("equipment_combined", _on_equipment_combined)
+	GlobalEventBus.equipment.add_listener("equipment_created", _on_equipment_created)
+	GlobalEventBus.equipment.add_listener("equipment_combined", _on_equipment_combined)
 
 # 加载装备列表
 func _load_equipment_list():

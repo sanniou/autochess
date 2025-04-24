@@ -4,7 +4,7 @@ class_name AudioEvents
 ## 定义与音频系统相关的事件
 
 ## 播放音效事件
-class PlaySoundEvent extends Event:
+class PlaySoundEvent extends BusEvent:
 	## 音效ID
 	var sound_id: String
 	
@@ -31,7 +31,7 @@ class PlaySoundEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = PlaySoundEvent.new(sound_id, volume, pitch)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -39,7 +39,7 @@ class PlaySoundEvent extends Event:
 		return event
 
 ## 播放音乐事件
-class PlayMusicEvent extends Event:
+class PlayMusicEvent extends BusEvent:
 	## 音乐ID
 	var music_id: String
 	
@@ -66,7 +66,7 @@ class PlayMusicEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = PlayMusicEvent.new(music_id, volume, fade_in)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -74,7 +74,7 @@ class PlayMusicEvent extends Event:
 		return event
 
 ## 停止音乐事件
-class StopMusicEvent extends Event:
+class StopMusicEvent extends BusEvent:
 	## 淡出时间
 	var fade_out: float
 	
@@ -91,7 +91,7 @@ class StopMusicEvent extends Event:
 		return "StopMusicEvent[fade_out=%.1f]" % [fade_out]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = StopMusicEvent.new(fade_out)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -99,7 +99,7 @@ class StopMusicEvent extends Event:
 		return event
 
 ## 设置音量事件
-class SetVolumeEvent extends Event:
+class SetVolumeEvent extends BusEvent:
 	## 音频类型
 	var audio_type: String
 	
@@ -122,7 +122,7 @@ class SetVolumeEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = SetVolumeEvent.new(audio_type, volume)
 		event.timestamp = timestamp
 		event.canceled = canceled

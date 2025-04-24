@@ -120,7 +120,7 @@ func trigger_effect(equipment: Equipment, effect_data: Dictionary, trigger_conte
 	
 	# 发送效果触发事件
 	equipment.effect_triggered.emit(effect_data)
-	EventBus.equipment.emit_event("equipment_effect_triggered", [equipment, effect_data])
+	GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentEffectTriggeredEvent.new(equipment, effect_data))
 
 # 应用基础属性
 func _apply_stats(equipment: Equipment, target: ChessPieceEntity) -> void:

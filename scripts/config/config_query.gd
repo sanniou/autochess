@@ -36,7 +36,7 @@ func as_model(value: bool = true) -> ConfigQuery:
 	return self
 
 ## 获取查询结果（字典形式）
-func get() -> Dictionary:
+func get_result() -> Dictionary:
 	return _config_manager.query(_config_type, _conditions, _as_model)
 
 ## 获取查询结果（数组形式）
@@ -52,7 +52,7 @@ func first():
 
 ## 获取结果数量
 func count() -> int:
-	return get().size()
+	return get_result().size()
 
 ## 检查是否有匹配结果
 func has_results() -> bool:

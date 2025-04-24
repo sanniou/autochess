@@ -144,7 +144,7 @@
 # 		tick_count += 1
 
 # 		if actual_damage > 10.0 or tick_count % 3 == 0:
-# 			EventBus.battle.emit_event("dot_damage", [source, target, actual_damage, damage_type, dot_type])
+# 			GlobalEventBus.battle.dispatch_event(BattleEvents.DotDamageEvent.new(source, target, actual_damage, damage_type, dot_type))
 
 # # 获取持续伤害图标路径
 # func _get_dot_icon_path(dot_type: int) -> String:

@@ -41,9 +41,9 @@ func _do_initialize() -> void:
 	if EventBus:
 		GlobalEventBus.battle.add_listener("battle_started", on_battle_started)
 		GlobalEventBus.battle.add_listener("battle_ended", on_battle_ended)
-		EventBus.battle.connect_event("battle_preparing_phase_started", on_battle_preparing_phase_started)
-		EventBus.battle.connect_event("battle_fighting_phase_started", on_battle_fighting_phase_started)
-		EventBus.battle.connect_event("battle_result_phase_started", on_battle_result_phase_started)
+		GlobalEventBus.battle.add_listener("battle_preparing_phase_started", on_battle_preparing_phase_started)
+		GlobalEventBus.battle.add_listener("battle_fighting_phase_started", on_battle_fighting_phase_started)
+		GlobalEventBus.battle.add_listener("battle_result_phase_started", on_battle_result_phase_started)
 
 	_log_info("GameEffectManager 初始化完成")
 
@@ -612,8 +612,8 @@ func _do_cleanup() -> void:
 	if EventBus:
 		GlobalEventBus.battle.remove_listener("battle_started", on_battle_started)
 		GlobalEventBus.battle.remove_listener("battle_ended", on_battle_ended)
-		EventBus.battle.disconnect_event("battle_preparing_phase_started", on_battle_preparing_phase_started)
-		EventBus.battle.disconnect_event("battle_fighting_phase_started", on_battle_fighting_phase_started)
-		EventBus.battle.disconnect_event("battle_result_phase_started", on_battle_result_phase_started)
+		GlobalEventBus.battle.remove_listener("battle_preparing_phase_started", on_battle_preparing_phase_started)
+		GlobalEventBus.battle.remove_listener("battle_fighting_phase_started", on_battle_fighting_phase_started)
+		GlobalEventBus.battle.remove_listener("battle_result_phase_started", on_battle_result_phase_started)
 
 	_log_info("GameEffectManager 已清理")

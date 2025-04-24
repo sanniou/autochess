@@ -15,9 +15,9 @@ func _ready():
 	
 	# 连接信号
 	GlobalEventBus.game.add_listener("player_health_changed", _on_player_health_changed)
-	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
+	GlobalEventBus.economy.add_listener("gold_changed", _on_gold_changed)
 	GlobalEventBus.game.add_listener("player_level_changed", _on_player_level_changed)
-	EventBus.game.connect_event("player_exp_changed", _on_exp_changed)
+	GlobalEventBus.game.add_listener("player_exp_changed", _on_exp_changed)
 	GlobalEventBus.chess.add_listener("chess_piece_created", _on_chess_piece_created)
 	GlobalEventBus.chess.add_listener("chess_piece_sold", _on_chess_piece_sold)
 

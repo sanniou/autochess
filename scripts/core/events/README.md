@@ -55,7 +55,7 @@ scripts/core/events/
 
 ```gdscript
 # 自定义事件
-class MyCustomEvent extends Event:
+class MyCustomEvent extends BusEvent:
     var data: Dictionary
     
     func _init(p_data: Dictionary):
@@ -64,7 +64,7 @@ class MyCustomEvent extends Event:
     func get_type() -> String:
         return "my_group.custom_event"
     
-    func clone() -> Event:
+    func clone() ->BusEvent:
         var event = MyCustomEvent.new(data.duplicate())
         event.timestamp = timestamp
         event.canceled = canceled

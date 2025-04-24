@@ -106,12 +106,11 @@ func _apply_heal() -> void:
 	_apply_additional_effects(heal)
 
 	# 发送持续治疗事件
-	if EventBus:
-		EventBus.emit_signal("hot_heal", {
-			"source": source,
-			"target": target,
-			"value": heal
-		})
+	EventBus.emit_signal("hot_heal", {
+		"source": source,
+		"target": target,
+		"value": heal
+	})
 
 # 计算治疗量
 func _calculate_heal_amount() -> float:

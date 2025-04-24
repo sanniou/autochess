@@ -8,8 +8,8 @@ func _ready():
 	_update_ui()
 
 	# 连接信号
-	EventBus.chess.connect_event("synergy_activated", _on_synergy_activated)
-	EventBus.chess.connect_event("synergy_deactivated", _on_synergy_deactivated)
+	GlobalEventBus.chess.add_listener("synergy_activated", _on_synergy_activated)
+	GlobalEventBus.chess.add_listener("synergy_deactivated", _on_synergy_deactivated)
 	GlobalEventBus.chess.add_listener("chess_piece_created", _on_chess_piece_created)
 	GlobalEventBus.chess.add_listener("chess_piece_sold", _on_chess_piece_sold)
 

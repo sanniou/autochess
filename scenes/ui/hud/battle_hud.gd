@@ -12,7 +12,7 @@ func _ready():
 	
 	# 连接信号
 	GlobalEventBus.game.add_listener("player_health_changed", _on_player_health_changed)
-	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
+	GlobalEventBus.economy.add_listener("gold_changed", _on_gold_changed)
 	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
 	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 

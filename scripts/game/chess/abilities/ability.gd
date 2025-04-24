@@ -222,7 +222,7 @@ func _play_ability_effect(targets: Array) -> void:
 # 播放技能音效
 func _play_ability_sound() -> void:
 	# 使用事件总线播放音效
-	EventBus.audio.emit_event("play_sound", ["ability_cast", owner.global_position])
+	GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new("ability_cast"))
 
 # 播放目标效果
 func _play_target_effect(target: ChessPieceEntity) -> void:
@@ -545,8 +545,8 @@ func _create_effect_from_data(effect_data: Dictionary, source: ChessPieceEntity,
 		"sound":
 			# 播放音效
 			var sound_path = effect_data.get("sound_path", "")
-			if sound_path and EventBus and EventBus.audio:
-				EventBus.audio.emit_event("play_sound", [sound_path, target.global_position])
+			if sound_path:
+				GlobalEventBus.audio.dispatch_event(AudioEvents.PlaySoundEvent.new(sound_path))
 
 		"aura":
 			# 创建光环效果

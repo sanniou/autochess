@@ -31,6 +31,14 @@ EVENT_MAPPING = {
     "game.player_level_changed": {"class": "GameEvents.PlayerLevelChangedEvent", "args": ["old_level", "new_level"]},
     "game.player_died": {"class": "GameEvents.PlayerDiedEvent", "args": []},
     "game.difficulty_changed": {"class": "GameEvents.DifficultyChangedEvent", "args": ["old_level", "new_level"]},
+    "game.player_exp_changed": {"class": "GameEvents.PlayerExpChangedEvent", "args": ["old_exp", "new_exp", "max_exp"]},
+    "game.player_initialized": {"class": "GameEvents.PlayerInitializedEvent", "args": ["player"]},
+    "game.ai_opponents_initialized": {"class": "GameEvents.AIOpponentsInitializedEvent", "args": ["opponents"]},
+    "game.player_state_changed": {"class": "GameEvents.PlayerStateChangedEvent", "args": ["old_state", "new_state"]},
+    "game.player_chess_updated": {"class": "GameEvents.PlayerChessUpdatedEvent", "args": ["player", "chess_pieces"]},
+    "game.player_inventory_updated": {"class": "GameEvents.PlayerInventoryUpdatedEvent", "args": ["player", "inventory"]},
+    "game.player_equipment_updated": {"class": "GameEvents.PlayerEquipmentUpdatedEvent", "args": ["player", "equipment"]},
+    "game.player_relic_updated": {"class": "GameEvents.PlayerRelicUpdatedEvent", "args": ["player", "relics"]},
 
     # 战斗事件
     "battle.battle_started": {"class": "BattleEvents.BattleStartedEvent", "args": ["battle_id", "round", "player_pieces", "enemy_pieces"]},
@@ -41,6 +49,21 @@ EVENT_MAPPING = {
     "battle.heal_received": {"class": "BattleEvents.HealReceivedEvent", "args": ["source_entity", "target_entity", "amount"]},
     "battle.unit_died": {"class": "BattleEvents.UnitDiedEvent", "args": ["unit", "killer"]},
     "battle.ability_used": {"class": "BattleEvents.AbilityUsedEvent", "args": ["caster", "ability_data", "targets"]},
+    "battle.battle_round_started": {"class": "BattleEvents.BattleRoundStartedEvent", "args": ["round"]},
+    "battle.battle_round_ended": {"class": "BattleEvents.BattleRoundEndedEvent", "args": ["round"]},
+    "battle.battle_preparing_phase_started": {"class": "BattleEvents.BattlePreparingPhaseStartedEvent", "args": []},
+    "battle.battle_fighting_phase_started": {"class": "BattleEvents.BattleFightingPhaseStartedEvent", "args": []},
+    "battle.battle_result_phase_started": {"class": "BattleEvents.BattleResultPhaseStartedEvent", "args": []},
+    "battle.delayed_stun_removal": {"class": "BattleEvents.DelayedStunRemovalEvent", "args": ["entity", "duration"]},
+    "battle.vampiric_heal": {"class": "BattleEvents.VampiricHealEvent", "args": ["source", "target", "amount"]},
+    "battle.dot_damage": {"class": "BattleEvents.DotDamageEvent", "args": ["source", "target", "amount", "dot_type"]},
+    "battle.hot_healing": {"class": "BattleEvents.HotHealingEvent", "args": ["source", "target", "amount", "hot_type"]},
+    "battle.shield_absorbed": {"class": "BattleEvents.ShieldAbsorbedEvent", "args": ["entity", "shield", "damage_absorbed"]},
+    "battle.damage_reflected": {"class": "BattleEvents.DamageReflectedEvent", "args": ["source", "target", "amount"]},
+    "battle.critical_hit": {"class": "BattleEvents.CriticalHitEvent", "args": ["source", "target", "damage", "multiplier"]},
+    "battle.mana_changed": {"class": "BattleEvents.ManaChangedEvent", "args": ["entity", "old_mana", "new_mana", "max_mana"]},
+    "battle.healing_done": {"class": "BattleEvents.HealingDoneEvent", "args": ["source", "target", "amount"]},
+    "battle.opponent_selected": {"class": "BattleEvents.OpponentSelectedEvent", "args": ["player", "opponent"]},
 
     # 棋子事件
     "chess.chess_piece_created": {"class": "ChessEvents.ChessPieceCreatedEvent", "args": ["piece"]},
@@ -52,6 +75,60 @@ EVENT_MAPPING = {
     "chess.chess_piece_damaged": {"class": "ChessEvents.ChessPieceDamagedEvent", "args": ["piece", "source", "amount", "damage_type", "is_critical"]},
     "chess.chess_piece_healed": {"class": "ChessEvents.ChessPieceHealedEvent", "args": ["piece", "source", "amount"]},
     "chess.chess_piece_dodged": {"class": "ChessEvents.ChessPieceDodgedEvent", "args": ["piece", "source"]},
+    "chess.chess_piece_level_changed": {"class": "ChessEvents.ChessPieceLevelChangedEvent", "args": ["piece", "old_level", "new_level"]},
+    "chess.chess_piece_died": {"class": "ChessEvents.ChessPieceDiedEvent", "args": ["piece", "killer"]},
+    "chess.chess_piece_ability_cast": {"class": "ChessEvents.ChessPieceAbilityCastEvent", "args": ["piece", "ability", "targets"]},
+    "chess.chess_piece_elemental_effect_triggered": {"class": "ChessEvents.ChessPieceElementalEffectTriggeredEvent", "args": ["piece", "effect_type", "target"]},
+    "chess.show_chess_info": {"class": "ChessEvents.ShowChessInfoEvent", "args": ["piece"]},
+    "chess.hide_chess_info": {"class": "ChessEvents.HideChessInfoEvent", "args": []},
+    "chess.chess_piece_placed": {"class": "ChessEvents.ChessPiecePlacedEvent", "args": ["piece", "position"]},
+    "chess.chess_piece_removed": {"class": "ChessEvents.ChessPieceRemovedEvent", "args": ["piece", "position"]},
+    "chess.chess_piece_bought": {"class": "ChessEvents.ChessPieceBoughtEvent", "args": ["piece", "cost"]},
+    "chess.chess_piece_purchased": {"class": "ChessEvents.ChessPiecePurchasedEvent", "args": ["piece", "cost"]},
+    "chess.chess_piece_added": {"class": "ChessEvents.ChessPieceAddedEvent", "args": ["piece"]},
+    "chess.synergy_activated": {"class": "ChessEvents.SynergyActivatedEvent", "args": ["synergy_type", "level"]},
+    "chess.synergy_deactivated": {"class": "ChessEvents.SynergyDeactivatedEvent", "args": ["synergy_type"]},
+    "chess.synergy_level_changed": {"class": "ChessEvents.SynergyLevelChangedEvent", "args": ["synergy_type", "old_level", "new_level"]},
+    "chess.synergy_type_added": {"class": "ChessEvents.SynergyTypeAddedEvent", "args": ["synergy_type", "count"]},
+    "chess.synergy_type_removed": {"class": "ChessEvents.SynergyTypeRemovedEvent", "args": ["synergy_type", "count"]},
+    "synergy.synergy_type_added": {"class": "ChessEvents.SynergyTypeAddedEvent", "args": ["synergy_type", "count"]},
+    "synergy.synergy_type_removed": {"class": "ChessEvents.SynergyTypeRemovedEvent", "args": ["synergy_type", "count"]},
+    "synergy.synergy_level_changed": {"class": "ChessEvents.SynergyLevelChangedEvent", "args": ["synergy_type", "old_level", "new_level"]},
+
+    # 地图事件
+    "map.map_node_hovered": {"class": "MapEvents.MapNodeHoveredEvent", "args": ["node"]},
+    "map.map_node_selected": {"class": "MapEvents.MapNodeSelectedEvent", "args": ["node"]},
+    "map.map_completed": {"class": "MapEvents.MapCompletedEvent", "args": []},
+    "map.altar_sacrifice_made": {"class": "MapEvents.AltarSacrificeMadeEvent", "args": ["piece", "reward"]},
+    "map.equipment_upgraded": {"class": "MapEvents.EquipmentUpgradedEvent", "args": ["equipment", "level"]},
+    "map.treasure_collected": {"class": "MapEvents.TreasureCollectedEvent", "args": ["rewards"]},
+    "map.rest_completed": {"class": "MapEvents.RestCompletedEvent", "args": ["healing_amount"]},
+    "map.map_generated": {"class": "MapEvents.MapGeneratedEvent", "args": ["map_data"]},
+
+    # 经济事件
+    "economy.gold_changed": {"class": "EconomyEvents.GoldChangedEvent", "args": ["old_amount", "new_amount", "change_reason"]},
+    "economy.shop_refreshed": {"class": "EconomyEvents.ShopRefreshedEvent", "args": ["shop_type", "items"]},
+    "economy.shop_manually_refreshed": {"class": "EconomyEvents.ShopManuallyRefreshedEvent", "args": ["shop_type", "cost"]},
+    "economy.shop_refresh_requested": {"class": "EconomyEvents.ShopRefreshRequestedEvent", "args": ["shop_type"]},
+    "economy.item_purchased": {"class": "EconomyEvents.ItemPurchasedEvent", "args": ["item", "cost"]},
+    "economy.item_sold": {"class": "EconomyEvents.ItemSoldEvent", "args": ["item", "gold_amount"]},
+    "economy.shop_discount_applied": {"class": "EconomyEvents.ShopDiscountAppliedEvent", "args": ["discount_percent", "shop_type"]},
+    "economy.shop_closed": {"class": "EconomyEvents.ShopClosedEvent", "args": ["shop_type"]},
+    "economy.income_granted": {"class": "EconomyEvents.IncomeGrantedEvent", "args": ["amount", "source"]},
+    "economy.chess_shop_inventory_updated": {"class": "EconomyEvents.ChessShopInventoryUpdatedEvent", "args": ["items"]},
+    "shop.shop_refreshed": {"class": "EconomyEvents.ShopRefreshedEvent", "args": ["shop_type", "items"]},
+    "shop.discount_applied": {"class": "EconomyEvents.ShopDiscountAppliedEvent", "args": ["discount_percent", "shop_type"]},
+
+    # 装备事件
+    "equipment.equipment_equipped": {"class": "EquipmentEvents.EquipmentEquippedEvent", "args": ["equipment", "piece"]},
+    "equipment.equipment_unequipped": {"class": "EquipmentEvents.EquipmentUnequippedEvent", "args": ["equipment", "piece"]},
+    "equipment.equipment_created": {"class": "EquipmentEvents.EquipmentCreatedEvent", "args": ["equipment"]},
+    "equipment.equipment_combined": {"class": "EquipmentEvents.EquipmentCombinedEvent", "args": ["base_equipment", "material_equipment", "result_equipment"]},
+    "equipment.equipment_combine_requested": {"class": "EquipmentEvents.EquipmentCombineRequestedEvent", "args": ["base_equipment", "material_equipment"]},
+    "equipment.equipment_combine_animation_started": {"class": "EquipmentEvents.EquipmentCombineAnimationStartedEvent", "args": ["base_equipment", "material_equipment"]},
+    "equipment.equipment_combine_animation_completed": {"class": "EquipmentEvents.EquipmentCombineAnimationCompletedEvent", "args": ["result_equipment"]},
+    "equipment.equipment_effect_triggered": {"class": "EquipmentEvents.EquipmentEffectTriggeredEvent", "args": ["equipment", "effect_type", "target"]},
+    "equipment.equipment_tier_changed": {"class": "EquipmentEvents.EquipmentTierChangedEvent", "args": ["equipment", "old_tier", "new_tier"]},
 
     # UI事件
     "ui.update_ui": {"class": "UIEvents.UIUpdateEvent", "args": ["component", "data"]},
@@ -61,11 +138,99 @@ EVENT_MAPPING = {
     "ui.dialog_shown": {"class": "UIEvents.DialogShownEvent", "args": ["dialog_id", "title", "content", "options"]},
     "ui.show_toast": {"class": "UIEvents.ToastShownEvent", "args": ["title", "message", "type", "duration"]},
 
+    # UI事件（续）
+    "ui.start_transition": {"class": "UIEvents.StartTransitionEvent", "args": ["from_scene", "to_scene", "transition_type"]},
+    "ui.transition_midpoint": {"class": "UIEvents.TransitionMidpointEvent", "args": ["from_scene", "to_scene"]},
+    "ui.show_popup": {"class": "UIEvents.ShowPopupEvent", "args": ["popup_type", "data"]},
+    "ui.close_popup": {"class": "UIEvents.ClosePopupEvent", "args": ["popup_type"]},
+    "ui.theme_changed": {"class": "UIEvents.ThemeChangedEvent", "args": ["theme_name"]},
+    "ui.language_changed": {"class": "UIEvents.LanguageChangedEvent", "args": ["language_code"]},
+    "ui.scale_changed": {"class": "UIEvents.ScaleChangedEvent", "args": ["scale_factor"]},
+    "ui.show_notification": {"class": "UIEvents.ShowNotificationEvent", "args": ["title", "message", "type", "duration"]},
+    "ui.hide_notification": {"class": "UIEvents.HideNotificationEvent", "args": ["notification_id"]},
+    "ui.clear_notifications": {"class": "UIEvents.ClearNotificationsEvent", "args": []},
+    "ui.register_ui_throttler": {"class": "UIEvents.RegisterUIThrottlerEvent", "args": ["throttler", "priority"]},
+    "ui.unregister_ui_throttler": {"class": "UIEvents.UnregisterUIThrottlerEvent", "args": ["throttler"]},
+    "ui.force_ui_update": {"class": "UIEvents.ForceUIUpdateEvent", "args": []},
+    "ui.ui_screen_changed": {"class": "UIEvents.UIScreenChangedEvent", "args": ["screen_name"]},
+
+    # 遗物事件
+    "relic.relic_acquired": {"class": "RelicEvents.RelicAcquiredEvent", "args": ["relic"]},
+    "relic.relic_activated": {"class": "RelicEvents.RelicActivatedEvent", "args": ["relic", "target"]},
+    "relic.relic_effect_triggered": {"class": "RelicEvents.RelicEffectTriggeredEvent", "args": ["relic", "effect_type", "target"]},
+    "relic.relic_updated": {"class": "RelicEvents.RelicUpdatedEvent", "args": ["relic", "old_state", "new_state"]},
+    "relic.show_relic_info": {"class": "RelicEvents.ShowRelicInfoEvent", "args": ["relic"]},
+    "relic.hide_relic_info": {"class": "RelicEvents.HideRelicInfoEvent", "args": []},
+
+    # 音频事件
+    "audio.play_sound": {"class": "AudioEvents.PlaySoundEvent", "args": ["sound_id", "volume", "pitch"]},
+    "audio.bgm_changed": {"class": "AudioEvents.BGMChangedEvent", "args": ["track_id", "transition_time"]},
+    "audio.sfx_played": {"class": "AudioEvents.SFXPlayedEvent", "args": ["sound_id", "position"]},
+
+    # 本地化事件
+    "localization.language_changed": {"class": "LocalizationEvents.LanguageChangedEvent", "args": ["language_code"]},
+    "localization.request_font": {"class": "LocalizationEvents.RequestFontEvent", "args": ["language_code", "font_size"]},
+    "localization.request_language_code": {"class": "LocalizationEvents.RequestLanguageCodeEvent", "args": []},
+    "localization.font_loaded": {"class": "LocalizationEvents.FontLoadedEvent", "args": ["language_code", "font_resource"]},
+
+    # 事件系统事件
+    "event.event_triggered": {"class": "EventEvents.EventTriggeredEvent", "args": ["event_id", "event_data"]},
+    "event.event_choice_made": {"class": "EventEvents.EventChoiceMadeEvent", "args": ["event_id", "choice_id"]},
+    "event.event_completed": {"class": "EventEvents.EventCompletedEvent", "args": ["event_id", "result"]},
+    "event.event_started": {"class": "EventEvents.EventStartedEvent", "args": ["event_id", "event_data"]},
+    "event.event_option_selected": {"class": "EventEvents.EventOptionSelectedEvent", "args": ["event_id", "option_id"]},
+
+    # 状态效果事件
+    "status_effect.status_effect_added": {"class": "StatusEffectEvents.StatusEffectAddedEvent", "args": ["entity", "effect", "source"]},
+    "status_effect.status_effect_resisted": {"class": "StatusEffectEvents.StatusEffectResistedEvent", "args": ["entity", "effect_type", "source"]},
+
+    # 皮肤事件
+    "skin.chess_skin_changed": {"class": "SkinEvents.ChessSkinChangedEvent", "args": ["piece_type", "skin_id"]},
+    "skin.board_skin_changed": {"class": "SkinEvents.BoardSkinChangedEvent", "args": ["skin_id"]},
+    "skin.ui_skin_changed": {"class": "SkinEvents.UISkinChangedEvent", "args": ["skin_id"]},
+    "skin.skin_changed": {"class": "SkinEvents.SkinChangedEvent", "args": ["skin_type", "skin_id"]},
+    "skin.skin_unlocked": {"class": "SkinEvents.SkinUnlockedEvent", "args": ["skin_type", "skin_id"]},
+
+    # 保存事件
+    "save.game_saved": {"class": "SaveEvents.GameSavedEvent", "args": ["save_id", "save_data"]},
+    "save.game_loaded": {"class": "SaveEvents.GameLoadedEvent", "args": ["save_id", "save_data"]},
+    "save.autosave_triggered": {"class": "SaveEvents.AutosaveTriggeredEvent", "args": []},
+    "save.save_game_requested": {"class": "SaveEvents.SaveGameRequestedEvent", "args": ["save_id"]},
+    "save.load_game_requested": {"class": "SaveEvents.LoadGameRequestedEvent", "args": ["save_id"]},
+
     # 调试事件
     "debug.debug_message": {"class": "DebugEvents.DebugMessageEvent", "args": ["message", "level", "tag"]},
     "debug.command_executed": {"class": "DebugEvents.DebugCommandExecutedEvent", "args": ["command", "args", "result"]},
     "debug.console_toggled": {"class": "DebugEvents.DebugConsoleToggledEvent", "args": ["visible"]},
-    "debug.performance_warning": {"class": "DebugEvents.PerformanceWarningEvent", "args": ["warning_type", "details"]}
+    "debug.performance_warning": {"class": "DebugEvents.PerformanceWarningEvent", "args": ["warning_type", "details"]},
+    "debug.debug_command_executed": {"class": "DebugEvents.DebugCommandExecutedEvent", "args": ["command", "result"]},
+    "debug.performance_data_updated": {"class": "DebugEvents.PerformanceDataUpdatedEvent", "args": ["fps", "memory_usage", "draw_calls"]},
+
+    # 成就事件
+    "achievement.achievement_unlocked": {"class": "AchievementEvents.AchievementUnlockedEvent", "args": ["achievement_id", "achievement_data"]},
+    "achievement.achievement_progress_updated": {"class": "AchievementEvents.AchievementProgressUpdatedEvent", "args": ["achievement_id", "progress", "max_progress"]},
+
+    # 教程事件
+    "tutorial.start_tutorial": {"class": "TutorialEvents.StartTutorialEvent", "args": ["tutorial_id"]},
+    "tutorial.skip_tutorial": {"class": "TutorialEvents.SkipTutorialEvent", "args": ["tutorial_id"]},
+    "tutorial.complete_tutorial": {"class": "TutorialEvents.CompleteTutorialEvent", "args": ["tutorial_id"]},
+
+    # 棋盘事件
+    "board.board_reset": {"class": "BoardEvents.BoardResetEvent", "args": []},
+    "board.board_battle_started": {"class": "BoardEvents.BoardBattleStartedEvent", "args": []},
+    "board.board_battle_ended": {"class": "BoardEvents.BoardBattleEndedEvent", "args": ["is_victory"]},
+    "board.cell_clicked": {"class": "BoardEvents.CellClickedEvent", "args": ["cell_position"]},
+    "board.cell_hovered": {"class": "BoardEvents.CellHoveredEvent", "args": ["cell_position"]},
+    "board.cell_exited": {"class": "BoardEvents.CellExitedEvent", "args": ["cell_position"]},
+    "board.piece_placed_on_board": {"class": "BoardEvents.PiecePlacedOnBoardEvent", "args": ["piece", "position"]},
+    "board.piece_removed_from_board": {"class": "BoardEvents.PieceRemovedFromBoardEvent", "args": ["piece", "position"]},
+    "board.piece_placed_on_bench": {"class": "BoardEvents.PiecePlacedOnBenchEvent", "args": ["piece", "position"]},
+    "board.piece_removed_from_bench": {"class": "BoardEvents.PieceRemovedFromBenchEvent", "args": ["piece", "position"]},
+    "board.board_initialized": {"class": "BoardEvents.BoardInitializedEvent", "args": []},
+    "board.piece_placed": {"class": "BoardEvents.PiecePlacedEvent", "args": ["piece", "position", "is_board"]},
+    "board.piece_removed": {"class": "BoardEvents.PieceRemovedEvent", "args": ["piece", "position", "is_board"]},
+    "board.piece_moved": {"class": "BoardEvents.PieceMovedEvent", "args": ["piece", "from_position", "to_position"]},
+    "board.board_locked": {"class": "BoardEvents.BoardLockedEvent", "args": ["is_locked"]}
 }
 
 # 要跳过的目录

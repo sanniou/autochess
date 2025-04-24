@@ -79,7 +79,7 @@ func place_piece(piece) -> bool:
 
 	# 发送信号
 	piece_placed.emit(piece)
-	EventBus.piece_placed.emit(piece, self)
+	GlobalEventBus.board.dispatch_event(BoardEvents.PiecePlacedEvent.new(piece, self))
 
 	return true
 
@@ -107,7 +107,7 @@ func remove_piece():
 
 	# 发送信号
 	piece_removed.emit(piece)
-	EventBus.piece_removed.emit(piece, self)
+	GlobalEventBus.board.dispatch_event(BoardEvents.PieceRemovedEvent.new(piece, self))
 
 	return piece
 

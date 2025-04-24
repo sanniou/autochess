@@ -33,8 +33,8 @@ func _do_initialize() -> void:
 	shop_system.discount_applied.connect(_on_discount_applied)
 	
 	# 连接游戏事件
-	EventBus.battle.connect_event("battle_round_started", _on_battle_round_started)
-	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.battle.add_listener("battle_round_started", _on_battle_round_started)
+	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
 	GlobalEventBus.game.add_listener("difficulty_changed", _on_difficulty_changed)
 
 	_log_info("商店管理器初始化完成")
@@ -106,22 +106,22 @@ func get_shop_items() -> Dictionary:
 # 商店刷新事件处理
 func _on_shop_refreshed(shop_type) -> void:
 	# 发送商店刷新事件
-	EventBus.shop.emit_event("shop_refreshed", [shop_type])
+	GlobalEventBus.shop.dispatch_event(EconomyEvents.ShopRefreshedEvent.new("todo",shop_type))
 
 # 物品购买事件处理
 func _on_item_purchased(item_data: Dictionary) -> void:
 	# 发送物品购买事件
-	EventBus.economy.emit_event("item_purchased", [item_data])
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.ItemPurchasedEvent.new("todo","todo",item_data,0))
 
 # 物品出售事件处理
 func _on_item_sold(item_data: Dictionary) -> void:
 	# 发送物品出售事件
-	EventBus.economy.emit_event("item_sold", [item_data])
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.ItemSoldEvent.new("todo",item_data,0))
 
 # 折扣应用事件处理
 func _on_discount_applied(discount_rate: float) -> void:
 	# 发送折扣应用事件
-	EventBus.shop.emit_event("discount_applied", [discount_rate])
+	GlobalEventBus.shop.dispatch_event(EconomyEvents.ShopDiscountAppliedEvent.new("todo",discount_rate))
 
 # 回合开始事件处理
 func _on_battle_round_started(round_number: int) -> void:

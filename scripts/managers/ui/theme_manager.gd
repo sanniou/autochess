@@ -71,7 +71,7 @@ func _do_initialize() -> void:
 	load_theme(DEFAULT_THEME)
 
 	# 连接信号
-	EventBus.ui.connect_event("theme_changed", _on_theme_changed)
+	GlobalEventBus.ui.add_listener("theme_changed", _on_theme_changed)
 
 # 加载主题
 func load_theme(theme_name: String) -> void:
@@ -367,7 +367,7 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开信号连接
-	EventBus.ui.disconnect_event("theme_changed", _on_theme_changed)
+	GlobalEventBus.ui.remove_listener("theme_changed", _on_theme_changed)
 
 	# 清空主题缓存
 	theme_cache.clear()

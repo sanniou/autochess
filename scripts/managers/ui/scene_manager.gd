@@ -49,7 +49,7 @@ func _do_initialize() -> void:
 	manager_name = "SceneManager"
 
 	# 连接信号
-	EventBus.ui.connect_event("transition_midpoint", _on_transition_midpoint)
+	GlobalEventBus.ui.add_listener("transition_midpoint", _on_transition_midpoint)
 
 	# 获取当前场景
 	var root = get_tree().get_root()
@@ -174,7 +174,7 @@ func _on_scene_loaded(scene_name: String, scene: PackedScene, use_transition: bo
 	# 使用过渡效果
 	if use_transition:
 		current_state = SceneManagerState.TRANSITION
-		EventBus.ui.emit_event("start_transition", ["fade", TRANSITION_DURATION])
+		GlobalEventBus.ui.dispatch_event(UIEvents.StartTransitionEvent.new("fade", TRANSITION_DURATION))
 	else:
 		_change_scene(scene)
 
@@ -344,7 +344,7 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.ui.disconnect_event("transition_midpoint", _on_transition_midpoint)
+	GlobalEventBus.ui.remove_listener("transition_midpoint", _on_transition_midpoint)
 
 	# 清空场景历史记录
 	scene_history.clear()

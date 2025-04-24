@@ -43,8 +43,8 @@ func _ready() -> void:
 	_load_unlocked_skins()
 
 	# 连接信号
-	EventBus.skin.connect_event("skin_changed", _on_skin_changed)
-	EventBus.skin.connect_event("skin_unlocked", _on_skin_unlocked)
+	GlobalEventBus.skin.add_listener("skin_changed", _on_skin_changed)
+	GlobalEventBus.skin.add_listener("skin_unlocked", _on_skin_unlocked)
 
 # 加载皮肤配置
 func _load_skin_config() -> void:
@@ -265,17 +265,17 @@ func _skin_unlocked(skin_type: SkinType, skin_id: String) -> bool:
 # 应用棋子皮肤
 func _apply_chess_skin(skin_id: String) -> void:
 	# 通知棋子工厂更新皮肤
-	EventBus.skin.emit_event("chess_skin_changed", [skin_id])
+	GlobalEventBus.skin.dispatch_event(SkinEvents.ChessSkinChangedEvent.new(skin_id))
 
 # 应用棋盘皮肤
 func _apply_board_skin(skin_id: String) -> void:
 	# 通知棋盘管理器更新皮肤
-	EventBus.skin.emit_event("board_skin_changed", [skin_id])
+	GlobalEventBus.skin.dispatch_event(SkinEvents.BoardSkinChangedEvent.new(skin_id))
 
 # 应用UI皮肤
 func _apply_ui_skin(skin_id: String) -> void:
 	# 通知UI管理器更新皮肤
-	EventBus.skin.emit_event("ui_skin_changed", [skin_id])
+	GlobalEventBus.skin.dispatch_event(SkinEvents.UISkinChangedEvent.new(skin_id))
 
 # 皮肤变化处理
 func _on_skin_changed(skin_type_str: String, skin_id: String) -> void:

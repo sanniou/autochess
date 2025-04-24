@@ -4,7 +4,7 @@ class_name ChessEvents
 ## 定义与棋子相关的事件
 
 ## 棋子创建事件
-class ChessPieceCreatedEvent extends Event:
+class ChessPieceCreatedEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -22,7 +22,7 @@ class ChessPieceCreatedEvent extends Event:
 		return "ChessPieceCreatedEvent[piece=%s]" % [piece]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceCreatedEvent.new(piece)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -30,7 +30,7 @@ class ChessPieceCreatedEvent extends Event:
 		return event
 
 ## 棋子升级事件
-class ChessPieceUpgradedEvent extends Event:
+class ChessPieceLevelChangedEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -46,27 +46,22 @@ class ChessPieceUpgradedEvent extends Event:
 		old_level = p_old_level
 		new_level = p_new_level
 		source = piece
-	
-	## 获取事件类型
-	func get_type() -> String:
-		return "chess.chess_piece_upgraded"
-	
-	## 获取事件的字符串表示
-	func _to_string() -> String:
-		return "ChessPieceUpgradedEvent[piece=%s, old_level=%d, new_level=%d]" % [
-			piece, old_level, new_level
-		]
-	
-	## 克隆事件
-	func clone() -> Event:
-		var event = ChessPieceUpgradedEvent.new(piece, old_level, new_level)
-		event.timestamp = timestamp
-		event.canceled = canceled
-		event.source = source
-		return event
 
+class ChessPiecePurchasedEvent extends BusEvent:
+	## 棋子
+	var piece
+	
+	## 金币数量
+	var gold_amount: int
+	
+	## 初始化
+	func _init(p_piece, p_gold_amount: int):
+		piece = p_piece
+		gold_amount = p_gold_amount
+		source = piece
+	
 ## 棋子出售事件
-class ChessPieceSoldEvent extends Event:
+class ChessPieceSoldEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -88,7 +83,7 @@ class ChessPieceSoldEvent extends Event:
 		return "ChessPieceSoldEvent[piece=%s, gold_amount=%d]" % [piece, gold_amount]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceSoldEvent.new(piece, gold_amount)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -96,7 +91,7 @@ class ChessPieceSoldEvent extends Event:
 		return event
 
 ## 棋子移动事件
-class ChessPieceMovedEvent extends Event:
+class ChessPieceMovedEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -124,7 +119,7 @@ class ChessPieceMovedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceMovedEvent.new(piece, from_position, to_position)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -132,7 +127,7 @@ class ChessPieceMovedEvent extends Event:
 		return event
 
 ## 棋子目标变化事件
-class ChessPieceTargetChangedEvent extends Event:
+class ChessPieceTargetChangedEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -160,7 +155,7 @@ class ChessPieceTargetChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceTargetChangedEvent.new(piece, old_target, new_target)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -168,7 +163,7 @@ class ChessPieceTargetChangedEvent extends Event:
 		return event
 
 ## 棋子目标丢失事件
-class ChessPieceTargetLostEvent extends Event:
+class ChessPieceTargetLostEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -190,7 +185,7 @@ class ChessPieceTargetLostEvent extends Event:
 		return "ChessPieceTargetLostEvent[piece=%s, old_target=%s]" % [piece, old_target]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceTargetLostEvent.new(piece, old_target)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -198,7 +193,7 @@ class ChessPieceTargetLostEvent extends Event:
 		return event
 
 ## 棋子受伤事件
-class ChessPieceDamagedEvent extends Event:
+class ChessPieceDamagedEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -234,7 +229,7 @@ class ChessPieceDamagedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceDamagedEvent.new(piece, source_entity, amount, damage_type, is_critical)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -242,7 +237,7 @@ class ChessPieceDamagedEvent extends Event:
 		return event
 
 ## 棋子治疗事件
-class ChessPieceHealedEvent extends Event:
+class ChessPieceHealedEvent extends BusEvent:
 	## 棋子
 	var piece
 	
@@ -270,23 +265,32 @@ class ChessPieceHealedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceHealedEvent.new(piece, source_entity, amount)
 		event.timestamp = timestamp
 		event.canceled = canceled
 		event.source = source
 		return event
 
-## 棋子闪避事件
-class ChessPieceDodgedEvent extends Event:
+class ChessPieceDiedEvent extends BusEvent:
 	## 棋子
-	var piece
+	var piece:ChessPieceEntity
+
+	
+	## 初始化
+	func _init(p_piece:ChessPieceEntity):
+		piece = p_piece
+
+## 棋子闪避事件
+class ChessPieceDodgedEvent extends BusEvent:
+	## 棋子
+	var piece:ChessPieceEntity
 	
 	## 攻击来源
 	var source_entity
 	
 	## 初始化
-	func _init(p_piece, p_source_entity):
+	func _init(p_piece:ChessPieceEntity, p_source_entity):
 		piece = p_piece
 		source_entity = p_source_entity
 		source = p_piece
@@ -300,7 +304,7 @@ class ChessPieceDodgedEvent extends Event:
 		return "ChessPieceDodgedEvent[piece=%s, source=%s]" % [piece, source_entity]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ChessPieceDodgedEvent.new(piece, source_entity)
 		event.timestamp = timestamp
 		event.canceled = canceled

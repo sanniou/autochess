@@ -63,33 +63,33 @@ func _connect_event_bus() -> void:
 	GlobalEventBus.game.add_listener("player_died", _on_player_died)
 
 	# 连接棋盘事件
-	EventBus.board.connect_event("board_initialized", _on_board_initialized)
-	EventBus.board.connect_event("piece_placed", _on_piece_placed)
-	EventBus.board.connect_event("piece_removed", _on_piece_removed)
-	EventBus.board.connect_event("piece_moved", _on_piece_moved)
-	EventBus.board.connect_event("board_locked", _on_board_locked)
+	GlobalEventBus.board.add_listener("board_initialized", _on_board_initialized)
+	GlobalEventBus.board.add_listener("piece_placed", _on_piece_placed)
+	GlobalEventBus.board.add_listener("piece_removed", _on_piece_removed)
+	GlobalEventBus.board.add_listener("piece_moved", _on_piece_moved)
+	GlobalEventBus.board.add_listener("board_locked", _on_board_locked)
 
 	# 连接战斗事件
 	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
 	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
 
 	# 连接经济事件
-	EventBus.economy.connect_event("gold_changed", _on_gold_changed)
+	GlobalEventBus.economy.add_listener("gold_changed", _on_gold_changed)
 
 	# 连接地图事件
-	EventBus.map.connect_event("map_generated", _on_map_generated)
-	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.map.add_listener("map_generated", _on_map_generated)
+	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
 
 	# 连接UI事件
-	EventBus.ui.connect_event("ui_screen_changed", _on_ui_screen_changed)
-	EventBus.ui.connect_event("show_notification", _on_show_notification)
+	GlobalEventBus.ui.add_listener("ui_screen_changed", _on_ui_screen_changed)
+	GlobalEventBus.ui.add_listener("show_notification", _on_show_notification)
 
 	# 连接设置事件
-	EventBus.ui.connect_event("language_changed", _on_language_changed)
+	GlobalEventBus.ui.add_listener("language_changed", _on_language_changed)
 
 	# 连接成就事件
-	EventBus.achievement.connect_event("achievement_unlocked", _on_achievement_unlocked)
-	EventBus.achievement.connect_event("achievement_progress_updated", _on_achievement_progress_updated)
+	GlobalEventBus.achievement.add_listener("achievement_unlocked", _on_achievement_unlocked)
+	GlobalEventBus.achievement.add_listener("achievement_progress_updated", _on_achievement_progress_updated)
 
 ## 获取状态
 func get_state() -> Dictionary:
@@ -471,30 +471,30 @@ func _disconnect_event_bus() -> void:
 	GlobalEventBus.game.remove_listener("player_died", _on_player_died)
 
 	# 断开棋盘事件
-	EventBus.board.disconnect_event("board_initialized", _on_board_initialized)
-	EventBus.board.disconnect_event("piece_placed", _on_piece_placed)
-	EventBus.board.disconnect_event("piece_removed", _on_piece_removed)
-	EventBus.board.disconnect_event("piece_moved", _on_piece_moved)
-	EventBus.board.disconnect_event("board_locked", _on_board_locked)
+	GlobalEventBus.board.remove_listener("board_initialized", _on_board_initialized)
+	GlobalEventBus.board.remove_listener("piece_placed", _on_piece_placed)
+	GlobalEventBus.board.remove_listener("piece_removed", _on_piece_removed)
+	GlobalEventBus.board.remove_listener("piece_moved", _on_piece_moved)
+	GlobalEventBus.board.remove_listener("board_locked", _on_board_locked)
 
 	# 断开战斗事件
 	GlobalEventBus.battle.remove_listener("battle_started", _on_battle_started)
 	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 
 	# 断开经济事件
-	EventBus.economy.disconnect_event("gold_changed", _on_gold_changed)
+	GlobalEventBus.economy.remove_listener("gold_changed", _on_gold_changed)
 
 	# 断开地图事件
-	EventBus.map.disconnect_event("map_generated", _on_map_generated)
-	EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.map.remove_listener("map_generated", _on_map_generated)
+	GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
 
 	# 断开UI事件
-	EventBus.ui.disconnect_event("ui_screen_changed", _on_ui_screen_changed)
-	EventBus.ui.disconnect_event("show_notification", _on_show_notification)
+	GlobalEventBus.ui.remove_listener("ui_screen_changed", _on_ui_screen_changed)
+	GlobalEventBus.ui.remove_listener("show_notification", _on_show_notification)
 
 	# 断开设置事件
-	EventBus.ui.disconnect_event("language_changed", _on_language_changed)
+	GlobalEventBus.ui.remove_listener("language_changed", _on_language_changed)
 
 	# 断开成就事件
-	EventBus.achievement.disconnect_event("achievement_unlocked", _on_achievement_unlocked)
-	EventBus.achievement.disconnect_event("achievement_progress_updated", _on_achievement_progress_updated)
+	GlobalEventBus.achievement.remove_listener("achievement_unlocked", _on_achievement_unlocked)
+	GlobalEventBus.achievement.remove_listener("achievement_progress_updated", _on_achievement_progress_updated)

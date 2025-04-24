@@ -30,14 +30,14 @@ func add_batch_event_type(event_type: String) -> void:
 ## 检查事件是否应该批处理
 ## @param event 事件
 ## @return 是否应该批处理
-func should_batch(event: Event) -> bool:
+func should_batch(event:BusEvent) -> bool:
     var event_type = event.get_type()
     return _batched_events.has(event_type)
 
 ## 添加事件到批处理
 ## @param event 事件
 ## @return 是否成功添加
-func add_event(event: Event) -> bool:
+func add_event(event:BusEvent) -> bool:
     var event_type = event.get_type()
     
     if not _batched_events.has(event_type):
@@ -81,7 +81,7 @@ func _process_batched_events() -> void:
             batch_info.count = 0
 
 ## 批处理事件类
-class BatchEvent extends Event:
+class BatchEvent extends BusEvent:
     ## 原始事件类型
     var original_type: String
     
@@ -110,6 +110,6 @@ class BatchEvent extends Event:
         return "BatchEvent[type=%s, count=%d, original=%s]" % [get_type(), count, original_event]
     
     ## 克隆事件
-    func clone() -> Event:
+    func clone() ->BusEvent:
         var cloned_original = original_event.clone() if original_event.has_method("clone") else original_event
         return BatchEvent.new(original_type, cloned_original, count, last_time)

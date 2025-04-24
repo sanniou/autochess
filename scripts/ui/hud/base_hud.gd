@@ -36,9 +36,9 @@ func _ready() -> void:
 
 	# 连接信号
 	GlobalEventBus.game.add_listener("game_paused", _on_game_paused)
-	EventBus.ui.connect_event("theme_changed", _on_theme_changed)
-	EventBus.ui.connect_event("language_changed", _on_language_changed)
-	EventBus.ui.connect_event("scale_changed", _on_scale_changed)
+	GlobalEventBus.ui.add_listener("theme_changed", _on_theme_changed)
+	GlobalEventBus.ui.add_listener("language_changed", _on_language_changed)
+	GlobalEventBus.ui.add_listener("scale_changed", _on_scale_changed)
 
 	# 初始化HUD
 	_initialize()

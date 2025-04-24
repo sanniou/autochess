@@ -4,7 +4,7 @@ class_name ComponentEvents
 ## 定义与组件系统相关的事件
 
 ## 组件添加事件
-class ComponentAddedEvent extends Event:
+class ComponentAddedEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -26,7 +26,7 @@ class ComponentAddedEvent extends Event:
 		return "ComponentAddedEvent[entity=%s, component=%s]" % [entity, component.get_component_name()]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ComponentAddedEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -34,7 +34,7 @@ class ComponentAddedEvent extends Event:
 		return event
 
 ## 组件移除事件
-class ComponentRemovedEvent extends Event:
+class ComponentRemovedEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -56,7 +56,7 @@ class ComponentRemovedEvent extends Event:
 		return "ComponentRemovedEvent[entity=%s, component=%s]" % [entity, component.get_component_name()]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ComponentRemovedEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -64,7 +64,7 @@ class ComponentRemovedEvent extends Event:
 		return event
 
 ## 组件启用事件
-class ComponentEnabledEvent extends Event:
+class ComponentEnabledEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -86,7 +86,7 @@ class ComponentEnabledEvent extends Event:
 		return "ComponentEnabledEvent[entity=%s, component=%s]" % [entity, component.get_component_name()]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ComponentEnabledEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -94,7 +94,7 @@ class ComponentEnabledEvent extends Event:
 		return event
 
 ## 组件禁用事件
-class ComponentDisabledEvent extends Event:
+class ComponentDisabledEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -116,7 +116,7 @@ class ComponentDisabledEvent extends Event:
 		return "ComponentDisabledEvent[entity=%s, component=%s]" % [entity, component.get_component_name()]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = ComponentDisabledEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -124,7 +124,7 @@ class ComponentDisabledEvent extends Event:
 		return event
 
 ## 属性变化事件
-class AttributeChangedEvent extends Event:
+class AttributeChangedEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -156,7 +156,7 @@ class AttributeChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = AttributeChangedEvent.new(entity, attribute_name, old_value, new_value)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -164,7 +164,7 @@ class AttributeChangedEvent extends Event:
 		return event
 
 ## 状态变化事件
-class StateChangedEvent extends Event:
+class StateChangedEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -198,7 +198,7 @@ class StateChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = StateChangedEvent.new(entity, old_state, new_state, state_names.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -206,7 +206,7 @@ class StateChangedEvent extends Event:
 		return event
 
 ## 目标变化事件
-class TargetChangedEvent extends Event:
+class TargetChangedEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -234,7 +234,7 @@ class TargetChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = TargetChangedEvent.new(entity, old_target, new_target)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -242,7 +242,7 @@ class TargetChangedEvent extends Event:
 		return event
 
 ## 伤害事件
-class DamageEvent extends Event:
+class DamageEvent extends BusEvent:
 	## 伤害来源
 	var source_entity
 	
@@ -278,7 +278,7 @@ class DamageEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = DamageEvent.new(source_entity, target_entity, amount, damage_type, is_critical)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -286,7 +286,7 @@ class DamageEvent extends Event:
 		return event
 
 ## 治疗事件
-class HealEvent extends Event:
+class HealEvent extends BusEvent:
 	## 治疗来源
 	var source_entity
 	
@@ -314,7 +314,7 @@ class HealEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = HealEvent.new(source_entity, target_entity, amount)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -322,7 +322,7 @@ class HealEvent extends Event:
 		return event
 
 ## 技能使用事件
-class AbilityUsedEvent extends Event:
+class AbilityUsedEvent extends BusEvent:
 	## 施法者
 	var caster
 	
@@ -358,7 +358,7 @@ class AbilityUsedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = AbilityUsedEvent.new(caster, ability_id, ability_name, target, ability_data.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -366,7 +366,7 @@ class AbilityUsedEvent extends Event:
 		return event
 
 ## 装备事件
-class EquipmentEvent extends Event:
+class EquipmentEvent extends BusEvent:
 	## 实体
 	var entity
 	
@@ -394,7 +394,7 @@ class EquipmentEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = EquipmentEvent.new(entity, equipment, slot)
 		event.timestamp = timestamp
 		event.canceled = canceled

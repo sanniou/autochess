@@ -4,7 +4,7 @@ class_name LocalizationEvents
 ## 定义与本地化系统相关的事件
 
 ## 语言变更事件
-class LanguageChangedEvent extends Event:
+class LanguageChangedEvent extends BusEvent:
 	## 语言代码
 	var language_code: String
 	
@@ -27,7 +27,7 @@ class LanguageChangedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = LanguageChangedEvent.new(language_code, language_name)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -35,7 +35,7 @@ class LanguageChangedEvent extends Event:
 		return event
 
 ## 请求语言代码事件
-class RequestLanguageCodeEvent extends Event:
+class RequestLanguageCodeEvent extends BusEvent:
 	## 初始化
 	func _init():
 		pass
@@ -49,7 +49,7 @@ class RequestLanguageCodeEvent extends Event:
 		return "RequestLanguageCodeEvent[]"
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = RequestLanguageCodeEvent.new()
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -57,7 +57,7 @@ class RequestLanguageCodeEvent extends Event:
 		return event
 
 ## 请求字体事件
-class RequestFontEvent extends Event:
+class RequestFontEvent extends BusEvent:
 	## 字体名称
 	var font_name: String
 	
@@ -80,7 +80,7 @@ class RequestFontEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = RequestFontEvent.new(font_name, font_size)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -88,7 +88,7 @@ class RequestFontEvent extends Event:
 		return event
 
 ## 字体加载事件
-class FontLoadedEvent extends Event:
+class FontLoadedEvent extends BusEvent:
 	## 字体名称
 	var font_name: String
 	
@@ -115,7 +115,7 @@ class FontLoadedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = FontLoadedEvent.new(font_name, font_size, font_resource)
 		event.timestamp = timestamp
 		event.canceled = canceled

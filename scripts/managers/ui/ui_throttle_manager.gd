@@ -28,9 +28,9 @@ func _do_initialize() -> void:
 	add_dependency("UIManager")
 	
 	# 连接信号
-	EventBus.ui.connect_event("register_ui_throttler", _on_register_ui_throttler)
-	EventBus.ui.connect_event("unregister_ui_throttler", _on_unregister_ui_throttler)
-	EventBus.ui.connect_event("force_ui_update", _on_force_ui_update)
+	GlobalEventBus.ui.add_listener("register_ui_throttler", _on_register_ui_throttler)
+	GlobalEventBus.ui.add_listener("unregister_ui_throttler", _on_unregister_ui_throttler)
+	GlobalEventBus.ui.add_listener("force_ui_update", _on_force_ui_update)
 	
 	# 更新帧率
 	_update_fps()

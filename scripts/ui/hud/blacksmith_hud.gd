@@ -415,7 +415,7 @@ func _on_confirm_button_pressed() -> void:
 		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(_get_service_success_message(current_service)))
 		
 		# 发送装备升级信号
-		EventBus.map.emit_event("equipment_upgraded", [selected_equipment, true])
+		GlobalEventBus.map.dispatch_event(MapEvents.EquipmentUpgradedEvent.new(selected_equipment, true))
 		
 		# 清除选中的装备
 		selected_equipment = {}
@@ -430,7 +430,7 @@ func _on_confirm_button_pressed() -> void:
 		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(_get_service_fail_message(current_service)))
 		
 		# 发送装备升级信号
-		EventBus.map.emit_event("equipment_upgraded", [selected_equipment, false])
+		GlobalEventBus.map.dispatch_event(MapEvents.EquipmentUpgradedEvent.new(selected_equipment, false))
 	}
 
 # 执行服务

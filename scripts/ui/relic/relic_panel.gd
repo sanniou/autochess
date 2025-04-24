@@ -23,8 +23,8 @@ func _ready():
 	relic_manager = get_node_or_null("/root/GameManager/RelicManager")
 	
 	# 连接信号
-	EventBus.relic.connect_event("relic_acquired", _on_relic_acquired)
-	EventBus.relic.connect_event("show_relic_info", _on_show_relic_info)
+	GlobalEventBus.relic.add_listener("relic_acquired", _on_relic_acquired)
+	GlobalEventBus.relic.add_listener("show_relic_info", _on_show_relic_info)
 	
 	# 初始化遗物列表
 	_initialize_relic_list()

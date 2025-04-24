@@ -58,7 +58,7 @@ func _do_initialize() -> void:
 	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
 	GlobalEventBus.battle.add_listener("battle_started", _on_battle_started)
 	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
-	EventBus.audio.connect_event("play_sound", _on_play_sound)
+	GlobalEventBus.audio.add_listener("play_sound", _on_play_sound)
 
 	# 调试信息
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("音频管理器初始化完成", 0))
@@ -149,7 +149,7 @@ func play_music(music_name: String, fade_time: float = 1.0) -> void:
 	_fade_in(player, fade_time)
 
 	current_music = music_name
-	EventBus.audio.emit_event("bgm_changed", [music_name])
+	GlobalEventBus.audio.dispatch_event(AudioEvents.BGMChangedEvent.new(music_name))
 
 ## 播放音效
 func play_sfx(sfx_name: String, pitch_scale: float = 1.0, volume_scale: float = 1.0) -> void:
@@ -171,7 +171,7 @@ func play_sfx(sfx_name: String, pitch_scale: float = 1.0, volume_scale: float = 
 	player.volume_db = linear_to_db(sfx_volume * volume_scale)
 	player.play()
 
-	EventBus.audio.emit_event("sfx_played", [sfx_name])
+	GlobalEventBus.audio.dispatch_event(AudioEvents.SFXPlayedEvent.new(sfx_name))
 
 ## 播放UI音效
 func play_ui_sound(sound_name: String) -> void:

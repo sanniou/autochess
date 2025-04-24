@@ -73,8 +73,8 @@ func _deferred_init() -> void:
 	resource_manager = get_node_or_null("/root/ResourceManager")
 
 	# 连接信号
-	EventBus.localization.connect_event("language_changed", _on_language_changed)
-	EventBus.localization.connect_event("request_font", _on_request_font)
+	GlobalEventBus.localization.add_listener("language_changed", _on_language_changed)
+	GlobalEventBus.localization.add_listener("request_font", _on_request_font)
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("字体管理器已连接到EventBus", 0))
 
 	# 加载默认字体
@@ -89,7 +89,7 @@ func _load_default_fonts() -> void:
 	var language_code = "zh_CN" # 默认使用中文
 
 	# 尝试通过EventBus获取当前语言代码
-	EventBus.localization.emit_event("request_language_code")
+	GlobalEventBus.localization.dispatch_event(LocalizationEvents.RequestLanguageCodeEvent.new())
 	# 注意：这里我们使用默认值，因为这是异步请求
 	# 当LocalizationManager响应请求时，它会发送language_changed信号
 	# 我们在_on_language_changed方法中处理语言变化
@@ -289,7 +289,7 @@ func _on_request_font(font_name: String) -> void:
 	# 加载并返回请求的字体
 	var font = load_font(font_name)
 	if font:
-		EventBus.localization.emit_event("font_loaded", [font_name, font])
+		GlobalEventBus.localization.dispatch_event(LocalizationEvents.FontLoadedEvent.new(font_name, font))
 	else:
 		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载字体: " + font_name, 1))
 
@@ -313,8 +313,8 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.localization.disconnect_event("language_changed", _on_language_changed)
-	EventBus.localization.disconnect_event("request_font", _on_request_font)
+	GlobalEventBus.localization.remove_listener("language_changed", _on_language_changed)
+	GlobalEventBus.localization.remove_listener("request_font", _on_request_font)
 
 	# 清空字体缓存
 	font_cache.clear()

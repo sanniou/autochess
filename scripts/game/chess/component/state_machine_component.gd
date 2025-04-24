@@ -387,5 +387,5 @@ func _on_state_changed(old_state: String, new_state: String) -> void:
 		owner.died.emit()
 
 		# 发送事件
-		EventBus.chess.emit_event("chess_piece_died", [owner])
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceDiedEvent.new(owner))
 		GlobalEventBus.battle.dispatch_event(BattleEvents.UnitDiedEvent.new(owner))

@@ -381,7 +381,7 @@ func set_level(new_level: int) -> void:
 	level_changed.emit(old_level, level)
 
 	# 发送事件
-	EventBus.chess.emit_event("chess_piece_level_changed", [self, old_level, level])
+	GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceLevelChangedEvent.new(self, old_level, level))
 
 # 获取棋子等级
 func get_level() -> int:
@@ -458,7 +458,7 @@ func _on_attribute_changed(attribute_name: String, old_value, new_value) -> void
 		died.emit()
 
 		# 发送事件
-		EventBus.chess.emit_event("chess_piece_died", [self])
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceDiedEvent.new(self))
 		GlobalEventBus.battle.dispatch_event(BattleEvents.UnitDiedEvent.new(self))
 
 # 状态变化回调
@@ -473,7 +473,7 @@ func _on_state_changed(old_state: int, new_state: int) -> void:
 		died.emit()
 
 		# 发送事件
-		EventBus.chess.emit_event("chess_piece_died", [self])
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceDiedEvent.new(self))
 		GlobalEventBus.battle.dispatch_event(BattleEvents.UnitDiedEvent.new(self))
 
 # 伤害回调

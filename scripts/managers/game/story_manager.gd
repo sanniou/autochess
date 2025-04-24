@@ -22,7 +22,7 @@ func _do_initialize() -> void:
 
 	# 原 _ready 函数的内容
 	# 连接信号
-	EventBus.event.connect_event("event_completed", _on_event_completed)
+	GlobalEventBus.event.add_listener("event_completed", _on_event_completed)
 
 # 设置剧情标记
 func set_flag(flag_name: String, value = true) -> void:
@@ -184,7 +184,7 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.event.disconnect_event("event_completed", _on_event_completed)
+	GlobalEventBus.event.remove_listener("event_completed", _on_event_completed)
 
 	# 清空剧情数据
 	story_flags.clear()

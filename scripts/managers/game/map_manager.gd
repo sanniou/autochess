@@ -67,8 +67,8 @@ func _do_initialize() -> void:
 
 	# 连接事件总线信号
 	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
-	EventBus.event.connect_event("event_completed", _on_event_completed)
-	EventBus.economy.connect_event("shop_closed", _on_shop_exited)
+	GlobalEventBus.event.add_listener("event_completed", _on_event_completed)
+	GlobalEventBus.economy.add_listener("shop_closed", _on_shop_exited)
 
 	# 加载地图配置
 	_load_map_config()
@@ -355,7 +355,7 @@ func _open_treasure(node: MapNode) -> void:
 	# 显示宝藏获取UI
 	# 这里应该显示一个UI，展示获得的奖励
 	# 暂时直接返回地图
-	EventBus.map.emit_event("treasure_collected", [node.rewards])
+	GlobalEventBus.map.dispatch_event(MapEvents.TreasureCollectedEvent.new(node.rewards))
 
 ## 在节点休息
 func _rest_at_node(node: MapNode) -> void:
@@ -367,7 +367,7 @@ func _rest_at_node(node: MapNode) -> void:
 	# 显示休息UI
 	# 这里应该显示一个UI，展示休息效果
 	# 暂时直接返回地图
-	EventBus.map.emit_event("rest_completed", [node.heal_amount])
+	GlobalEventBus.map.dispatch_event(MapEvents.RestCompletedEvent.new(node.heal_amount))
 
 ## 处理奖励
 func _process_rewards(rewards: Dictionary) -> void:
@@ -683,8 +683,8 @@ func _do_cleanup() -> void:
 
 	# 断开事件总线信号
 	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
-	EventBus.event.disconnect_event("event_completed", _on_event_completed)
-	EventBus.economy.disconnect_event("shop_closed", _on_shop_exited)
+	GlobalEventBus.event.remove_listener("event_completed", _on_event_completed)
+	GlobalEventBus.economy.remove_listener("shop_closed", _on_shop_exited)
 
 	# 断开配置变更信号连接
 	if GameManager and GameManager.config_manager:

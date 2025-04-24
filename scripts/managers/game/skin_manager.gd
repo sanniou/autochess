@@ -64,11 +64,11 @@ func _do_initialize() -> void:
 # 连接信号
 func _connect_signals() -> void:
 	# 皮肤相关信号
-	EventBus.skin.connect_event("skin_changed", _on_skin_changed)
-	EventBus.skin.connect_event("skin_unlocked", _on_skin_unlocked)
+	GlobalEventBus.skin.add_listener("skin_changed", _on_skin_changed)
+	GlobalEventBus.skin.add_listener("skin_unlocked", _on_skin_unlocked)
 
 	# 游戏状态信号
-	EventBus.save.connect_event("game_loaded", _on_game_loaded)
+	GlobalEventBus.save.add_listener("game_loaded", _on_game_loaded)
 
 # 皮肤变化处理
 func _on_skin_changed(skin_type: String, skin_id: String) -> void:
@@ -365,7 +365,7 @@ func _apply_chess_skin() -> void:
 		return
 
 	# 通过事件总线发送皮肤变化信号
-	EventBus.skin.emit_event("chess_skin_changed", [skin_id])
+	GlobalEventBus.skin.dispatch_event(SkinEvents.ChessSkinChangedEvent.new(skin_id))
 
 	_log_info("应用棋子皮肤: " + skin_id)
 
@@ -384,7 +384,7 @@ func _apply_board_skin() -> void:
 		return
 
 	# 通过事件总线发送皮肤变化信号
-	EventBus.skin.emit_event("board_skin_changed", [skin_id])
+	GlobalEventBus.skin.dispatch_event(SkinEvents.BoardSkinChangedEvent.new(skin_id))
 
 	_log_info("应用棋盘皮肤: " + skin_id)
 
@@ -403,7 +403,7 @@ func _apply_ui_skin() -> void:
 		return
 
 	# 通过事件总线发送皮肤变化信号
-	EventBus.skin.emit_event("ui_skin_changed", [skin_id])
+	GlobalEventBus.skin.dispatch_event(SkinEvents.UISkinChangedEvent.new(skin_id))
 
 	_log_info("应用UI皮肤: " + skin_id)
 
@@ -424,9 +424,9 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	EventBus.skin.disconnect_event("skin_changed", _on_skin_changed)
-	EventBus.skin.disconnect_event("skin_unlocked", _on_skin_unlocked)
-	EventBus.save.disconnect_event("game_loaded", _on_game_loaded)
+	GlobalEventBus.skin.remove_listener("skin_changed", _on_skin_changed)
+	GlobalEventBus.skin.remove_listener("skin_unlocked", _on_skin_unlocked)
+	GlobalEventBus.save.remove_listener("game_loaded", _on_game_loaded)
 
 	# 清空皮肤数据
 	chess_skins.clear()

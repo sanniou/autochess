@@ -8,14 +8,14 @@ class_name EventUtils
 ## @param value 属性值
 ## @return 过滤函数
 static func property_filter(property: String, value) -> Callable:
-    return func(event: Event) -> bool:
+    return func(event:BusEvent) -> bool:
         return event.get(property) == value
 
 ## 创建组合过滤器（AND）
 ## @param filters 过滤器数组
 ## @return 组合过滤器
 static func and_filter(filters: Array) -> Callable:
-    return func(event: Event) -> bool:
+    return func(event:BusEvent) -> bool:
         for filter in filters:
             if not filter.call(event):
                 return false
@@ -25,7 +25,7 @@ static func and_filter(filters: Array) -> Callable:
 ## @param filters 过滤器数组
 ## @return 组合过滤器
 static func or_filter(filters: Array) -> Callable:
-    return func(event: Event) -> bool:
+    return func(event:BusEvent) -> bool:
         for filter in filters:
             if filter.call(event):
                 return true
@@ -35,21 +35,21 @@ static func or_filter(filters: Array) -> Callable:
 ## @param filter 过滤器
 ## @return 否定过滤器
 static func not_filter(filter: Callable) -> Callable:
-    return func(event: Event) -> bool:
+    return func(event:BusEvent) -> bool:
         return not filter.call(event)
 
 ## 创建类型过滤器
 ## @param type_name 事件类型名称
 ## @return 类型过滤器
 static func type_filter(type_name: String) -> Callable:
-    return func(event: Event) -> bool:
+    return func(event:BusEvent) -> bool:
         return event.get_type() == type_name
 
 ## 创建源对象过滤器
 ## @param source 源对象
 ## @return 源对象过滤器
 static func source_filter(source: Object) -> Callable:
-    return func(event: Event) -> bool:
+    return func(event:BusEvent) -> bool:
         return event.source == source
 
 ## 创建一次性监听器

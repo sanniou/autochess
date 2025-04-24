@@ -4,7 +4,7 @@ class_name StatusEffectEvents
 ## 定义与状态效果系统相关的事件
 
 ## 状态效果添加事件
-class StatusEffectAddedEvent extends Event:
+class StatusEffectAddedEvent extends BusEvent:
 	## 目标实体
 	var target
 	
@@ -35,7 +35,7 @@ class StatusEffectAddedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = StatusEffectAddedEvent.new(target, effect_id, effect_data.duplicate(true), source)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -43,7 +43,7 @@ class StatusEffectAddedEvent extends Event:
 		return event
 
 ## 状态效果移除事件
-class StatusEffectRemovedEvent extends Event:
+class StatusEffectRemovedEvent extends BusEvent:
 	## 目标实体
 	var target
 	
@@ -66,7 +66,7 @@ class StatusEffectRemovedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = StatusEffectRemovedEvent.new(target, effect_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -74,7 +74,7 @@ class StatusEffectRemovedEvent extends Event:
 		return event
 
 ## 状态效果抵抗事件
-class StatusEffectResistedEvent extends Event:
+class StatusEffectResistedEvent extends BusEvent:
 	## 目标实体
 	var target
 	
@@ -101,7 +101,7 @@ class StatusEffectResistedEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = StatusEffectResistedEvent.new(target, effect_id, source)
 		event.timestamp = timestamp
 		event.canceled = canceled
@@ -109,7 +109,7 @@ class StatusEffectResistedEvent extends Event:
 		return event
 
 ## 状态效果触发事件
-class StatusEffectTriggeredEvent extends Event:
+class StatusEffectTriggeredEvent extends BusEvent:
 	## 目标实体
 	var target
 	
@@ -136,7 +136,7 @@ class StatusEffectTriggeredEvent extends Event:
 		]
 	
 	## 克隆事件
-	func clone() -> Event:
+	func clone() ->BusEvent:
 		var event = StatusEffectTriggeredEvent.new(target, effect_id, effect_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled

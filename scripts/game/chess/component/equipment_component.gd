@@ -57,7 +57,7 @@ func equip_item(equipment, slot: int) -> bool:
 	equipment_equipped.emit(equipment, slot)
 	
 	# 发送事件
-	EventBus.equipment.emit_event("equipment_equipped", [equipment, owner])
+	GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentEquippedEvent.new(equipment, owner))
 	
 	return true
 
@@ -84,7 +84,7 @@ func unequip_item(slot: int) -> bool:
 	equipment_unequipped.emit(equipment, slot)
 	
 	# 发送事件
-	EventBus.equipment.emit_event("equipment_unequipped", [equipment, owner])
+	GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentUnequippedEvent.new(equipment, owner))
 	
 	return true
 

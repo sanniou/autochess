@@ -103,7 +103,7 @@ func _do_initialize() -> void:
 	GlobalEventBus.game.add_listener("game_started", _on_game_started)
 	GlobalEventBus.game.add_listener("game_ended", _on_game_ended)
 	GlobalEventBus.game.add_listener("player_died", _on_player_died)
-	EventBus.map.connect_event("map_completed", _on_map_completed)
+	GlobalEventBus.map.add_listener("map_completed", _on_map_completed)
 
 	# 注册所有管理器
 	_register_all_managers()
@@ -497,7 +497,7 @@ func start_new_game(difficulty: int = 1) -> void:
 	GlobalEventBus.game.dispatch_event(GameEvents.GameStartedEvent.new())
 
 	# 触发自动存档
-	EventBus.save.emit_event("autosave_triggered")
+	GlobalEventBus.save.dispatch_event(SaveEvents.AutosaveTriggeredEvent.new())
 
 ## 加载存档
 func load_game(save_slot: String) -> bool:
@@ -559,7 +559,7 @@ func quit_game() -> void:
 		save_manager.trigger_autosave()
 	else:
 		# 如果无法获取存档管理器，使用信号
-		EventBus.save.emit_event("autosave_triggered")
+		GlobalEventBus.save.dispatch_event(SaveEvents.AutosaveTriggeredEvent.new())
 
 	# 退出游戏
 	get_tree().quit()

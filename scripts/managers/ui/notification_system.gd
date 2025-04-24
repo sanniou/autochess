@@ -35,9 +35,9 @@ func _ready() -> void:
 	_create_notification_container()
 	
 	# 连接信号
-	EventBus.ui.connect_event("show_notification", show_notification)
-	EventBus.ui.connect_event("hide_notification", hide_notification)
-	EventBus.ui.connect_event("clear_notifications", clear_notifications)
+	GlobalEventBus.ui.add_listener("show_notification", show_notification)
+	GlobalEventBus.ui.add_listener("hide_notification", hide_notification)
+	GlobalEventBus.ui.add_listener("clear_notifications", clear_notifications)
 
 # 创建通知容器
 func _create_notification_container() -> void:

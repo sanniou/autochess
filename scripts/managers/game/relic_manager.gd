@@ -33,8 +33,8 @@ func _do_initialize() -> void:
 
 	# 连接信号
 	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
-	EventBus.event.connect_event("event_completed", _on_event_completed)
-	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.event.add_listener("event_completed", _on_event_completed)
+	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
 
 	# 初始化遗物工厂
 func _initialize_relic_factory() -> void:
@@ -123,7 +123,7 @@ func acquire_relic(relic_id: String, player = null) -> Relic:
 		relic.activate()
 
 	# 发送遗物获取信号
-	EventBus.relic.emit_event("relic_acquired", [relic])
+	GlobalEventBus.relic.dispatch_event(RelicEvents.RelicAcquiredEvent.new(relic))
 
 	return relic
 
@@ -368,8 +368,8 @@ func _do_cleanup() -> void:
 		var EventBus = Engine.get_singleton("EventBus")
 		if EventBus:
 			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
-			EventBus.event.disconnect_event("event_completed", _on_event_completed)
-			EventBus.map.disconnect_event("map_node_selected", _on_map_node_selected)
+			GlobalEventBus.event.remove_listener("event_completed", _on_event_completed)
+			GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
 
 	# 断开配置变更信号连接
 	if GameManager and GameManager.config_manager:

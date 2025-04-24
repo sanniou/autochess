@@ -68,7 +68,7 @@ func equip_to(character: ChessPieceEntity) -> bool:
 
 	# 发送装备信号
 	equipped.emit(character)
-	EventBus.equipment.emit_event("equipment_equipped", [self, character])
+	GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentEquippedEvent.new(self, character))
 
 	return true
 
@@ -82,7 +82,7 @@ func unequip_from() -> bool:
 
 	# 发送卸下信号
 	unequipped.emit(current_owner)
-	EventBus.equipment.emit_event("equipment_unequipped", [self, current_owner])
+	GlobalEventBus.equipment.dispatch_event(EquipmentEvents.EquipmentUnequippedEvent.new(self, current_owner))
 
 	current_owner = null
 	return true

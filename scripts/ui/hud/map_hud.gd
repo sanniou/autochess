@@ -15,9 +15,9 @@ func _initialize() -> void:
 	map_manager = GameManager.map_manager
 
 	# 连接地图信号
-	EventBus.map.connect_event("map_node_selected", _on_map_node_selected)
-	EventBus.map.connect_event("map_node_hovered", _on_map_node_hovered)
-	EventBus.map.connect_event("map_completed", _on_map_completed)
+	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.map.add_listener("map_node_hovered", _on_map_node_hovered)
+	GlobalEventBus.map.add_listener("map_completed", _on_map_completed)
 
 	# 更新显示
 	update_hud()
