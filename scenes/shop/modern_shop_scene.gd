@@ -500,7 +500,7 @@ func _on_rarity_filter_item_selected(index):
 		current_filter_rarity = index - 1
 	refresh_shop()
 
-func _on_type_filter_item_selected(index):
+func _on_type_filter_item_selected(index): 
 	if index == 0:
 		current_filter_type = ""
 	else:

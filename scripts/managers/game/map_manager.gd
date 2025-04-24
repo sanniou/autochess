@@ -1,7 +1,7 @@
 extends "res://scripts/managers/core/base_manager.gd"
 class_name MapManager
 ## 地图管理器
-## 管理地图生成、节点选择和地图进度
+## 负责地图数据的加载、保存和管理，处理地图生成和随机化，管理地图的全局状态
 
 # 地图信号
 signal map_loaded(map_data)
@@ -11,6 +11,8 @@ signal node_visited(node_data)
 signal node_hovered(node_data)
 signal node_unhovered(node_data)
 signal map_completed(map_data)
+signal path_highlighted(path_nodes)
+signal path_highlight_cleared
 
 # 地图组件
 var map_controller: MapController
@@ -19,8 +21,8 @@ var map_config: MapConfig = MapConfig.new()
 # 当前地图状态
 var current_map: MapData = null
 var current_node: MapNode = null
-var visited_nodes = {}
-var available_nodes = {}
+var visited_nodes: Dictionary = {}
+var available_nodes: Dictionary = {}
 
 # 地图生成器
 var map_generator: ProceduralMapGenerator
@@ -60,6 +62,8 @@ func _do_initialize() -> void:
 	map_controller.node_visited.connect(_on_node_visited)
 	map_controller.node_hovered.connect(_on_node_hovered)
 	map_controller.node_unhovered.connect(_on_node_unhovered)
+	map_controller.path_highlighted.connect(_on_path_highlighted)
+	map_controller.path_highlight_cleared.connect(_on_path_highlight_cleared)
 
 	# 连接事件总线信号
 	EventBus.battle.connect_event("battle_ended", _on_battle_ended)
@@ -439,69 +443,35 @@ func get_path_between_nodes(from_node_id: String, to_node_id: String) -> Array:
 	return []
 
 ## 获取到目标节点的最佳路径
+## 使用地图控制器获取最佳路径
 func get_best_path_to_node(target_node_id: String) -> Array:
 	# 如果没有当前节点或当前地图，返回空数组
 	if not current_node or not current_map:
 		return []
 
-	# 获取目标节点
-	var target_node = current_map.get_node_by_id(target_node_id)
-	if not target_node:
-		return []
+	# 使用地图控制器获取路径
+	return map_controller.get_best_path_to_node(current_node.id, target_node_id)
 
-	# 使用广度优先搜索找到目标节点的路径
-	return _find_path_bfs(current_node.id, target_node_id)
+## 高亮路径
+## 高亮从当前节点到目标节点的路径
+func highlight_path_to_node(target_node_id: String) -> bool:
+	if not current_node or not current_map:
+		return false
 
-## 使用广度优先搜索找到目标节点的路径
-func _find_path_bfs(start_node_id: String, target_node_id: String) -> Array:
-	if not current_map:
-		return []
+	return map_controller.highlight_path(current_node.id, target_node_id)
 
-	# 初始化队列和访问记录
-	var queue = []
-	var visited = {}
-	var parent = {}
+## 清除路径高亮
+## 清除所有高亮的路径
+func clear_path_highlights() -> void:
+	map_controller.clear_path_highlights()
 
-	# 将起点加入队列
-	queue.push_back(start_node_id)
-	visited[start_node_id] = true
+## 路径高亮事件处理
+func _on_path_highlighted(path_nodes: Array) -> void:
+	path_highlighted.emit(path_nodes)
 
-	# BFS遍历
-	while not queue.is_empty():
-		var current_id = queue.pop_front()
-
-		# 如果到达目标，重建路径
-		if current_id == target_node_id:
-			return _reconstruct_path(parent, start_node_id, target_node_id)
-
-		# 获取当前节点
-		var current_node = current_map.get_node_by_id(current_id)
-		if not current_node:
-			continue
-
-		# 获取可达节点
-		var reachable_nodes = current_map.get_reachable_nodes(current_id)
-
-		# 遍历所有可达节点
-		for next_node in reachable_nodes:
-			if not visited.has(next_node.id):
-				queue.push_back(next_node.id)
-				visited[next_node.id] = true
-				parent[next_node.id] = current_id
-
-	# 如果没有找到路径，返回空数组
-	return []
-
-## 重建路径
-func _reconstruct_path(parent: Dictionary, start_node_id: String, target_node_id: String) -> Array:
-	var path = [target_node_id]
-	var current_id = target_node_id
-
-	while current_id != start_node_id:
-		current_id = parent[current_id]
-		path.push_front(current_id)
-
-	return path
+## 路径高亮清除事件处理
+func _on_path_highlight_cleared() -> void:
+	path_highlight_cleared.emit()
 
 ## 地图加载事件处理
 func _on_map_loaded(map_data: MapData) -> void:
