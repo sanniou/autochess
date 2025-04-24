@@ -117,8 +117,12 @@ func take_damage(source, amount: float, damage_type: String = "physical", is_cri
 		# 触发闪避效果
 		dodge_successful.emit(source)
 
-		# 发送事件
-		EventBus.chess.emit_event("chess_piece_dodged", [owner, source])
+		# 发送闪避事件
+		if GlobalEventBus:
+			# 这里可以创建一个闪避事件类型，但暂时使用伤害事件，将伤害设为0
+			var event = ComponentEvents.DamageEvent.new(source, owner, 0.0, damage_type, false)
+			event.canceled = true  # 标记为已取消
+			GlobalEventBus.get_group("component").dispatch_event(event)
 
 		return 0.0
 
@@ -144,9 +148,10 @@ func take_damage(source, amount: float, damage_type: String = "physical", is_cri
 	# 发送伤害信号
 	damage_taken.emit(source, actual_damage, damage_type, is_critical)
 
-	# 发送事件
-	EventBus.chess.emit_event("chess_piece_damaged", [owner, source, actual_damage, damage_type, is_critical])
-	EventBus.battle.emit_event("damage_dealt", [source, owner, actual_damage, damage_type, is_critical])
+	# 发送伤害事件
+	if GlobalEventBus:
+		var event = ComponentEvents.DamageEvent.new(source, owner, actual_damage, damage_type, is_critical)
+		GlobalEventBus.get_group("component").dispatch_event(event)
 
 	# 检查是否死亡
 	if attribute_component.is_dead():
@@ -218,9 +223,10 @@ func receive_healing(source, amount: float) -> float:
 	# 发送治疗信号
 	healing_received.emit(source, actual_healing)
 
-	# 发送事件
-	EventBus.chess.emit_event("chess_piece_healed", [owner, source, actual_healing])
-	EventBus.battle.emit_event("heal_received", [source, owner, actual_healing])
+	# 发送治疗事件
+	if GlobalEventBus:
+		var event = ComponentEvents.HealEvent.new(source, owner, actual_healing)
+		GlobalEventBus.get_group("component").dispatch_event(event)
 
 	return actual_healing
 
@@ -245,8 +251,10 @@ func _process_lifesteal(damage_amount: float) -> void:
 	# 发送治疗信号
 	healing_received.emit(owner, heal_amount)
 
-	# 发送事件
-	EventBus.chess.emit_event("chess_piece_healed", [owner, owner, heal_amount])
+	# 发送治疗事件
+	if GlobalEventBus:
+		var event = ComponentEvents.HealEvent.new(owner, owner, heal_amount)
+		GlobalEventBus.get_group("component").dispatch_event(event)
 
 # 处理元素效果
 func _process_elemental_effect(target) -> void:

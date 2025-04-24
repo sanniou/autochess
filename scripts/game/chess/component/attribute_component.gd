@@ -23,7 +23,7 @@ func _init(p_owner = null, p_name: String = "AttributeComponent"):
 func initialize() -> void:
 	# 初始化基本属性
 	_initialize_attributes()
-	
+
 	super.initialize()
 
 # 初始化属性
@@ -37,12 +37,12 @@ func _initialize_attributes() -> void:
 	set_base_attribute("armor", 0.0)
 	set_base_attribute("magic_resist", 0.0)
 	set_base_attribute("move_speed", 300.0)
-	
+
 	# 技能属性
 	set_base_attribute("max_mana", 100.0)
 	set_base_attribute("current_mana", 0.0)
 	set_base_attribute("spell_power", 0.0)
-	
+
 	# 战斗增强属性
 	set_base_attribute("crit_chance", 0.0)
 	set_base_attribute("crit_damage", 1.5)
@@ -56,19 +56,24 @@ func _initialize_attributes() -> void:
 # 设置基础属性
 func set_base_attribute(attribute_name: String, value) -> void:
 	var old_value = get_attribute(attribute_name)
-	
+
 	# 更新基础属性
 	base_attributes[attribute_name] = value
-	
+
 	# 标记属性为脏
 	attribute_dirty_flags[attribute_name] = true
-	
+
 	# 更新属性
 	var new_value = _calculate_attribute(attribute_name)
 	attributes[attribute_name] = new_value
-	
+
 	# 发送属性变化信号
 	attribute_changed.emit(attribute_name, old_value, new_value)
+
+	# 发送属性变化事件
+	if GlobalEventBus:
+		var event = ComponentEvents.AttributeChangedEvent.new(owner, attribute_name, old_value, new_value)
+		GlobalEventBus.get_group("component").dispatch_event(event)
 
 # 获取属性
 func get_attribute(attribute_name: String, default_value = 0):
@@ -76,7 +81,7 @@ func get_attribute(attribute_name: String, default_value = 0):
 	if attribute_dirty_flags.get(attribute_name, true):
 		attributes[attribute_name] = _calculate_attribute(attribute_name)
 		attribute_dirty_flags[attribute_name] = false
-	
+
 	return attributes.get(attribute_name, default_value)
 
 # 获取基础属性
@@ -87,49 +92,49 @@ func get_base_attribute(attribute_name: String, default_value = 0):
 func add_attribute_modifier(attribute_name: String, modifier: Dictionary) -> String:
 	# 创建修改器ID
 	var modifier_id = attribute_name + "_" + str(randi())
-	
+
 	# 确保修改器包含必要字段
 	modifier["id"] = modifier_id
 	modifier["attribute"] = attribute_name
-	
+
 	if not modifier.has("value"):
 		modifier["value"] = 0
-	
+
 	if not modifier.has("type"):
 		modifier["type"] = "add"  # 默认为加法修改器
-	
+
 	if not modifier.has("duration"):
 		modifier["duration"] = -1  # 默认为永久修改器
-	
+
 	if not modifier.has("remaining_time"):
 		modifier["remaining_time"] = modifier["duration"]
-	
+
 	if not modifier.has("priority"):
 		modifier["priority"] = 0  # 默认优先级
-	
+
 	if not modifier.has("source"):
 		modifier["source"] = null
-	
+
 	# 添加修改器
 	if not attribute_modifiers.has(attribute_name):
 		attribute_modifiers[attribute_name] = []
-	
+
 	attribute_modifiers[attribute_name].append(modifier)
-	
+
 	# 标记属性为脏
 	attribute_dirty_flags[attribute_name] = true
-	
+
 	# 重新计算属性
 	var old_value = get_attribute(attribute_name)
 	var new_value = _calculate_attribute(attribute_name)
 	attributes[attribute_name] = new_value
-	
+
 	# 发送修改器添加信号
 	attribute_modifier_added.emit(attribute_name, modifier)
-	
+
 	# 发送属性变化信号
 	attribute_changed.emit(attribute_name, old_value, new_value)
-	
+
 	return modifier_id
 
 # 移除属性修改器
@@ -141,26 +146,26 @@ func remove_attribute_modifier(modifier_id: String) -> bool:
 			if modifiers[i].id == modifier_id:
 				# 获取旧值
 				var old_value = get_attribute(attribute_name)
-				
+
 				# 移除修改器
 				var modifier = modifiers[i]
 				modifiers.remove_at(i)
-				
+
 				# 标记属性为脏
 				attribute_dirty_flags[attribute_name] = true
-				
+
 				# 重新计算属性
 				var new_value = _calculate_attribute(attribute_name)
 				attributes[attribute_name] = new_value
-				
+
 				# 发送修改器移除信号
 				attribute_modifier_removed.emit(attribute_name, modifier)
-				
+
 				# 发送属性变化信号
 				attribute_changed.emit(attribute_name, old_value, new_value)
-				
+
 				return true
-	
+
 	return false
 
 # 移除所有属性修改器
@@ -169,23 +174,23 @@ func remove_all_attribute_modifiers() -> void:
 	var old_values = {}
 	for attribute_name in attributes:
 		old_values[attribute_name] = get_attribute(attribute_name)
-	
+
 	# 清空所有修改器
 	for attribute_name in attribute_modifiers:
 		for modifier in attribute_modifiers[attribute_name]:
 			# 发送修改器移除信号
 			attribute_modifier_removed.emit(attribute_name, modifier)
-	
+
 	attribute_modifiers.clear()
-	
+
 	# 标记所有属性为脏
 	for attribute_name in attributes:
 		attribute_dirty_flags[attribute_name] = true
-		
+
 		# 重新计算属性
 		var new_value = _calculate_attribute(attribute_name)
 		attributes[attribute_name] = new_value
-		
+
 		# 发送属性变化信号
 		attribute_changed.emit(attribute_name, old_values[attribute_name], new_value)
 
@@ -193,13 +198,13 @@ func remove_all_attribute_modifiers() -> void:
 func remove_modifiers_by_source(source) -> void:
 	# 查找来源的所有修改器
 	var modifiers_to_remove = []
-	
+
 	for attribute_name in attribute_modifiers:
 		var modifiers = attribute_modifiers[attribute_name]
 		for modifier in modifiers:
 			if modifier.source == source:
 				modifiers_to_remove.append(modifier.id)
-	
+
 	# 移除找到的修改器
 	for modifier_id in modifiers_to_remove:
 		remove_attribute_modifier(modifier_id)
@@ -208,18 +213,18 @@ func remove_modifiers_by_source(source) -> void:
 func _process_update(delta: float) -> void:
 	# 更新所有修改器
 	var modifiers_to_remove = []
-	
+
 	for attribute_name in attribute_modifiers:
 		var modifiers = attribute_modifiers[attribute_name]
 		for modifier in modifiers:
 			# 更新持续时间
 			if modifier.duration > 0:
 				modifier.remaining_time -= delta
-				
+
 				# 如果修改器过期，标记为移除
 				if modifier.remaining_time <= 0:
 					modifiers_to_remove.append(modifier.id)
-	
+
 	# 移除过期的修改器
 	for modifier_id in modifiers_to_remove:
 		remove_attribute_modifier(modifier_id)
@@ -228,22 +233,22 @@ func _process_update(delta: float) -> void:
 func _calculate_attribute(attribute_name: String):
 	# 获取基础值
 	var base_value = base_attributes.get(attribute_name, 0)
-	
+
 	# 如果没有修改器，直接返回基础值
 	if not attribute_modifiers.has(attribute_name) or attribute_modifiers[attribute_name].is_empty():
 		return base_value
-	
+
 	# 获取修改器列表
 	var modifiers = attribute_modifiers[attribute_name]
-	
+
 	# 按优先级排序
 	modifiers.sort_custom(func(a, b): return a.priority > b.priority)
-	
+
 	# 应用修改器
 	var flat_add = 0
 	var percent_add = 0
 	var percent_multiply = 1.0
-	
+
 	for modifier in modifiers:
 		match modifier.type:
 			"add":
@@ -252,25 +257,30 @@ func _calculate_attribute(attribute_name: String):
 				percent_add += modifier.value
 			"percent_multiply":
 				percent_multiply *= (1 + modifier.value)
-	
+
 	# 计算最终值
 	var final_value = (base_value + flat_add) * (1 + percent_add) * percent_multiply
-	
+
 	return final_value
 
 # 设置生命值
 func set_health(value: float) -> void:
 	var old_value = get_attribute("current_health")
 	var max_health = get_attribute("max_health")
-	
+
 	# 限制生命值范围
 	value = clamp(value, 0, max_health)
-	
+
 	# 更新生命值
 	attributes["current_health"] = value
-	
+
 	# 发送属性变化信号
 	attribute_changed.emit("current_health", old_value, value)
+
+	# 发送属性变化事件
+	if GlobalEventBus:
+		var event = ComponentEvents.AttributeChangedEvent.new(owner, "current_health", old_value, value)
+		GlobalEventBus.get_group("component").dispatch_event(event)
 
 # 增加生命值
 func add_health(value: float) -> void:
@@ -286,15 +296,20 @@ func reduce_health(value: float) -> void:
 func set_mana(value: float) -> void:
 	var old_value = get_attribute("current_mana")
 	var max_mana = get_attribute("max_mana")
-	
+
 	# 限制法力值范围
 	value = clamp(value, 0, max_mana)
-	
+
 	# 更新法力值
 	attributes["current_mana"] = value
-	
+
 	# 发送属性变化信号
 	attribute_changed.emit("current_mana", old_value, value)
+
+	# 发送属性变化事件
+	if GlobalEventBus:
+		var event = ComponentEvents.AttributeChangedEvent.new(owner, "current_mana", old_value, value)
+		GlobalEventBus.get_group("component").dispatch_event(event)
 
 # 增加法力值
 func add_mana(value: float) -> void:
@@ -322,20 +337,20 @@ func is_full_mana() -> bool:
 func get_health_percent() -> float:
 	var current_health = get_attribute("current_health")
 	var max_health = get_attribute("max_health")
-	
+
 	if max_health <= 0:
 		return 0
-	
+
 	return current_health / max_health
 
 # 获取法力值百分比
 func get_mana_percent() -> float:
 	var current_mana = get_attribute("current_mana")
 	var max_mana = get_attribute("max_mana")
-	
+
 	if max_mana <= 0:
 		return 0
-	
+
 	return current_mana / max_mana
 
 # 从字典初始化属性
@@ -347,11 +362,11 @@ func initialize_from_dict(data: Dictionary) -> void:
 # 获取所有属性
 func get_all_attributes() -> Dictionary:
 	var result = {}
-	
+
 	# 确保所有属性都是最新的
 	for attribute_name in base_attributes:
 		result[attribute_name] = get_attribute(attribute_name)
-	
+
 	return result
 
 # 获取所有基础属性
@@ -362,7 +377,7 @@ func get_all_base_attributes() -> Dictionary:
 func reset_attributes() -> void:
 	# 移除所有修改器
 	remove_all_attribute_modifiers()
-	
+
 	# 重置生命值和法力值
 	set_health(get_attribute("max_health"))
 	set_mana(0)

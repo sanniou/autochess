@@ -62,8 +62,10 @@ func set_target(new_target) -> void:
 	# 发送目标变化信号
 	target_changed.emit(old_target, target)
 
-	# 发送事件
-	EventBus.chess.emit_event("chess_piece_target_changed", [owner, old_target, target])
+	# 发送目标变化事件
+	if GlobalEventBus:
+		var event = ComponentEvents.TargetChangedEvent.new(owner, old_target, target)
+		GlobalEventBus.get_group("component").dispatch_event(event)
 
 # 清除目标
 func clear_target() -> void:
@@ -78,8 +80,10 @@ func clear_target() -> void:
 		# 发送目标丢失信号
 		target_lost.emit(old_target)
 
-		# 发送事件
-		EventBus.chess.emit_event("chess_piece_target_lost", [owner, old_target])
+		# 发送目标变化事件
+		if GlobalEventBus:
+			var event = ComponentEvents.TargetChangedEvent.new(owner, old_target, null)
+			GlobalEventBus.get_group("component").dispatch_event(event)
 
 # 获取目标
 func get_target():
