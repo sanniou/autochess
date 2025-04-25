@@ -519,9 +519,7 @@ func _log_error(message: String) -> void:
 		print("[StateStore] 错误: " + message)
 
 	# 使用事件总线发送错误消息
-	var event_bus = EventBus
-	if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
-		event_bus.debug.debug_message.emit(message, 2)
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 2))
 
 ## 记录警告信息
 func _log_warning(message: String) -> void:
@@ -529,9 +527,7 @@ func _log_warning(message: String) -> void:
 		print("[StateStore] 警告: " + message)
 
 	# 使用事件总线发送警告消息
-	var event_bus = EventBus
-	if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
-		event_bus.debug.debug_message.emit(message, 1)
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 1))
 
 ## 记录信息
 func _log_info(message: String) -> void:
@@ -539,6 +535,4 @@ func _log_info(message: String) -> void:
 		print("[StateStore] 信息: " + message)
 
 	# 使用事件总线发送信息消息
-	var event_bus = EventBus
-	if event_bus.has_method("debug") and event_bus.debug.has_method("debug_message"):
-		event_bus.debug.debug_message.emit(message, 0)
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 0))

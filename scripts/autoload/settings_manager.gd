@@ -122,7 +122,7 @@ func apply_settings() -> void:
 	var language_codes = ["zh_CN"]
 	if current_settings.game.language < language_codes.size():
 		var language_code = language_codes[current_settings.game.language]
-		GlobalEventBus.localization.dispatch_event(LocalizationEvents.LanguageChangedEvent.new(language_code))
+		GlobalEventBus.localization.dispatch_event(LocalizationEvents.LanguageChangedEvent.new(language_code,"todo"))
 		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("通过EventBus设置语言: " + language_code, 0))
 
 # 获取设置
@@ -168,4 +168,3 @@ func _merge_settings(target: Dictionary, source: Dictionary) -> void:
 			_merge_settings(target[key], source[key])
 		else:
 			target[key] = source[key]
-

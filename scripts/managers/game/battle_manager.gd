@@ -59,14 +59,14 @@ func _do_initialize() -> void:
 	# 现在使用GameManager.game_effect_manager
 
 	# 连接信号 - 使用规范的事件连接方式和常量
-	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_STARTED, _on_battle_started)
-	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_ENDED, _on_battle_ended)
-	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED, _on_battle_preparing_phase_started)
-	EventBus.battle.connect_event(Events.BattleEvents.BATTLE_FIGHTING_PHASE_STARTED, _on_battle_fighting_phase_started)
-	EventBus.battle.connect_event(Events.BattleEvents.UNIT_DIED, _on_unit_died)
-	EventBus.battle.connect_event(Events.BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
-	EventBus.battle.connect_event(Events.BattleEvents.HEAL_RECEIVED, _on_heal_received)
-	EventBus.battle.connect_event(Events.BattleEvents.ABILITY_USED, _on_ability_used)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleStartedEvent, _on_battle_started)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleEndedEvent, _on_battle_ended)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.BattlePreparingPhaseStartdEvent, _on_battle_preparing_phase_started)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleFightingPhaseStartdEvent, _on_battle_fighting_phase_started)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.UnitDiedEvent, _on_unit_died)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.DamageDealtEvent, _on_damage_dealt)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.HealReceivedEvent, _on_heal_received)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.AbilityUsedEvent, _on_ability_used)
 
 	# 连接自定义事件
 	GlobalEventBus.battle.add_listener("delayed_stun_removal", _on_delayed_stun_removal)
@@ -532,7 +532,7 @@ func _on_battle_engine_state_changed(old_state, new_state):
 			event_name = Events.BattleEvents.BATTLE_ENDED
 
 	if not event_name.is_empty():
-		EventBus.battle.emit_event(event_name, [])
+		GlobalEventBus.battle.dispatch_event(event_name)
 
 func _on_battle_engine_phase_changed(old_phase, new_phase):
 	# 处理战斗阶段变化
@@ -549,21 +549,21 @@ func _on_battle_engine_phase_changed(old_phase, new_phase):
 			event_name = Events.BattleEvents.BATTLE_RESULT_PHASE_STARTED
 
 	if not event_name.is_empty():
-		EventBus.battle.emit_event(event_name, [])
+		GlobalEventBus.battle.dispatch_event(event_name)
 
 func _on_battle_engine_round_started(round_number):
 	# 处理战斗回合开始
 	_log_info("战斗回合开始: " + str(round_number))
 
 	# 发送回合开始事件
-	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_ROUND_STARTED, [round_number])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleRoundStartedEvent.new(round_number))
 
 func _on_battle_engine_round_ended(round_number):
 	# 处理战斗回合结束
 	_log_info("战斗回合结束: " + str(round_number))
 
 	# 发送回合结束事件
-	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_ROUND_ENDED, [round_number])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleRoundEndedEvent.new(round_number))
 
 func _on_battle_engine_ended(result):
 	# 处理战斗结束
@@ -587,7 +587,7 @@ func _on_battle_engine_ended(result):
 		stats_manager.increment_stat("total_healing", battle_stats.player_healing)
 
 	# 发送战斗结束事件
-	EventBus.battle.emit_event(Events.BattleEvents.BATTLE_ENDED, [result])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleEndedEvent.new(result))
 
 	# 清理战场
 	_cleanup_battle()

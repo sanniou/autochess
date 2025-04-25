@@ -161,7 +161,7 @@ func _perform_save(save_name: String) -> void:
 
 	if success:
 		# 显示成功提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.save_success"), 2.0))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.save.save_success"), "todo",2.0))
 
 		# 发送保存完成信号
 		save_completed.emit(save_name)

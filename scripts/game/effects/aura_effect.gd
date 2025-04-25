@@ -3,6 +3,9 @@ class_name AuraEffect
 ## 光环效果
 ## 用于在一定范围内影响多个目标
 
+# 导入事件类型
+const BattleEvents = preload("res://scripts/core/events/types/battle_events.gd")
+
 # # 光环类型枚举
 enum AuraType {
 	BUFF,       # 增益光环
@@ -288,13 +291,12 @@ func _apply_aura_effect(target) -> void:
 		target.set_meta("aura_effect_" + id, aura_effect.id)
 
 	# 发送光环效果应用事件
-	if EventBus:
-		EventBus.emit_signal("aura_effect_applied", {
-			"aura": self,
-			"source": source,
-			"target": target,
-			"effect": aura_effect
-		})
+	GlobalEventBus.battle.dispatch_event(BattleEvents.AuraEffectAppliedEvent.new(
+		self,
+		source,
+		target,
+		aura_effect
+	))
 
 # 移除光环效果
 func _remove_aura_effect(target) -> void:
@@ -315,12 +317,11 @@ func _remove_aura_effect(target) -> void:
 		target.remove_meta("aura_effect_" + id)
 
 	# 发送光环效果移除事件
-	if EventBus:
-		EventBus.emit_signal("aura_effect_removed", {
-			"aura": self,
-			"source": source,
-			"target": target
-		})
+	GlobalEventBus.battle.dispatch_event(BattleEvents.AuraEffectRemovedEvent.new(
+		self,
+		source,
+		target
+	))
 
 # 移除所有光环效果
 func _remove_all_aura_effects() -> void:

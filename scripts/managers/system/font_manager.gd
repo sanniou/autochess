@@ -289,7 +289,7 @@ func _on_request_font(font_name: String) -> void:
 	# 加载并返回请求的字体
 	var font = load_font(font_name)
 	if font:
-		GlobalEventBus.localization.dispatch_event(LocalizationEvents.FontLoadedEvent.new(font_name, font))
+		GlobalEventBus.localization.dispatch_event(LocalizationEvents.FontLoadedEvent.new(font_name, 12,font))
 	else:
 		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无法加载字体: " + font_name, 1))
 

@@ -108,14 +108,7 @@ func apply() -> bool:
 				target.control_effect_received.connect(handle_control_effect)
 
 	# 发送护盾添加事件
-	if EventBus:
-		EventBus.emit_signal("shield_added", {
-			"source": source,
-			"target": target,
-			"shield": self,
-			"amount": shield_amount,
-			"shield_type": shield_type
-		})
+	GlobalEventBus.battle.dispatch_event(BattleEvents.ShieldAddedEvent.new(source,target,self,shield_amount,shield_type))
 
 	return true
 
@@ -147,15 +140,7 @@ func remove() -> bool:
 	target.remove_shield(self)
 
 	# 发送护盾移除事件
-	if EventBus:
-		EventBus.emit_signal("shield_removed", {
-			"source": source,
-			"target": target,
-			"shield": self,
-			"remaining": current_shield,
-			"shield_type": shield_type
-		})
-
+	GlobalEventBus.battle.dispatch_event(BattleEvents.ShieldRemovedEvent.new(source,target,self,current_shield,shield_type))
 	return true
 
 # 处理目标受到伤害
@@ -195,23 +180,21 @@ func _on_target_damage_received(damage_info: Dictionary) -> void:
 					damage_info.source.take_damage(reflect_damage, "reflected", target, false)
 
 				# 发送反弹伤害事件
-				if EventBus:
-					EventBus.emit_signal("shield_reflected", {
-						"shield": self,
-						"target": target,
-						"source": damage_info.source,
-						"value": reflect_damage
-					})
+				GlobalEventBus.battle.dispatch_event(BattleEvents.ShieldReflectedEvent.new(
+					self,
+					target,
+					damage_info.source,
+					reflect_damage
+				))
 
 	# 发送护盾吸收事件
-	if EventBus:
-		EventBus.emit_signal("shield_absorbed", {
-			"shield": self,
-			"target": target,
-			"absorbed": absorbed_damage,
-			"remaining": current_shield,
-			"damage_type": damage_type
-		})
+	GlobalEventBus.battle.dispatch_event(BattleEvents.ShieldAbsorbedEvent.new(
+		self,
+		target,
+		absorbed_damage,
+		current_shield,
+		damage_type
+	))
 
 	# 如果护盾已经耗尽，移除效果
 	if current_shield <= 0:
@@ -240,12 +223,11 @@ func handle_control_effect(control_info: Dictionary) -> bool:
 	# 如果是元素护盾，免疫控制效果
 	if shield_type == ShieldType.ELEMENTAL and current_shield > 0:
 		# 发送免疫控制事件
-		if EventBus:
-			EventBus.emit_signal("control_immunity", {
-				"shield": self,
-				"target": target,
-				"control_type": control_info.get("type", "")
-			})
+		GlobalEventBus.battle.dispatch_event(BattleEvents.ControlImmunityEvent.new(
+			self,
+			target,
+			control_info.get("type", "")
+		))
 
 		return true  # 免疫控制
 

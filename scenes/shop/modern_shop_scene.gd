@@ -3,7 +3,7 @@ extends Control
 ## 提供更好的用户体验和视觉效果
 
 # 常量
-const SHOP_ITEM_CARD = preload("res://scenes/shop/modern_shop_item_card.tscn")
+const SHOP_ITEM_CARD = preload("res://scenes/shop/shop_item_card.tscn")
 
 # 枚举
 enum ShopType {
@@ -451,10 +451,10 @@ func _purchase_item(item_data: Dictionary):
 		# TODO: 添加音效
 		
 		# 显示购买成功提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("购买成功！"))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo","购买成功！"))
 	else:
 		# 购买失败，显示提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("金币不足或物品已售出！"))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo","金币不足或物品已售出！"))
 
 # 信号处理函数
 func _on_chess_button_pressed():

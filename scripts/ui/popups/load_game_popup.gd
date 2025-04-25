@@ -219,7 +219,7 @@ func _load_selected_save() -> void:
 
 	if success:
 		# 显示成功提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.load_success"), 2.0))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.save.load_success"),"todo", 2.0))
 
 		# 发送加载完成信号
 		load_completed.emit(save_name)
@@ -228,7 +228,7 @@ func _load_selected_save() -> void:
 		close_popup()
 	else:
 		# 显示失败提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.load_failed"), 2.0))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.save.load_failed"),"todo", 2.0))
 
 # 删除存档
 func _delete_save(save_name: String) -> void:
@@ -237,13 +237,13 @@ func _delete_save(save_name: String) -> void:
 
 	if success:
 		# 显示成功提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.delete_success"), 2.0))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.save.delete_success"), "todo",2.0))
 
 		# 重新加载存档列表
 		_load_save_list()
 	else:
 		# 显示失败提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.delete_failed"), 2.0))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.save.delete_failed"), "todo",2.0))
 
 # 取消按钮点击处理
 func _on_cancel_button_pressed() -> void:

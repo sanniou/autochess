@@ -209,3 +209,12 @@ class RegisterUIThrottlerEvent extends BusEvent:
 		self.type=type
 		self.data=data
 	
+class StartTransitionEvent extends BusEvent:
+	var type: String
+	
+	var duartion: float
+	
+	func _init( type: String,duartion: float):
+		self.type=type
+		self.duartion=duartion
+	

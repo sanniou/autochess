@@ -92,46 +92,39 @@ func update(delta: float) -> bool:
 
 # 连接触发信号
 func _connect_trigger_signals() -> void:
-	# 检查EventBus是否可用
-	if not EventBus:
+	# 检查是否活跃
+	if not is_active:
 		return
 
 	# 根据触发类型连接不同的信号
 	match trigger_type:
 		"on_damage":
 			# 连接伤害信号
-			if not EventBus.damage_dealt.is_connected(_on_damage_dealt):
-				EventBus.damage_dealt.connect(_on_damage_dealt)
+			GlobalEventBus.battle.add_class_listener(BattleEvents.DamageDealtEvent,_on_damage_dealt)
 
 		"on_heal":
 			# 连接治疗信号
-			if not EventBus.heal_applied.is_connected(_on_heal_applied):
-				EventBus.heal_applied.connect(_on_heal_applied)
+			GlobalEventBus.battle.add_class_listener(BattleEvents.HealReceivedEvent,_on_heal_applied)
 
 		"on_status":
 			# 连接状态信号
-			if not EventBus.status_applied.is_connected(_on_status_applied):
-				EventBus.status_applied.connect(_on_status_applied)
+			GlobalEventBus.battle.add_class_listener(BattleEvents.StatusAppliedEvent, _on_status_applied)
 
 		"on_kill":
 			# 连接击杀信号
-			if not EventBus.unit_killed.is_connected(_on_unit_killed):
-				EventBus.unit_killed.connect(_on_unit_killed)
+			GlobalEventBus.battle.add_class_listener(BattleEvents.UnitDiedEvent, _on_unit_killed)
 
 		"on_dodge":
 			# 连接闪避信号
-			if not EventBus.attack_dodged.is_connected(_on_attack_dodged):
-				EventBus.attack_dodged.connect(_on_attack_dodged)
+			GlobalEventBus.battle.add_class_listener(BattleEvents.AttackDodgedEvent, _on_attack_dodged)
 
 		"on_critical":
 			# 连接暴击信号
-			if not EventBus.critical_hit.is_connected(_on_critical_hit):
-				EventBus.critical_hit.connect(_on_critical_hit)
+			GlobalEventBus.battle.add_class_listener(BattleEvents.CriticalHitEvent, _on_critical_hit)
 
 		"on_shield_break":
 			# 连接护盾破碎信号
-			if not EventBus.shield_broken.is_connected(_on_shield_broken):
-				EventBus.shield_broken.connect(_on_shield_broken)
+			GlobalEventBus.battle.add_class_listener(BattleEvents.ShieldBrokenEvent, _on_shield_broken)
 
 		"on_health_threshold":
 			# 连接生命值变化信号
@@ -141,46 +134,35 @@ func _connect_trigger_signals() -> void:
 
 # 断开触发信号
 func _disconnect_trigger_signals() -> void:
-	# 检查EventBus是否可用
-	if not EventBus:
-		return
-
 	# 根据触发类型断开不同的信号
 	match trigger_type:
 		"on_damage":
 			# 断开伤害信号
-			if EventBus.damage_dealt.is_connected(_on_damage_dealt):
-				EventBus.damage_dealt.disconnect(_on_damage_dealt)
+			GlobalEventBus.battle.remove_class_listener(BattleEvents.DamageDealtEvent,_on_damage_dealt)
 
 		"on_heal":
 			# 断开治疗信号
-			if EventBus.heal_applied.is_connected(_on_heal_applied):
-				EventBus.heal_applied.disconnect(_on_heal_applied)
+			GlobalEventBus.battle.remove_class_listener(BattleEvents.HealReceivedEvent,_on_heal_applied)
 
 		"on_status":
 			# 断开状态信号
-			if EventBus.status_applied.is_connected(_on_status_applied):
-				EventBus.status_applied.disconnect(_on_status_applied)
+			GlobalEventBus.battle.remove_class_listener(BattleEvents.StatusAppliedEvent, _on_status_applied)
 
 		"on_kill":
 			# 断开击杀信号
-			if EventBus.unit_killed.is_connected(_on_unit_killed):
-				EventBus.unit_killed.disconnect(_on_unit_killed)
+			GlobalEventBus.battle.remove_class_listener(BattleEvents.UnitDiedEvent, _on_unit_killed)
 
 		"on_dodge":
 			# 断开闪避信号
-			if EventBus.attack_dodged.is_connected(_on_attack_dodged):
-				EventBus.attack_dodged.disconnect(_on_attack_dodged)
+			GlobalEventBus.battle.remove_class_listener(BattleEvents.AttackDodgedEvent, _on_attack_dodged)
 
 		"on_critical":
 			# 断开暴击信号
-			if EventBus.critical_hit.is_connected(_on_critical_hit):
-				EventBus.critical_hit.disconnect(_on_critical_hit)
+			GlobalEventBus.battle.remove_class_listener(BattleEvents.CriticalHitEvent, _on_critical_hit)
 
 		"on_shield_break":
 			# 断开护盾破碎信号
-			if EventBus.shield_broken.is_connected(_on_shield_broken):
-				EventBus.shield_broken.disconnect(_on_shield_broken)
+			GlobalEventBus.battle.remove_class_listener(BattleEvents.ShieldBrokenEvent, _on_shield_broken)
 
 		"on_health_threshold":
 			# 断开生命值变化信号
@@ -511,14 +493,13 @@ func _trigger_effect(trigger_target = null) -> void:
 	last_trigger_time = 0.0001  # 设置一个很小的值，表示刚刚触发
 
 	# 发送触发效果事件
-	if EventBus:
-		EventBus.emit_signal("trigger_effect_activated", {
-			"trigger": self,
-			"source": source,
-			"target": trigger_target,
-			"effect": effect,
-			"trigger_count": trigger_count
-		})
+	GlobalEventBus.battle.dispatch_event(BattleEvents.TriggerEffectActivatedEvent.new(
+		self,
+		source,
+		trigger_target,
+		effect,
+		trigger_count
+	))
 
 	# 如果达到触发次数限制，移除效果
 	if max_triggers > 0 and trigger_count >= max_triggers:

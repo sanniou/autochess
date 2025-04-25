@@ -465,9 +465,9 @@ func _enable_ui_elements(target_paths: Array) -> void:
 # 等待事件
 func _wait_for_event(event_name: String, timeout: float) -> void:
 	# 连接事件
-	var connection = EventBus.get_signal_connection_list(event_name)
+	var connection = GlobalEventBus.get_signal_connection_list(event_name)
 	if connection.is_empty():
-		EventBus.connect(event_name, func(): next_tutorial_step())
+		GlobalEventBus.connect(event_name, func(): next_tutorial_step())
 
 	# 如果有超时，设置超时定时器
 	if timeout > 0:

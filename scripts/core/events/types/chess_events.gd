@@ -368,3 +368,18 @@ class SynergyLevelChangedEvent extends BusEvent:
 		self.old_level=old_level
 		self.level=level
 	
+class ShowChessInfoEvent extends BusEvent:
+
+	var chess
+	
+	## 初始化
+	func _init(chess):
+		self.chess=chess
+	
+class HideChessInfoEvent extends BusEvent:
+
+	var chess
+	
+	## 初始化
+	func _init(chess):
+		self.chess=chess

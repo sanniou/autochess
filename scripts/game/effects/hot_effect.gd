@@ -104,13 +104,8 @@ func _apply_heal() -> void:
 
 	# 应用额外效果
 	_apply_additional_effects(heal)
-
+	GlobalEventBus.battle.dispatch_event(BattleEvents.HotHealEvent.new(source,target,heal))
 	# 发送持续治疗事件
-	EventBus.emit_signal("hot_heal", {
-		"source": source,
-		"target": target,
-		"value": heal
-	})
 
 # 计算治疗量
 func _calculate_heal_amount() -> float:

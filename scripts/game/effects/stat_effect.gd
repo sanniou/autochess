@@ -62,15 +62,7 @@ func apply() -> bool:
 		target.modify_stat(stat_name, value, is_percentage)
 	
 	# 发送属性修改事件
-	if EventBus:
-		EventBus.emit_signal("stat_modified", {
-			"source": source,
-			"target": target,
-			"stats": stats,
-			"is_percentage": is_percentage,
-			"is_debuff": is_debuff
-		})
-	
+	GlobalEventBus.battle.dispatch_event(BattleEvents.StatModifiedEvent.new(source,target,stats,is_percentage,is_debuff))
 	return true
 
 # 移除效果

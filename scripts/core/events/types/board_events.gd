@@ -187,3 +187,59 @@ class BoardBattleEndedEvent extends BusEvent:
 	## 初始化
 	func _init(reslut:Dictionary):
 		self.reslut=reslut
+		
+class CellClickedEvent extends BusEvent:
+	var cell: BoardCell
+	## 初始化
+	func _init(cell: BoardCell):
+		self.cell=cell
+
+class CellHoveredEvent extends BusEvent:
+
+	var cell:BoardCell
+	
+	## 初始化
+	func _init(cell:BoardCell):
+		self.cell=cell
+
+class CellExitedEvent extends BusEvent:
+
+	var cell:BoardCell
+	
+	## 初始化
+	func _init(cell:BoardCell):
+		self.cell=cell
+	
+
+class PiecePlacedOnBoardEvent extends BusEvent:
+
+	var piece
+	
+	## 初始化
+	func _init(piece):
+		self.piece=piece
+	
+class PieceRemovedFromBoardEvent extends BusEvent:
+
+	var piece
+	
+	## 初始化
+	func _init(piece):
+		self.piece=piece
+
+class PiecePlacedOnBenchEvent extends BusEvent:
+
+	var piece
+	
+	## 初始化
+	func _init(piece):
+		self.piece=piece
+
+class PieceRemovedFromBenchEvent extends BusEvent:
+
+	var piece
+	
+	## 初始化
+	func _init(piece):
+		self.piece=piece
+	

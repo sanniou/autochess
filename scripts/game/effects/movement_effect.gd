@@ -128,18 +128,7 @@ func apply() -> bool:
 		MovementType.SWAP:
 			# 交换位置：立即交换源和目标的位置
 			_swap_positions()
-
-	# 发送移动开始事件
-	if EventBus:
-		EventBus.emit_signal("movement_started", {
-			"source": source,
-			"target": target,
-			"movement_type": movement_type,
-			"distance": distance,
-			"direction": direction,
-			"initial_position": initial_position
-		})
-
+	GlobalEventBus.battle.dispatch_event(BattleEvents.MovementStartedEvent.new(source,target,movement_type,distance,direction,initial_position))
 	return true
 
 # 更新效果
@@ -186,15 +175,8 @@ func remove() -> bool:
 	is_moving = false
 
 	# 发送移动结束事件
-	if EventBus and target and is_instance_valid(target):
-		EventBus.emit_signal("movement_ended", {
-			"source": source,
-			"target": target,
-			"movement_type": movement_type,
-			"distance": moved_distance,
-			"final_position": target.global_position
-		})
-
+	if target and is_instance_valid(target):
+		GlobalEventBus.battle.dispatch_event(BattleEvents.MovementEndedEvent.new(source,target,movement_type,moved_distance,target.global_position))
 	return true
 
 # 更新推开或拉近
@@ -326,14 +308,7 @@ func _teleport_to_target() -> void:
 	moved_distance = distance
 
 	# 发送传送事件
-	if EventBus:
-		EventBus.emit_signal("teleport_completed", {
-			"source": source,
-			"target": target,
-			"from": initial_position,
-			"to": target.global_position
-		})
-
+	GlobalEventBus.battle.dispatch_event(BattleEvents.TeleportCompletedEvent.new(source,target,initial_position,target.global_position))
 	# 移除效果
 	remove()
 
@@ -432,17 +407,8 @@ func _swap_positions() -> void:
 	moved_distance = source_position.distance_to(target_position)
 
 	# 发送交换位置事件
-	if EventBus:
-		EventBus.emit_signal("swap_completed", {
-			"source": source,
-			"target": target,
-			"source_from": source_position,
-			"source_to": target_position,
-			"target_from": target_position,
-			"target_to": source_position
-		})
-
-	# 创建交换位置的视觉效果
+	GlobalEventBus.battle.dispatch_event(BattleEvents.SwapCompletedEvent.new(source,target,source_position,target_position,target_position,source_position))
+	# 创建交换位置的视觉效
 	_create_swap_visual_effect(source, target)
 
 	# 移除效果

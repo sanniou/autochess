@@ -142,7 +142,7 @@ func set_difficulty(level: int) -> void:
 
 	# 使用规范的事件发送方式
 	var event_definitions = load("res://scripts/events/event_definitions.gd")
-	EventBus.game.emit_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, [old_level, current_difficulty])
+	GlobalEventBus.game.dispatch_event(GameEvents.DifficultyChangedEvent.new(old_level, current_difficulty))
 
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("难度级别已设置为: " + _get_difficulty_name(level), 0))
 
@@ -356,7 +356,7 @@ func _check_difficulty_adjustment() -> void:
 
 			# 使用规范的事件发送方式
 			var event_definitions = load("res://scripts/events/event_definitions.gd")
-			EventBus.game.emit_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, [old_difficulty, current_difficulty])
+			GlobalEventBus.game.dispatch_event(GameEvents.DifficultyChangedEvent.new(old_difficulty, current_difficulty))
 
 			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("难度已动态调整为: " + _get_difficulty_name(current_difficulty) + "，性能得分: " + str(avg_score), 0))
 

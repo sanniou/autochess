@@ -62,14 +62,7 @@ func apply() -> bool:
 	target.heal(heal_value, source, is_critical)
 	
 	# 发送治疗事件
-	if EventBus:
-		EventBus.emit_signal("heal_applied", {
-			"source": source,
-			"target": target,
-			"value": heal_value,
-			"is_critical": is_critical
-		})
-	
+	GlobalEventBus.battle.dispatch_event(BattleEvents.HealReceivedEvent.new(source,target,heal_value,is_critical))	
 	return true
 
 # 获取治疗描述

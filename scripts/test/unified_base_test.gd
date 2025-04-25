@@ -1,5 +1,5 @@
 extends Node
-class_name UnifiedBaseTest
+class_name BaseTest
 ## 统一测试基类
 ## 所有测试场景都应该继承这个基类
 
@@ -101,7 +101,7 @@ func fail(message: String = "测试失败") -> bool:
 	return test_framework.fail(message)
 
 # 断言通过
-func pass(message: String = "测试通过") -> bool:
+func pass_test(message: String = "测试通过") -> bool:
 	return test_framework.pass(message)
 
 # 等待时间
@@ -162,11 +162,11 @@ func simulate_mouse_motion(position: Vector2, relative: Vector2 = Vector2.ZERO) 
 	Input.parse_input_event(event)
 
 # 获取节点
-func get_node_or_null(path: NodePath) -> Node:
+func get_node_or_null_test(path: NodePath) -> Node:
 	return get_node_or_null(path)
 
 # 获取场景树
-func get_tree() -> SceneTree:
+func get_tree_test() -> SceneTree:
 	return get_tree()
 
 # 获取当前场景

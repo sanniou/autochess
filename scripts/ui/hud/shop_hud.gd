@@ -370,7 +370,7 @@ func _on_chess_item_clicked(event: InputEvent, index: int) -> void:
 
 		if chess_piece == null:
 			# 购买失败，显示提示
-			GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.purchase_failed")))
+			GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.shop.purchase_failed")))
 		else:
 			# 购买成功，播放音效
 			AudioManager.play_sfx("purchase_success.ogg")
@@ -383,7 +383,7 @@ func _on_equipment_item_clicked(event: InputEvent, index: int) -> void:
 
 		if equipment == null:
 			# 购买失败，显示提示
-			GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.purchase_failed")))
+			GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.shop.purchase_failed")))
 		else:
 			# 购买成功，播放音效
 			AudioManager.play_sfx("purchase_success.ogg")
@@ -446,6 +446,6 @@ func _on_shop_discount_applied(discount_rate: float) -> void:
 	# 显示折扣提示
 	var discount_percent = int((1.0 - discount_rate) * 100)
 	if discount_percent > 0:
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.discount_applied", str(discount_percent))))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.shop.discount_applied", str(discount_percent))))
 	else:
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.shop.discount_removed")))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.shop.discount_removed")))

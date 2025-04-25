@@ -66,15 +66,7 @@ func apply() -> bool:
 	target.take_damage(damage_value, damage_type, source, is_critical)
 	
 	# 发送伤害事件
-	if EventBus:
-		EventBus.emit_signal("damage_dealt", {
-			"source": source,
-			"target": target,
-			"value": damage_value,
-			"type": damage_type,
-			"is_critical": is_critical
-		})
-	
+	GlobalEventBus.battle.dispatch_event(BattleEvents.DamageDealtEvent.new(source,target,damage_value,damage_type,is_critical))
 	return true
 
 # 获取伤害图标路径

@@ -106,14 +106,8 @@ func _apply_damage() -> void:
 	_apply_additional_effects()
 
 	# 发送持续伤害事件
-	if EventBus:
-		EventBus.emit_signal("dot_damage", {
-			"source": source,
-			"target": target,
-			"value": damage,
-			"type": damage_type,
-			"dot_type": dot_type
-		})
+	GlobalEventBus.battle.dispatch_event(BattleEvents.HotDamageEvent.new(source,target,damage,damage_type,dot_type))
+
 
 # 获取DOT图标路径
 func _get_dot_icon_path(dot_type: int) -> String:

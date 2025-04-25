@@ -159,7 +159,7 @@ func _on_cell_exited(cell: BoardCell):
 
 	# 如果格子有棋子，隐藏棋子信息
 	if cell.current_piece:
-		GlobalEventBus.chess.dispatch_event(ChessEvents.HideChessInfoEvent.new())
+		GlobalEventBus.chess.dispatch_event(ChessEvents.HideChessInfoEvent.new(cell.current_piece))
 
 	# 发送格子离开信号
 	GlobalEventBus.board.dispatch_event(BoardEvents.CellExitedEvent.new(cell))

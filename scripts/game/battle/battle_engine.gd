@@ -488,7 +488,7 @@ func _trigger_battle_event(event_type: String, data: Dictionary) -> void:
 	battle_event_triggered.emit(event_type, data)
 
 	# 发送到事件总线
-	EventBus.battle.emit_event(event_type, [data])
+	GlobalEventBus.battle.dispatch_event(BattleEvents.BattleTypeEvent.new(event_type,data))
 
 # 改变战斗状态
 func _change_state(new_state: int) -> void:
