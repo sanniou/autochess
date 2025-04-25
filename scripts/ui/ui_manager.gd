@@ -88,11 +88,11 @@ func _do_initialize() -> void:
 	ui_throttle_manager = GameManager.get_manager("UIThrottleManager")
 
 	# 连接信号
-	GlobalEventBus.ui.add_listener("show_toast", show_toast)
-	GlobalEventBus.ui.add_listener("show_popup", show_popup)
-	GlobalEventBus.ui.add_listener("close_popup", close_popup)
-	GlobalEventBus.ui.add_listener("start_transition", start_transition)
-	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.ui.add_class_listener(UIEvents.ShowToastEvent, _on_show_toast)
+	GlobalEventBus.ui.add_class_listener(UIEvents.ShowPopupEvent, _on_show_popup)
+	GlobalEventBus.ui.add_class_listener(UIEvents.ClosePopupEvent, _on_close_popup)
+	GlobalEventBus.ui.add_class_listener(UIEvents.StartTransitionEvent, _on_start_transition)
+	GlobalEventBus.game.add_class_listener(GameEvents.GameStateChangedEvent, _on_game_state_changed)
 
 	# 创建 UI 容器
 	_create_ui_containers()
@@ -170,6 +170,10 @@ func _create_toast_node() -> void:
 	toast_node.add_child(panel)
 	add_child(toast_node)
 
+# 显示提示事件处理
+func _on_show_toast(event: UIEvents.ShowToastEvent) -> void:
+	show_toast(event.message, event.duration)
+
 # 显示提示
 func show_toast(message: String, duration: float = TOAST_DURATION) -> void:
 	# 检查是否已经有相同的提示正在显示
@@ -200,6 +204,10 @@ func show_toast(message: String, duration: float = TOAST_DURATION) -> void:
 	# 存储定时器和回调函数引用
 	toast_node.set_meta("timer", timer)
 	toast_node.set_meta("timer_callback", callback)
+
+# 显示弹窗事件处理
+func _on_show_popup(event: UIEvents.ShowPopupEvent) -> void:
+	show_popup(event.popup_name, event.popup_data, event.options)
 
 # 显示弹窗
 func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictionary = {}) -> Node:
@@ -283,6 +291,10 @@ func show_popup(popup_name: String, popup_data: Dictionary = {}, options: Dictio
 		popup_instance.popup_closed.connect(func(): _on_popup_closed(popup_instance, popup_name))
 
 	return popup_instance
+
+# 关闭弹窗事件处理
+func _on_close_popup(event: UIEvents.ClosePopupEvent) -> void:
+	close_popup(event.popup_instance)
 
 # 关闭弹窗
 func close_popup(popup_instance: Node = null) -> void:
@@ -401,6 +413,10 @@ func _on_popup_closed(popup_instance: Node, popup_name: String) -> void:
 		# 延迟销毁弹窗
 		popup_instance.queue_free()
 
+# 开始过渡动画事件处理
+func _on_start_transition(event: UIEvents.StartTransitionEvent) -> void:
+	start_transition(event.type, event.duration)
+
 # 开始过渡动画
 func start_transition(transition_type: String = "fade", duration: float = TRANSITION_DURATION) -> void:
 	# 检查是否已经有过渡动画正在进行
@@ -479,7 +495,7 @@ func set_current_hud(hud: Control) -> void:
 	current_hud = hud
 
 # 游戏状态变化处理
-func _on_game_state_changed(_old_state: int, _new_state: int) -> void:
+func _on_game_state_changed(_event: GameEvents.GameStateChangedEvent) -> void:
 	# 游戏状态变化时的处理
 	# 注意：HUD的加载由HUDManager处理
 	pass
