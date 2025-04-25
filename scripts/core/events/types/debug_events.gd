@@ -101,25 +101,17 @@ class PerformanceWarningEvent extends BusEvent:
 	var warning_type: String
 
 	## 警告详情
-	var details: Dictionary
+	var details: String
 
 	## 初始化
-	func _init(p_warning_type: String, p_details: Dictionary = {}):
+	func _init(p_warning_type: String, p_details: String):
 		warning_type = p_warning_type
 		details = p_details
 
-	## 获取事件类型
-	func get_type() -> String:
-		return "debug.performance_warning"
 
-	## 获取事件的字符串表示
-	func _to_string() -> String:
-		return "PerformanceWarningEvent[warning_type=%s, details=%s]" % [warning_type, details]
-
-	## 克隆事件
-	func clone() ->BusEvent:
-		var event = PerformanceWarningEvent.new(warning_type, details.duplicate())
-		event.timestamp = timestamp
-		event.canceled = canceled
-		event.source = source
-		return event
+class PerformanceDataUpdatedEvent extends BusEvent:
+	## 警告详情
+	var details: Dictionary
+	
+	func _init(p_details: Dictionary = {}):
+		details = p_details

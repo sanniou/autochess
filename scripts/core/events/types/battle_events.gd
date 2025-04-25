@@ -275,7 +275,24 @@ class AbilityUsedEvent extends BusEvent:
 
 class OpponentSelectedEvent extends BusEvent:
 	var current_opponent: Player
-	## 初始化
 	
+	## 初始化
 	func _init(current_opponent: Player):
 		self.current_opponent = current_opponent
+		
+class DelayedStunRemovalEvent extends BusEvent:
+	var traget
+	var time:float
+	
+	func _init(traget , time:float):
+		self.traget = traget
+		self.time = time
+		
+class CriticalHitEvent extends BusEvent:
+	var traget
+	var amount:float
+	
+	func _init(source,traget,amount:float):
+		self.source = source
+		self.traget = traget
+		self.amount = amount

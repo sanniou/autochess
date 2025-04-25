@@ -187,7 +187,7 @@ func load_game(slot_name: String) -> bool:
 	current_save_slot = slot_name
 
 	# 发送加载信号
-	GlobalEventBus.save.dispatch_event(SaveEvents.GameLoadedEvent.new(slot_name))
+	GlobalEventBus.save.dispatch_event(SaveEvents.GameLoadedEvent.new(slot_name,save_data))
 
 	return true
 

@@ -310,3 +310,61 @@ class ChessPieceDodgedEvent extends BusEvent:
 		event.canceled = canceled
 		event.source = source
 		return event
+
+
+class ChessPieceElementalEffectTriggeredEvent extends BusEvent:
+
+	var owner
+	var target
+	var elemental_type:String
+	
+	## 初始化
+	func _init(owner, target, elemental_type:String):
+		self.owner=owner
+		self.target=target
+		self.elemental_type=elemental_type
+	
+class ChessPieceAbilityCastEvent extends BusEvent:
+
+	var owner
+	var target
+	
+	## 初始化
+	func _init(owner, target):
+		self.owner=owner
+		self.target=target
+
+class SynergyTypeAddedEvent extends BusEvent:
+
+	var owner
+	var synergy_type:String
+	
+	## 初始化
+	func _init(owner, synergy_type:String):
+		self.owner=owner
+		self.synergy_type=synergy_type
+
+class SynergyTypeRemovedEvent extends BusEvent:
+
+	var owner
+	var synergy_type:String
+	
+	## 初始化
+	func _init(owner, synergy_type:String):
+		self.owner=owner
+		self.synergy_type=synergy_type
+
+class SynergyLevelChangedEvent extends BusEvent:
+
+	var owner
+	var synergy_type:String
+	var level:int
+	var old_level:int
+	
+	## 初始化
+	func _init(owner, synergy_type:String,old_level:int,level:int):
+		self.owner=owner
+		self.synergy_type=synergy_type
+		self.old_level=old_level
+		self.level=level
+	

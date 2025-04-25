@@ -107,3 +107,11 @@ class AutosaveTriggeredEvent extends BusEvent:
 		event.canceled = canceled
 		event.source = source
 		return event
+
+
+class GameSavedEvent extends BusEvent:
+	var slot_name:String
+	
+	func _init(slot_name:String):
+		self.slot_name=slot_name
+	

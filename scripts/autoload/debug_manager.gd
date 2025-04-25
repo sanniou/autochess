@@ -618,7 +618,7 @@ func _emit_performance_warning(message: String, level: int) -> void:
 	log_message("性能警告: " + message, level)
 
 	# 发送性能警告信号
-	GlobalEventBus.debug.dispatch_event(DebugEvents.PerformanceWarningEvent.new(message, level))
+	GlobalEventBus.debug.dispatch_event(DebugEvents.PerformanceWarningEvent.new(str(level),message))
 
 ## 记录性能数据到文件
 func _log_performance_to_file() -> void:

@@ -216,3 +216,15 @@ class AltarSacrificeMadeEvent extends BusEvent:
 		event.canceled = canceled
 		event.source = source
 		return event
+
+class TreasureCollectedEvent extends BusEvent:
+	var rewards: Dictionary
+	
+	func _init(rewards: Dictionary):
+		self.rewards=rewards
+
+class RestCompletedEvent extends BusEvent:
+	var mapNode: MapNode
+	
+	func _init(mapNode: MapNode):
+		self.mapNode=mapNode

@@ -570,7 +570,7 @@ func _trigger_mystery_node(node: MapNode) -> void:
 			mystery_node.heal_amount = 30 + node.layer * 5  # 神秘休息点治疗量更高
 
 	# 显示提示
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(LocalizationManager.tr("ui.map.mystery_revealed").format({"type": LocalizationManager.tr("ui.map.node_" + random_type)})))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",LocalizationManager.tr("ui.map.mystery_revealed").format({"type": LocalizationManager.tr("ui.map.node_" + random_type)})))
 
 	# 触发对应类型的节点事件
 	_trigger_node_event(mystery_node)

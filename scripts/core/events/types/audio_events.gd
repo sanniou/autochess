@@ -128,3 +128,20 @@ class SetVolumeEvent extends BusEvent:
 		event.canceled = canceled
 		event.source = source
 		return event
+
+
+class BGMChangedEvent extends BusEvent:
+	
+	var music_name: String
+	
+	## 初始化
+	func _init(p_music_name: String):
+		music_name = p_music_name
+		
+class SFXPlayedEvent extends BusEvent:
+	
+	var music_name: String
+	
+	## 初始化
+	func _init(p_music_name: String):
+		music_name = p_music_name
