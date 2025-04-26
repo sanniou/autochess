@@ -38,12 +38,11 @@ func _do_initialize() -> void:
 	add_child(effect_factory)
 
 	# 连接战斗事件
-	if EventBus:
-		GlobalEventBus.battle.add_listener("battle_started", on_battle_started)
-		GlobalEventBus.battle.add_listener("battle_ended", on_battle_ended)
-		GlobalEventBus.battle.add_listener("battle_preparing_phase_started", on_battle_preparing_phase_started)
-		GlobalEventBus.battle.add_listener("battle_fighting_phase_started", on_battle_fighting_phase_started)
-		GlobalEventBus.battle.add_listener("battle_result_phase_started", on_battle_result_phase_started)
+	GlobalEventBus.battle.add_listener("battle_started", on_battle_started)
+	GlobalEventBus.battle.add_listener("battle_ended", on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_preparing_phase_started", on_battle_preparing_phase_started)
+	GlobalEventBus.battle.add_listener("battle_fighting_phase_started", on_battle_fighting_phase_started)
+	GlobalEventBus.battle.add_listener("battle_result_phase_started", on_battle_result_phase_started)
 
 	_log_info("GameEffectManager 初始化完成")
 
@@ -102,11 +101,11 @@ func remove_effect(effect_or_id) -> bool:
 	# 如果是效果ID
 	if effect_or_id is String:
 		# 查找效果
-		var effect = _find_effect_by_id(effect_or_id)
-		if not effect:
+		var found_effect = _find_effect_by_id(effect_or_id)
+		if not found_effect:
 			return false
 
-		return remove_effect(effect)
+		return remove_effect(found_effect)
 
 	# 如果是效果对象
 	var effect = effect_or_id
@@ -574,7 +573,7 @@ func on_battle_started() -> void:
 	clear_all_effects()
 
 # 战斗结束事件处理
-func on_battle_ended(result = null) -> void:
+func on_battle_ended(_result = null) -> void:
 	# 记录日志
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("GameEffectManager: 战斗结束，清理所有效果", 0))
 
@@ -609,11 +608,10 @@ func _do_cleanup() -> void:
 	clear_all_effects()
 
 	# 断开所有信号连接
-	if EventBus:
-		GlobalEventBus.battle.remove_listener("battle_started", on_battle_started)
-		GlobalEventBus.battle.remove_listener("battle_ended", on_battle_ended)
-		GlobalEventBus.battle.remove_listener("battle_preparing_phase_started", on_battle_preparing_phase_started)
-		GlobalEventBus.battle.remove_listener("battle_fighting_phase_started", on_battle_fighting_phase_started)
-		GlobalEventBus.battle.remove_listener("battle_result_phase_started", on_battle_result_phase_started)
+	GlobalEventBus.battle.remove_listener("battle_started", on_battle_started)
+	GlobalEventBus.battle.remove_listener("battle_ended", on_battle_ended)
+	GlobalEventBus.battle.remove_listener("battle_preparing_phase_started", on_battle_preparing_phase_started)
+	GlobalEventBus.battle.remove_listener("battle_fighting_phase_started", on_battle_fighting_phase_started)
+	GlobalEventBus.battle.remove_listener("battle_result_phase_started", on_battle_result_phase_started)
 
 	_log_info("GameEffectManager 已清理")
