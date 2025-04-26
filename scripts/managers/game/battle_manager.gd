@@ -12,7 +12,7 @@ const BC = preload("res://scripts/game/battle/battle_constants.gd")
 @export var resolution_time: float = BC.DEFAULT_RESOLUTION_TIME # 结算时间(秒)
 
 # 事件定义
-var Events = null
+const BattleEvents = preload("res://scripts/core/events/types/battle_events.gd")
 
 # 战斗引擎
 var battle_engine: BattleEngine = null
@@ -48,12 +48,6 @@ func _do_initialize() -> void:
 	add_dependency("BoardManager")
 	add_dependency("PlayerManager")
 	add_dependency("StatsManager")
-
-	# 加载事件定义
-	Events = load("res://scripts/events/event_definitions.gd")
-
-	# 不再创建内部的效果管理器
-	# 现在使用GameManager.game_effect_manager
 
 	# 连接信号 - 使用规范的事件连接方式和常量
 	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleStartedEvent, _on_battle_started)
@@ -230,19 +224,19 @@ func _cleanup_battle():
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_STARTED, _on_battle_started)
-			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_ENDED, _on_battle_ended)
-			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED, _on_battle_preparing_phase_started)
-			EventBus.battle.disconnect_event(Events.BattleEvents.BATTLE_FIGHTING_PHASE_STARTED, _on_battle_fighting_phase_started)
-			EventBus.battle.disconnect_event(Events.BattleEvents.UNIT_DIED, _on_unit_died)
-			EventBus.battle.disconnect_event(Events.BattleEvents.DAMAGE_DEALT, _on_damage_dealt)
-			EventBus.battle.disconnect_event(Events.BattleEvents.HEAL_RECEIVED, _on_heal_received)
-			EventBus.battle.disconnect_event(Events.BattleEvents.ABILITY_USED, _on_ability_used)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.BattleStartedEvent, _on_battle_started)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.BattleEndedEvent, _on_battle_ended)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.BattlePreparingPhaseStartedEvent, _on_battle_preparing_phase_started)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.BattleFightingPhaseStartedEvent, _on_battle_fighting_phase_started)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.UnitDiedEvent, _on_unit_died)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.DamageDealtEvent, _on_damage_dealt)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.HealReceivedEvent, _on_heal_received)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.AbilityUsedEvent, _on_ability_used)
 
-	# 不再需要清理内部的效果管理器
+	# 断开自定义事件连接
+	GlobalEventBus.battle.remove_listener("delayed_stun_removal", _on_delayed_stun_removal)
+
+	_log_info("战斗管理器清理完成")
 
 # 新效果系统方法
 
