@@ -503,7 +503,7 @@ class StatModifiedEvent extends BusEvent:
 	static func get_type() -> String:
 		return "battle.stat_modified"
 
-class BattlePreparingPhaseStartdEvent extends BusEvent:
+class BattlePreparingPhaseStartedEvent extends BusEvent:
 	func _init():
 		pass
 
@@ -511,7 +511,7 @@ class BattlePreparingPhaseStartdEvent extends BusEvent:
 	static func get_type() -> String:
 		return "battle.preparing_phase_started"
 
-class BattleFightingPhaseStartdEvent extends BusEvent:
+class BattleFightingPhaseStartedEvent extends BusEvent:
 	func _init():
 		pass
 
@@ -519,12 +519,21 @@ class BattleFightingPhaseStartdEvent extends BusEvent:
 	static func get_type() -> String:
 		return "battle.fighting_phase_started"
 
+class BattleResultPhaseStartedEvent extends BusEvent:
+	func _init():
+		pass
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.result_phase_started"
+
 class BattleTypeEvent extends BusEvent:
 	var event_type: String
 	var data: Dictionary
-	func _init(event_type: String, data: Dictionary):
-		self.event_type=event_type
-		self.data=data
+
+	func _init(p_event_type: String, p_data: Dictionary):
+		self.event_type=p_event_type
+		self.data=p_data
 
 	## 获取事件类型
 	static func get_type() -> String:

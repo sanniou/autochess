@@ -6,13 +6,41 @@ class_name SkinConfig
 # 引入常量
 const GameConsts = preload("res://scripts/constants/game_constants.gd")
 
+# 皮肤类型枚举
+enum SkinType {
+	CHESS,  # 棋子皮肤
+	BOARD,  # 棋盘皮肤
+	UI      # UI皮肤
+}
+
+# 配置文件路径
+var _config_path: String = ""
+
+# 设置配置文件路径
+func set_config_path(path: String) -> void:
+	_config_path = path
+
+# 获取配置文件路径
+func get_config_path() -> String:
+	return _config_path
+
 # 获取配置类型
 func _get_config_type() -> String:
-	return "skins"
+	# 根据配置文件路径确定配置类型
+	var path = get_config_path()
+	if path.contains("chess_skins"):
+		return "chess_skins"
+	elif path.contains("board_skins"):
+		return "board_skins"
+	elif path.contains("ui_skins"):
+		return "ui_skins"
+	else:
+		return "skins"
 
 # 获取默认架构
 func _get_default_schema() -> Dictionary:
-	return {
+	# 基础架构
+	var base_schema = {
 		"id": {
 			"type": "string",
 			"required": true,
@@ -28,106 +56,111 @@ func _get_default_schema() -> Dictionary:
 			"required": true,
 			"description": "皮肤描述"
 		},
-		"type": {
-			"type": "string",
-			"required": true,
-			"description": "皮肤类型"
-		},
 		"rarity": {
 			"type": "int",
 			"required": true,
 			"description": "皮肤稀有度"
 		},
-		"price": {
-			"type": "float",
-			"required": false,
-			"description": "皮肤价格"
-		},
-		"icon_path": {
+		"icon": {
 			"type": "string",
-			"required": false,
+			"required": true,
 			"description": "皮肤图标路径"
+		},
+		"preview": {
+			"type": "string",
+			"required": true,
+			"description": "皮肤预览图路径"
 		},
 		"unlock_condition": {
 			"type": "dictionary",
 			"required": false,
 			"description": "解锁条件",
 			"schema": {
-				"type": {
+				"gold": {
+					"type": "int",
+					"required": false,
+					"description": "解锁所需金币"
+				},
+				"achievement": {
 					"type": "string",
-					"required": true,
-					"description": "解锁条件类型"
+					"required": false,
+					"description": "解锁所需成就"
 				},
-				"value": {
+				"level": {
 					"type": "int",
 					"required": false,
-					"description": "解锁条件值"
+					"description": "解锁所需等级"
 				},
-				"threshold": {
+				"win_count": {
 					"type": "int",
 					"required": false,
-					"description": "解锁条件阈值"
+					"description": "解锁所需胜利次数"
 				}
 			}
-		},
-		"assets": {
-			"type": "dictionary",
-			"required": true,
-			"description": "皮肤资源路径",
-			"schema": {
-				"chess": {
-					"type": "dictionary",
-					"required": false,
-					"description": "棋子资源路径",
-					"check_schema": false
-					},
-					"board": {
-						"type": "dictionary",
-						"required": false,
-						"description": "棋盘资源路径",
-						"check_schema": false
-						},
-						"ui": {
-							"type": "dictionary",
-							"required": false,
-							"description": "UI资源路径",
-							"check_schema": false
-							}
-						}
-			}
+		}
 	}
+
+	# 根据配置类型添加特定字段
+	var config_type = _get_config_type()
+	match config_type:
+		"chess_skins":
+			base_schema["texture_overrides"] = {
+				"type": "dictionary",
+				"required": false,
+				"description": "棋子纹理覆盖",
+				"check_schema": false
+			}
+		"board_skins":
+			base_schema["texture"] = {
+				"type": "string",
+				"required": true,
+				"description": "棋盘纹理路径"
+			}
+			base_schema["cell_textures"] = {
+				"type": "dictionary",
+				"required": false,
+				"description": "棋盘格子纹理",
+				"check_schema": false
+			}
+		"ui_skins":
+			base_schema["theme"] = {
+				"type": "string",
+				"required": true,
+				"description": "UI主题路径"
+			}
+			base_schema["color_scheme"] = {
+				"type": "dictionary",
+				"required": false,
+				"description": "UI颜色方案",
+				"check_schema": false
+			}
+
+	return base_schema
 
 # 验证自定义规则
 func _validate_custom_rules(config_data: Dictionary) -> void:
-	# 验证皮肤类型
-	if config_data.has("type"):
-		var valid_types = ["theme", "chess", "board", "ui"]
-		if not valid_types.has(config_data.type):
-			validation_errors.append("皮肤类型必须是有效的类型: " + ", ".join(valid_types))
-
 	# 验证稀有度范围
 	if config_data.has("rarity") and not GameConsts.is_valid_rarity(config_data.rarity):
 		validation_errors.append("稀有度必须是有效的 GameConstants.Rarity 枚举值: " + str(config_data.rarity))
 
-	# 验证价格
-	if config_data.has("price") and config_data.price < 0:
-		validation_errors.append("价格不能为负数")
+	# 验证图标路径
+	if config_data.has("icon") and (not config_data.icon is String or config_data.icon.is_empty()):
+		validation_errors.append("图标路径必须是有效的字符串")
+
+	# 验证预览图路径
+	if config_data.has("preview") and (not config_data.preview is String or config_data.preview.is_empty()):
+		validation_errors.append("预览图路径必须是有效的字符串")
 
 	# 验证解锁条件
 	if config_data.has("unlock_condition") and config_data.unlock_condition is Dictionary:
-		if not config_data.unlock_condition.has("type"):
-			validation_errors.append("解锁条件必须有type字段")
-		else:
-			var condition_type = config_data.unlock_condition.type
-			var valid_condition_types = ["gold", "achievement", "level", "win_count"]
+		# 检查至少有一个有效的解锁条件
+		var has_valid_condition = false
+		var valid_condition_types = ["gold", "achievement", "level", "win_count"]
 
-			if not valid_condition_types.has(condition_type):
-				validation_errors.append("解锁条件类型必须是有效的类型: " + ", ".join(valid_condition_types))
-
-			if not config_data.unlock_condition.has("value"):
-				validation_errors.append("解锁条件必须有value字段")
-			else:
-				var condition_value = config_data.unlock_condition.value
+		for condition_type in valid_condition_types:
+			if config_data.unlock_condition.has(condition_type):
+				has_valid_condition = true
+				var condition_value = config_data.unlock_condition[condition_type]
 
 				match condition_type:
 					"achievement":
@@ -137,42 +170,40 @@ func _validate_custom_rules(config_data: Dictionary) -> void:
 						if not condition_value is int or condition_value <= 0:
 							validation_errors.append(condition_type + "解锁条件必须是正整数")
 
-	# 验证资源路径
-	if config_data.has("assets"):
-		if not config_data.assets is Dictionary:
-			validation_errors.append("assets必须是字典")
-		else:
-			# 根据皮肤类型验证必要的资源类型
-			if config_data.has("type"):
-				match config_data.type:
-					"theme":
-						# 主题皮肤应该包含所有类型的资源
-						if not config_data.assets.has("chess") or not config_data.assets.chess is Dictionary:
-							validation_errors.append("主题皮肤必须包含棋子资源")
-						if not config_data.assets.has("board") or not config_data.assets.board is Dictionary:
-							validation_errors.append("主题皮肤必须包含棋盘资源")
-						if not config_data.assets.has("ui") or not config_data.assets.ui is Dictionary:
-							validation_errors.append("主题皮肤必须包含UI资源")
-					"chess":
-						# 棋子皮肤必须包含棋子资源
-						if not config_data.assets.has("chess") or not config_data.assets.chess is Dictionary:
-							validation_errors.append("棋子皮肤必须包含棋子资源")
-					"board":
-						# 棋盘皮肤必须包含棋盘资源
-						if not config_data.assets.has("board") or not config_data.assets.board is Dictionary:
-							validation_errors.append("棋盘皮肤必须包含棋盘资源")
-					"ui":
-						# UI皮肤必须包含UI资源
-						if not config_data.assets.has("ui") or not config_data.assets.ui is Dictionary:
-							validation_errors.append("UI皮肤必须包含UI资源")
+		if not has_valid_condition and not config_data.unlock_condition.is_empty():
+			validation_errors.append("解锁条件必须包含至少一个有效的条件类型: " + ", ".join(valid_condition_types))
 
-			# 验证资源路径是否有效
-			for asset_type in config_data.assets:
-				if config_data.assets[asset_type] is Dictionary:
-					for asset_key in config_data.assets[asset_type]:
-						var asset_path = config_data.assets[asset_type][asset_key]
-						if not asset_path is String or asset_path.is_empty():
-							validation_errors.append("资源路径必须是有效的字符串: " + asset_type + "." + asset_key)
+	# 根据配置类型验证特定字段
+	var config_type = _get_config_type()
+	match config_type:
+		"chess_skins":
+			# 验证纹理覆盖
+			if config_data.has("texture_overrides") and not config_data.texture_overrides is Dictionary:
+				validation_errors.append("纹理覆盖必须是字典")
+
+		"board_skins":
+			# 验证棋盘纹理
+			if config_data.has("texture"):
+				if not config_data.texture is String or config_data.texture.is_empty():
+					validation_errors.append("棋盘纹理路径必须是有效的字符串")
+			else:
+				validation_errors.append("棋盘皮肤必须包含纹理路径")
+
+			# 验证格子纹理
+			if config_data.has("cell_textures") and not config_data.cell_textures is Dictionary:
+				validation_errors.append("格子纹理必须是字典")
+
+		"ui_skins":
+			# 验证UI主题
+			if config_data.has("theme"):
+				if not config_data.theme is String or config_data.theme.is_empty():
+					validation_errors.append("UI主题路径必须是有效的字符串")
+			else:
+				validation_errors.append("UI皮肤必须包含主题路径")
+
+			# 验证颜色方案
+			if config_data.has("color_scheme") and not config_data.color_scheme is Dictionary:
+				validation_errors.append("颜色方案必须是字典")
 
 # 获取皮肤名称
 func get_skin_name() -> String:
@@ -182,51 +213,96 @@ func get_skin_name() -> String:
 func get_description() -> String:
 	return data.get("description", "")
 
-# 获取皮肤类型
-func get_skin_type() -> String:
-	return data.get("type", "")
+# 获取皮肤ID
+func get_id() -> String:
+	return data.get("id", "")
 
 # 获取皮肤稀有度
 func get_rarity() -> int:
 	return data.get("rarity", 0)
 
-# 获取皮肤价格
-func get_price() -> float:
-	return data.get("price", 0.0)
-
 # 获取皮肤图标路径
-func get_icon_path() -> String:
-	return data.get("icon_path", "")
+func get_icon() -> String:
+	return data.get("icon", "")
+
+# 获取皮肤预览图路径
+func get_preview() -> String:
+	return data.get("preview", "")
 
 # 获取解锁条件
 func get_unlock_condition() -> Dictionary:
 	return data.get("unlock_condition", {})
 
-# 获取资源路径
-func get_assets() -> Dictionary:
-	return data.get("assets", {})
+# 获取皮肤类型
+func get_skin_type() -> int:
+	var config_type = _get_config_type()
+	match config_type:
+		"chess_skins":
+			return SkinType.CHESS
+		"board_skins":
+			return SkinType.BOARD
+		"ui_skins":
+			return SkinType.UI
+		_:
+			# 对于通用皮肤，根据配置判断
+			if data.has("type"):
+				match data.type:
+					"chess":
+						return SkinType.CHESS
+					"board":
+						return SkinType.BOARD
+					"ui":
+						return SkinType.UI
+			return -1
 
-# 获取特定类型的资源
-func get_assets_by_type(asset_type: String) -> Dictionary:
-	var assets = get_assets()
-	if assets.has(asset_type):
-		return assets[asset_type]
+# 获取皮肤类型字符串
+func get_skin_type_string() -> String:
+	var skin_type = get_skin_type()
+	match skin_type:
+		SkinType.CHESS:
+			return "chess"
+		SkinType.BOARD:
+			return "board"
+		SkinType.UI:
+			return "ui"
+		_:
+			return ""
+
+# 根据皮肤类型获取特定属性
+func get_type_specific_property(property_name: String, default_value = null):
+	if data.has(property_name):
+		return data[property_name]
+	return default_value
+
+# 获取棋子皮肤纹理覆盖
+func get_texture_overrides() -> Dictionary:
+	if get_skin_type() == SkinType.CHESS:
+		return get_type_specific_property("texture_overrides", {})
 	return {}
 
-# 获取特定资源路径
-func get_asset_path(asset_type: String, asset_key: String) -> String:
-	var assets_by_type = get_assets_by_type(asset_type)
-	if assets_by_type.has(asset_key):
-		return assets_by_type[asset_key]
+# 获取棋盘皮肤纹理
+func get_board_texture() -> String:
+	if get_skin_type() == SkinType.BOARD:
+		return get_type_specific_property("texture", "")
 	return ""
 
-# 检查是否为特定皮肤类型
-func is_skin_type(skin_type: String) -> bool:
-	return get_skin_type() == skin_type
+# 获取棋盘格子纹理
+func get_cell_textures() -> Dictionary:
+	if get_skin_type() == SkinType.BOARD:
+		return get_type_specific_property("cell_textures", {})
+	return {}
 
-# 检查是否有特定类型的资源
-func has_asset_type(asset_type: String) -> bool:
-	return get_assets().has(asset_type)
+# 获取UI主题路径
+func get_theme_path() -> String:
+	if get_skin_type() == SkinType.UI:
+		return get_type_specific_property("theme", "")
+	return ""
+
+# 获取UI颜色方案
+func get_color_scheme() -> Dictionary:
+	if get_skin_type() == SkinType.UI:
+		return get_type_specific_property("color_scheme", {})
+	return {}
 
 # 检查是否满足解锁条件
 func meets_unlock_condition(player_data: Dictionary) -> bool:
@@ -235,26 +311,28 @@ func meets_unlock_condition(player_data: Dictionary) -> bool:
 	if unlock_condition.is_empty():
 		return true
 
-	if not unlock_condition.has("type") or not unlock_condition.has("value"):
-		return false
+	# 检查金币条件
+	if unlock_condition.has("gold"):
+		var required_gold = unlock_condition.gold
+		if not player_data.has("gold") or player_data.gold < required_gold:
+			return false
 
-	var condition_type = unlock_condition.type
-	var condition_value = unlock_condition.value
+	# 检查等级条件
+	if unlock_condition.has("level"):
+		var required_level = unlock_condition.level
+		if not player_data.has("level") or player_data.level < required_level:
+			return false
 
-	match condition_type:
-		"achievement":
-			if not player_data.has("achievements") or not player_data.achievements.has(condition_value) or not player_data.achievements[condition_value]:
-				return false
-		"level":
-			if not player_data.has("level") or player_data.level < condition_value:
-				return false
-		"gold":
-			if not player_data.has("gold") or player_data.gold < condition_value:
-				return false
-		"win_count":
-			if not player_data.has("win_count") or player_data.win_count < condition_value:
-				return false
-		_:
+	# 检查胜利次数条件
+	if unlock_condition.has("win_count"):
+		var required_wins = unlock_condition.win_count
+		if not player_data.has("win_count") or player_data.win_count < required_wins:
+			return false
+
+	# 检查成就条件
+	if unlock_condition.has("achievement"):
+		var required_achievement = unlock_condition.achievement
+		if not player_data.has("achievements") or not player_data.achievements.has(required_achievement) or not player_data.achievements[required_achievement]:
 			return false
 
 	return true

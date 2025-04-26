@@ -1,5 +1,5 @@
 extends ConfigModel
-class_name TutorialConfig
+class_name TutorialConfig2
 ## 教程配置模型
 ## 提供教程配置数据的访问和验证
 
@@ -497,7 +497,7 @@ func meets_trigger_conditions(player_data: Dictionary) -> bool:
 		
 		match condition_type:
 			"first_time":
-				var bool_value =  condition_value if condition_value is bool else (condition_value == "true")
+				var bool_value = condition_value is bool ? condition_value : (condition_value == "true")
 				condition_result = player_data.get("first_time", false) == bool_value
 			"level":
 				var level = int(condition_value) if condition_value is String else condition_value
@@ -654,10 +654,10 @@ func step_meets_completion_conditions(step_index: int, player_data: Dictionary) 
 					"equal", "contains": condition_result = placed_chess.has(condition_value)
 					"not_equal": condition_result = not placed_chess.has(condition_value)
 			"battle_win":
-				var bool_value =  condition_value if condition_value is bool else (condition_value == "true")
+				var bool_value = condition_value is bool ? condition_value : (condition_value == "true")
 				condition_result = player_data.get("battle_win", false) == bool_value
 			"shop_purchase":
-				var bool_value =  condition_value if condition_value is bool else (condition_value == "true")
+				var bool_value = condition_value is bool ? condition_value : (condition_value == "true")
 				condition_result = player_data.get("shop_purchase", false) == bool_value
 			"custom":
 				# 自定义条件需要在游戏代码中实现

@@ -17,9 +17,6 @@ var Events = null
 # 战斗引擎
 var battle_engine: BattleEngine = null
 
-# 效果管理器 - 使用新的游戏效果管理器
-# 不再创建内部的BattleEffectManager
-
 # 战斗难度
 var difficulty: int = BC.AIDifficulty.NORMAL  # 当前难度
 
@@ -61,8 +58,8 @@ func _do_initialize() -> void:
 	# 连接信号 - 使用规范的事件连接方式和常量
 	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleStartedEvent, _on_battle_started)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleEndedEvent, _on_battle_ended)
-	GlobalEventBus.battle.add_class_listener(BattleEvents.BattlePreparingPhaseStartdEvent, _on_battle_preparing_phase_started)
-	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleFightingPhaseStartdEvent, _on_battle_fighting_phase_started)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.BattlePreparingPhaseStartedEvent, _on_battle_preparing_phase_started)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleFightingPhaseStartedEvent, _on_battle_fighting_phase_started)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.UnitDiedEvent, _on_unit_died)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.DamageDealtEvent, _on_damage_dealt)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.HealReceivedEvent, _on_heal_received)
@@ -134,7 +131,7 @@ func _update_battle_stats() -> void:
 	battle_stats.abilities_used = engine_stats.abilities_used
 
 # 战斗阶段开始事件处理
-func _on_battle_fighting_phase_started():
+func _on_battle_fighting_phase_started(event:BattleEvents.BattleFightingPhaseStartedEvent):
 	_log_info("Battle fighting phase started")
 
 # 重置战斗统计
@@ -151,7 +148,7 @@ func _reset_battle_stats():
 	}
 
 # 战斗开始事件处理
-func _on_battle_started():
+func _on_battle_started(event:BattleEvents.BattleStartedEvent):
 	_log_info("Battle started event received")
 
 	# 通知 GameEffectManager 战斗开始
@@ -159,19 +156,19 @@ func _on_battle_started():
 		GameManager.game_effect_manager.on_battle_started()
 
 # 准备阶段开始事件处理
-func _on_battle_preparing_phase_started():
+func _on_battle_preparing_phase_started(event:BattleEvents.BattlePreparingPhaseStartedEvent):
 	_log_info("Battle preparing phase started")
 
 # 战斗结束事件处理
-func _on_battle_ended(result: Dictionary):
-	print("Battle ended with result: ", result)
+func _on_battle_ended(event:BattleEvents.BattleEndedEvent):
+	print("Battle ended with result: ", event.result)
 
 	# 通知 GameEffectManager 战斗结束
 	if GameManager and GameManager.game_effect_manager:
-		GameManager.game_effect_manager.on_battle_ended(result)
+		GameManager.game_effect_manager.on_battle_ended(event.result)
 
 	# 处理战斗奖励
-	_process_battle_rewards(result)
+	_process_battle_rewards(event.result)
 
 # 设置战斗速度
 func set_battle_speed(speed: float) -> void:
@@ -179,9 +176,9 @@ func set_battle_speed(speed: float) -> void:
 	_log_info("战斗速度设置为：" + str(speed))
 
 # 棋子死亡事件处理
-func _on_unit_died(piece):
+func _on_unit_died(event:BattleEvents.UnitDiedEvent):
 	# 更新战斗统计
-	if piece.is_player_piece:
+	if event.piece.is_player_piece:
 		battle_stats.enemy_kills += 1
 	else:
 		battle_stats.player_kills += 1
@@ -437,29 +434,29 @@ func _do_reset() -> void:
 	_log_info("战斗管理器重置完成")
 
 # 伤害事件处理
-func _on_damage_dealt(source, _target, amount: float, _damage_type: String) -> void:
+func _on_damage_dealt(event:BattleEvents.DamageDealtEvent) -> void:
 	# 更新战斗统计
-	if source and source.is_player_piece:
+	if event.source and event.source.is_player_piece:
 		# 玩家造成伤害
-		battle_stats.player_damage_dealt += amount
+		battle_stats.player_damage_dealt += event.amount
 	else:
-		if source:
+		if event.source:
 			# 敌方造成伤害
-			battle_stats.enemy_damage_dealt += amount
+			battle_stats.enemy_damage_dealt += event.amount
 
 # 治疗事件处理
-func _on_heal_received(target, amount: float, _source = null) -> void:
+func _on_heal_received(event:BattleEvents.HealReceivedEvent) -> void:
 	# 更新战斗统计
-	if target and target.is_player_piece:
+	if event.target and event.target.is_player_piece:
 		# 玩家治疗
-		battle_stats.player_healing += amount
+		battle_stats.player_healing += event.amount
 	else:
-		if target:
+		if event.target:
 			# 敌方治疗
-			battle_stats.enemy_healing += amount
+			battle_stats.enemy_healing += event.amount
 
 # 技能使用事件处理
-func _on_ability_used(_piece, _ability_data: Dictionary) -> void:
+func _on_ability_used(event:BattleEvents.AbilityUsedEvent) -> void:
 	# 更新战斗统计
 	battle_stats.abilities_used += 1
 
@@ -522,34 +519,32 @@ func _on_battle_engine_state_changed(old_state, new_state):
 	_log_info("战斗状态变化: " + str(old_state) + " -> " + str(new_state))
 
 	# 发送相应的事件
-	var event_name = ""
+	var event_name
 	match new_state:
 		BC.BattleState.PREPARING:
-			event_name = Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED
+			event_name = BattleEvents.BattlePreparingPhaseStartedEvent
 		BC.BattleState.ACTIVE:
-			event_name = Events.BattleEvents.BATTLE_FIGHTING_PHASE_STARTED
+			event_name = BattleEvents.BattleFightingPhaseStartedEvent
 		BC.BattleState.ENDED:
-			event_name = Events.BattleEvents.BATTLE_ENDED
+			event_name = BattleEvents.BattleResultPhaseStartedEvent
 
-	if not event_name.is_empty():
-		GlobalEventBus.battle.dispatch_event(event_name)
+	GlobalEventBus.battle.dispatch_event(event_name.new())
 
 func _on_battle_engine_phase_changed(old_phase, new_phase):
 	# 处理战斗阶段变化
 	_log_info("战斗阶段变化: " + str(old_phase) + " -> " + str(new_phase))
 
 	# 发送相应的事件
-	var event_name = ""
+	var event_name
 	match new_phase:
 		BC.BattlePhase.PREPARE:
-			event_name = Events.BattleEvents.BATTLE_PREPARING_PHASE_STARTED
+			event_name = BattleEvents.BattlePreparingPhaseStartedEvent
 		BC.BattlePhase.COMBAT:
-			event_name = Events.BattleEvents.BATTLE_FIGHTING_PHASE_STARTED
+			event_name = BattleEvents.BattleFightingPhaseStartedEvent
 		BC.BattlePhase.RESOLUTION:
-			event_name = Events.BattleEvents.BATTLE_RESULT_PHASE_STARTED
+			event_name = BattleEvents.BattleResultPhaseStartedEvent
 
-	if not event_name.is_empty():
-		GlobalEventBus.battle.dispatch_event(event_name)
+	GlobalEventBus.battle.dispatch_event(event_name.new())
 
 func _on_battle_engine_round_started(round_number):
 	# 处理战斗回合开始

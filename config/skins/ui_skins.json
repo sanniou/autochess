@@ -6,7 +6,17 @@
         "rarity": 0,
         "icon": "res://assets/images/skins/ui/default_icon.png",
         "preview": "res://assets/images/skins/ui/default_preview.png",
-        "theme": "res://assets/themes/default_theme.tres"
+        "theme": "res://assets/themes/default_theme.tres",
+        "color_scheme": {
+            "background": "#F5F5F5",
+            "panel": "#FFFFFF",
+            "text": "#1A1A1A",
+            "primary": "#3366CC",
+            "secondary": "#808080",
+            "success": "#33CC33",
+            "warning": "#E6B800",
+            "danger": "#CC3333"
+        }
     },
     "dark": {
         "id": "dark",
@@ -16,6 +26,16 @@
         "icon": "res://assets/images/skins/ui/dark_icon.png",
         "preview": "res://assets/images/skins/ui/dark_preview.png",
         "theme": "res://assets/themes/dark_theme.tres",
+        "color_scheme": {
+            "background": "#262626",
+            "panel": "#333333",
+            "text": "#E6E6E6",
+            "primary": "#4D80E6",
+            "secondary": "#999999",
+            "success": "#4DE64D",
+            "warning": "#FFCC33",
+            "danger": "#E64D4D"
+        },
         "unlock_condition": {
             "gold": 800
         }
@@ -28,6 +48,16 @@
         "icon": "res://assets/images/skins/ui/light_icon.png",
         "preview": "res://assets/images/skins/ui/light_preview.png",
         "theme": "res://assets/themes/light_theme.tres",
+        "color_scheme": {
+            "background": "#FFFFFF",
+            "panel": "#F0F0F0",
+            "text": "#333333",
+            "primary": "#66B3FF",
+            "secondary": "#B3B3B3",
+            "success": "#80E680",
+            "warning": "#FFD966",
+            "danger": "#FF8080"
+        },
         "unlock_condition": {
             "gold": 800
         }
@@ -40,6 +70,16 @@
         "icon": "res://assets/images/skins/ui/fantasy_icon.png",
         "preview": "res://assets/images/skins/ui/fantasy_preview.png",
         "theme": "res://assets/themes/fantasy_theme.tres",
+        "color_scheme": {
+            "background": "#2E1F3E",
+            "panel": "#3D2952",
+            "text": "#E6D9F2",
+            "primary": "#9966CC",
+            "secondary": "#7F6699",
+            "success": "#66CC99",
+            "warning": "#CCCC66",
+            "danger": "#CC6666"
+        },
         "unlock_condition": {
             "gold": 1200
         }
@@ -52,9 +92,63 @@
         "icon": "res://assets/images/skins/ui/futuristic_icon.png",
         "preview": "res://assets/images/skins/ui/futuristic_preview.png",
         "theme": "res://assets/themes/futuristic_theme.tres",
+        "color_scheme": {
+            "background": "#0D1B2A",
+            "panel": "#1B263B",
+            "text": "#E0E1DD",
+            "primary": "#00B4D8",
+            "secondary": "#778DA9",
+            "success": "#2EC4B6",
+            "warning": "#FF9F1C",
+            "danger": "#E71D36"
+        },
         "unlock_condition": {
             "gold": 2500,
             "achievement": "reach_level_50"
+        }
+    },
+    "retro": {
+        "id": "retro",
+        "name": "复古UI皮肤",
+        "description": "怀旧风格UI外观，回味经典。",
+        "rarity": 2,
+        "icon": "res://assets/images/skins/ui/retro_icon.png",
+        "preview": "res://assets/images/skins/ui/retro_preview.png",
+        "theme": "res://assets/themes/retro_theme.tres",
+        "color_scheme": {
+            "background": "#382800",
+            "panel": "#583C00",
+            "text": "#FFCC00",
+            "primary": "#FF6600",
+            "secondary": "#996600",
+            "success": "#00CC00",
+            "warning": "#FFFF00",
+            "danger": "#FF0000"
+        },
+        "unlock_condition": {
+            "gold": 1500
+        }
+    },
+    "minimalist": {
+        "id": "minimalist",
+        "name": "极简UI皮肤",
+        "description": "简约风格UI外观，干净利落。",
+        "rarity": 2,
+        "icon": "res://assets/images/skins/ui/minimalist_icon.png",
+        "preview": "res://assets/images/skins/ui/minimalist_preview.png",
+        "theme": "res://assets/themes/minimalist_theme.tres",
+        "color_scheme": {
+            "background": "#FAFAFA",
+            "panel": "#FFFFFF",
+            "text": "#212121",
+            "primary": "#2196F3",
+            "secondary": "#9E9E9E",
+            "success": "#4CAF50",
+            "warning": "#FFC107",
+            "danger": "#F44336"
+        },
+        "unlock_condition": {
+            "gold": 1000
         }
     }
 }

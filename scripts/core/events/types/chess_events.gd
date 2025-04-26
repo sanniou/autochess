@@ -44,6 +44,9 @@ class ChessPieceLevelChangedEvent extends BusEvent:
 		piece = p_piece
 		old_level = p_old_level
 		new_level = p_new_level
+		
+	static func get_type() -> String:
+		return "chess.chess_piece_level_changed"
 
 class ChessPiecePurchasedEvent extends BusEvent:
 	## 棋子
@@ -56,6 +59,9 @@ class ChessPiecePurchasedEvent extends BusEvent:
 	func _init(p_piece, p_gold_amount: int):
 		piece = p_piece
 		gold_amount = p_gold_amount
+		
+	static func get_type() -> String:
+		return "chess.chess_piece_purchased"
 	
 ## 棋子出售事件
 class ChessPieceSoldEvent extends BusEvent:
@@ -271,6 +277,9 @@ class ChessPieceDiedEvent extends BusEvent:
 	## 初始化
 	func _init(p_piece:ChessPieceEntity):
 		piece = p_piece
+		
+	static func get_type() -> String:
+		return "chess.chess_piece_deid"
 
 ## 棋子闪避事件
 class ChessPieceDodgedEvent extends BusEvent:
@@ -314,6 +323,9 @@ class ChessPieceElementalEffectTriggeredEvent extends BusEvent:
 		self.target=target
 		self.elemental_type=elemental_type
 	
+	static func get_type() -> String:
+		return "chess.chess_piece_element_effect_triggerd"
+
 class ChessPieceAbilityCastEvent extends BusEvent:
 
 	var owner
@@ -323,6 +335,9 @@ class ChessPieceAbilityCastEvent extends BusEvent:
 	func _init(owner, target):
 		self.owner=owner
 		self.target=target
+
+	static func get_type() -> String:
+		return "chess.chess_piece_ability_cast"
 
 class SynergyTypeAddedEvent extends BusEvent:
 
@@ -334,6 +349,9 @@ class SynergyTypeAddedEvent extends BusEvent:
 		self.owner=owner
 		self.synergy_type=synergy_type
 
+	static func get_type() -> String:
+		return "chess.synergy_type_added"
+
 class SynergyTypeRemovedEvent extends BusEvent:
 
 	var owner
@@ -343,6 +361,9 @@ class SynergyTypeRemovedEvent extends BusEvent:
 	func _init(owner, synergy_type:String):
 		self.owner=owner
 		self.synergy_type=synergy_type
+		
+	static func get_type() -> String:
+		return "chess.synergy_type_removed"
 
 class SynergyLevelChangedEvent extends BusEvent:
 
@@ -358,6 +379,9 @@ class SynergyLevelChangedEvent extends BusEvent:
 		self.old_level=old_level
 		self.level=level
 	
+	static func get_type() -> String:
+		return "chess.synergy_level_changed"
+		
 class ShowChessInfoEvent extends BusEvent:
 
 	var chess
@@ -365,7 +389,10 @@ class ShowChessInfoEvent extends BusEvent:
 	## 初始化
 	func _init(chess):
 		self.chess=chess
-	
+
+	static func get_type() -> String:
+		return "chess.show_chess_info"
+		
 class HideChessInfoEvent extends BusEvent:
 
 	var chess
@@ -373,3 +400,6 @@ class HideChessInfoEvent extends BusEvent:
 	## 初始化
 	func _init(chess):
 		self.chess=chess
+
+	static func get_type() -> String:
+		return "chess.hide_chess_info"

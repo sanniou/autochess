@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8y6vxe5xgkah"]
-
-[ext_resource type="Script" path="res://scenes/test/chess_system_test_new.gd" id="1_yjnwh"]
-
-[node name="ChessSystemTestNew" type="Node"]
-script = ExtResource("1_yjnwh")

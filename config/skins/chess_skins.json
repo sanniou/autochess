@@ -6,7 +6,14 @@
         "rarity": 0,
         "icon": "res://assets/images/skins/chess/default_icon.png",
         "preview": "res://assets/images/skins/chess/default_preview.png",
-        "texture_overrides": {}
+        "texture_overrides": {
+            "warrior": "res://assets/images/chess/default/warrior.png",
+            "mage": "res://assets/images/chess/default/mage.png",
+            "archer": "res://assets/images/chess/default/archer.png",
+            "assassin": "res://assets/images/chess/default/assassin.png",
+            "tank": "res://assets/images/chess/default/tank.png",
+            "support": "res://assets/images/chess/default/support.png"
+        }
     },
     "fantasy": {
         "id": "fantasy",
@@ -15,7 +22,14 @@
         "rarity": 2,
         "icon": "res://assets/images/skins/chess/fantasy_icon.png",
         "preview": "res://assets/images/skins/chess/fantasy_preview.png",
-        "texture_overrides": {},
+        "texture_overrides": {
+            "warrior": "res://assets/images/chess/fantasy/warrior.png",
+            "mage": "res://assets/images/chess/fantasy/mage.png",
+            "archer": "res://assets/images/chess/fantasy/archer.png",
+            "assassin": "res://assets/images/chess/fantasy/assassin.png",
+            "tank": "res://assets/images/chess/fantasy/tank.png",
+            "support": "res://assets/images/chess/fantasy/support.png"
+        },
         "unlock_condition": {
             "gold": 1000
         }
@@ -27,7 +41,14 @@
         "rarity": 3,
         "icon": "res://assets/images/skins/chess/sci_fi_icon.png",
         "preview": "res://assets/images/skins/chess/sci_fi_preview.png",
-        "texture_overrides": {},
+        "texture_overrides": {
+            "warrior": "res://assets/images/chess/sci_fi/warrior.png",
+            "mage": "res://assets/images/chess/sci_fi/mage.png",
+            "archer": "res://assets/images/chess/sci_fi/archer.png",
+            "assassin": "res://assets/images/chess/sci_fi/assassin.png",
+            "tank": "res://assets/images/chess/sci_fi/tank.png",
+            "support": "res://assets/images/chess/sci_fi/support.png"
+        },
         "unlock_condition": {
             "gold": 2000
         }
@@ -39,10 +60,36 @@
         "rarity": 4,
         "icon": "res://assets/images/skins/chess/golden_icon.png",
         "preview": "res://assets/images/skins/chess/golden_preview.png",
-        "texture_overrides": {},
+        "texture_overrides": {
+            "warrior": "res://assets/images/chess/golden/warrior.png",
+            "mage": "res://assets/images/chess/golden/mage.png",
+            "archer": "res://assets/images/chess/golden/archer.png",
+            "assassin": "res://assets/images/chess/golden/assassin.png",
+            "tank": "res://assets/images/chess/golden/tank.png",
+            "support": "res://assets/images/chess/golden/support.png"
+        },
         "unlock_condition": {
             "gold": 5000,
             "achievement": "win_100_battles"
+        }
+    },
+    "pixel": {
+        "id": "pixel",
+        "name": "像素棋子皮肤",
+        "description": "复古像素风格的棋子外观，怀旧有趣。",
+        "rarity": 2,
+        "icon": "res://assets/images/skins/chess/pixel_icon.png",
+        "preview": "res://assets/images/skins/chess/pixel_preview.png",
+        "texture_overrides": {
+            "warrior": "res://assets/images/chess/pixel/warrior.png",
+            "mage": "res://assets/images/chess/pixel/mage.png",
+            "archer": "res://assets/images/chess/pixel/archer.png",
+            "assassin": "res://assets/images/chess/pixel/assassin.png",
+            "tank": "res://assets/images/chess/pixel/tank.png",
+            "support": "res://assets/images/chess/pixel/support.png"
+        },
+        "unlock_condition": {
+            "gold": 1500
         }
     }
 }

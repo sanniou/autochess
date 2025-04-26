@@ -22,7 +22,6 @@ var validation_errors: Array = []
 func _init(config_id: String = "", config_data: Dictionary = {}, config_schema: Dictionary = {}):
 	id = config_id
 	config_type = _get_config_type()
-
 	if not config_schema.is_empty():
 		schema = config_schema
 	else:
@@ -35,7 +34,7 @@ func _init(config_id: String = "", config_data: Dictionary = {}, config_schema: 
 func set_data(config_data: Dictionary) -> bool:
 	# 验证数据
 	if not validate(config_data):
-		return false
+		assert(false,str(validation_errors))
 
 	# 设置数据
 	data = config_data.duplicate(true)
@@ -101,7 +100,7 @@ func validate(config_data: Dictionary) -> bool:
 	# 验证必填字段
 	for field in schema:
 		if schema[field].get("required", false) and not config_data.has(field):
-			validation_errors.append("缺少必填字段: " + field)
+			validation_errors.append(str(config_data) + "缺少必填字段: " + field)
 
 	# 验证字段类型
 	for field in config_data:
@@ -166,25 +165,34 @@ func _validate_field_type(value, field_schema, parent_dict = null, field_key = n
 			 # 如果有 check_schema 字段且为 false，则不验证字典的内容
 			if field_schema.has("check_schema") and field_schema.check_schema == false:
 				return value is Dictionary
-			
-			# 如果有 schema 字段，则验证字典的内容
-			if field_schema.has("schema") and value is Dictionary:
-				var nested_schema = field_schema.schema
-				
-				# 验证必填字段
-				for nested_field in nested_schema:
-					if nested_schema[nested_field].get("required", false) and not value.has(nested_field):
-						validation_errors.append("缺少必填字段: " + field_key + "." + nested_field)
-						return false
-				
+
+			var mested_field_schema = field_schema.schema
+			if field_schema.has("schema_for_all_field") and field_schema.schema_for_all_field == true:
 				# 验证字段类型
 				for nested_field in value:
-					if nested_schema.has(nested_field):
-						var nested_field_schema = nested_schema[nested_field]
-						if not _validate_field_type(value[nested_field], nested_field_schema, value, nested_field):
-							validation_errors.append("字段类型错误: " + field_key + "." + nested_field)
+					var nested_field_value = value[nested_field]
+					# 递归验证嵌套字段
+					for nested_field2 in nested_field_value:
+						var nested_field_value2 = nested_field_value[nested_field2]
+						if not _validate_field_type(nested_field_value2, mested_field_schema[nested_field2], nested_field_value, nested_field2):
+							validation_errors.append("嵌套字典字段错误: " + nested_field)
 							return false
-			
+				
+			else:
+				# 验证必填字段
+				for nested_field in mested_field_schema:
+					if mested_field_schema[nested_field].get("required", false) and not value.has(nested_field):
+						validation_errors.append("嵌套字典 " + str(value) + " 缺少必填字段: " + nested_field)
+						return false
+				# 验证字段类型
+				for nested_field in value:
+					if mested_field_schema.has(nested_field):
+						var nested_field_type = mested_field_schema[nested_field].type
+						var nested_field_value = value[nested_field]
+						# 递归验证嵌套字段
+						if not _validate_field_type(nested_field_value, mested_field_schema[nested_field], value, nested_field):
+							validation_errors.append("嵌套字典字段类型错误: " + nested_field + "应为 " + nested_field_type)
+							return false
 			return value is Dictionary
 		"vector2":
 			if value is Vector2:
@@ -242,7 +250,7 @@ func _validate_field_type(value, field_schema, parent_dict = null, field_key = n
 							# 验证必填字段
 							for nested_field in nested_schema:
 								if nested_schema[nested_field].get("required", false) and not item.has(nested_field):
-									validation_errors.append("缺少必填字段: " + field_key + "[" + str(i) + "]." + nested_field)
+									validation_errors.append(str(item)+ " 缺少必填字段: " + field_key + "[" + str(i) + "]." + nested_field)
 									return false
 							
 							# 验证字段类型

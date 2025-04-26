@@ -5,6 +5,7 @@
     "icon_path": "res://assets/images/achievements/chess_master.png",
     "id": "chess_master",
     "name": "棋子大师",
+    "category": "collection",
     "requirements": {
       "all": true,
       "type": "chess"
@@ -19,6 +20,7 @@
     "icon_path": "res://assets/images/achievements/completionist.png",
     "id": "completionist",
     "name": "完美主义者",
+    "category": "secret",
     "requirements": {
       "all": true,
       "exclude": [
@@ -36,6 +38,7 @@
     "icon_path": "res://assets/images/achievements/equipment_collector.png",
     "id": "equipment_collector",
     "name": "装备收藏家",
+    "category": "collection",
     "requirements": {
       "all": true,
       "rarity": 2,
@@ -51,6 +54,7 @@
     "icon_path": "res://assets/images/achievements/event_master.png",
     "id": "event_master",
     "name": "事件大师",
+    "category": "gameplay",
     "requirements": {
       "count": 20.0,
       "type": "event"
@@ -65,6 +69,7 @@
     "icon_path": "res://assets/images/achievements/first_victory.png",
     "id": "first_victory",
     "name": "初次胜利",
+    "category": "gameplay",
     "requirements": {
       "count": 1.0,
       "type": "victory"
@@ -79,6 +84,7 @@
     "icon_path": "res://assets/images/achievements/full_board.png",
     "id": "full_board",
     "name": "满员",
+    "category": "gameplay",
     "requirements": {
       "full": true,
       "type": "board"
@@ -93,6 +99,7 @@
     "icon_path": "res://assets/images/achievements/hard_victory.png",
     "id": "hard_victory",
     "name": "困难胜利",
+    "category": "challenge",
     "requirements": {
       "count": 1.0,
       "difficulty_min": 3.0,
@@ -108,6 +115,7 @@
     "icon_path": "res://assets/images/achievements/low_health_victory.png",
     "id": "low_health_victory",
     "name": "绝处逢生",
+    "category": "challenge",
     "requirements": {
       "count": 1.0,
       "health_max": 10.0,
@@ -123,6 +131,7 @@
     "icon_path": "res://assets/images/achievements/perfect_battle.png",
     "id": "perfect_battle",
     "name": "完美战斗",
+    "category": "gameplay",
     "requirements": {
       "count": 1.0,
       "no_loss": true,
@@ -138,6 +147,7 @@
     "icon_path": "res://assets/images/achievements/relic_hunter.png",
     "id": "relic_hunter",
     "name": "遗物猎人",
+    "category": "collection",
     "requirements": {
       "count": 5.0,
       "in_single_game": true,
@@ -153,6 +163,7 @@
     "icon_path": "res://assets/images/achievements/rich_player.png",
     "id": "rich_player",
     "name": "富豪",
+    "category": "gameplay",
     "requirements": {
       "amount": 50.0,
       "in_single_game": true,
@@ -168,6 +179,7 @@
     "icon_path": "res://assets/images/achievements/speed_run.png",
     "id": "speed_run",
     "name": "速通",
+    "category": "challenge",
     "requirements": {
       "count": 1.0,
       "time_max": 1200.0,
@@ -183,6 +195,7 @@
     "icon_path": "res://assets/images/achievements/synergy_master.png",
     "id": "synergy_master",
     "name": "羁绊大师",
+    "category": "gameplay",
     "requirements": {
       "count": 3.0,
       "in_single_game": true,
@@ -199,6 +212,7 @@
     "icon_path": "res://assets/images/achievements/three_star_collector.png",
     "id": "three_star_collector",
     "name": "三星收藏家",
+    "category": "collection",
     "requirements": {
       "count": 10.0,
       "star": 3.0,
@@ -214,6 +228,7 @@
     "icon_path": "res://assets/images/achievements/win_streak.png",
     "id": "win_streak",
     "name": "连胜",
+    "category": "gameplay",
     "requirements": {
       "count": 5.0,
       "type": "streak",
@@ -221,6 +236,260 @@
     },
     "rewards": {
       "gold": 40.0
+    }
+  },
+  "play_10_games": {
+    "description": "游玩10场游戏。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/play_games.png",
+    "id": "play_10_games",
+    "name": "初学者",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 10.0,
+      "stat_name": "games_played",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 20.0
+    }
+  },
+  "play_50_games": {
+    "description": "游玩50场游戏。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/play_games.png",
+    "id": "play_50_games",
+    "name": "老手",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 50.0,
+      "stat_name": "games_played",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 100.0
+    }
+  },
+  "play_100_games": {
+    "description": "游玩100场游戏。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/play_games.png",
+    "id": "play_100_games",
+    "name": "专家",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 100.0,
+      "stat_name": "games_played",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 200.0
+    }
+  },
+  "win_5_games": {
+    "description": "赢得5场游戏。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/win_games.png",
+    "id": "win_5_games",
+    "name": "胜利者",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 5.0,
+      "stat_name": "games_won",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 50.0
+    }
+  },
+  "win_20_games": {
+    "description": "赢得20场游戏。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/win_games.png",
+    "id": "win_20_games",
+    "name": "征服者",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 20.0,
+      "stat_name": "games_won",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 150.0
+    }
+  },
+  "win_50_games": {
+    "description": "赢得50场游戏。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/win_games.png",
+    "id": "win_50_games",
+    "name": "大师",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 50.0,
+      "stat_name": "games_won",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 300.0
+    }
+  },
+  "deal_10000_damage": {
+    "description": "累计造成10000点伤害。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/damage.png",
+    "id": "deal_10000_damage",
+    "name": "伤害专家",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 10000.0,
+      "stat_name": "total_damage_dealt",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 50.0
+    }
+  },
+  "deal_50000_damage": {
+    "description": "累计造成50000点伤害。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/damage.png",
+    "id": "deal_50000_damage",
+    "name": "毁灭者",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 50000.0,
+      "stat_name": "total_damage_dealt",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 150.0
+    }
+  },
+  "earn_5000_gold": {
+    "description": "累计获得5000金币。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/gold.png",
+    "id": "earn_5000_gold",
+    "name": "小财主",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 5000.0,
+      "stat_name": "total_gold_earned",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 50.0
+    }
+  },
+  "earn_20000_gold": {
+    "description": "累计获得20000金币。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/gold.png",
+    "id": "earn_20000_gold",
+    "name": "大富豪",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 20000.0,
+      "stat_name": "total_gold_earned",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 200.0
+    }
+  },
+  "buy_100_pieces": {
+    "description": "购买100个棋子。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/buy_pieces.png",
+    "id": "buy_100_pieces",
+    "name": "购物者",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 100.0,
+      "stat_name": "chess_pieces_purchased",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 50.0
+    }
+  },
+  "buy_500_pieces": {
+    "description": "购买500个棋子。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/buy_pieces.png",
+    "id": "buy_500_pieces",
+    "name": "收藏家",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 500.0,
+      "stat_name": "chess_pieces_purchased",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 150.0
+    }
+  },
+  "win_50_battles": {
+    "description": "赢得50场战斗。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/win_battles.png",
+    "id": "win_50_battles",
+    "name": "战斗专家",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 50.0,
+      "stat_name": "battles_won",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 50.0
+    }
+  },
+  "win_200_battles": {
+    "description": "赢得200场战斗。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/win_battles.png",
+    "id": "win_200_battles",
+    "name": "战场统治者",
+    "category": "gameplay",
+    "requirements": {
+      "threshold": 200.0,
+      "stat_name": "battles_won",
+      "type": "stat"
+    },
+    "rewards": {
+      "gold": 150.0
+    }
+  },
+  "high_damage": {
+    "description": "在一场战斗中造成超过1000点伤害。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/high_damage.png",
+    "id": "high_damage",
+    "name": "高伤害",
+    "category": "challenge",
+    "requirements": {
+      "damage_min": 1000.0,
+      "type": "battle"
+    },
+    "rewards": {
+      "gold": 50.0
+    }
+  },
+  "total_annihilation": {
+    "description": "在一场战斗中消灭所有敌人（至少5个）。",
+    "hidden": false,
+    "icon_path": "res://assets/images/achievements/total_annihilation.png",
+    "id": "total_annihilation",
+    "name": "全灭",
+    "category": "challenge",
+    "requirements": {
+      "annihilation": true,
+      "type": "battle"
+    },
+    "rewards": {
+      "gold": 50.0
     }
   }
 }

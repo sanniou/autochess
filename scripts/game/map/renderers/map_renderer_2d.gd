@@ -135,3 +135,37 @@ func _render_connection(connection: MapConnection) -> void:
 
 	# 保存连接实例
 	connection_instances[connection.id] = connection_instance
+
+## 高亮路径
+## 高亮显示路径上的所有连接
+func highlight_path(path: Array) -> void:
+	if path.size() < 2:
+		return
+
+	# 清除现有高亮
+	clear_path_highlights()
+
+	# 高亮路径上的每一段连接
+	for i in range(path.size() - 1):
+		var from_id = path[i]
+		var to_id = path[i + 1]
+
+		# 查找连接
+		for connection_id in connection_instances:
+			var connection = connection_instances[connection_id]
+			var connection_data = map_data.get_connection_by_id(connection_id)
+
+			if connection_data.from_node_id == from_id and connection_data.to_node_id == to_id:
+				# 高亮连接
+				if connection.has_method("highlight"):
+					connection.highlight(true)
+				break
+
+## 清除路径高亮
+## 清除所有高亮的路径
+func clear_path_highlights() -> void:
+	# 重置所有连接的高亮状态
+	for connection_id in connection_instances:
+		var connection = connection_instances[connection_id]
+		if connection.has_method("highlight"):
+			connection.highlight(false)

@@ -3,6 +3,9 @@ class_name SynergyComponent
 ## 羁绊组件
 ## 管理棋子的羁绊和羁绊效果
 
+# 引入羁绊常量
+const SC = preload("res://scripts/game/synergy/synergy_constants.gd")
+
 # 信号
 signal synergy_added(synergy_type, synergy_level)
 signal synergy_removed(synergy_type)

@@ -193,14 +193,18 @@ func remove_connection(connection_id: String) -> bool:
 ## 返回指定层的所有节点
 func get_nodes_by_layer(layer: int) -> Array[MapNode]:
 	if _nodes_by_layer.has(layer):
-		return _nodes_by_layer[layer].duplicate()
+		var newarray: Array[MapNode] = []
+		newarray.assign(_nodes_by_layer[layer].duplicate())
+		return newarray
 	return []
 
 ## 获取指定类型的节点
 ## 返回指定类型的所有节点
 func get_nodes_by_type(type: String) -> Array[MapNode]:
 	if _nodes_by_type.has(type):
-		return _nodes_by_type[type].duplicate()
+		var newarray: Array[MapNode] = []
+		newarray.assign(_nodes_by_type[type].duplicate())
+		return newarray
 	return []
 
 ## 获取指定ID的节点
@@ -217,14 +221,18 @@ func get_connection_by_id(connection_id: String) -> MapConnection:
 ## 返回从指定节点出发的所有连接
 func get_connections_from_node(node_id: String) -> Array[MapConnection]:
 	if _connections_from_node.has(node_id):
-		return _connections_from_node[node_id].duplicate()
+		var newarray: Array[MapConnection] = []
+		newarray.assign(_connections_from_node[node_id].duplicate())
+		return newarray
 	return []
 
 ## 获取到达指定节点的连接
 ## 返回到达指定节点的所有连接
 func get_connections_to_node(node_id: String) -> Array[MapConnection]:
 	if _connections_to_node.has(node_id):
-		return _connections_to_node[node_id].duplicate()
+		var newarray: Array[MapConnection] = []
+		newarray.assign(_connections_to_node[node_id].duplicate())
+		return newarray
 	return []
 
 ## 获取可到达的节点

@@ -183,7 +183,7 @@ func _on_event_test_button_pressed():
 		return
 
 	_play_button_sound()
-	_transition_to_scene("res://scenes/test/event_test.tscn")
+	_transition_to_scene("res://scenes/test/event_test_new.tscn")
 
 # 商店测试按钮处理
 func _on_shop_test_button_pressed():
@@ -192,7 +192,7 @@ func _on_shop_test_button_pressed():
 		return
 
 	_play_button_sound()
-	_transition_to_scene("res://scenes/test/shop_test.tscn")
+	_transition_to_scene("res://scenes/test/shop_test_new.tscn")
 
 # 环境特效测试按钮处理
 func _on_environment_test_button_pressed():

@@ -246,7 +246,7 @@ func _trigger_node_event(node: MapNode) -> void:
 		"battle":
 			_start_battle(node)
 		"elite_battle":
-			_start_elite_battle(node)
+			_start_battle(node)
 		"shop":
 			_open_shop(node)
 		"event":
@@ -256,7 +256,7 @@ func _trigger_node_event(node: MapNode) -> void:
 		"rest":
 			_rest_at_node(node)
 		"boss":
-			_start_boss_battle(node)
+			_start_battle(node)
 		"mystery":
 			_trigger_mystery_node(node)
 		"challenge":
@@ -268,53 +268,44 @@ func _trigger_node_event(node: MapNode) -> void:
 
 ## 开始普通战斗
 func _start_battle(node: MapNode) -> void:
-	# 设置战斗参数
-	var battle_params = {
-		"difficulty": node.difficulty,
-		"enemy_level": node.enemy_level,
-		"is_elite": false,
-		"is_boss": false,
-		"rewards": node.rewards
-	}
+	# 获取节点类型配置
+	var battle_type = node.get_property("battle_type")
+	var difficulty_scaling = node.get_property("difficulty_scaling")
 
+	# 获取战斗配置
+	var battle_config = map_config.get_battle_config(battle_type)
+	if not battle_config:
+		_log_error("无效的战斗类型: " + battle_type)
+		assert(false,"无效的战斗类型: " + battle_type)
+	
+	# 计算难度
+	var base_difficulty = node.get_property("difficulty", _calculate_battle_difficulty(node.layer, battle_type == "elite"))
+	var final_difficulty = base_difficulty
+	if difficulty_scaling:
+		final_difficulty *= battle_config.difficulty_multiplier
+	
+	# 创建战斗参数
+	var battle_params = BattleParams.new()
+	battle_params.difficulty = final_difficulty
+	battle_params.enemy_level = node.get_property("enemy_level", _calculate_enemy_level(node.layer))
+	battle_params.is_elite = (battle_type == "elite")
+	battle_params.is_boss = (battle_type == "boss")
+	
+	# 设置特殊参数
+	if battle_type == "boss":
+		battle_params.boss_id = node.get_property("boss_id", "")
+	
+	# 设置奖励
+	# 合并节点奖励和战斗配置奖励
+	var rewards = {}
+	rewards.merge(battle_config.rewards)
+	rewards.merge(node.rewards)
+	battle_params.rewards = rewards
+	
 	# 存储战斗参数
-	GameManager.battle_params = battle_params
-
-	# 切换到战斗状态
-	GameManager.change_state(GameManager.GameState.BATTLE)
-
-## 开始精英战斗
-func _start_elite_battle(node: MapNode) -> void:
-	# 设置战斗参数
-	var battle_params = {
-		"difficulty": node.difficulty,
-		"enemy_level": node.enemy_level,
-		"is_elite": true,
-		"is_boss": false,
-		"rewards": node.rewards
-	}
-
-	# 存储战斗参数
-	GameManager.battle_params = battle_params
-
-	# 切换到战斗状态
-	GameManager.change_state(GameManager.GameState.BATTLE)
-
-## 开始Boss战斗
-func _start_boss_battle(node: MapNode) -> void:
-	# 设置战斗参数
-	var battle_params = {
-		"difficulty": node.difficulty,
-		"enemy_level": node.enemy_level,
-		"is_elite": false,
-		"is_boss": true,
-		"boss_id": node.boss_id,
-		"rewards": node.rewards
-	}
-
-	# 存储战斗参数
-	GameManager.battle_params = battle_params
-
+	# todo
+	#GameManager.battle_params = battle_params
+	
 	# 切换到战斗状态
 	GameManager.change_state(GameManager.GameState.BATTLE)
 
@@ -322,12 +313,14 @@ func _start_boss_battle(node: MapNode) -> void:
 func _open_shop(node: MapNode) -> void:
 	# 设置商店参数
 	var shop_params = {
-		"discount": node.discount,
+		"discount": node.get_property("discount"),
+		"shop_type": node.get_property("shop_type"),
 		"layer": node.layer
 	}
 
 	# 存储商店参数
-	GameManager.shop_params = shop_params
+	# todo
+	#GameManager.shop_params = shop_params
 
 	# 切换到商店状态
 	GameManager.change_state(GameManager.GameState.SHOP)
@@ -336,12 +329,14 @@ func _open_shop(node: MapNode) -> void:
 func _trigger_event(node: MapNode) -> void:
 	# 设置事件参数
 	var event_params = {
-		"event_id": node.event_id,
+		"event_id": node.get_property("event_id"),
+		"event_type": node.get_property("event_type"),
 		"layer": node.layer
 	}
 
 	# 存储事件参数
-	GameManager.event_params = event_params
+	#todo
+	#GameManager.event_params = event_params
 
 	# 切换到事件状态
 	GameManager.change_state(GameManager.GameState.EVENT)
@@ -497,14 +492,14 @@ func _on_node_unhovered(node: MapNode) -> void:
 	node_unhovered.emit(node)
 
 ## 战斗结束事件处理
-func _on_battle_ended(result: Dictionary) -> void:
+func _on_battle_ended(event:BattleEvents.BattleEndedEvent) -> void:
 	# 如果战斗失败，不处理奖励
-	if not result.is_victory:
+	if not event.result.victory:
 		return
 
 	# 处理战斗奖励
-	if result.has("rewards"):
-		_process_rewards(result.rewards)
+	if event.result.has("rewards"):
+		_process_rewards(event.result.rewards)
 
 ## 事件完成事件处理
 func _on_event_completed(_event, result: Dictionary) -> void:
@@ -686,9 +681,8 @@ func _do_cleanup() -> void:
 	GlobalEventBus.economy.remove_class_listener(EconomyEvents.ShopClosedEvent, _on_shop_exited)
 
 	# 断开配置变更信号连接
-	if GameManager and GameManager.config_manager:
-		if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
-			GameManager.config_manager.config_changed.disconnect(_on_config_changed)
+	if GameManager.config_manager.config_changed.is_connected(_on_config_changed):
+		GameManager.config_manager.config_changed.disconnect(_on_config_changed)
 
 	# 清除地图
 	clear_map()

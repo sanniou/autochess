@@ -4,14 +4,18 @@
     "icon_path": "res://assets/images/synergies/assassin_synergy.png",
     "id": "assassin",
     "name": "刺客",
+    "type": "class",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "assassin_crit_1",
+            "type": "crit",
+            "description": "增加10%暴击几率和20%暴击伤害",
             "chance": 0.1,
             "damage": 0.2,
-            "type": "crit"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -19,9 +23,12 @@
         "count": 4,
         "effects": [
           {
+            "id": "assassin_crit_2",
+            "type": "crit",
+            "description": "增加20%暴击几率和40%暴击伤害",
             "chance": 0.2,
             "damage": 0.4,
-            "type": "crit"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -29,9 +36,12 @@
         "count": 6,
         "effects": [
           {
+            "id": "assassin_crit_3",
+            "type": "crit",
+            "description": "增加30%暴击几率和60%暴击伤害",
             "chance": 0.3,
             "damage": 0.6,
-            "type": "crit"
+            "target_selector": "same_synergy"
           }
         ]
       }
@@ -42,13 +52,17 @@
     "icon_path": "res://assets/images/synergies/elemental_synergy.png",
     "id": "elemental",
     "name": "元素",
+    "type": "race",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "elemental_effect_1",
+            "type": "elemental_effect",
+            "description": "攻击有20%几率附加元素效果",
             "chance": 0.2,
-            "type": "elemental_effect"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -56,8 +70,11 @@
         "count": 4,
         "effects": [
           {
+            "id": "elemental_effect_2",
+            "type": "elemental_effect",
+            "description": "攻击有40%几率附加元素效果",
             "chance": 0.4,
-            "type": "elemental_effect"
+            "target_selector": "same_synergy"
           }
         ]
       }
@@ -68,13 +85,17 @@
     "icon_path": "res://assets/images/synergies/elf_synergy.png",
     "id": "elf",
     "name": "精灵",
+    "type": "race",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "elf_dodge_1",
+            "type": "dodge",
+            "description": "获得15%闪避几率",
             "chance": 0.15,
-            "type": "dodge"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -82,8 +103,11 @@
         "count": 4,
         "effects": [
           {
+            "id": "elf_dodge_2",
+            "type": "dodge",
+            "description": "获得30%闪避几率",
             "chance": 0.3,
-            "type": "dodge"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -91,8 +115,11 @@
         "count": 6,
         "effects": [
           {
+            "id": "elf_dodge_3",
+            "type": "dodge",
+            "description": "获得45%闪避几率",
             "chance": 0.45,
-            "type": "dodge"
+            "target_selector": "same_synergy"
           }
         ]
       }
@@ -103,14 +130,18 @@
     "icon_path": "res://assets/images/synergies/human_synergy.png",
     "id": "human",
     "name": "人类",
+    "type": "race",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "human_cooldown_1",
+            "type": "cooldown_reduction",
+            "description": "攻击后有20%几率减少技能冷却时间1秒",
             "chance": 0.2,
             "reduction": 1,
-            "type": "cooldown_reduction"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -118,9 +149,12 @@
         "count": 4,
         "effects": [
           {
+            "id": "human_cooldown_2",
+            "type": "cooldown_reduction",
+            "description": "攻击后有40%几率减少技能冷却时间2秒",
             "chance": 0.4,
             "reduction": 2,
-            "type": "cooldown_reduction"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -128,9 +162,12 @@
         "count": 6,
         "effects": [
           {
+            "id": "human_cooldown_3",
+            "type": "cooldown_reduction",
+            "description": "攻击后有60%几率减少技能冷却时间3秒",
             "chance": 0.6,
             "reduction": 3,
-            "type": "cooldown_reduction"
+            "target_selector": "same_synergy"
           }
         ]
       }
@@ -141,13 +178,17 @@
     "icon_path": "res://assets/images/synergies/mage_synergy.png",
     "id": "mage",
     "name": "法师",
+    "type": "class",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "mage_spell_amp_1",
+            "type": "spell_amp",
+            "description": "技能伤害增加20%",
             "amp": 0.2,
-            "type": "spell_amp"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -155,8 +196,11 @@
         "count": 4,
         "effects": [
           {
+            "id": "mage_spell_amp_2",
+            "type": "spell_amp",
+            "description": "技能伤害增加40%",
             "amp": 0.4,
-            "type": "spell_amp"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -164,8 +208,11 @@
         "count": 6,
         "effects": [
           {
+            "id": "mage_spell_amp_3",
+            "type": "spell_amp",
+            "description": "技能伤害增加70%",
             "amp": 0.7,
-            "type": "spell_amp"
+            "target_selector": "same_synergy"
           }
         ]
       }
@@ -176,13 +223,17 @@
     "icon_path": "res://assets/images/synergies/ranger_synergy.png",
     "id": "ranger",
     "name": "游侠",
+    "type": "class",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "ranger_double_attack_1",
+            "type": "double_attack",
+            "description": "攻击有20%几率进行两次攻击",
             "chance": 0.2,
-            "type": "double_attack"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -190,8 +241,11 @@
         "count": 4,
         "effects": [
           {
+            "id": "ranger_double_attack_2",
+            "type": "double_attack",
+            "description": "攻击有35%几率进行两次攻击",
             "chance": 0.35,
-            "type": "double_attack"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -199,8 +253,11 @@
         "count": 6,
         "effects": [
           {
+            "id": "ranger_double_attack_3",
+            "type": "double_attack",
+            "description": "攻击有50%几率进行两次攻击",
             "chance": 0.5,
-            "type": "double_attack"
+            "target_selector": "same_synergy"
           }
         ]
       }
@@ -211,14 +268,18 @@
     "icon_path": "res://assets/images/synergies/summoner_synergy.png",
     "id": "summoner",
     "name": "召唤师",
+    "type": "class",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "summoner_boost_1",
+            "type": "summon_boost",
+            "description": "召唤物获得20%伤害和生命加成",
             "damage": 0.2,
             "health": 0.2,
-            "type": "summon_boost"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -226,9 +287,12 @@
         "count": 4,
         "effects": [
           {
+            "id": "summoner_boost_2",
+            "type": "summon_boost",
+            "description": "召唤物获得40%伤害和生命加成",
             "damage": 0.4,
             "health": 0.4,
-            "type": "summon_boost"
+            "target_selector": "same_synergy"
           }
         ]
       }
@@ -239,15 +303,19 @@
     "icon_path": "res://assets/images/synergies/support_synergy.png",
     "id": "support",
     "name": "辅助",
+    "type": "class",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "support_team_buff_1",
+            "type": "team_buff",
+            "description": "全队攻击速度提高10%",
             "stats": {
               "attack_speed": 0.1
             },
-            "type": "team_buff"
+            "target_selector": "all_player_pieces"
           }
         ]
       },
@@ -255,10 +323,13 @@
         "count": 4,
         "effects": [
           {
+            "id": "support_team_buff_2",
+            "type": "team_buff",
+            "description": "全队攻击速度提高20%",
             "stats": {
               "attack_speed": 0.2
             },
-            "type": "team_buff"
+            "target_selector": "all_player_pieces"
           }
         ]
       }
@@ -269,15 +340,19 @@
     "icon_path": "res://assets/images/synergies/warrior_synergy.png",
     "id": "warrior",
     "name": "战士",
+    "type": "class",
     "thresholds": [
       {
         "count": 2,
         "effects": [
           {
+            "id": "warrior_armor_1",
+            "type": "stat_boost",
+            "description": "获得15点护甲",
             "stats": {
               "armor": 15.0
             },
-            "type": "stat_boost"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -285,10 +360,13 @@
         "count": 4,
         "effects": [
           {
+            "id": "warrior_armor_2",
+            "type": "stat_boost",
+            "description": "获得35点护甲",
             "stats": {
               "armor": 35.0
             },
-            "type": "stat_boost"
+            "target_selector": "same_synergy"
           }
         ]
       },
@@ -296,10 +374,89 @@
         "count": 6,
         "effects": [
           {
+            "id": "warrior_armor_3",
+            "type": "stat_boost",
+            "description": "获得60点护甲",
             "stats": {
               "armor": 60.0
             },
-            "type": "stat_boost"
+            "target_selector": "same_synergy"
+          }
+        ]
+      }
+    ]
+  },
+  "guardian": {
+    "description": "守护者为生命值最低的队友提供护盾。",
+    "icon_path": "res://assets/images/synergies/guardian_synergy.png",
+    "id": "guardian",
+    "name": "守护者",
+    "type": "class",
+    "thresholds": [
+      {
+        "count": 2,
+        "effects": [
+          {
+            "id": "guardian_shield_1",
+            "type": "special",
+            "special_id": "shield",
+            "description": "为生命值最低的队友提供相当于自身20%最大生命值的护盾",
+            "shield_percent": 0.2,
+            "target_selector": "lowest_attribute",
+            "target_attribute": "current_health",
+            "count": 1
+          }
+        ]
+      },
+      {
+        "count": 4,
+        "effects": [
+          {
+            "id": "guardian_shield_2",
+            "type": "special",
+            "special_id": "shield",
+            "description": "为生命值最低的3名队友提供相当于自身30%最大生命值的护盾",
+            "shield_percent": 0.3,
+            "target_selector": "lowest_attribute",
+            "target_attribute": "current_health",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "berserker": {
+    "description": "狂战士在生命值低时获得额外攻击力。",
+    "icon_path": "res://assets/images/synergies/berserker_synergy.png",
+    "id": "berserker",
+    "name": "狂战士",
+    "type": "class",
+    "thresholds": [
+      {
+        "count": 2,
+        "effects": [
+          {
+            "id": "berserker_rage_1",
+            "type": "special",
+            "special_id": "rage",
+            "description": "生命值低于50%时，攻击力提高30%",
+            "health_threshold": 0.5,
+            "attack_bonus": 0.3,
+            "target_selector": "same_synergy"
+          }
+        ]
+      },
+      {
+        "count": 4,
+        "effects": [
+          {
+            "id": "berserker_rage_2",
+            "type": "special",
+            "special_id": "rage",
+            "description": "生命值低于50%时，攻击力提高60%",
+            "health_threshold": 0.5,
+            "attack_bonus": 0.6,
+            "target_selector": "same_synergy"
           }
         ]
       }

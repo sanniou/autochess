@@ -6,7 +6,15 @@
         "rarity": 0,
         "icon": "res://assets/images/skins/board/default_icon.png",
         "preview": "res://assets/images/skins/board/default_preview.png",
-        "texture": "res://assets/images/board/default_board.png"
+        "texture": "res://assets/images/board/default_board.png",
+        "cell_textures": {
+            "normal": "res://assets/images/board/default/cell_normal.png",
+            "highlighted": "res://assets/images/board/default/cell_highlighted.png",
+            "selected": "res://assets/images/board/default/cell_selected.png",
+            "spawn": "res://assets/images/board/default/cell_spawn.png",
+            "blocked": "res://assets/images/board/default/cell_blocked.png",
+            "bench": "res://assets/images/board/default/cell_bench.png"
+        }
     },
     "wooden": {
         "id": "wooden",
@@ -16,6 +24,14 @@
         "icon": "res://assets/images/skins/board/wooden_icon.png",
         "preview": "res://assets/images/skins/board/wooden_preview.png",
         "texture": "res://assets/images/board/wooden_board.png",
+        "cell_textures": {
+            "normal": "res://assets/images/board/wooden/cell_normal.png",
+            "highlighted": "res://assets/images/board/wooden/cell_highlighted.png",
+            "selected": "res://assets/images/board/wooden/cell_selected.png",
+            "spawn": "res://assets/images/board/wooden/cell_spawn.png",
+            "blocked": "res://assets/images/board/wooden/cell_blocked.png",
+            "bench": "res://assets/images/board/wooden/cell_bench.png"
+        },
         "unlock_condition": {
             "gold": 500
         }
@@ -28,6 +44,14 @@
         "icon": "res://assets/images/skins/board/crystal_icon.png",
         "preview": "res://assets/images/skins/board/crystal_preview.png",
         "texture": "res://assets/images/board/crystal_board.png",
+        "cell_textures": {
+            "normal": "res://assets/images/board/crystal/cell_normal.png",
+            "highlighted": "res://assets/images/board/crystal/cell_highlighted.png",
+            "selected": "res://assets/images/board/crystal/cell_selected.png",
+            "spawn": "res://assets/images/board/crystal/cell_spawn.png",
+            "blocked": "res://assets/images/board/crystal/cell_blocked.png",
+            "bench": "res://assets/images/board/crystal/cell_bench.png"
+        },
         "unlock_condition": {
             "gold": 1500
         }
@@ -40,9 +64,57 @@
         "icon": "res://assets/images/skins/board/space_icon.png",
         "preview": "res://assets/images/skins/board/space_preview.png",
         "texture": "res://assets/images/board/space_board.png",
+        "cell_textures": {
+            "normal": "res://assets/images/board/space/cell_normal.png",
+            "highlighted": "res://assets/images/board/space/cell_highlighted.png",
+            "selected": "res://assets/images/board/space/cell_selected.png",
+            "spawn": "res://assets/images/board/space/cell_spawn.png",
+            "blocked": "res://assets/images/board/space/cell_blocked.png",
+            "bench": "res://assets/images/board/space/cell_bench.png"
+        },
         "unlock_condition": {
             "gold": 3000,
             "achievement": "complete_all_maps"
+        }
+    },
+    "desert": {
+        "id": "desert",
+        "name": "沙漠棋盘皮肤",
+        "description": "荒漠风格的棋盘外观，充满异域风情。",
+        "rarity": 2,
+        "icon": "res://assets/images/skins/board/desert_icon.png",
+        "preview": "res://assets/images/skins/board/desert_preview.png",
+        "texture": "res://assets/images/board/desert_board.png",
+        "cell_textures": {
+            "normal": "res://assets/images/board/desert/cell_normal.png",
+            "highlighted": "res://assets/images/board/desert/cell_highlighted.png",
+            "selected": "res://assets/images/board/desert/cell_selected.png",
+            "spawn": "res://assets/images/board/desert/cell_spawn.png",
+            "blocked": "res://assets/images/board/desert/cell_blocked.png",
+            "bench": "res://assets/images/board/desert/cell_bench.png"
+        },
+        "unlock_condition": {
+            "gold": 1200
+        }
+    },
+    "forest": {
+        "id": "forest",
+        "name": "森林棋盘皮肤",
+        "description": "自然森林风格的棋盘外观，生机盎然。",
+        "rarity": 2,
+        "icon": "res://assets/images/skins/board/forest_icon.png",
+        "preview": "res://assets/images/skins/board/forest_preview.png",
+        "texture": "res://assets/images/board/forest_board.png",
+        "cell_textures": {
+            "normal": "res://assets/images/board/forest/cell_normal.png",
+            "highlighted": "res://assets/images/board/forest/cell_highlighted.png",
+            "selected": "res://assets/images/board/forest/cell_selected.png",
+            "spawn": "res://assets/images/board/forest/cell_spawn.png",
+            "blocked": "res://assets/images/board/forest/cell_blocked.png",
+            "bench": "res://assets/images/board/forest/cell_bench.png"
+        },
+        "unlock_condition": {
+            "gold": 1200
         }
     }
 }

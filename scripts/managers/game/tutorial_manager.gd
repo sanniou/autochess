@@ -3,12 +3,6 @@ class_name TutorialManager
 ## 教程管理器
 ## 负责管理游戏教程的显示和进度
 
-# 信号
-signal tutorial_started(tutorial_id: String)
-signal tutorial_step_changed(tutorial_id: String, step: int)
-signal tutorial_completed(tutorial_id: String)
-signal tutorial_skipped(tutorial_id: String)
-
 # 教程状态
 enum TutorialState {
 	INACTIVE,  # 未激活
@@ -60,12 +54,12 @@ func _load_tutorial_configs() -> void:
 # 连接信号
 func _connect_signals() -> void:
 	# 连接游戏状态变化信号
-	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.game.add_class_listener(GameEvents.GameStateChangedEvent, _on_game_state_changed)
 
 	# 连接教程相关信号
-	GlobalEventBus.tutorial.add_listener("start_tutorial", start_tutorial)
-	GlobalEventBus.tutorial.add_listener("skip_tutorial", skip_tutorial)
-	GlobalEventBus.tutorial.add_listener("complete_tutorial", complete_tutorial)
+	GlobalEventBus.tutorial.add_class_listener(TutorialEvents.StartTutorialEvent, _on_start_tutorial)
+	GlobalEventBus.tutorial.add_class_listener(TutorialEvents.SkipTutorialEvent, _on_skip_tutorial)
+	GlobalEventBus.tutorial.add_class_listener(TutorialEvents.CompleteTutorialEvent, _on_complete_tutorial)
 
 # 加载教程数据
 func _load_tutorial_data() -> void:
@@ -90,6 +84,23 @@ func _save_tutorial_data() -> void:
 
 	# 保存教程数据
 	SaveManager.save_tutorial_data(tutorial_data)
+
+# 处理开始教程事件
+func _on_start_tutorial(event: TutorialEvents.StartTutorialEvent) -> void:
+	start_tutorial(event.tutorial_id)
+
+# 处理跳过教程事件
+func _on_skip_tutorial(event: TutorialEvents.SkipTutorialEvent) -> void:
+	skip_tutorial(event.tutorial_id)
+
+# 处理完成教程事件
+func _on_complete_tutorial(event: TutorialEvents.CompleteTutorialEvent) -> void:
+	complete_tutorial(event.tutorial_id)
+
+# 处理游戏状态变化事件
+func _on_game_state_changed(event: GameEvents.GameStateChangedEvent) -> void:
+	# 检查是否需要触发教程
+	_check_tutorials_to_trigger(event.new_state)
 
 # 开始教程
 func start_tutorial(tutorial_id: String) -> bool:
@@ -116,8 +127,8 @@ func start_tutorial(tutorial_id: String) -> bool:
 	# 显示教程面板
 	_show_tutorial_panel(tutorial_id)
 
-	# 发送教程开始信号
-	tutorial_started.emit(tutorial_id)
+	# 发送教程开始事件
+	GlobalEventBus.tutorial.dispatch_event(TutorialEvents.StartTutorialEvent.new(tutorial_id))
 
 	# 显示第一步
 	_show_tutorial_step(0)
@@ -145,8 +156,14 @@ func next_tutorial_step() -> bool:
 	# 显示下一步
 	_show_tutorial_step(current_step)
 
-	# 发送步骤变化信号
-	tutorial_step_changed.emit(active_tutorial, current_step)
+	# 发送步骤变化事件
+	GlobalEventBus.tutorial.dispatch_event(
+		TutorialEvents.TutorialStepChangedEvent.new(
+			active_tutorial,
+			current_step,
+			tutorial_config.steps.size()
+		)
+	)
 
 	return true
 
@@ -166,8 +183,17 @@ func previous_tutorial_step() -> bool:
 	# 显示上一步
 	_show_tutorial_step(current_step)
 
-	# 发送步骤变化信号
-	tutorial_step_changed.emit(active_tutorial, current_step)
+	# 获取教程配置
+	var tutorial_config = tutorial_configs[active_tutorial]
+
+	# 发送步骤变化事件
+	GlobalEventBus.tutorial.dispatch_event(
+		TutorialEvents.TutorialStepChangedEvent.new(
+			active_tutorial,
+			current_step,
+			tutorial_config.steps.size()
+		)
+	)
 
 	return true
 
@@ -188,8 +214,8 @@ func complete_tutorial(tutorial_id: String) -> bool:
 	if active_tutorial == tutorial_id:
 		_stop_active_tutorial()
 
-	# 发送教程完成信号
-	tutorial_completed.emit(tutorial_id)
+	# 发送教程完成事件
+	GlobalEventBus.tutorial.dispatch_event(TutorialEvents.CompleteTutorialEvent.new(tutorial_id))
 
 	# 检查是否有后续教程
 	_check_next_tutorial(tutorial_id)
@@ -228,8 +254,8 @@ func skip_tutorial(tutorial_id: String) -> bool:
 	if active_tutorial == tutorial_id:
 		_stop_active_tutorial()
 
-	# 发送教程跳过信号
-	tutorial_skipped.emit(tutorial_id)
+	# 发送教程跳过事件
+	GlobalEventBus.tutorial.dispatch_event(TutorialEvents.SkipTutorialEvent.new(tutorial_id))
 
 	return true
 
@@ -544,30 +570,64 @@ func _check_next_tutorial(tutorial_id: String) -> void:
 				# 开始后续教程
 				start_tutorial(next_tutorial_id)
 
-# 游戏状态变化处理
-func _on_game_state_changed(old_state: int, new_state: int) -> void:
-	# 根据游戏状态自动开始相应的教程
-	match new_state:
-		GameManager.GameState.MAIN_MENU:
-			# 检查是否需要显示主菜单教程
-			if not completed_tutorials.has("main_menu") and not skipped_tutorials.has("main_menu"):
-				start_tutorial("main_menu")
-		GameManager.GameState.MAP:
-			# 检查是否需要显示地图教程
-			if not completed_tutorials.has("map") and not skipped_tutorials.has("map"):
-				start_tutorial("map")
-		GameManager.GameState.BATTLE:
-			# 检查是否需要显示战斗教程
-			if not completed_tutorials.has("battle") and not skipped_tutorials.has("battle"):
-				start_tutorial("battle")
-		GameManager.GameState.SHOP:
-			# 检查是否需要显示商店教程
-			if not completed_tutorials.has("shop") and not skipped_tutorials.has("shop"):
-				start_tutorial("shop")
-		GameManager.GameState.EVENT:
-			# 检查是否需要显示事件教程
-			if not completed_tutorials.has("event") and not skipped_tutorials.has("event"):
-				start_tutorial("event")
+# 检查是否需要触发教程
+func _check_tutorials_to_trigger(game_state: int) -> void:
+	# 如果已经有激活的教程，不触发新教程
+	if active_tutorial != "":
+		return
+
+	# 获取玩家数据
+	var player_data = {
+		"current_scene": get_tree().current_scene.name if get_tree().current_scene else "",
+		"game_state": game_state
+	}
+
+	# 添加其他玩家数据
+	if GameManager.has_manager("PlayerManager"):
+		var player_manager = GameManager.get_manager("PlayerManager")
+		if player_manager:
+			player_data["level"] = player_manager.get_player_level() if player_manager.has_method("get_player_level") else 1
+			player_data["first_time"] = player_manager.is_first_time() if player_manager.has_method("is_first_time") else false
+
+	if GameManager.has_manager("BattleManager"):
+		var battle_manager = GameManager.get_manager("BattleManager")
+		if battle_manager:
+			player_data["battle_count"] = battle_manager.get_battle_count() if battle_manager.has_method("get_battle_count") else 0
+			player_data["battle_win"] = battle_manager.is_last_battle_win() if battle_manager.has_method("is_last_battle_win") else false
+
+	if GameManager.has_manager("InventoryManager"):
+		var inventory_manager = GameManager.get_manager("InventoryManager")
+		if inventory_manager:
+			player_data["inventory"] = {
+				"items": inventory_manager.get_all_items() if inventory_manager.has_method("get_all_items") else []
+			}
+
+	if GameManager.has_manager("ChessManager"):
+		var chess_manager = GameManager.get_manager("ChessManager")
+		if chess_manager:
+			player_data["chess_pieces"] = chess_manager.get_all_chess_pieces() if chess_manager.has_method("get_all_chess_pieces") else []
+
+	if GameManager.has_manager("ShopManager"):
+		var shop_manager = GameManager.get_manager("ShopManager")
+		if shop_manager:
+			player_data["shop_visit"] = shop_manager.get_visit_count() if shop_manager.has_method("get_visit_count") else 0
+			player_data["shop_purchase"] = shop_manager.has_purchased() if shop_manager.has_method("has_purchased") else false
+
+	# 检查每个教程是否满足触发条件
+	for tutorial_id in tutorial_configs:
+		# 跳过已完成或已跳过的教程
+		if completed_tutorials.has(tutorial_id) or skipped_tutorials.has(tutorial_id):
+			continue
+
+		# 获取教程配置
+		var tutorial_config = tutorial_configs[tutorial_id]
+
+		# 检查是否满足触发条件
+		if tutorial_config.meets_trigger_conditions(player_data):
+			# 开始教程
+			start_tutorial(tutorial_id)
+			# 只触发一个教程
+			break
 
 
 # 重写重置方法
@@ -583,10 +643,10 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
-	GlobalEventBus.tutorial.remove_listener("start_tutorial", start_tutorial)
-	GlobalEventBus.tutorial.remove_listener("skip_tutorial", skip_tutorial)
-	GlobalEventBus.tutorial.remove_listener("complete_tutorial", complete_tutorial)
+	GlobalEventBus.game.remove_class_listener(GameEvents.GameStateChangedEvent, _on_game_state_changed)
+	GlobalEventBus.tutorial.remove_class_listener(TutorialEvents.StartTutorialEvent, _on_start_tutorial)
+	GlobalEventBus.tutorial.remove_class_listener(TutorialEvents.SkipTutorialEvent, _on_skip_tutorial)
+	GlobalEventBus.tutorial.remove_class_listener(TutorialEvents.CompleteTutorialEvent, _on_complete_tutorial)
 
 	# 停止当前激活的教程
 	if active_tutorial != "":

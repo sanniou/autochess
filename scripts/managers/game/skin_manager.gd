@@ -6,16 +6,12 @@ class_name SkinManager
 # 信号
 signal skin_applied(skin_id, skin_type)
 signal skin_unlocked(skin_id, skin_type)
+signal skin_preview_requested(skin_id, skin_type)
 
-# 皮肤类型
-enum SkinType {
-	CHESS,  # 棋子皮肤
-	BOARD,  # 棋盘皮肤
-	UI      # UI皮肤
-}
-
-# 皮肤配置文件路径
-const SKIN_CONFIG_PATH = "res://config/skins.json"
+# 皮肤类型常量
+const CHESS_SKIN_TYPE = "chess"
+const BOARD_SKIN_TYPE = "board"
+const UI_SKIN_TYPE = "ui"
 
 # 皮肤数据
 var chess_skins = {}
@@ -24,16 +20,16 @@ var ui_skins = {}
 
 # 已解锁的皮肤
 var unlocked_skins = {
-	"chess": [],
-	"board": [],
-	"ui": []
+	CHESS_SKIN_TYPE: [],
+	BOARD_SKIN_TYPE: [],
+	UI_SKIN_TYPE: []
 }
 
 # 当前选中的皮肤
 var selected_skins = {
-	"chess": "default",
-	"board": "default",
-	"ui": "default"
+	CHESS_SKIN_TYPE: "default",
+	BOARD_SKIN_TYPE: "default",
+	UI_SKIN_TYPE: "default"
 }
 
 # 引用
@@ -48,7 +44,6 @@ func _do_initialize() -> void:
 	# 添加依赖
 	add_dependency("SaveManager")
 
-	# 原 _ready 函数的内容
 	# 加载皮肤配置
 	_load_skin_configs()
 
@@ -61,44 +56,66 @@ func _do_initialize() -> void:
 	# 连接事件总线信号
 	_connect_signals()
 
+	_log_info("皮肤管理器初始化完成")
+
 # 连接信号
 func _connect_signals() -> void:
-	# 皮肤相关信号
-	GlobalEventBus.skin.add_listener("skin_changed", _on_skin_changed)
-	GlobalEventBus.skin.add_listener("skin_unlocked", _on_skin_unlocked)
+	# 皮肤相关事件
+	GlobalEventBus.skin.add_class_listener(SkinEvents.ChangeSkinEvent, _on_change_skin_event)
+	GlobalEventBus.skin.add_class_listener(SkinEvents.UnlockSkinEvent, _on_unlock_skin_event)
+	GlobalEventBus.skin.add_class_listener(SkinEvents.PreviewSkinEvent, _on_preview_skin_event)
 
 	# 游戏状态信号
-	GlobalEventBus.save.add_listener("game_loaded", _on_game_loaded)
+	GlobalEventBus.save.add_class_listener(SaveEvents.GameLoadedEvent, _on_game_loaded_event)
 
-# 皮肤变化处理
-func _on_skin_changed(skin_type: String, skin_id: String) -> void:
+# 皮肤变更事件处理
+func _on_change_skin_event(event: SkinEvents.ChangeSkinEvent) -> void:
+	var skin_type = event.skin_type
+	var skin_id = event.skin_id
+
 	# 检查皮肤类型是否有效
 	if not selected_skins.has(skin_type):
-		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("无效的皮肤类型: " + skin_type, 1))
+		_log_warning("无效的皮肤类型: " + skin_type)
 		return
 
 	# 检查皮肤是否已解锁
 	if not is_skin_unlocked(skin_id, skin_type):
-		GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("皮肤未解锁: " + skin_id, 1))
+		_log_warning("皮肤未解锁: " + skin_id)
 		return
 
 	# 更新选中的皮肤
 	var skins = {skin_type: skin_id}
 	apply_skins(skins)
 
-# 皮肤解锁处理
-func _on_skin_unlocked(skin_type: String, skin_id: String) -> void:
+# 皮肤解锁事件处理
+func _on_unlock_skin_event(event: SkinEvents.UnlockSkinEvent) -> void:
+	var skin_type = event.skin_type
+	var skin_id = event.skin_id
+
 	# 解锁皮肤
 	unlock_skin(skin_id, skin_type)
 
-# 游戏加载处理
-func _on_game_loaded(slot_name: String) -> void:
+# 皮肤预览事件处理
+func _on_preview_skin_event(event: SkinEvents.PreviewSkinEvent) -> void:
+	var skin_type = event.skin_type
+	var skin_id = event.skin_id
+
+	# 发送皮肤预览信号
+	skin_preview_requested.emit(skin_id, skin_type)
+
+	# 临时应用皮肤进行预览
+	_preview_skin(skin_id, skin_type)
+
+# 游戏加载事件处理
+func _on_game_loaded_event(event: SaveEvents.GameLoadedEvent) -> void:
 	# 重新加载皮肤数据
 	_load_unlocked_skins()
 	_load_selected_skins()
 
 	# 应用皮肤效果
 	_apply_skin_effects()
+
+	_log_info("游戏加载后皮肤数据已更新")
 
 # 加载皮肤配置
 func _load_skin_configs() -> void:
@@ -107,42 +124,35 @@ func _load_skin_configs() -> void:
 	board_skins.clear()
 	ui_skins.clear()
 
-	# 使用 ConfigManager 加载皮肤配置
-	var skins_config = GameManager.config_manager.get_all_config_models("skins")
+	# 加载棋子皮肤
+	var chess_skin_models = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.CHESS_SKINS)
+	if not chess_skin_models.is_empty():
+		for skin_id in chess_skin_models:
+			var skin_model = chess_skin_models[skin_id]
+			chess_skins[skin_id] = skin_model
+			_log_info("加载棋子皮肤: " + skin_id)
+	else:
+		_log_warning("无法加载棋子皮肤配置")
 
-	if skins_config.is_empty():
-		_log_warning("皮肤配置为空")
-		return
+	# 加载棋盘皮肤
+	var board_skin_models = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.BOARD_SKINS)
+	if not board_skin_models.is_empty():
+		for skin_id in board_skin_models:
+			var skin_model = board_skin_models[skin_id]
+			board_skins[skin_id] = skin_model
+			_log_info("加载棋盘皮肤: " + skin_id)
+	else:
+		_log_warning("无法加载棋盘皮肤配置")
 
-	# 处理配置数据
-	for skin_id in skins_config:
-		var skin_model = skins_config[skin_id] as SkinConfig
-
-		if skin_model == null:
-			_log_warning("无法加载皮肤模型: " + skin_id)
-			continue
-
-		# 根据皮肤类型分类
-		var skin_type = skin_model.get_skin_type()
-
-		match skin_type:
-			"theme":
-				# 主题皮肤同时包含棋子、棋盘和UI皮肤
-				chess_skins[skin_id] = skin_model
-				board_skins[skin_id] = skin_model
-				ui_skins[skin_id] = skin_model
-				_log_info("加载主题皮肤: " + skin_id)
-			"chess":
-				chess_skins[skin_id] = skin_model
-				_log_info("加载棋子皮肤: " + skin_id)
-			"board":
-				board_skins[skin_id] = skin_model
-				_log_info("加载棋盘皮肤: " + skin_id)
-			"ui":
-				ui_skins[skin_id] = skin_model
-				_log_info("加载界面皮肤: " + skin_id)
-			_:
-				_log_warning("未知的皮肤类型: " + skin_type + " for " + skin_id)
+	# 加载UI皮肤
+	var ui_skin_models = GameManager.config_manager.get_all_config_models_enum(ConfigTypes.Type.UI_SKINS)
+	if not ui_skin_models.is_empty():
+		for skin_id in ui_skin_models:
+			var skin_model = ui_skin_models[skin_id]
+			ui_skins[skin_id] = skin_model
+			_log_info("加载UI皮肤: " + skin_id)
+	else:
+		_log_warning("无法加载UI皮肤配置")
 
 	_log_info("皮肤配置加载完成: 棋子皮肤" + str(chess_skins.size()) +
 			  ", 棋盘皮肤" + str(board_skins.size()) +
@@ -151,49 +161,53 @@ func _load_skin_configs() -> void:
 # 加载已解锁的皮肤
 func _load_unlocked_skins() -> void:
 	# 从存档中加载已解锁的皮肤
-	var save_data = SaveManager._get_player_save_data()
+	var save_data = GameManager.save_manager.get_save_data()
 
 	if save_data.has("unlocked_skins"):
 		unlocked_skins = save_data.unlocked_skins
 	else:
 		# 默认解锁基础皮肤
 		unlocked_skins = {
-			"chess": ["default"],
-			"board": ["default"],
-			"ui": ["default"]
+			CHESS_SKIN_TYPE: ["default"],
+			BOARD_SKIN_TYPE: ["default"],
+			UI_SKIN_TYPE: ["default"]
 		}
 
 		# 保存到存档
 		save_data.unlocked_skins = unlocked_skins
-		SaveManager.save_game()
+		GameManager.save_manager.save_game()
+
+	_log_info("已解锁皮肤加载完成")
 
 # 加载选中的皮肤
 func _load_selected_skins() -> void:
 	# 从存档中加载选中的皮肤
-	var save_data = SaveManager._get_player_save_data()
+	var save_data = GameManager.save_manager.get_save_data()
 
 	if save_data.has("selected_skins"):
 		selected_skins = save_data.selected_skins
 	else:
 		# 默认选择基础皮肤
 		selected_skins = {
-			"chess": "default",
-			"board": "default",
-			"ui": "default"
+			CHESS_SKIN_TYPE: "default",
+			BOARD_SKIN_TYPE: "default",
+			UI_SKIN_TYPE: "default"
 		}
 
 		# 保存到存档
 		save_data.selected_skins = selected_skins
-		SaveManager.save_game()
+		GameManager.save_manager.save_game()
+
+	_log_info("已选中皮肤加载完成")
 
 # 获取所有皮肤
 func get_all_skins(skin_type: String) -> Dictionary:
 	match skin_type:
-		"chess":
+		CHESS_SKIN_TYPE:
 			return chess_skins
-		"board":
+		BOARD_SKIN_TYPE:
 			return board_skins
-		"ui":
+		UI_SKIN_TYPE:
 			return ui_skins
 		_:
 			_log_warning("无效的皮肤类型: " + skin_type)
@@ -215,6 +229,18 @@ func get_unlocked_skins(skin_type: String) -> Array:
 
 	return []
 
+# 获取所有已解锁的皮肤数据
+func get_all_unlocked_skin_data(skin_type: String) -> Array[SkinConfig]:
+	var result: Array[SkinConfig] = []
+	var unlocked = get_unlocked_skins(skin_type)
+	var all_skins = get_all_skins(skin_type)
+
+	for skin_id in unlocked:
+		if all_skins.has(skin_id):
+			result.append(all_skins[skin_id])
+
+	return result
+
 # 获取选中的皮肤
 func get_selected_skins() -> Dictionary:
 	return selected_skins.duplicate()
@@ -225,6 +251,11 @@ func get_selected_skin_id(skin_type: String) -> String:
 		return selected_skins[skin_type]
 
 	return "default"
+
+# 获取选中的皮肤数据
+func get_selected_skin_data(skin_type: String) -> SkinConfig:
+	var skin_id = get_selected_skin_id(skin_type)
+	return get_skin_data(skin_id, skin_type)
 
 # 检查皮肤是否已解锁
 func is_skin_unlocked(skin_id: String, skin_type: String) -> bool:
@@ -255,49 +286,38 @@ func unlock_skin(skin_id: String, skin_type: String) -> bool:
 	# 检查是否有解锁条件
 	var unlock_condition = skin_model.get_unlock_condition()
 	if not unlock_condition.is_empty():
-		# 检查是否有类型和值
-		if not unlock_condition.has("type") or not unlock_condition.has("value"):
-			_log_warning("无效的解锁条件: " + str(unlock_condition))
-			return false
+		var save_data = GameManager.save_manager.get_save_data()
 
-		var condition_type = unlock_condition.type
-		var condition_value = unlock_condition.value
+		# 检查金币条件
+		if unlock_condition.has("gold"):
+			var required_gold = unlock_condition.gold
+			if not save_data.has("gold") or save_data.gold < required_gold:
+				_log_warning("金币不足，需要 " + str(required_gold) + " 金币")
+				return false
 
-		match condition_type:
-			"gold":
-				# 检查金币条件
-				var player_gold = SaveManager.get_save_data().gold
-				if player_gold < condition_value:
-					_log_warning("金币不足，需要 " + str(condition_value) + " 金币")
-					return false
+			# 扣除金币
+			save_data.gold -= required_gold
+			_log_info("扣除 " + str(required_gold) + " 金币")
 
-				# 扣除金币
-				SaveManager.get_save_data().gold -= condition_value
-				_log_info("扣除 " + str(condition_value) + " 金币")
+		# 检查成就条件
+		if unlock_condition.has("achievement"):
+			var required_achievement = unlock_condition.achievement
+			if not save_data.has("achievements") or not save_data.achievements.has(required_achievement) or not save_data.achievements[required_achievement]:
+				_log_warning("成就未解锁: " + required_achievement)
+				return false
 
-			"achievement":
-				# 检查成就条件
-				var player_achievements = SaveManager.get_save_data().achievements
-				if not player_achievements.has(condition_value) or not player_achievements[condition_value]:
-					_log_warning("成就未解锁: " + condition_value)
-					return false
+		# 检查等级条件
+		if unlock_condition.has("level"):
+			var required_level = unlock_condition.level
+			if not save_data.has("level") or save_data.level < required_level:
+				_log_warning("等级不足，需要等级 " + str(required_level))
+				return false
 
-			"level":
-				# 检查等级条件
-				var player_level = SaveManager.get_save_data().level
-				if player_level < condition_value:
-					_log_warning("等级不足，需要等级 " + str(condition_value))
-					return false
-
-			"win_count":
-				# 检查胜利次数条件
-				var player_win_count = SaveManager.get_save_data().win_count
-				if player_win_count < condition_value:
-					_log_warning("胜利次数不足，需要 " + str(condition_value) + " 次胜利")
-					return false
-
-			_:
-				_log_warning("未知的解锁条件类型: " + condition_type)
+		# 检查胜利次数条件
+		if unlock_condition.has("win_count"):
+			var required_wins = unlock_condition.win_count
+			if not save_data.has("win_count") or save_data.win_count < required_wins:
+				_log_warning("胜利次数不足，需要 " + str(required_wins) + " 次胜利")
 				return false
 
 	# 解锁皮肤
@@ -308,11 +328,15 @@ func unlock_skin(skin_id: String, skin_type: String) -> bool:
 	_log_info("解锁皮肤: " + skin_id + " (类型: " + skin_type + ")")
 
 	# 保存到存档
-	SaveManager.get_save_data().unlocked_skins = unlocked_skins
-	SaveManager.save_game()
+	var save_data = GameManager.save_manager.get_save_data()
+	save_data.unlocked_skins = unlocked_skins
+	GameManager.save_manager.save_game()
 
 	# 发送解锁信号
 	skin_unlocked.emit(skin_id, skin_type)
+
+	# 发送事件通知
+	GlobalEventBus.skin.dispatch_event(SkinEvents.SkinUnlockedEvent.new(skin_id, skin_type))
 
 	return true
 
@@ -323,7 +347,7 @@ func apply_skins(skins: Dictionary) -> void:
 		var skin_id = skins[skin_type]
 
 		if not is_skin_unlocked(skin_id, skin_type):
-			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("皮肤未解锁: " + skin_id, 1))
+			_log_warning("皮肤未解锁: " + skin_id)
 			continue
 
 		# 应用皮肤
@@ -332,80 +356,95 @@ func apply_skins(skins: Dictionary) -> void:
 		# 发送应用信号
 		skin_applied.emit(skin_id, skin_type)
 
+		# 发送事件通知
+		match skin_type:
+			CHESS_SKIN_TYPE:
+				GlobalEventBus.skin.dispatch_event(SkinEvents.ChessSkinChangedEvent.new(skin_id))
+			BOARD_SKIN_TYPE:
+				GlobalEventBus.skin.dispatch_event(SkinEvents.BoardSkinChangedEvent.new(skin_id))
+			UI_SKIN_TYPE:
+				GlobalEventBus.skin.dispatch_event(SkinEvents.UISkinChangedEvent.new(skin_id))
+
 	# 保存到存档
-	SaveManager.get_save_data().selected_skins = selected_skins
-	SaveManager.save_game()
+	var save_data = GameManager.save_manager.get_save_data()
+	save_data.selected_skins = selected_skins
+	GameManager.save_manager.save_game()
 
 	# 应用皮肤效果
 	_apply_skin_effects()
 
+# 预览皮肤
+func _preview_skin(skin_id: String, skin_type: String) -> void:
+	# 获取皮肤数据
+	var skin_model = get_skin_data(skin_id, skin_type)
+	if skin_model == null:
+		_log_warning("无法加载皮肤预览: " + skin_id)
+		return
+
+	# 根据皮肤类型发送预览事件
+	match skin_type:
+		CHESS_SKIN_TYPE:
+			GlobalEventBus.skin.dispatch_event(SkinEvents.ChessSkinPreviewEvent.new(skin_id))
+		BOARD_SKIN_TYPE:
+			GlobalEventBus.skin.dispatch_event(SkinEvents.BoardSkinPreviewEvent.new(skin_id))
+		UI_SKIN_TYPE:
+			GlobalEventBus.skin.dispatch_event(SkinEvents.UISkinPreviewEvent.new(skin_id))
+
+	_log_info("预览皮肤: " + skin_id + " (类型: " + skin_type + ")")
+
 # 应用皮肤效果
 func _apply_skin_effects() -> void:
-	# 应用棋子皮肤
-	_apply_chess_skin()
+	# 应用所有选中的皮肤
+	for skin_type in selected_skins:
+		var skin_id = selected_skins[skin_type]
+		var skin_model = get_skin_data(skin_id, skin_type)
 
-	# 应用棋盘皮肤
-	_apply_board_skin()
+		if skin_model == null:
+			_log_warning("无法加载皮肤: " + skin_id)
+			continue
 
-	# 应用UI皮肤
-	_apply_ui_skin()
+		# 根据皮肤类型应用效果
+		match skin_type:
+			CHESS_SKIN_TYPE:
+				_apply_chess_skin(skin_model)
+			BOARD_SKIN_TYPE:
+				_apply_board_skin(skin_model)
+			UI_SKIN_TYPE:
+				_apply_ui_skin(skin_model)
+
+	_log_info("皮肤效果应用完成")
 
 # 应用棋子皮肤
-func _apply_chess_skin() -> void:
-	var skin_id = selected_skins.chess
-	var skin_model = get_skin_data(skin_id, "chess")
-
-	if skin_model == null:
-		_log_warning("无法加载棋子皮肤: " + skin_id)
-		return
-
-	# 检查皮肤是否有棋子资源
-	if not skin_model.has_asset_type("chess"):
-		_log_warning("皮肤没有棋子资源: " + skin_id)
-		return
+func _apply_chess_skin(skin_model: SkinConfig) -> void:
+	# 获取纹理覆盖
+	var texture_overrides = skin_model.get_texture_overrides()
 
 	# 通过事件总线发送皮肤变化信号
-	GlobalEventBus.skin.dispatch_event(SkinEvents.ChessSkinChangedEvent.new(skin_id))
+	GlobalEventBus.skin.dispatch_event(SkinEvents.ChessSkinAppliedEvent.new(skin_model.get_id(), texture_overrides))
 
-	_log_info("应用棋子皮肤: " + skin_id)
+	_log_info("应用棋子皮肤: " + skin_model.get_id())
 
 # 应用棋盘皮肤
-func _apply_board_skin() -> void:
-	var skin_id = selected_skins.board
-	var skin_model = get_skin_data(skin_id, "board")
-
-	if skin_model == null:
-		_log_warning("无法加载棋盘皮肤: " + skin_id)
-		return
-
-	# 检查皮肤是否有棋盘资源
-	if not skin_model.has_asset_type("board"):
-		_log_warning("皮肤没有棋盘资源: " + skin_id)
-		return
+func _apply_board_skin(skin_model: SkinConfig) -> void:
+	# 获取棋盘纹理和格子纹理
+	var board_texture = skin_model.get_board_texture()
+	var cell_textures = skin_model.get_cell_textures()
 
 	# 通过事件总线发送皮肤变化信号
-	GlobalEventBus.skin.dispatch_event(SkinEvents.BoardSkinChangedEvent.new(skin_id))
+	GlobalEventBus.skin.dispatch_event(SkinEvents.BoardSkinAppliedEvent.new(skin_model.get_id(), board_texture, cell_textures))
 
-	_log_info("应用棋盘皮肤: " + skin_id)
+	_log_info("应用棋盘皮肤: " + skin_model.get_id())
 
 # 应用UI皮肤
-func _apply_ui_skin() -> void:
-	var skin_id = selected_skins.ui
-	var skin_model = get_skin_data(skin_id, "ui")
-
-	if skin_model == null:
-		_log_warning("无法加载UI皮肤: " + skin_id)
-		return
-
-	# 检查皮肤是否有UI资源
-	if not skin_model.has_asset_type("ui"):
-		_log_warning("皮肤没有UI资源: " + skin_id)
-		return
+func _apply_ui_skin(skin_model: SkinConfig) -> void:
+	# 获取UI主题和颜色方案
+	var theme_path = skin_model.get_theme_path()
+	var color_scheme = skin_model.get_color_scheme()
 
 	# 通过事件总线发送皮肤变化信号
-	GlobalEventBus.skin.dispatch_event(SkinEvents.UISkinChangedEvent.new(skin_id))
+	GlobalEventBus.skin.dispatch_event(SkinEvents.UISkinAppliedEvent.new(skin_model.get_id(), theme_path, color_scheme))
 
-	_log_info("应用UI皮肤: " + skin_id)
+	_log_info("应用UI皮肤: " + skin_model.get_id())
 
 
 # 重写重置方法
@@ -419,14 +458,18 @@ func _do_reset() -> void:
 	# 重新加载选中的皮肤
 	_load_selected_skins()
 
+	# 应用皮肤效果
+	_apply_skin_effects()
+
 	_log_info("皮肤管理器重置完成")
 
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	GlobalEventBus.skin.remove_listener("skin_changed", _on_skin_changed)
-	GlobalEventBus.skin.remove_listener("skin_unlocked", _on_skin_unlocked)
-	GlobalEventBus.save.remove_listener("game_loaded", _on_game_loaded)
+	GlobalEventBus.skin.remove_class_listener(SkinEvents.ChangeSkinEvent, _on_change_skin_event)
+	GlobalEventBus.skin.remove_class_listener(SkinEvents.UnlockSkinEvent, _on_unlock_skin_event)
+	GlobalEventBus.skin.remove_class_listener(SkinEvents.PreviewSkinEvent, _on_preview_skin_event)
+	GlobalEventBus.save.remove_class_listener(SaveEvents.GameLoadedEvent, _on_game_loaded_event)
 
 	# 清空皮肤数据
 	chess_skins.clear()

@@ -81,8 +81,8 @@ var ability_factory: AbilityFactory = null
 var relic_ui_manager: RelicUiManager = null
 var game_effect_manager: GameEffectManager = null  # 游戏效果管理器，负责管理所有影响游戏状态的效果
 var visual_manager: VisualManager = null  # 视觉效果管理器，负责管理所有视觉效果
-var test_manager: TestManager = null
-var unified_test_config_manager: UnifiedTestConfigManager = null
+
+var save_manager: SaveManager = null
 
 # 初始化
 func _ready() -> void:
@@ -107,6 +107,7 @@ func _do_initialize() -> void:
 
 	# 注册所有管理器
 	_register_all_managers()
+	save_manager=SaveManager
 
 	# 初始化所有管理器
 	_initialize_all_managers()
@@ -207,9 +208,6 @@ func _register_all_managers() -> void:
 	_register_manager("GameEffectManager", "res://scripts/game/effects/game_effect_manager.gd")
 	_register_manager("VisualManager", "res://scripts/visual/visual_manager.gd")
 #
-	## 注册测试管理器
-	_register_manager("UnifiedTestConfigManager", "res://scripts/test/unified_test_config_manager.gd")
-	_register_manager("TestManager", "res://scripts/managers/test/test_manager.gd")
 
 ## 注册单个管理器
 func _register_manager(manager_name: String, script_path: String) -> void:
@@ -274,10 +272,6 @@ func _update_manager_reference(manager_name: String, manager_instance) -> void:
 		"RelicUIManager": relic_ui_manager = manager_instance
 		"GameEffectManager": game_effect_manager = manager_instance
 		"VisualManager": visual_manager = manager_instance
-
-		#测试管理器
-		"TestManager": test_manager = manager_instance
-		"UnifiedTestConfigManager": unified_test_config_manager = manager_instance
 
 ## 改变游戏状态
 func change_state(new_state: int) -> void:

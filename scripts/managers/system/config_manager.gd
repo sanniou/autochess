@@ -237,13 +237,6 @@ func _register_default_config_types() -> void:
 		"res://scripts/config/models/achievement_config.gd"
 	)
 
-	# 注册皮肤配置
-	register_config_type_enum(
-		ConfigTypes.Type.SKINS,
-		"res://config/skins.json",
-		"res://scripts/config/models/skin_config.gd"
-	)
-
 	# 注册教程配置
 	register_config_type_enum(
 		ConfigTypes.Type.TUTORIALS,
@@ -252,25 +245,25 @@ func _register_default_config_types() -> void:
 	)
 
 	# 注册动画配置
-	register_config_type_enum(
-		ConfigTypes.Type.ANIMATION_CONFIG,
-		"res://config/animations/animation_config.json",
-		"res://scripts/config/models/animation_config.gd"
-	)
+	# register_config_type_enum(
+	# 	ConfigTypes.Type.ANIMATION_CONFIG,
+	# 	"res://config/animations/animation_config.json",
+	# 	"res://scripts/config/models/animation_config.gd"
+	# )
 
 	# 注册环境效果配置
-	register_config_type_enum(
-		ConfigTypes.Type.ENVIRONMENT_EFFECTS,
-		"res://config/effects/environment_effects.json",
-		"res://scripts/config/models/effect_config.gd"
-	)
+	# register_config_type_enum(
+	# 	ConfigTypes.Type.ENVIRONMENT_EFFECTS,
+	# 	"res://config/effects/environment_effects.json",
+	# 	"res://scripts/config/models/effect_config.gd"
+	# )
 
 	# 注册技能效果配置
-	register_config_type_enum(
-		ConfigTypes.Type.SKILL_EFFECTS,
-		"res://config/effects/skill_effects.json",
-		"res://scripts/config/models/effect_config.gd"
-	)
+	# register_config_type_enum(
+	# 	ConfigTypes.Type.SKILL_EFFECTS,
+	# 	"res://config/effects/skill_effects.json",
+	# 	"res://scripts/config/models/effect_config.gd"
+	# )
 
 	# 注册棋盘皮肤配置
 	register_config_type_enum(

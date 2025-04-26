@@ -2,6 +2,9 @@ extends Control
 ## 羁绊信息界面
 ## 显示当前激活的羁绊和所有羁绊信息
 
+# 引入羁绊常量
+const SC = preload("res://scripts/game/synergy/synergy_constants.gd")
+
 # 初始化
 func _ready():
 	# 更新界面
@@ -124,21 +127,39 @@ func _create_synergy_item(synergy_id, config, level, count):
 
 # 获取下一个激活等级所需数量
 func _get_next_level_count(config, current_level):
-	# 优先使用thresholds字段，如果不存在则尝试使用tiers字段（向后兼容）
-	var levels = []
-	if config.has("thresholds") and config.thresholds.size() > 0:
-		levels = config.thresholds
-	elif config.has("tiers") and config.tiers.size() > 0:
-		levels = config.tiers
-	else:
+	# 获取阈值数组
+	var thresholds = config.get_thresholds()
+	if thresholds.is_empty():
 		return 0
 
-	var next_level = current_level + 1
+	# 获取当前阈值
+	var current_threshold = null
+	var next_threshold = null
 
-	for level in levels:
-		if level.count > 0 and (current_level == 0 or level.level == next_level):
-			return level.count
+	# 查找当前阈值和下一个阈值
+	for i in range(thresholds.size()):
+		var threshold = thresholds[i]
+		if not threshold.has("count"):
+			continue
 
+		# 如果当前等级为0，返回第一个阈值
+		if current_level == 0:
+			return threshold.count
+
+		# 如果找到当前阈值
+		if current_threshold == null and threshold.count <= current_level:
+			current_threshold = threshold
+
+			# 尝试获取下一个阈值
+			if i + 1 < thresholds.size():
+				next_threshold = thresholds[i + 1]
+				break
+
+	# 如果找到下一个阈值，返回其count
+	if next_threshold != null and next_threshold.has("count"):
+		return next_threshold.count
+
+	# 如果没有下一个阈值，返回0表示已达到最高等级
 	return 0
 
 # 获取羁绊计数

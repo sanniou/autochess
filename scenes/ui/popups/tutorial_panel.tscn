@@ -1,6 +1,20 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8qvt5q3jkuv7q"]
+[gd_scene load_steps=3 format=3 uid="uid://c8qvt5q3jkuv7q"]
 
 [ext_resource type="Script" path="res://scripts/ui/tutorial/tutorial_panel.gd" id="1_yvmqe"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yjnxr"]
+bg_color = Color(0.2, 0.2, 0.2, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.8, 0, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 5
 
 [node name="TutorialPanel" type="Control"]
 layout_mode = 3
@@ -24,6 +38,8 @@ offset_right = 300.0
 offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
+pivot_offset = Vector2(300, 200)
+theme_override_styles/panel = SubResource("StyleBoxFlat_yjnxr")
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
 layout_mode = 1
@@ -86,3 +102,11 @@ text = "下一步"
 [node name="SkipButton" type="Button" parent="Panel/VBoxContainer"]
 layout_mode = 2
 text = "跳过教程"
+
+[node name="HighlightRect" type="ColorRect" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 100.0
+offset_bottom = 100.0
+mouse_filter = 2
+color = Color(1, 0.8, 0, 0.3)

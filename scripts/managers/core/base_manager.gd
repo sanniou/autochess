@@ -90,8 +90,8 @@ func is_initialized() -> bool:
 	return _initialized
 
 # 设置管理器名称
-func set_manager_name(name: String) -> void:
-	manager_name = name
+func set_manager_name(manager_name: String) -> void:
+	manager_name = manager_name
 
 # 添加依赖
 func add_dependency(dependency_name: String) -> bool:
@@ -192,28 +192,19 @@ func _log_error(message: String) -> void:
 	_error = message
 
 	# 发送错误事件
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus and EventBus.has_method("emit_event"):
-			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 2))
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 2))
 
 	error_occurred.emit(message)
 
 # 记录警告信息
 static func _log_warning(message: String) -> void:
 	# 发送警告事件
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus and EventBus.has_method("emit_event"):
-			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 1))
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 1))
 
 # 记录信息
 func _log_info(message: String) -> void:
 	# 发送信息事件
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus and EventBus.has_method("emit_event"):
-			GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 0))
+	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new(message, 0))
 
 # 记录调试信息
 func _log_debug(debug_message: String) -> void:

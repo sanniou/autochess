@@ -242,6 +242,9 @@ func create_new_save_slot() -> String:
 	return slot_name
 
 ## 获取玩家存档数据
+func get_save_data() -> Dictionary:
+	return _get_player_save_data()
+
 func _get_player_save_data() -> Dictionary:
 	# 从玩家管理器获取数据
 	var player_manager = get_node_or_null("/root/GameManager/PlayerManager")

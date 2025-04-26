@@ -3,6 +3,9 @@ class_name SynergyManager
 ## 羁绊管理器
 ## 管理棋子羁绊和羁绊效果
 
+# 引入羁绊常量
+const SC = preload("res://scripts/game/synergy/synergy_constants.gd")
+
 # 信号
 signal synergy_activated(synergy_id, level)
 signal synergy_deactivated(synergy_id, level)
@@ -324,19 +327,116 @@ func _get_target_pieces_for_synergy(synergy_id: String) -> Array:
 	# 获取羁绊类型
 	var synergy_type = synergy_config.get_type()
 
-	# 根据羁绊类型获取目标棋子
+	# 获取羁绊效果
+	var level = active_synergies.get(synergy_id, 0)
+	var effects = synergy_config.get_effects_for_level(level)
+
+	# 检查是否有自定义目标选择器
+	for effect in effects:
+		if effect is Dictionary and effect.has("target_selector"):
+			var selector = synergy_config.get_target_selector(effect)
+			return _get_pieces_by_selector(synergy_id, selector, effect)
+
+	# 如果没有自定义选择器，使用默认逻辑
 	match synergy_type:
-		"class":
+		SC.SynergyType.CLASS:
 			# 职业羁绊只影响该职业的棋子
 			return synergy_pieces.get(synergy_id, [])
-		"race":
+		SC.SynergyType.RACE:
 			# 种族羁绊只影响该种族的棋子
 			return synergy_pieces.get(synergy_id, [])
-		"special":
+		SC.SynergyType.SPECIAL:
 			# 特殊羁绊影响所有玩家棋子
 			return GameManager.chess_manager.get_player_pieces()
 		_:
 			return []
+
+# 根据选择器获取目标棋子
+func _get_pieces_by_selector(synergy_id: String, selector: int, effect: Dictionary) -> Array:
+	match selector:
+		SC.TargetSelector.SAME_SYNERGY:
+			# 同羁绊棋子
+			return synergy_pieces.get(synergy_id, [])
+
+		SC.TargetSelector.ALL_PLAYER_PIECES:
+			# 所有玩家棋子
+			return GameManager.chess_manager.get_player_pieces()
+
+		SC.TargetSelector.RANDOM:
+			# 随机棋子
+			var all_pieces = GameManager.chess_manager.get_player_pieces()
+			if all_pieces.is_empty():
+				return []
+
+			var count = effect.get("count", 1)  # 默认选择1个
+			count = min(count, all_pieces.size())
+
+			# 随机打乱
+			all_pieces.shuffle()
+
+			# 返回前N个
+			return all_pieces.slice(0, count)
+
+		SC.TargetSelector.HIGHEST_ATTRIBUTE:
+			# 特定属性最高的棋子
+			var all_pieces = GameManager.chess_manager.get_player_pieces()
+			if all_pieces.is_empty():
+				return []
+
+			var attribute = effect.get("target_attribute", "attack")  # 默认按攻击力排序
+			var count = effect.get("count", 1)  # 默认选择1个
+			count = min(count, all_pieces.size())
+
+			# 按属性值排序
+			all_pieces.sort_custom(func(a, b):
+				var a_attr_comp = a.get_component("AttributeComponent")
+				var b_attr_comp = b.get_component("AttributeComponent")
+
+				if not a_attr_comp or not b_attr_comp:
+					return false
+
+				return a_attr_comp.get_attribute(attribute) > b_attr_comp.get_attribute(attribute)
+			)
+
+			# 返回前N个
+			return all_pieces.slice(0, count)
+
+		SC.TargetSelector.LOWEST_ATTRIBUTE:
+			# 特定属性最低的棋子
+			var all_pieces = GameManager.chess_manager.get_player_pieces()
+			if all_pieces.is_empty():
+				return []
+
+			var attribute = effect.get("target_attribute", "health")  # 默认按生命值排序
+			var count = effect.get("count", 1)  # 默认选择1个
+			count = min(count, all_pieces.size())
+
+			# 按属性值排序
+			all_pieces.sort_custom(func(a, b):
+				var a_attr_comp = a.get_component("AttributeComponent")
+				var b_attr_comp = b.get_component("AttributeComponent")
+
+				if not a_attr_comp or not b_attr_comp:
+					return false
+
+				return a_attr_comp.get_attribute(attribute) < b_attr_comp.get_attribute(attribute)
+			)
+
+			# 返回前N个
+			return all_pieces.slice(0, count)
+
+		SC.TargetSelector.CUSTOM:
+			# 自定义选择器，需要在子类中实现
+			return _get_custom_target_pieces(synergy_id, effect)
+
+		_:
+			# 默认返回同羁绊棋子
+			return synergy_pieces.get(synergy_id, [])
+
+# 自定义目标选择器
+func _get_custom_target_pieces(synergy_id: String, effect: Dictionary) -> Array:
+	# 默认实现，子类可以重写此方法
+	return synergy_pieces.get(synergy_id, [])
 
 # 获取当前激活的羁绊
 func get_active_synergies() -> Dictionary:

@@ -26,109 +26,133 @@ var current_player_node: MapNode = null
 
 ## 设置地图数据
 func set_map_data(data: MapData) -> void:
-    map_data = data
+	map_data = data
 
 ## 渲染地图
 ## 这是一个虚函数，子类需要实现
 func render_map() -> void:
-    push_error("MapRenderer.render_map() 是一个虚函数，子类需要实现")
+	push_error("MapRenderer.render_map() 是一个虚函数，子类需要实现")
 
 ## 清除地图
 func clear_map() -> void:
-    # 清除节点实例
-    for node_id in node_instances:
-        if is_instance_valid(node_instances[node_id]):
-            node_instances[node_id].queue_free()
-    
-    # 清除连接实例
-    for connection_id in connection_instances:
-        if is_instance_valid(connection_instances[connection_id]):
-            connection_instances[connection_id].queue_free()
-    
-    # 重置字典
-    node_instances = {}
-    connection_instances = {}
+	# 清除节点实例
+	for node_id in node_instances:
+		if is_instance_valid(node_instances[node_id]):
+			node_instances[node_id].queue_free()
+
+	# 清除连接实例
+	for connection_id in connection_instances:
+		if is_instance_valid(connection_instances[connection_id]):
+			connection_instances[connection_id].queue_free()
+
+	# 重置字典
+	node_instances = {}
+	connection_instances = {}
 
 ## 选择节点
 func select_node(node_id: String) -> void:
-    if not map_data:
-        return
-    
-    var node = map_data.get_node_by_id(node_id)
-    if not node:
-        return
-    
-    # 更新选中的节点
-    selected_node = node
-    
-    # 更新节点实例的状态
-    if node_instances.has(node_id):
-        node_instances[node_id].set_selected(true)
-    
-    # 发送信号
-    node_clicked.emit(node)
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 更新选中的节点
+	selected_node = node
+
+	# 更新节点实例的状态
+	if node_instances.has(node_id):
+		node_instances[node_id].set_selected(true)
+
+	# 发送信号
+	node_clicked.emit(node)
 
 ## 设置当前玩家节点
 func set_current_player_node(node_id: String) -> void:
-    if not map_data:
-        return
-    
-    var node = map_data.get_node_by_id(node_id)
-    if not node:
-        return
-    
-    # 更新当前玩家节点
-    current_player_node = node
-    
-    # 更新节点实例的状态
-    if node_instances.has(node_id):
-        node_instances[node_id].set_current(true)
-    
-    # 更新可到达节点的状态
-    _update_reachable_nodes()
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 更新当前玩家节点
+	current_player_node = node
+
+	# 更新节点实例的状态
+	if node_instances.has(node_id):
+		node_instances[node_id].set_current(true)
+
+	# 更新可到达节点的状态
+	_update_reachable_nodes()
+
+## 更新节点状态
+## 更新指定节点的访问状态
+func update_node_state(node_id: String, is_visited: bool) -> void:
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 更新节点实例的状态
+	if node_instances.has(node_id):
+		node_instances[node_id].set_visited(is_visited)
 
 ## 更新可到达节点
 func _update_reachable_nodes() -> void:
-    if not map_data or not current_player_node:
-        return
-    
-    # 获取可到达的节点
-    var reachable_nodes = map_data.get_reachable_nodes(current_player_node.id)
-    
-    # 更新所有节点的可到达状态
-    for node_id in node_instances:
-        var is_reachable = false
-        for reachable_node in reachable_nodes:
-            if reachable_node.id == node_id:
-                is_reachable = true
-                break
-        
-        node_instances[node_id].set_reachable(is_reachable)
+	if not map_data or not current_player_node:
+		return
+
+	# 获取可到达的节点
+	var reachable_nodes = map_data.get_reachable_nodes(current_player_node.id)
+
+	# 更新所有节点的可到达状态
+	for node_id in node_instances:
+		var is_reachable = false
+		for reachable_node in reachable_nodes:
+			if reachable_node.id == node_id:
+				is_reachable = true
+				break
+
+		node_instances[node_id].set_reachable(is_reachable)
 
 ## 处理节点点击事件
 func _on_node_clicked(node_id: String) -> void:
-    select_node(node_id)
+	select_node(node_id)
 
 ## 处理节点悬停事件
 func _on_node_hovered(node_id: String) -> void:
-    if not map_data:
-        return
-    
-    var node = map_data.get_node_by_id(node_id)
-    if not node:
-        return
-    
-    # 发送信号
-    node_hovered.emit(node)
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 发送信号
+	node_hovered.emit(node)
 
 ## 处理节点取消悬停事件
 func _on_node_unhovered(node_id: String) -> void:
-    if not map_data:
-        return
-    
-    var node = map_data.get_node_by_id(node_id)
-    if not node:
-        return
-    
-    # 发送信号
-    node_unhovered.emit(node)
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 发送信号
+	node_unhovered.emit(node)
+
+## 高亮路径
+## 这是一个虚函数，子类需要实现
+func highlight_path(path: Array) -> void:
+	push_error("MapRenderer.highlight_path() 是一个虚函数，子类需要实现")
+
+## 清除路径高亮
+## 这是一个虚函数，子类需要实现
+func clear_path_highlights() -> void:
+	push_error("MapRenderer.clear_path_highlights() 是一个虚函数，子类需要实现")
