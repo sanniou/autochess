@@ -137,10 +137,7 @@ func get_possible_combinations(equipment: Equipment) -> Array:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			GlobalEventBus.equipment.remove_listener("equipment_combine_requested", _on_equipment_combine_requested)
+	GlobalEventBus.equipment.remove_listener("equipment_combine_requested", _on_equipment_combine_requested)
 
 	# 断开配置变更信号连接
 	if GameManager and GameManager.config_manager:

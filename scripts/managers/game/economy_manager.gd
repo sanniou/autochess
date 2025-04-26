@@ -53,7 +53,7 @@ func _do_initialize() -> void:
 	GlobalEventBus.economy.add_listener("shop_refreshed", _on_shop_refreshed)
 	GlobalEventBus.economy.add_listener("item_purchased", _on_item_purchased)
 	GlobalEventBus.economy.add_listener("item_sold", _on_item_sold)
-	GlobalEventBus.economy.add_listener("GameEvents.DIFFICULTY_CHANGED", _on_difficulty_changed)
+	GlobalEventBus.economy.add_class_listener(GameEvents.DifficultyChangedEvent, _on_difficulty_changed)
 
 	# 加载难度设置
 	_load_difficulty_settings()
@@ -268,17 +268,11 @@ func reset() -> bool:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			GlobalEventBus.battle.remove_listener("battle_round_started", _on_battle_round_started)
-			GlobalEventBus.economy.remove_listener("shop_refreshed", _on_shop_refreshed)
-			GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
-			GlobalEventBus.economy.remove_listener("item_sold", _on_item_sold)
-
-			# 断开难度变化事件
-			var event_definitions = load("res://scripts/events/event_definitions.gd")
-			EventBus.game.disconnect_event(event_definitions.GameEvents.DIFFICULTY_CHANGED, _on_difficulty_changed)
+	GlobalEventBus.battle.remove_listener("battle_round_started", _on_battle_round_started)
+	GlobalEventBus.economy.remove_listener("shop_refreshed", _on_shop_refreshed)
+	GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
+	GlobalEventBus.economy.remove_listener("item_sold", _on_item_sold)
+	GlobalEventBus.economy.remove_class_listener(GameEvents.DifficultyChangedEvent, _on_difficulty_changed)
 
 	# 重置经济参数
 	economy_params = {

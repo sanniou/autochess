@@ -434,11 +434,8 @@ func _on_battle_ended(_result) -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			GlobalEventBus.battle.remove_listener("battle_started", _on_battle_started)
-			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.remove_listener("battle_started", _on_battle_started)
+	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 
 	# 清理数据结构
 	_initialize_data_structures()

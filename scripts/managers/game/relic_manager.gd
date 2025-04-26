@@ -364,12 +364,9 @@ func load_relics_state(save_data: Array, player = null) -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
-			GlobalEventBus.event.remove_listener("event_completed", _on_event_completed)
-			GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
+	GlobalEventBus.event.remove_listener("event_completed", _on_event_completed)
+	GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
 
 	# 断开配置变更信号连接
 	if GameManager and GameManager.config_manager:

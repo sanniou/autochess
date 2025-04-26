@@ -61,10 +61,9 @@ func _on_map_loaded(map_data: MapData) -> void:
 	_create_map_connections(map_data)
 
 	# 连接节点悬停信号
-	GlobalEventBus.map.add_listener("map_node_hovered", _on_map_node_hovered)
-
+	GlobalEventBus.map.add_class_listener(MapEvents.MapNodeHoveredEvent, _on_map_node_hovered)
 	# 节点离开
-	EventBus.map_node_unhovered.connect(_on_map_node_unhovered)
+	GlobalEventBus.map.add_class_listener(MapEvents.MapNodeUnhoveredEvent, _on_map_node_unhovered)
 
 
 
@@ -82,7 +81,7 @@ func _create_map_nodes(map_data: MapData) -> void:
 		var node_spacing = layer_width / (nodes_in_layer.size() + 1)
 
 		for i in range(nodes_in_layer.size()):
-			var node_data = nodes_in_layer[i]
+			var node_data = nodes_in_layer
 			var node_instance = MAP_NODE_SCENE.instantiate()
 			$MapContainer.add_child(node_instance)
 
@@ -223,12 +222,12 @@ func _on_map_node_selected(node_data: Dictionary) -> void:
 
 	# 显示节点信息提示
 	var node_type_name = LocalizationManager.tr("ui.map.node_" + node_data.type)
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name})))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",LocalizationManager.tr("ui.map.node_selected").format({"type": node_type_name})))
 
 ## 地图完成处理
 func _on_map_completed() -> void:
 	# 地图完成后的处理
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(LocalizationManager.tr("ui.map.completed")))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",LocalizationManager.tr("ui.map.completed")))
 	# 播放完成音效
 	AudioManager.play_sfx("victory.ogg")
 
@@ -434,7 +433,7 @@ func _show_best_path_to_boss() -> void:
 					break
 
 		# 显示提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("已显示到Boss的最佳路径", 2.0))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo","已显示到Boss的最佳路径", "todo",2.0))
 
 ## 更新连接线状态
 func _update_connection_states(current_node) -> void:

@@ -304,29 +304,26 @@ func _on_synergy_activated(synergy_id: String, level: int) -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			# 断开游戏事件
-			GlobalEventBus.game.remove_listener("game_started", _on_game_started)
-			GlobalEventBus.game.remove_listener("game_ended", _on_game_ended)
+	# 断开游戏事件
+	GlobalEventBus.game.remove_listener("game_started", _on_game_started)
+	GlobalEventBus.game.remove_listener("game_ended", _on_game_ended)
 
-			# 断开战斗事件
-			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
-			GlobalEventBus.battle.remove_listener("damage_dealt", _on_damage_dealt)
-			GlobalEventBus.battle.remove_listener("healing_done", _on_healing_done)
+	# 断开战斗事件
+	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
+	GlobalEventBus.battle.remove_listener("damage_dealt", _on_damage_dealt)
+	GlobalEventBus.battle.remove_listener("healing_done", _on_healing_done)
 
-			# 断开经济事件
-			GlobalEventBus.economy.remove_listener("gold_changed", _on_gold_changed)
-			GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
-			GlobalEventBus.economy.remove_listener("item_sold", _on_item_sold)
+	# 断开经济事件
+	GlobalEventBus.economy.remove_listener("gold_changed", _on_gold_changed)
+	GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
+	GlobalEventBus.economy.remove_listener("item_sold", _on_item_sold)
 
-			# 断开棋子事件
-			GlobalEventBus.chess.remove_listener("chess_piece_bought", _on_chess_piece_bought)
-			GlobalEventBus.chess.remove_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
+	# 断开棋子事件
+	GlobalEventBus.chess.remove_listener("chess_piece_bought", _on_chess_piece_bought)
+	GlobalEventBus.chess.remove_listener("chess_piece_upgraded", _on_chess_piece_upgraded)
 
-			# 断开羁绊事件
-			GlobalEventBus.chess.remove_listener("synergy_activated", _on_synergy_activated)
+	# 断开羁绊事件
+	GlobalEventBus.chess.remove_listener("synergy_activated", _on_synergy_activated)
 
 	_log_info("统计管理器清理完成")
 

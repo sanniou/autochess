@@ -340,31 +340,28 @@ func reset() -> bool:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			# 游戏事件
-			GlobalEventBus.game.remove_listener("game_started", _on_game_started)
-			GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
+	# 游戏事件
+	GlobalEventBus.game.remove_listener("game_started", _on_game_started)
+	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
 
-			# 战斗事件
-			GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
+	# 战斗事件
+	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
 
-			# 棋子事件
-			GlobalEventBus.chess.remove_listener("chess_piece_created", _on_chess_piece_created)
+	# 棋子事件
+	GlobalEventBus.chess.remove_listener("chess_piece_created", _on_chess_piece_created)
 
-			# 经济事件
-			GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
+	# 经济事件
+	GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
 
-			# 装备事件
-			GlobalEventBus.equipment.remove_listener("equipment_created", _on_equipment_created)
+	# 装备事件
+	GlobalEventBus.equipment.remove_listener("equipment_created", _on_equipment_created)
 
-			# 遗物事件
-			GlobalEventBus.relic.remove_listener("relic_acquired", _on_relic_acquired)
+	# 遗物事件
+	GlobalEventBus.relic.remove_listener("relic_acquired", _on_relic_acquired)
 
-			# 地图事件
-			GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
-			GlobalEventBus.map.remove_listener("rest_completed", _on_rest_completed)
+	# 地图事件
+	GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.map.remove_listener("rest_completed", _on_rest_completed)
 
 	# 清理玩家数据
 	if current_player != null:

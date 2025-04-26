@@ -331,10 +331,7 @@ func create_random_event_by_difficulty(difficulty: String) -> Event:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	if Engine.has_singleton("EventBus"):
-		var EventBus = Engine.get_singleton("EventBus")
-		if EventBus:
-			GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
+	GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
 
 	# 清理当前事件
 	clear_current_event()

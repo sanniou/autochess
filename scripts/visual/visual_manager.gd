@@ -34,8 +34,7 @@ func _do_initialize() -> void:
 	add_child(visual_registry)
 
 	# 连接战斗事件
-	if EventBus:
-		GlobalEventBus.battle.add_listener("battle_ended", on_battle_ended)
+	GlobalEventBus.battle.add_listener("battle_ended", on_battle_ended)
 
 	_log_info("VisualManager 初始化完成")
 
@@ -431,8 +430,7 @@ func _do_cleanup() -> void:
 	clear_all_effects()
 
 	# 断开所有信号连接
-	if EventBus:
-		GlobalEventBus.battle.remove_listener("battle_ended", on_battle_ended)
+	GlobalEventBus.battle.remove_listener("battle_ended", on_battle_ended)
 
 	# 清理渲染器和注册表
 	if visual_renderer:

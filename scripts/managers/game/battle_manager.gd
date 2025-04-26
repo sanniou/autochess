@@ -58,9 +58,7 @@ func _do_initialize() -> void:
 	GlobalEventBus.battle.add_class_listener(BattleEvents.DamageDealtEvent, _on_damage_dealt)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.HealReceivedEvent, _on_heal_received)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.AbilityUsedEvent, _on_ability_used)
-
-	# 连接自定义事件
-	GlobalEventBus.battle.add_listener("delayed_stun_removal", _on_delayed_stun_removal)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.DelayedStunRemovalEvent, _on_delayed_stun_removal)
 
 	_log_info("战斗管理器初始化完成")
 
@@ -232,9 +230,7 @@ func _do_cleanup() -> void:
 	GlobalEventBus.battle.remove_class_listener(BattleEvents.DamageDealtEvent, _on_damage_dealt)
 	GlobalEventBus.battle.remove_class_listener(BattleEvents.HealReceivedEvent, _on_heal_received)
 	GlobalEventBus.battle.remove_class_listener(BattleEvents.AbilityUsedEvent, _on_ability_used)
-
-	# 断开自定义事件连接
-	GlobalEventBus.battle.remove_listener("delayed_stun_removal", _on_delayed_stun_removal)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.DelayedStunRemovalEvent, _on_delayed_stun_removal)
 
 	_log_info("战斗管理器清理完成")
 
