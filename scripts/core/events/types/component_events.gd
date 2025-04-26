@@ -15,10 +15,9 @@ class ComponentAddedEvent extends BusEvent:
 	func _init(p_entity, p_component: Component):
 		entity = p_entity
 		component = p_component
-		source = entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.added"
 	
 	## 获取事件的字符串表示
@@ -30,7 +29,7 @@ class ComponentAddedEvent extends BusEvent:
 		var event = ComponentAddedEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 组件移除事件
@@ -45,10 +44,9 @@ class ComponentRemovedEvent extends BusEvent:
 	func _init(p_entity, p_component: Component):
 		entity = p_entity
 		component = p_component
-		source = entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.removed"
 	
 	## 获取事件的字符串表示
@@ -60,7 +58,7 @@ class ComponentRemovedEvent extends BusEvent:
 		var event = ComponentRemovedEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 组件启用事件
@@ -75,10 +73,9 @@ class ComponentEnabledEvent extends BusEvent:
 	func _init(p_entity, p_component: Component):
 		entity = p_entity
 		component = p_component
-		source = entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.enabled"
 	
 	## 获取事件的字符串表示
@@ -90,7 +87,7 @@ class ComponentEnabledEvent extends BusEvent:
 		var event = ComponentEnabledEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 组件禁用事件
@@ -105,10 +102,9 @@ class ComponentDisabledEvent extends BusEvent:
 	func _init(p_entity, p_component: Component):
 		entity = p_entity
 		component = p_component
-		source = entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.disabled"
 	
 	## 获取事件的字符串表示
@@ -120,7 +116,7 @@ class ComponentDisabledEvent extends BusEvent:
 		var event = ComponentDisabledEvent.new(entity, component)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 属性变化事件
@@ -143,10 +139,9 @@ class AttributeChangedEvent extends BusEvent:
 		attribute_name = p_attribute_name
 		old_value = p_old_value
 		new_value = p_new_value
-		source = entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.attribute_changed"
 	
 	## 获取事件的字符串表示
@@ -160,7 +155,7 @@ class AttributeChangedEvent extends BusEvent:
 		var event = AttributeChangedEvent.new(entity, attribute_name, old_value, new_value)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 状态变化事件
@@ -183,10 +178,9 @@ class StateChangedEvent extends BusEvent:
 		old_state = p_old_state
 		new_state = p_new_state
 		state_names = p_state_names
-		source = entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.state_changed"
 	
 	## 获取事件的字符串表示
@@ -202,7 +196,7 @@ class StateChangedEvent extends BusEvent:
 		var event = StateChangedEvent.new(entity, old_state, new_state, state_names.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 目标变化事件
@@ -221,10 +215,9 @@ class TargetChangedEvent extends BusEvent:
 		entity = p_entity
 		old_target = p_old_target
 		new_target = p_new_target
-		source = entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.target_changed"
 	
 	## 获取事件的字符串表示
@@ -238,7 +231,7 @@ class TargetChangedEvent extends BusEvent:
 		var event = TargetChangedEvent.new(entity, old_target, new_target)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 伤害事件
@@ -265,10 +258,9 @@ class DamageEvent extends BusEvent:
 		amount = p_amount
 		damage_type = p_damage_type
 		is_critical = p_is_critical
-		source = p_source_entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.damage"
 	
 	## 获取事件的字符串表示
@@ -282,7 +274,7 @@ class DamageEvent extends BusEvent:
 		var event = DamageEvent.new(source_entity, target_entity, amount, damage_type, is_critical)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 治疗事件
@@ -301,10 +293,9 @@ class HealEvent extends BusEvent:
 		source_entity = p_source_entity
 		target_entity = p_target_entity
 		amount = p_amount
-		source = p_source_entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.heal"
 	
 	## 获取事件的字符串表示
@@ -318,7 +309,7 @@ class HealEvent extends BusEvent:
 		var event = HealEvent.new(source_entity, target_entity, amount)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 技能使用事件
@@ -345,10 +336,9 @@ class AbilityUsedEvent extends BusEvent:
 		ability_name = p_ability_name
 		target = p_target
 		ability_data = p_ability_data
-		source = p_caster
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.ability_used"
 	
 	## 获取事件的字符串表示
@@ -362,7 +352,7 @@ class AbilityUsedEvent extends BusEvent:
 		var event = AbilityUsedEvent.new(caster, ability_id, ability_name, target, ability_data.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 装备事件
@@ -381,10 +371,9 @@ class EquipmentEvent extends BusEvent:
 		entity = p_entity
 		equipment = p_equipment
 		slot = p_slot
-		source = p_entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "component.equipment_changed"
 	
 	## 获取事件的字符串表示
@@ -398,5 +387,5 @@ class EquipmentEvent extends BusEvent:
 		var event = EquipmentEvent.new(entity, equipment, slot)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event

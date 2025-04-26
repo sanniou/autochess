@@ -21,7 +21,7 @@ class PlaySoundEvent extends BusEvent:
 		pitch = p_pitch
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "audio.play_sound"
 	
 	## 获取事件的字符串表示
@@ -35,7 +35,7 @@ class PlaySoundEvent extends BusEvent:
 		var event = PlaySoundEvent.new(sound_id, volume, pitch)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 播放音乐事件
@@ -56,7 +56,7 @@ class PlayMusicEvent extends BusEvent:
 		fade_in = p_fade_in
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "audio.play_music"
 	
 	## 获取事件的字符串表示
@@ -70,7 +70,7 @@ class PlayMusicEvent extends BusEvent:
 		var event = PlayMusicEvent.new(music_id, volume, fade_in)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 停止音乐事件
@@ -83,7 +83,7 @@ class StopMusicEvent extends BusEvent:
 		fade_out = p_fade_out
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "audio.stop_music"
 	
 	## 获取事件的字符串表示
@@ -95,7 +95,7 @@ class StopMusicEvent extends BusEvent:
 		var event = StopMusicEvent.new(fade_out)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 设置音量事件
@@ -112,7 +112,7 @@ class SetVolumeEvent extends BusEvent:
 		volume = p_volume
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "audio.set_volume"
 	
 	## 获取事件的字符串表示
@@ -126,7 +126,7 @@ class SetVolumeEvent extends BusEvent:
 		var event = SetVolumeEvent.new(audio_type, volume)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 

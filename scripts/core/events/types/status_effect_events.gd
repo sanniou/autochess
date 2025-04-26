@@ -25,7 +25,7 @@ class StatusEffectAddedEvent extends BusEvent:
 		source = p_source
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "status_effect.status_effect_added"
 	
 	## 获取事件的字符串表示
@@ -39,7 +39,7 @@ class StatusEffectAddedEvent extends BusEvent:
 		var event = StatusEffectAddedEvent.new(target, effect_id, effect_data.duplicate(true), source)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 状态效果移除事件
@@ -56,7 +56,7 @@ class StatusEffectRemovedEvent extends BusEvent:
 		effect_id = p_effect_id
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "status_effect.status_effect_removed"
 	
 	## 获取事件的字符串表示
@@ -70,7 +70,7 @@ class StatusEffectRemovedEvent extends BusEvent:
 		var event = StatusEffectRemovedEvent.new(target, effect_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 状态效果抵抗事件
@@ -91,7 +91,7 @@ class StatusEffectResistedEvent extends BusEvent:
 		source = p_source
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "status_effect.status_effect_resisted"
 	
 	## 获取事件的字符串表示
@@ -105,7 +105,7 @@ class StatusEffectResistedEvent extends BusEvent:
 		var event = StatusEffectResistedEvent.new(target, effect_id, source)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 状态效果触发事件
@@ -126,7 +126,7 @@ class StatusEffectTriggeredEvent extends BusEvent:
 		effect_data = p_effect_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "status_effect.status_effect_triggered"
 	
 	## 获取事件的字符串表示
@@ -140,5 +140,5 @@ class StatusEffectTriggeredEvent extends BusEvent:
 		var event = StatusEffectTriggeredEvent.new(target, effect_id, effect_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event

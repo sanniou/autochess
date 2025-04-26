@@ -21,7 +21,7 @@ class DebugMessageEvent extends BusEvent:
 		tag = p_tag
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "debug.debug_message"
 
 	## 获取事件的字符串表示
@@ -34,7 +34,6 @@ class DebugMessageEvent extends BusEvent:
 		var event = DebugMessageEvent.new(message, level, tag)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
 		return event
 
 ## 调试命令执行事件
@@ -55,8 +54,8 @@ class DebugCommandExecutedEvent extends BusEvent:
 		result = p_result
 
 	## 获取事件类型
-	func get_type() -> String:
-		return "debug.command_executed"
+	static func get_type() -> String:
+		return "debug.debug_command_executed"
 
 	## 获取事件的字符串表示
 	func _to_string() -> String:
@@ -67,7 +66,7 @@ class DebugCommandExecutedEvent extends BusEvent:
 		var event = DebugCommandExecutedEvent.new(command, args.duplicate(), result)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 调试控制台切换事件
@@ -80,8 +79,8 @@ class DebugConsoleToggledEvent extends BusEvent:
 		visible = p_visible
 
 	## 获取事件类型
-	func get_type() -> String:
-		return "debug.console_toggled"
+	static func get_type() -> String:
+		return "debug.debug_console_toggled"
 
 	## 获取事件的字符串表示
 	func _to_string() -> String:
@@ -92,7 +91,7 @@ class DebugConsoleToggledEvent extends BusEvent:
 		var event = DebugConsoleToggledEvent.new(visible)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 性能警告事件
@@ -107,6 +106,9 @@ class PerformanceWarningEvent extends BusEvent:
 	func _init(p_warning_type: String, p_details: String):
 		warning_type = p_warning_type
 		details = p_details
+	
+	static func get_type() -> String:
+		return "debug.performance_warning"
 
 
 class PerformanceDataUpdatedEvent extends BusEvent:
@@ -115,3 +117,6 @@ class PerformanceDataUpdatedEvent extends BusEvent:
 	
 	func _init(p_details: Dictionary = {}):
 		details = p_details
+
+	static func get_type() -> String:
+		return "debug.performance_data_updated"

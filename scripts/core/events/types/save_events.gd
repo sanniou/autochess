@@ -17,7 +17,7 @@ class SaveGameRequestedEvent extends BusEvent:
 		save_data = p_save_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "save.save_game_requested"
 	
 	## 获取事件的字符串表示
@@ -29,7 +29,7 @@ class SaveGameRequestedEvent extends BusEvent:
 		var event = SaveGameRequestedEvent.new(save_id, save_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 加载请求事件
@@ -42,7 +42,7 @@ class LoadGameRequestedEvent extends BusEvent:
 		save_id = p_save_id
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "save.load_game_requested"
 	
 	## 获取事件的字符串表示
@@ -54,7 +54,7 @@ class LoadGameRequestedEvent extends BusEvent:
 		var event = LoadGameRequestedEvent.new(save_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 游戏已加载事件
@@ -71,7 +71,7 @@ class GameLoadedEvent extends BusEvent:
 		save_data = p_save_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "save.game_loaded"
 	
 	## 获取事件的字符串表示
@@ -83,7 +83,7 @@ class GameLoadedEvent extends BusEvent:
 		var event = GameLoadedEvent.new(save_id, save_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 自动存档触发事件
@@ -93,7 +93,7 @@ class AutosaveTriggeredEvent extends BusEvent:
 		pass
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "save.autosave_triggered"
 	
 	## 获取事件的字符串表示
@@ -105,7 +105,7 @@ class AutosaveTriggeredEvent extends BusEvent:
 		var event = AutosaveTriggeredEvent.new()
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 

@@ -94,7 +94,7 @@ var relic: EventBus.EventGroup:
 	get: return get_group("relic")
 
 ## 便捷属性：事件事件分组
-var BusEvent: EventBus.EventGroup:
+var event: EventBus.EventGroup:
 	get: return get_group("event")
 
 ## 便捷属性：故事事件分组

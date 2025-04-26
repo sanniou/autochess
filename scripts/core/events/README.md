@@ -61,7 +61,7 @@ class MyCustomEvent extends BusEvent:
     func _init(p_data: Dictionary):
         data = p_data
     
-    func get_type() -> String:
+    static func get_type() -> String:
         return "my_group.custom_event"
     
     func clone() ->BusEvent:
@@ -193,6 +193,7 @@ func _initialize_batch_processor() -> void:
     return batch_processor
 
 # 监听批处理事件
+# TODO update 
 func _ready():
     GlobalEventBus.add_listener("batch.battle.damage_dealt", _on_batch_damage)
 

@@ -17,7 +17,7 @@ class MapGeneratedEvent extends BusEvent:
 		map_data = p_map_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "map.map_generated"
 	
 	## 获取事件的字符串表示
@@ -31,7 +31,7 @@ class MapGeneratedEvent extends BusEvent:
 		var event = MapGeneratedEvent.new(map_id, map_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 地图节点选择事件
@@ -52,7 +52,7 @@ class MapNodeSelectedEvent extends BusEvent:
 		node_data = p_node_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "map.map_node_selected"
 	
 	## 获取事件的字符串表示
@@ -66,7 +66,7 @@ class MapNodeSelectedEvent extends BusEvent:
 		var event = MapNodeSelectedEvent.new(node_id, node_type, node_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 地图节点悬停事件
@@ -91,7 +91,7 @@ class MapNodeHoveredEvent extends BusEvent:
 		is_hovered = p_is_hovered
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "map.map_node_hovered"
 	
 	## 获取事件的字符串表示
@@ -105,7 +105,7 @@ class MapNodeHoveredEvent extends BusEvent:
 		var event = MapNodeHoveredEvent.new(node_id, node_type, node_data.duplicate(true), is_hovered)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 地图完成事件
@@ -126,7 +126,7 @@ class MapCompletedEvent extends BusEvent:
 		visited_nodes = p_visited_nodes
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "map.map_completed"
 	
 	## 获取事件的字符串表示
@@ -140,7 +140,7 @@ class MapCompletedEvent extends BusEvent:
 		var event = MapCompletedEvent.new(map_id, completion_time, visited_nodes)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 装备升级事件
@@ -165,7 +165,7 @@ class EquipmentUpgradedEvent extends BusEvent:
 		upgrade_cost = p_upgrade_cost
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "map.equipment_upgraded"
 	
 	## 获取事件的字符串表示
@@ -179,7 +179,7 @@ class EquipmentUpgradedEvent extends BusEvent:
 		var event = EquipmentUpgradedEvent.new(equipment_id, old_level, new_level, upgrade_cost)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 祭坛献祭事件
@@ -200,7 +200,7 @@ class AltarSacrificeMadeEvent extends BusEvent:
 		rewards = p_rewards
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "map.altar_sacrifice_made"
 	
 	## 获取事件的字符串表示
@@ -214,7 +214,7 @@ class AltarSacrificeMadeEvent extends BusEvent:
 		var event = AltarSacrificeMadeEvent.new(chess_id, chess_data.duplicate(true), rewards.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 class TreasureCollectedEvent extends BusEvent:

@@ -17,7 +17,7 @@ class BoardInitializedEvent extends BusEvent:
 		board_size = p_board_size
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "board.board_initialized"
 	
 	## 获取事件的字符串表示
@@ -31,7 +31,7 @@ class BoardInitializedEvent extends BusEvent:
 		var event = BoardInitializedEvent.new(board_id, board_size)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子放置事件
@@ -46,10 +46,9 @@ class PiecePlacedEvent extends BusEvent:
 	func _init(p_piece, p_position: BoardCell):
 		piece = p_piece
 		position = p_position
-		source = p_piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "board.piece_placed"
 	
 	## 获取事件的字符串表示
@@ -63,7 +62,7 @@ class PiecePlacedEvent extends BusEvent:
 		var event = PiecePlacedEvent.new(piece, position)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子移除事件
@@ -78,10 +77,9 @@ class PieceRemovedEvent extends BusEvent:
 	func _init(p_piece, p_position: BoardCell):
 		piece = p_piece
 		position = p_position
-		source = p_piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "board.piece_removed"
 	
 	## 获取事件的字符串表示
@@ -95,7 +93,7 @@ class PieceRemovedEvent extends BusEvent:
 		var event = PieceRemovedEvent.new(piece, position)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子移动事件
@@ -114,10 +112,9 @@ class PieceMovedEvent extends BusEvent:
 		piece = p_piece
 		from_position = p_from_position
 		to_position = p_to_position
-		source = p_piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "board.piece_moved"
 	
 	## 获取事件的字符串表示
@@ -131,7 +128,7 @@ class PieceMovedEvent extends BusEvent:
 		var event = PieceMovedEvent.new(piece, from_position, to_position)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋盘锁定事件
@@ -148,7 +145,7 @@ class BoardLockedEvent extends BusEvent:
 		is_locked = p_is_locked
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "board.board_locked"
 	
 	## 获取事件的字符串表示
@@ -162,7 +159,7 @@ class BoardLockedEvent extends BusEvent:
 		var event = BoardLockedEvent.new(board_id, is_locked)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋盘重置事件

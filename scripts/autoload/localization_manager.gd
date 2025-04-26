@@ -135,7 +135,7 @@ func _deferred_init() -> void:
 		_load_font(current_language)
 
 	# 连接信号
-	GlobalEventBus.localization.add_listener("language_changed", _on_language_changed)
+	GlobalEventBus.localization.add_class_listener(LocalizationEvents.LanguageChangedEvent, _on_language_changed)
 
 	# 标记初始化完成
 	GlobalEventBus.debug.dispatch_event(DebugEvents.DebugMessageEvent.new("本地化管理器初始化完成", 0))
@@ -445,7 +445,7 @@ func _load_language_thread(file_path: String, language_code: String) -> void:
 
 
 ## 语言变更处理
-func _on_language_changed(new_language: String) -> void:
+func _on_language_changed(new_language: LocalizationEvents.LanguageChangedEvent) -> void:
 	# 通知UI更新
 	pass
 

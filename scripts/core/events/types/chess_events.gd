@@ -11,10 +11,9 @@ class ChessPieceCreatedEvent extends BusEvent:
 	## 初始化
 	func _init(p_piece):
 		piece = p_piece
-		source = piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_created"
 	
 	## 获取事件的字符串表示
@@ -26,7 +25,7 @@ class ChessPieceCreatedEvent extends BusEvent:
 		var event = ChessPieceCreatedEvent.new(piece)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子升级事件
@@ -45,7 +44,6 @@ class ChessPieceLevelChangedEvent extends BusEvent:
 		piece = p_piece
 		old_level = p_old_level
 		new_level = p_new_level
-		source = piece
 
 class ChessPiecePurchasedEvent extends BusEvent:
 	## 棋子
@@ -58,7 +56,6 @@ class ChessPiecePurchasedEvent extends BusEvent:
 	func _init(p_piece, p_gold_amount: int):
 		piece = p_piece
 		gold_amount = p_gold_amount
-		source = piece
 	
 ## 棋子出售事件
 class ChessPieceSoldEvent extends BusEvent:
@@ -72,10 +69,9 @@ class ChessPieceSoldEvent extends BusEvent:
 	func _init(p_piece, p_gold_amount: int):
 		piece = p_piece
 		gold_amount = p_gold_amount
-		source = piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_sold"
 	
 	## 获取事件的字符串表示
@@ -87,7 +83,7 @@ class ChessPieceSoldEvent extends BusEvent:
 		var event = ChessPieceSoldEvent.new(piece, gold_amount)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子移动事件
@@ -106,10 +102,9 @@ class ChessPieceMovedEvent extends BusEvent:
 		piece = p_piece
 		from_position = p_from_position
 		to_position = p_to_position
-		source = piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_moved"
 	
 	## 获取事件的字符串表示
@@ -123,7 +118,7 @@ class ChessPieceMovedEvent extends BusEvent:
 		var event = ChessPieceMovedEvent.new(piece, from_position, to_position)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子目标变化事件
@@ -142,10 +137,9 @@ class ChessPieceTargetChangedEvent extends BusEvent:
 		piece = p_piece
 		old_target = p_old_target
 		new_target = p_new_target
-		source = piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_target_changed"
 	
 	## 获取事件的字符串表示
@@ -159,7 +153,7 @@ class ChessPieceTargetChangedEvent extends BusEvent:
 		var event = ChessPieceTargetChangedEvent.new(piece, old_target, new_target)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子目标丢失事件
@@ -174,10 +168,9 @@ class ChessPieceTargetLostEvent extends BusEvent:
 	func _init(p_piece, p_old_target):
 		piece = p_piece
 		old_target = p_old_target
-		source = piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_target_lost"
 	
 	## 获取事件的字符串表示
@@ -189,7 +182,7 @@ class ChessPieceTargetLostEvent extends BusEvent:
 		var event = ChessPieceTargetLostEvent.new(piece, old_target)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子受伤事件
@@ -216,10 +209,9 @@ class ChessPieceDamagedEvent extends BusEvent:
 		amount = p_amount
 		damage_type = p_damage_type
 		is_critical = p_is_critical
-		source = p_source_entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_damaged"
 	
 	## 获取事件的字符串表示
@@ -233,7 +225,7 @@ class ChessPieceDamagedEvent extends BusEvent:
 		var event = ChessPieceDamagedEvent.new(piece, source_entity, amount, damage_type, is_critical)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子治疗事件
@@ -252,10 +244,9 @@ class ChessPieceHealedEvent extends BusEvent:
 		piece = p_piece
 		source_entity = p_source_entity
 		amount = p_amount
-		source = p_source_entity
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_healed"
 	
 	## 获取事件的字符串表示
@@ -269,7 +260,7 @@ class ChessPieceHealedEvent extends BusEvent:
 		var event = ChessPieceHealedEvent.new(piece, source_entity, amount)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 class ChessPieceDiedEvent extends BusEvent:
@@ -293,10 +284,9 @@ class ChessPieceDodgedEvent extends BusEvent:
 	func _init(p_piece:ChessPieceEntity, p_source_entity):
 		piece = p_piece
 		source_entity = p_source_entity
-		source = p_piece
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "chess.chess_piece_dodged"
 	
 	## 获取事件的字符串表示
@@ -308,7 +298,7 @@ class ChessPieceDodgedEvent extends BusEvent:
 		var event = ChessPieceDodgedEvent.new(piece, source_entity)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 

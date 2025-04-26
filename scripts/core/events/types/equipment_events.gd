@@ -30,7 +30,7 @@ class EquipmentCombinedEvent extends BusEvent:
 		result_data = p_result_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "equipment.equipment_combined"
 	
 	## 获取事件的字符串表示
@@ -44,7 +44,7 @@ class EquipmentCombinedEvent extends BusEvent:
 		var event = EquipmentCombinedEvent.new(material_ids.duplicate(), result_id, result_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 装备装备事件

@@ -17,7 +17,7 @@ class EventStartedEvent extends BusEvent:
 		event_data = p_event_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "event.event_started"
 	
 	## 获取事件的字符串表示
@@ -29,7 +29,7 @@ class EventStartedEvent extends BusEvent:
 		var event = EventStartedEvent.new(event_id, event_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 事件选项选择事件
@@ -50,7 +50,7 @@ class EventOptionSelectedEvent extends BusEvent:
 		option_data = p_option_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "event.event_option_selected"
 	
 	## 获取事件的字符串表示
@@ -64,7 +64,7 @@ class EventOptionSelectedEvent extends BusEvent:
 		var event = EventOptionSelectedEvent.new(event_id, option_id, option_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 事件完成事件
@@ -81,7 +81,7 @@ class EventCompletedEvent extends BusEvent:
 		result = p_result
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "event.event_completed"
 	
 	## 获取事件的字符串表示
@@ -95,5 +95,5 @@ class EventCompletedEvent extends BusEvent:
 		var event = EventCompletedEvent.new(event_id, result.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event

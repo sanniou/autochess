@@ -126,7 +126,7 @@ func add_listener(event_type: String, callback: Callable, priority: int = 0,
 ## @param filter_func 过滤函数
 ## @param process_canceled 是否处理已取消的事件
 ## @param once 是否只触发一次
-func add_class_listener(event_class:GDScript, callback: Callable, priority: int = 0,
+func add_class_listener(event_class, callback: Callable, priority: int = 0,
 				 filter_func: Callable = Callable(), process_canceled: bool = false,
 				 once: bool = false) -> void:
 	# 获取事件类型
@@ -138,63 +138,11 @@ func add_class_listener(event_class:GDScript, callback: Callable, priority: int 
 ## 从事件类获取事件类型
 ## @param event_class 事件类
 ## @return 事件类型
-func _get_event_type_from_class(event_class:GDScript) -> String:
-	# 获取事件类的脚本路径
-	var script_path = event_class.get_script().get_path()
-
-	# 获取父类名称（如果是内部类）
-	var parent_basename = script_path.get_file().get_basename()
-
-	# 检查是否是内部类
-	var is_inner_class = false
-	var inner_class_name = ""
-
-	# 如果是BattleEvents.DamageDealtEvent这样的内部类
-	if "." in str(event_class):
-		is_inner_class = true
-		# 从完整类名中提取内部类名
-		inner_class_name = str(event_class).split(".")[-1]
-
-	# 如果是内部类
-	if is_inner_class:
-		# 获取父类名称，提取事件组
-		var event_group = ""
-		if parent_basename.ends_with("Events"):
-			event_group = parent_basename.split("Events")[0].to_lower()
-
-		# 将内部类名转换为事件类型
-		# 例如：DamageDealtEvent -> damage_dealt
-		var event_name = inner_class_name.replace("Event", "")
-
-		# 将驼峰命名转换为蛇形命名
-		var snake_case_name = ""
-		for i in range(event_name.length()):
-			var c = event_name[i]
-			if c == c.to_upper() and i > 0:
-				snake_case_name += "_" + c.to_lower()
-			else:
-				snake_case_name += c.to_lower()
-
-		# 返回完整事件类型
-		return event_group + "." + snake_case_name
-	else:
-		# 如果是普通类，从类名中提取事件类型
-		var class_basename = script_path.get_file().get_basename()
-
-		# 从类名中提取事件名
-		# 例如：DamageDealtEvent -> damage_dealt
-		var event_name = class_basename.replace("Event", "")
-
-		# 将驼峰命名转换为蛇形命名
-		var snake_case_name = ""
-		for i in range(event_name.length()):
-			var c = event_name[i]
-			if c == c.to_upper() and i > 0:
-				snake_case_name += "_" + c.to_lower()
-			else:
-				snake_case_name += c.to_lower()
-
-		return snake_case_name
+func _get_event_type_from_class(event_class) -> String:
+	if not event_class.has_method("get_type"):
+		push_error("参数 event_class 必须实现了 static get_type() 的类！")
+		assert(false)
+	return event_class.get_type()
 
 ## 移除事件监听器
 ## @param event_type 事件类型
@@ -314,7 +262,7 @@ class EventGroup extends Node:
 	## @param filter_func 过滤函数
 	## @param process_canceled 是否处理已取消的事件
 	## @param once 是否只触发一次
-	func add_class_listener(event_class:GDScript, callback: Callable, priority: int = 0,
+	func add_class_listener(event_class, callback: Callable, priority: int = 0,
 					 filter_func: Callable = Callable(), process_canceled: bool = false,
 					 once: bool = false) -> void:
 		# 直接调用事件总线的add_class_listener方法

@@ -17,7 +17,7 @@ class AchievementUnlockedEvent extends BusEvent:
 		achievement_data = p_achievement_data
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "achievement.achievement_unlocked"
 	
 	## 获取事件的字符串表示
@@ -29,7 +29,7 @@ class AchievementUnlockedEvent extends BusEvent:
 		var event = AchievementUnlockedEvent.new(achievement_id, achievement_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 成就进度更新事件
@@ -54,7 +54,7 @@ class AchievementProgressUpdatedEvent extends BusEvent:
 		target_progress = p_target_progress
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "achievement.achievement_progress_updated"
 	
 	## 获取事件的字符串表示
@@ -68,5 +68,5 @@ class AchievementProgressUpdatedEvent extends BusEvent:
 		var event = AchievementProgressUpdatedEvent.new(achievement_id, old_progress, new_progress, target_progress)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event

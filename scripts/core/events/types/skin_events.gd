@@ -21,7 +21,7 @@ class SkinChangedEvent extends BusEvent:
 		new_skin_id = p_new_skin_id
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "skin.skin_changed"
 	
 	## 获取事件的字符串表示
@@ -35,7 +35,7 @@ class SkinChangedEvent extends BusEvent:
 		var event = SkinChangedEvent.new(skin_type, old_skin_id, new_skin_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 皮肤解锁事件
@@ -52,7 +52,7 @@ class SkinUnlockedEvent extends BusEvent:
 		skin_id = p_skin_id
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "skin.skin_unlocked"
 	
 	## 获取事件的字符串表示
@@ -66,7 +66,7 @@ class SkinUnlockedEvent extends BusEvent:
 		var event = SkinUnlockedEvent.new(skin_type, skin_id)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 棋子皮肤变更事件
@@ -93,7 +93,7 @@ class BoardSkinChangedEvent extends BusEvent:
 		new_skin_id = p_new_skin_id
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "skin.board_skin_changed"
 
 ## UI皮肤变更事件

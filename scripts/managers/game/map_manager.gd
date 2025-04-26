@@ -65,10 +65,9 @@ func _do_initialize() -> void:
 	map_controller.path_highlighted.connect(_on_path_highlighted)
 	map_controller.path_highlight_cleared.connect(_on_path_highlight_cleared)
 
-	# 连接事件总线信号
-	GlobalEventBus.battle.add_listener("battle_ended", _on_battle_ended)
-	GlobalEventBus.event.add_listener("event_completed", _on_event_completed)
-	GlobalEventBus.economy.add_listener("shop_closed", _on_shop_exited)
+	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleEndedEvent, _on_battle_ended)
+	GlobalEventBus.event.add_class_listener(EventEvents.EventCompletedEvent, _on_event_completed)
+	GlobalEventBus.economy.add_class_listener(EconomyEvents.ShopClosedEvent, _on_shop_exited)
 
 	# 加载地图配置
 	_load_map_config()
@@ -682,9 +681,9 @@ func _do_cleanup() -> void:
 		map_controller.node_unhovered.disconnect(_on_node_unhovered)
 
 	# 断开事件总线信号
-	GlobalEventBus.battle.remove_listener("battle_ended", _on_battle_ended)
-	GlobalEventBus.event.remove_listener("event_completed", _on_event_completed)
-	GlobalEventBus.economy.remove_listener("shop_closed", _on_shop_exited)
+	GlobalEventBus.battle.remove_class_listener(BattleEvents.BattleEndedEvent, _on_battle_ended)
+	GlobalEventBus.event.remove_class_listener(EventEvents.EventCompletedEvent, _on_event_completed)
+	GlobalEventBus.economy.remove_class_listener(EconomyEvents.ShopClosedEvent, _on_shop_exited)
 
 	# 断开配置变更信号连接
 	if GameManager and GameManager.config_manager:

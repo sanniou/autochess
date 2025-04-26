@@ -12,6 +12,10 @@ class BattleRoundEndedEvent extends BusEvent:
 	func _init(p_round: int):
 		round=p_round
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.battle_round_ended"
+
 class BattleRoundStartedEvent extends BusEvent:
 
 	## 回合数
@@ -19,6 +23,10 @@ class BattleRoundStartedEvent extends BusEvent:
 
 	func _init(p_round: int):
 		round=p_round
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.battle_round_started"
 
 ## 战斗开始事件
 class BattleStartedEvent extends BusEvent:
@@ -42,7 +50,7 @@ class BattleStartedEvent extends BusEvent:
 		enemy_pieces = p_enemy_pieces
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.started"
 
 	## 获取事件的字符串表示
@@ -56,7 +64,7 @@ class BattleStartedEvent extends BusEvent:
 		var event = BattleStartedEvent.new(battle_id, round, player_pieces.duplicate(), enemy_pieces.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 战斗结束事件
@@ -79,6 +87,9 @@ class BattleEndedEvent extends BusEvent:
 	func _init(p_result):
 		result = p_result
 
+	static func get_type() -> String:
+		return "battle.battle_endded"
+
 ## 回合开始事件
 class RoundStartedEvent extends BusEvent:
 	## 回合数
@@ -89,7 +100,7 @@ class RoundStartedEvent extends BusEvent:
 		round = p_round
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.round_started"
 
 	## 获取事件的字符串表示
@@ -101,7 +112,7 @@ class RoundStartedEvent extends BusEvent:
 		var event = RoundStartedEvent.new(round)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 回合结束事件
@@ -114,7 +125,7 @@ class RoundEndedEvent extends BusEvent:
 		round = p_round
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.round_ended"
 
 	## 获取事件的字符串表示
@@ -126,7 +137,7 @@ class RoundEndedEvent extends BusEvent:
 		var event = RoundEndedEvent.new(round)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 伤害事件
@@ -155,7 +166,7 @@ class DamageDealtEvent extends BusEvent:
 		is_critical = p_is_critical
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.damage_dealt"
 
 	## 获取事件的字符串表示
@@ -169,7 +180,7 @@ class DamageDealtEvent extends BusEvent:
 		var event = DamageDealtEvent.new(source_entity, target_entity, amount, damage_type, is_critical)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 治疗事件
@@ -193,6 +204,10 @@ class HealReceivedEvent extends BusEvent:
 		amount = p_amount
 		is_critical = p_is_critical
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.heal_received"
+
 class MovementStartedEvent extends BusEvent:
 	var target
 	var movement_type
@@ -208,6 +223,10 @@ class MovementStartedEvent extends BusEvent:
 		self.direction=direction
 		self.initial_position=initial_position
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.movement_started"
+
 
 class MovementEndedEvent extends BusEvent:
 	var target
@@ -222,6 +241,10 @@ class MovementEndedEvent extends BusEvent:
 		self.moved_distance=moved_distance
 		self.final_position=final_position
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.movement_ended"
+
 class TeleportCompletedEvent extends BusEvent:
 	var target
 	var from
@@ -232,6 +255,10 @@ class TeleportCompletedEvent extends BusEvent:
 		self.target=target
 		self.from=from
 		self.to=to
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.teleport_completed"
 
 class SwapCompletedEvent extends BusEvent:
 	var target
@@ -248,6 +275,10 @@ class SwapCompletedEvent extends BusEvent:
 		self.target_from=target_from
 		self.target_to=target_to
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.swap_completed"
+
 
 ## 单位死亡事件
 class UnitDiedEvent extends BusEvent:
@@ -263,7 +294,7 @@ class UnitDiedEvent extends BusEvent:
 		killer = p_killer
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.unit_died"
 
 	## 获取事件的字符串表示
@@ -275,7 +306,7 @@ class UnitDiedEvent extends BusEvent:
 		var event = UnitDiedEvent.new(unit, killer)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 技能使用事件
@@ -296,7 +327,7 @@ class AbilityUsedEvent extends BusEvent:
 		targets = p_targets
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.ability_used"
 
 	## 获取事件的字符串表示
@@ -310,7 +341,7 @@ class AbilityUsedEvent extends BusEvent:
 		var event = AbilityUsedEvent.new(caster, ability_data.duplicate(), targets.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 class OpponentSelectedEvent extends BusEvent:
@@ -320,6 +351,10 @@ class OpponentSelectedEvent extends BusEvent:
 	func _init(current_opponent: Player):
 		self.current_opponent = current_opponent
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.opponent_selected"
+
 class DelayedStunRemovalEvent extends BusEvent:
 	var traget
 	var time:float
@@ -327,6 +362,10 @@ class DelayedStunRemovalEvent extends BusEvent:
 	func _init(traget , time:float):
 		self.traget = traget
 		self.time = time
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.delayed_stun_removal"
 
 class CriticalHitEvent extends BusEvent:
 	var traget
@@ -337,6 +376,10 @@ class CriticalHitEvent extends BusEvent:
 		self.traget = traget
 		self.amount = amount
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.critical_hit"
+
 class HotHealEvent extends BusEvent:
 	var traget
 	var amount:float
@@ -345,6 +388,10 @@ class HotHealEvent extends BusEvent:
 		self.source = source
 		self.traget = traget
 		self.amount = amount
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.hot_heal"
 
 class HotDamageEvent extends BusEvent:
 	var traget
@@ -359,6 +406,10 @@ class HotDamageEvent extends BusEvent:
 		self.damage_type = damage_type
 		self.dot_type = dot_type
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.hot_damage"
+
 class ShieldAddedEvent extends BusEvent:
 	var target
 	var shield
@@ -372,6 +423,10 @@ class ShieldAddedEvent extends BusEvent:
 		self.amount=amount
 		self.shield_type=shield_type
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.shield_added"
+
 class ShieldRemovedEvent extends BusEvent:
 	var target
 	var shield
@@ -384,6 +439,10 @@ class ShieldRemovedEvent extends BusEvent:
 		self.shield=shield
 		self.remaining=remaining
 		self.shield_type=shield_type
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.shield_removed"
 
 class ShieldAbsorbedEvent extends BusEvent:
 	## 护盾
@@ -410,7 +469,7 @@ class ShieldAbsorbedEvent extends BusEvent:
 		damage_type = p_damage_type
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.shield_absorbed"
 
 	## 获取事件的字符串表示
@@ -424,7 +483,7 @@ class ShieldAbsorbedEvent extends BusEvent:
 		var event = ShieldAbsorbedEvent.new(shield, target, absorbed_damage, remaining_shield, damage_type)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 class StatModifiedEvent extends BusEvent:
@@ -440,13 +499,25 @@ class StatModifiedEvent extends BusEvent:
 		self.is_percentage = is_percentage
 		self.is_debuff = is_debuff
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.stat_modified"
+
 class BattlePreparingPhaseStartdEvent extends BusEvent:
 	func _init():
 		pass
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.preparing_phase_started"
+
 class BattleFightingPhaseStartdEvent extends BusEvent:
 	func _init():
 		pass
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.fighting_phase_started"
 
 class BattleTypeEvent extends BusEvent:
 	var event_type: String
@@ -454,6 +525,10 @@ class BattleTypeEvent extends BusEvent:
 	func _init(event_type: String, data: Dictionary):
 		self.event_type=event_type
 		self.data=data
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "battle.battle_type"
 
 ## 护盾反射伤害事件
 class ShieldReflectedEvent extends BusEvent:
@@ -477,7 +552,7 @@ class ShieldReflectedEvent extends BusEvent:
 		reflect_damage = p_reflect_damage
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.shield_reflected"
 
 	## 获取事件的字符串表示
@@ -491,7 +566,7 @@ class ShieldReflectedEvent extends BusEvent:
 		var event = ShieldReflectedEvent.new(shield, target, damage_source, reflect_damage)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 控制效果免疫事件
@@ -512,7 +587,7 @@ class ControlImmunityEvent extends BusEvent:
 		control_type = p_control_type
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.control_immunity"
 
 	## 获取事件的字符串表示
@@ -526,7 +601,7 @@ class ControlImmunityEvent extends BusEvent:
 		var event = ControlImmunityEvent.new(shield, target, control_type)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 光环效果应用事件
@@ -535,7 +610,7 @@ class AuraEffectAppliedEvent extends BusEvent:
 	var aura
 
 	## 光环来源
-	#var source
+	var source
 
 	## 目标
 	var target
@@ -551,7 +626,7 @@ class AuraEffectAppliedEvent extends BusEvent:
 		effect = p_effect
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.aura_effect_applied"
 
 	## 获取事件的字符串表示
@@ -565,7 +640,7 @@ class AuraEffectAppliedEvent extends BusEvent:
 		var event = AuraEffectAppliedEvent.new(aura, source, target, effect)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 光环效果移除事件
@@ -574,7 +649,7 @@ class AuraEffectRemovedEvent extends BusEvent:
 	var aura
 
 	## 光环来源
-	#var source
+	var source
 
 	## 目标
 	var target
@@ -586,7 +661,7 @@ class AuraEffectRemovedEvent extends BusEvent:
 		target = p_target
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.aura_effect_removed"
 
 	## 获取事件的字符串表示
@@ -600,7 +675,7 @@ class AuraEffectRemovedEvent extends BusEvent:
 		var event = AuraEffectRemovedEvent.new(aura, source, target)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 触发效果激活事件
@@ -609,7 +684,7 @@ class TriggerEffectActivatedEvent extends BusEvent:
 	var trigger
 
 	## 来源
-	#var source
+	var source
 
 	## 目标
 	var target
@@ -629,7 +704,7 @@ class TriggerEffectActivatedEvent extends BusEvent:
 		trigger_count = p_trigger_count
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.trigger_effect_activated"
 
 	## 获取事件的字符串表示
@@ -643,13 +718,13 @@ class TriggerEffectActivatedEvent extends BusEvent:
 		var event = TriggerEffectActivatedEvent.new(trigger, source, target, effect, trigger_count)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 攻击闪避事件
 class AttackDodgedEvent extends BusEvent:
 	## 攻击来源
-	#var source
+	var source
 
 	## 闪避目标
 	var target
@@ -660,7 +735,7 @@ class AttackDodgedEvent extends BusEvent:
 		target = p_target
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.attack_dodged"
 
 	## 获取事件的字符串表示
@@ -672,7 +747,7 @@ class AttackDodgedEvent extends BusEvent:
 		var event = AttackDodgedEvent.new(source, target)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 护盾破碎事件
@@ -689,7 +764,7 @@ class ShieldBrokenEvent extends BusEvent:
 		target = p_target
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.shield_broken"
 
 	## 获取事件的字符串表示
@@ -701,13 +776,13 @@ class ShieldBrokenEvent extends BusEvent:
 		var event = ShieldBrokenEvent.new(shield, target)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 状态效果应用事件
 class StatusAppliedEvent extends BusEvent:
 	## 状态来源
-	#var source
+	var source
 
 	## 目标
 	var target
@@ -726,7 +801,7 @@ class StatusAppliedEvent extends BusEvent:
 		status_data = p_status_data
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "battle.status_applied"
 
 	## 获取事件的字符串表示
@@ -738,5 +813,5 @@ class StatusAppliedEvent extends BusEvent:
 		var event = StatusAppliedEvent.new(source, target, status_type, status_data.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event

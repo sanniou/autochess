@@ -10,19 +10,31 @@ class PlayerRelicUpdatedEvent extends BusEvent:
 	func _init(relic_size: int):
 		self.relic_size = relic_size
 
+	## 获取事件类型
+	static func get_type() -> String:
+		return "game.player_relic_updated"
+
 class PlayerEquipmentUpdatedEvent extends BusEvent:
 	var equipment_size: int
 
 	## 初始化
-	func _init(equipment_size: int):
-		self.equipment_size = equipment_size
+	func _init(p_equipment_size: int):
+		equipment_size = p_equipment_size
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "game.player_equipment_updated"
 
 class PlayerInventoryUpdatedEvent extends BusEvent:
 	var gold: int
 
 	## 初始化
-	func _init(gold: int):
-		self.gold = gold
+	func _init(p_gold: int):
+		gold = p_gold
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "game.player_inventory_updated"
 
 class PlayerChessUpdatedEvent extends BusEvent:
 	var chess_pieces_size: int
@@ -30,9 +42,13 @@ class PlayerChessUpdatedEvent extends BusEvent:
 	var bench_pieces_size: int
 
 	## 初始化
-	func _init(chess_pieces_size: int, bench_pieces_size: int):
-		self.chess_pieces_size = chess_pieces_size
-		self.bench_pieces_size = bench_pieces_size
+	func _init(p_chess_pieces_size: int, p_bench_pieces_size: int):
+		chess_pieces_size = p_chess_pieces_size
+		bench_pieces_size = p_bench_pieces_size
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "game.player_chess_updated"
 
 class PlayerStateChangedEvent extends BusEvent:
 	## 旧状态
@@ -45,6 +61,10 @@ class PlayerStateChangedEvent extends BusEvent:
 	func _init(p_old_state: int, p_new_state: int):
 		old_state = p_old_state
 		new_state = p_new_state
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "game.player_state_changed"
 
 ## 游戏状态变更事件
 class GameStateChangedEvent extends BusEvent:
@@ -60,7 +80,7 @@ class GameStateChangedEvent extends BusEvent:
 		new_state = p_new_state
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.state_changed"
 
 	## 获取事件的字符串表示
@@ -72,7 +92,7 @@ class GameStateChangedEvent extends BusEvent:
 		var event = GameStateChangedEvent.new(old_state, new_state)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 游戏暂停事件
@@ -85,7 +105,7 @@ class GamePausedEvent extends BusEvent:
 		is_paused = p_is_paused
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.paused"
 
 	## 获取事件的字符串表示
@@ -97,7 +117,7 @@ class GamePausedEvent extends BusEvent:
 		var event = GamePausedEvent.new(is_paused)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 游戏开始事件
@@ -110,7 +130,7 @@ class GameStartedEvent extends BusEvent:
 		difficulty_level = p_difficulty_level
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.started"
 
 	## 获取事件的字符串表示
@@ -122,7 +142,7 @@ class GameStartedEvent extends BusEvent:
 		var event = GameStartedEvent.new(difficulty_level)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 游戏结束事件
@@ -143,7 +163,7 @@ class GameEndedEvent extends BusEvent:
 		score = p_score
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.ended"
 
 	## 获取事件的字符串表示
@@ -155,19 +175,23 @@ class GameEndedEvent extends BusEvent:
 		var event = GameEndedEvent.new(is_victory, play_time, score)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 class PlayerExpChangedEvent extends BusEvent:
 	var old_exp: float
-	
+
 	var new_exp: float
 
 	## 初始化
 	func _init(p_old_exp: float, p_new_exp: float):
 		old_exp = p_old_exp
 		new_exp = p_new_exp
-		
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "game.player_exp_changed"
+
 ## 玩家生命值变更事件
 class PlayerHealthChangedEvent extends BusEvent:
 	## 旧生命值
@@ -186,7 +210,7 @@ class PlayerHealthChangedEvent extends BusEvent:
 		max_health = p_max_health
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.player_health_changed"
 
 	## 获取事件的字符串表示
@@ -198,7 +222,7 @@ class PlayerHealthChangedEvent extends BusEvent:
 		var event = PlayerHealthChangedEvent.new(old_health, new_health, max_health)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 玩家等级变更事件
@@ -215,7 +239,7 @@ class PlayerLevelChangedEvent extends BusEvent:
 		new_level = p_new_level
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.player_level_changed"
 
 	## 获取事件的字符串表示
@@ -227,7 +251,7 @@ class PlayerLevelChangedEvent extends BusEvent:
 		var event = PlayerLevelChangedEvent.new(old_level, new_level)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## AI对手初始化事件
@@ -240,7 +264,7 @@ class AIOpponentsInitializedEvent extends BusEvent:
 		ai_opponents = p_ai_opponents
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.ai_opponents_initialized"
 
 	## 获取事件的字符串表示
@@ -252,7 +276,7 @@ class AIOpponentsInitializedEvent extends BusEvent:
 		var event = AIOpponentsInitializedEvent.new(ai_opponents.duplicate())
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 玩家初始化事件
@@ -265,7 +289,7 @@ class PlayerInitializedEvent extends BusEvent:
 		player = p_player
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.player_initialized"
 
 	## 获取事件的字符串表示
@@ -277,7 +301,7 @@ class PlayerInitializedEvent extends BusEvent:
 		var event = PlayerInitializedEvent.new(player)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 难度变更事件
@@ -294,7 +318,7 @@ class DifficultyChangedEvent extends BusEvent:
 		new_level = p_new_level
 
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "game.difficulty_changed"
 
 	## 获取事件的字符串表示
@@ -306,7 +330,7 @@ class DifficultyChangedEvent extends BusEvent:
 		var event = DifficultyChangedEvent.new(old_level, new_level)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 玩家死亡事件
@@ -314,3 +338,7 @@ class PlayerDiedEvent extends BusEvent:
 	## 初始化
 	func _init():
 		pass  # 不需要额外参数
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "game.player_died"

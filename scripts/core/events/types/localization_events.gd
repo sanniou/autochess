@@ -17,7 +17,7 @@ class LanguageChangedEvent extends BusEvent:
 		language_name = p_language_name
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "localization.language_changed"
 	
 	## 获取事件的字符串表示
@@ -31,7 +31,7 @@ class LanguageChangedEvent extends BusEvent:
 		var event = LanguageChangedEvent.new(language_code, language_name)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 请求语言代码事件
@@ -41,7 +41,7 @@ class RequestLanguageCodeEvent extends BusEvent:
 		pass
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "localization.request_language_code"
 	
 	## 获取事件的字符串表示
@@ -53,7 +53,7 @@ class RequestLanguageCodeEvent extends BusEvent:
 		var event = RequestLanguageCodeEvent.new()
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 请求字体事件
@@ -70,7 +70,7 @@ class RequestFontEvent extends BusEvent:
 		font_size = p_font_size
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "localization.request_font"
 	
 	## 获取事件的字符串表示
@@ -84,7 +84,7 @@ class RequestFontEvent extends BusEvent:
 		var event = RequestFontEvent.new(font_name, font_size)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
 
 ## 字体加载事件
@@ -105,7 +105,7 @@ class FontLoadedEvent extends BusEvent:
 		font_resource = p_font_resource
 	
 	## 获取事件类型
-	func get_type() -> String:
+	static func get_type() -> String:
 		return "localization.font_loaded"
 	
 	## 获取事件的字符串表示
@@ -119,5 +119,5 @@ class FontLoadedEvent extends BusEvent:
 		var event = FontLoadedEvent.new(font_name, font_size, font_resource)
 		event.timestamp = timestamp
 		event.canceled = canceled
-		event.source = source
+
 		return event
