@@ -1,7 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://baa7tam06ng4316"]
+[gd_scene load_steps=5 format=3 uid="uid://blt185dclofhj"]
 
 [ext_resource type="Script" uid="uid://dl03u26gci6k6" path="res://scenes/test/map_integration_test.gd" id="1_yvnbx"]
-[ext_resource type="Script" uid="uid://b6k3b3m6vuvfd" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="2_7yh2c"]
+[ext_resource type="PackedScene" uid="uid://dupkkttoim2p1" path="res://scenes/game/map/map_renderer_2d.tscn" id="4_renderer"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.1, 0.1, 0.15, 0.8)
@@ -207,22 +207,19 @@ text = "加载地图"
 
 [node name="MapContainer" type="Panel" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
-offset_bottom = 200.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = -1
+anchor_left = 0.16875
+anchor_top = 0.0574074
+anchor_right = 0.996875
+anchor_bottom = 0.930556
+offset_left = 213.0
+offset_top = 113.0
+offset_right = -337.0
+offset_bottom = -101.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 
-[node name="MapRenderer" type="Node2D" parent="MapContainer"]
-position = Vector2(300, 200)
-script = ExtResource("2_7yh2c")
+[node name="MapRenderer2D" parent="MapContainer" instance=ExtResource("4_renderer")]
+layout_mode = 1
 
 [node name="InfoPanel" type="Panel" parent="."]
 layout_mode = 1

@@ -16,8 +16,8 @@ var available_nodes: Dictionary = {}
 # 地图生成器
 var map_generator: ProceduralMapGenerator
 
-# 地图渲染器场景
-const MAP_RENDERER_SCENE = preload("res://scenes/game/map/map_renderer_2d.tscn")
+# 当前活跃的渲染器
+var _active_renderer: MapRenderer = null
 
 # 难度相关
 var difficulty_level: int = 1
@@ -30,13 +30,8 @@ func _do_initialize() -> void:
 	# 添加依赖
 	add_dependency("ConfigManager")
 
-	# 创建地图渲染器
-	var map_renderer = MAP_RENDERER_SCENE.instantiate()
-	add_child(map_renderer)
-
-	# 创建地图控制器
+	# 创建地图控制器（不包含渲染器）
 	map_controller = MapController.new()
-	map_controller.renderer = map_renderer
 	add_child(map_controller)
 
 	# 创建地图生成器
@@ -683,6 +678,8 @@ func _do_cleanup() -> void:
 		map_controller.node_visited.disconnect(_on_node_visited)
 		map_controller.node_hovered.disconnect(_on_node_hovered)
 		map_controller.node_unhovered.disconnect(_on_node_unhovered)
+		map_controller.path_highlighted.disconnect(_on_path_highlighted)
+		map_controller.path_highlight_cleared.disconnect(_on_path_highlight_cleared)
 
 	# 断开事件总线信号
 	GlobalEventBus.battle.remove_class_listener(BattleEvents.BattleEndedEvent, _on_battle_ended)
@@ -696,6 +693,10 @@ func _do_cleanup() -> void:
 	# 清除地图
 	clear_map()
 
+	# 清理活跃渲染器引用
+	# 不销毁渲染器，因为它的生命周期由创建它的对象管理
+	_active_renderer = null
+
 	# 清理地图控制器
 	if map_controller:
 		map_controller.queue_free()
@@ -707,6 +708,32 @@ func _do_cleanup() -> void:
 		map_generator = null
 
 	_log_info("地图管理器已清理")
+
+## 设置渲染器
+## 设置地图管理器使用的渲染器
+func set_renderer(renderer: MapRenderer) -> void:
+	# 如果已有活跃渲染器，记录警告但不清理
+	# 渲染器的生命周期由创建它的对象管理
+	if _active_renderer:
+		_log_warning("已存在活跃的渲染器，将被替换")
+
+	# 保存活跃渲染器引用
+	_active_renderer = renderer
+
+	# 设置控制器的渲染器
+	if map_controller:
+		map_controller.set_renderer(renderer)
+
+	# 如果已有地图数据且渲染器不为空，立即加载到新渲染器
+	if current_map and map_controller and renderer:
+		map_controller.load_map_data(current_map)
+		_log_info("已设置新的地图渲染器")
+	elif renderer == null:
+		_log_info("已清除地图渲染器引用")
+
+## 获取当前活跃的渲染器
+func get_active_renderer() -> MapRenderer:
+	return _active_renderer
 
 ## 配置变更回调
 func _on_config_changed(config_type: String, config_id: String) -> void:

@@ -1,10 +1,25 @@
 [gd_scene load_steps=4 format=3 uid="uid://dupkkttoim2p1"]
 
-[ext_resource type="Script" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="1_yjnqm"]
+[ext_resource type="Script" uid="uid://b6k3b3m6vuvfd" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="1_yjnqm"]
 [ext_resource type="PackedScene" uid="uid://bqnvj8j4vx2yd" path="res://scenes/game/map/map_node.tscn" id="2_node"]
 [ext_resource type="PackedScene" uid="uid://c8yvxr1r1yvgj" path="res://scenes/game/map/map_connection.tscn" id="3_connection"]
 
-[node name="MapRenderer2D" type="Node"]
+[node name="MapRenderer2D" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_yjnqm")
 node_scene = ExtResource("2_node")
 connection_scene = ExtResource("3_connection")
+
+[node name="Container" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1

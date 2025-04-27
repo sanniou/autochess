@@ -3,12 +3,26 @@ class_name MapRenderer2D
 ## 2D地图渲染器
 ## 在2D空间中渲染地图
 
-# MapConfig类已经是全局类，不需要再次导入
-
 # 渲染设置
 @export var node_size: Vector2 = Vector2(80, 80)
 @export var layer_height: float = 150.0
 @export var horizontal_spacing: float = 120.0
+
+# 初始化
+func _ready() -> void:
+	# 设置容器
+	if not container:
+			container = $Container
+			print("MapRenderer2D: 使用内部容器")
+
+	# 检查必要的组件
+	if not node_scene:
+		push_error("MapRenderer2D: 缺少节点场景")
+
+	if not connection_scene:
+		push_error("MapRenderer2D: 缺少连接场景")
+
+	print("MapRenderer2D 初始化完成，container=", container, ", node_scene=", node_scene, ", connection_scene=", connection_scene)
 
 ## 渲染地图
 func render_map() -> void:

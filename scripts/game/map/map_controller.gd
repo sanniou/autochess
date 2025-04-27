@@ -20,6 +20,9 @@ signal path_highlight_cleared
 var generator: MapGenerator
 var renderer: MapRenderer
 
+# 渲染器信号是否已连接
+var _renderer_signals_connected: bool = false
+
 # 当前地图
 var current_map: MapData = null
 var current_node_id: String = ""
@@ -33,13 +36,51 @@ func _ready() -> void:
 		generator = get_node(generator_path)
 
 	if not renderer_path.is_empty():
-		renderer = get_node(renderer_path)
+		var renderer_node = get_node(renderer_path)
+		if renderer_node:
+			set_renderer(renderer_node)
 
-		# 连接渲染器信号
-		if renderer:
-			renderer.node_clicked.connect(_on_renderer_node_clicked)
-			renderer.node_hovered.connect(_on_renderer_node_hovered)
-			renderer.node_unhovered.connect(_on_renderer_node_unhovered)
+## 设置渲染器
+## 设置控制器使用的渲染器并连接信号
+func set_renderer(new_renderer: MapRenderer) -> void:
+	# 如果已有渲染器，先断开信号
+	if renderer and _renderer_signals_connected:
+		_disconnect_renderer_signals()
+
+	# 设置新的渲染器
+	renderer = new_renderer
+
+	# 连接渲染器信号（如果渲染器不为空）
+	if renderer:
+		_connect_renderer_signals()
+
+		# 如果已有地图数据，立即加载到新渲染器
+		if current_map:
+			renderer.set_map_data(current_map)
+			renderer.render_map()
+
+			# 如果有当前节点，设置当前节点
+			if not current_node_id.is_empty():
+				renderer.set_current_player_node(current_node_id)
+
+## 连接渲染器信号
+func _connect_renderer_signals() -> void:
+	if renderer and not _renderer_signals_connected:
+		renderer.node_clicked.connect(_on_renderer_node_clicked)
+		renderer.node_hovered.connect(_on_renderer_node_hovered)
+		renderer.node_unhovered.connect(_on_renderer_node_unhovered)
+		_renderer_signals_connected = true
+
+## 断开渲染器信号
+func _disconnect_renderer_signals() -> void:
+	if renderer and _renderer_signals_connected:
+		if renderer.node_clicked.is_connected(_on_renderer_node_clicked):
+			renderer.node_clicked.disconnect(_on_renderer_node_clicked)
+		if renderer.node_hovered.is_connected(_on_renderer_node_hovered):
+			renderer.node_hovered.disconnect(_on_renderer_node_hovered)
+		if renderer.node_unhovered.is_connected(_on_renderer_node_unhovered):
+			renderer.node_unhovered.disconnect(_on_renderer_node_unhovered)
+		_renderer_signals_connected = false
 
 ## 生成地图
 ## 使用生成器创建新地图
