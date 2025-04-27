@@ -370,10 +370,6 @@ func _initialize_all_managers() -> void:
 	_initialize_manager(MC.ManagerNames.GAME_EFFECT_MANAGER)
 	_initialize_manager(MC.ManagerNames.VISUAL_MANAGER)
 
-	# 4. 初始化测试管理器
-	_initialize_manager(MC.ManagerNames.UNIFIED_TEST_CONFIG_MANAGER)
-	_initialize_manager(MC.ManagerNames.TEST_MANAGER)
-
 ## 初始化单个管理器
 func _initialize_manager(manager_name: String) -> bool:
 	# 检查管理器是否存在
@@ -402,10 +398,6 @@ func _initialize_manager(manager_name: String) -> bool:
 ## 重置所有管理器
 func _reset_all_managers() -> void:
 	# 按照与初始化相反的顺序重置管理器
-	# 1. 先重置测试管理器
-	_reset_manager(MC.ManagerNames.TEST_MANAGER)
-	_reset_manager(MC.ManagerNames.UNIFIED_TEST_CONFIG_MANAGER)
-
 	# 2. 然后重置UI管理器
 	# 重置新的效果系统
 	_reset_manager(MC.ManagerNames.VISUAL_MANAGER)

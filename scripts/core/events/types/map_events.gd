@@ -3,6 +3,51 @@ class_name MapEvents
 ## 地图事件类型
 ## 定义与地图系统相关的事件
 
+## 地图加载事件
+class MapLoadedEvent extends BusEvent:
+	## 地图数据
+	var map_data: MapData
+
+	## 初始化
+	func _init(p_map_data: MapData):
+		map_data = p_map_data
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "map.map_loaded"
+
+	## 获取事件的字符串表示
+	func _to_string() -> String:
+		return "MapLoadedEvent[map_id=%s]" % [map_data.id if map_data else "null"]
+
+	## 克隆事件
+	func clone() -> BusEvent:
+		var event = MapLoadedEvent.new(map_data)
+		event.timestamp = timestamp
+		event.canceled = canceled
+		return event
+
+## 地图清除事件
+class MapClearedEvent extends BusEvent:
+	## 初始化
+	func _init():
+		pass
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "map.map_cleared"
+
+	## 获取事件的字符串表示
+	func _to_string() -> String:
+		return "MapClearedEvent[]"
+
+	## 克隆事件
+	func clone() -> BusEvent:
+		var event = MapClearedEvent.new()
+		event.timestamp = timestamp
+		event.canceled = canceled
+		return event
+
 ## 地图生成事件
 class MapGeneratedEvent extends BusEvent:
 	## 地图ID
@@ -64,6 +109,41 @@ class MapNodeSelectedEvent extends BusEvent:
 	## 克隆事件
 	func clone() ->BusEvent:
 		var event = MapNodeSelectedEvent.new(node_id, node_type, node_data.duplicate(true))
+		event.timestamp = timestamp
+		event.canceled = canceled
+
+		return event
+
+## 地图节点访问事件
+class MapNodeVisitedEvent extends BusEvent:
+	## 节点ID
+	var node_id: String
+
+	## 节点类型
+	var node_type: String
+
+	## 节点数据
+	var node_data: Dictionary
+
+	## 初始化
+	func _init(p_node_id: String, p_node_type: String, p_node_data: Dictionary):
+		node_id = p_node_id
+		node_type = p_node_type
+		node_data = p_node_data
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "map.map_node_visited"
+
+	## 获取事件的字符串表示
+	func _to_string() -> String:
+		return "MapNodeVisitedEvent[node_id=%s, node_type=%s]" % [
+			node_id, node_type
+		]
+
+	## 克隆事件
+	func clone() ->BusEvent:
+		var event = MapNodeVisitedEvent.new(node_id, node_type, node_data.duplicate(true))
 		event.timestamp = timestamp
 		event.canceled = canceled
 
@@ -288,4 +368,49 @@ class RestCompletedEvent extends BusEvent:
 		event.timestamp = timestamp
 		event.canceled = canceled
 
+		return event
+
+## 路径高亮事件
+class MapPathHighlightedEvent extends BusEvent:
+	## 路径节点
+	var path_nodes: Array
+
+	## 初始化
+	func _init(p_path_nodes: Array):
+		path_nodes = p_path_nodes
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "map.path_highlighted"
+
+	## 获取事件的字符串表示
+	func _to_string() -> String:
+		return "MapPathHighlightedEvent[nodes=%d]" % [path_nodes.size()]
+
+	## 克隆事件
+	func clone() -> BusEvent:
+		var event = MapPathHighlightedEvent.new(path_nodes.duplicate())
+		event.timestamp = timestamp
+		event.canceled = canceled
+		return event
+
+## 路径高亮清除事件
+class MapPathHighlightClearedEvent extends BusEvent:
+	## 初始化
+	func _init():
+		pass
+
+	## 获取事件类型
+	static func get_type() -> String:
+		return "map.path_highlight_cleared"
+
+	## 获取事件的字符串表示
+	func _to_string() -> String:
+		return "MapPathHighlightClearedEvent[]"
+
+	## 克隆事件
+	func clone() -> BusEvent:
+		var event = MapPathHighlightClearedEvent.new()
+		event.timestamp = timestamp
+		event.canceled = canceled
 		return event

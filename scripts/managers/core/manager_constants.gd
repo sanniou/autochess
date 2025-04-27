@@ -41,5 +41,3 @@ class ManagerNames:
 	const RELIC_UI_MANAGER = "RelicUIManager"
 	const GAME_EFFECT_MANAGER = "GameEffectManager"
 	const VISUAL_MANAGER = "VisualManager"
-	const TEST_MANAGER = "TestManager"
-	const UNIFIED_TEST_CONFIG_MANAGER = "UnifiedTestConfigManager"

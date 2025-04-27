@@ -1,0 +1,422 @@
+[gd_scene load_steps=5 format=3 uid="uid://baa7tam06ng16"]
+
+[ext_resource type="Script" uid="uid://dl03u26gci6k6" path="res://scenes/test/map_integration_test.gd" id="1_yvnbx"]
+[ext_resource type="Script" uid="uid://b6k3b3m6vuvfd" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="2_7yh2c"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.1, 0.1, 0.15, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.15, 0.15, 0.2, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="MapIntegrationTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvnbx")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 1)
+
+[node name="TopPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="TitleLabel" type="Label" parent="TopPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -15.0
+offset_right = 100.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "地图集成测试"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ControlPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_top = 70.0
+offset_right = 300.0
+offset_bottom = -70.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="ControlLabel" type="Label" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "地图控制"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ControlPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="TemplateSelector" type="VBoxContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 60.0
+offset_right = -10.0
+offset_bottom = 120.0
+grow_horizontal = 2
+theme_override_constants/separation = 5
+
+[node name="TemplateLabel" type="Label" parent="ControlPanel/TemplateSelector"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "地图模板"
+
+[node name="TemplateDropdown" type="OptionButton" parent="ControlPanel/TemplateSelector"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="DifficultySelector" type="VBoxContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 130.0
+offset_right = -10.0
+offset_bottom = 190.0
+grow_horizontal = 2
+theme_override_constants/separation = 5
+
+[node name="DifficultyLabel" type="Label" parent="ControlPanel/DifficultySelector"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "难度"
+
+[node name="DifficultySpinBox" type="SpinBox" parent="ControlPanel/DifficultySelector"]
+layout_mode = 2
+min_value = 1.0
+max_value = 5.0
+value = 1.0
+
+[node name="SeedSelector" type="VBoxContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 200.0
+offset_right = -10.0
+offset_bottom = 260.0
+grow_horizontal = 2
+theme_override_constants/separation = 5
+
+[node name="SeedLabel" type="Label" parent="ControlPanel/SeedSelector"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "种子 (0 = 随机)"
+
+[node name="SeedSpinBox" type="SpinBox" parent="ControlPanel/SeedSelector"]
+layout_mode = 2
+max_value = 9999.0
+
+[node name="ButtonContainer" type="VBoxContainer" parent="ControlPanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -200.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 10
+
+[node name="GenerateButton" type="Button" parent="ControlPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+text = "生成地图"
+
+[node name="ClearButton" type="Button" parent="ControlPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+disabled = true
+text = "清除地图"
+
+[node name="SaveButton" type="Button" parent="ControlPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+disabled = true
+text = "保存地图"
+
+[node name="LoadButton" type="Button" parent="ControlPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 18
+text = "加载地图"
+
+[node name="MapContainer" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -200.0
+offset_right = 300.0
+offset_bottom = 200.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="MapRenderer" type="Node2D" parent="MapContainer"]
+position = Vector2(300, 200)
+script = ExtResource("2_7yh2c")
+
+[node name="InfoPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -300.0
+offset_top = -250.0
+offset_right = -20.0
+offset_bottom = -80.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 5
+
+[node name="InfoLabel" type="Label" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "地图信息"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="InfoPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="MapInfo" type="Label" parent="InfoPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 40.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "未生成地图"
+
+[node name="NodePanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -150.0
+offset_right = -20.0
+offset_bottom = 70.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="NodePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 5
+
+[node name="NodeLabel" type="Label" parent="NodePanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "节点信息"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="NodePanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="NodeInfo" type="Label" parent="NodePanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 40.0
+offset_right = -10.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "节点信息：
+ID：node_1
+类型：battle
+层级：1
+位置：0
+状态：未访问
+可访问：是"
+
+[node name="ButtonContainer" type="HBoxContainer" parent="NodePanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -50.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 10
+
+[node name="ActivateButton" type="Button" parent="NodePanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "激活节点"
+
+[node name="CompleteButton" type="Button" parent="NodePanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "完成节点"
+
+[node name="BottomPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="BackButton" type="Button" parent="BottomPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -20.0
+offset_right = 100.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "返回"
+
+[node name="TooltipLabel" type="Label" parent="."]
+visible = false
+layout_mode = 0
+offset_right = 150.0
+offset_bottom = 40.0
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "战斗节点"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MessageLabel" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -25.0
+offset_right = 200.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "地图已保存"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="pressed" from="ControlPanel/ButtonContainer/GenerateButton" to="." method="_on_generate_button_pressed"]
+[connection signal="pressed" from="ControlPanel/ButtonContainer/ClearButton" to="." method="_on_clear_button_pressed"]
+[connection signal="pressed" from="ControlPanel/ButtonContainer/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="ControlPanel/ButtonContainer/LoadButton" to="." method="_on_load_button_pressed"]
+[connection signal="pressed" from="NodePanel/ButtonContainer/ActivateButton" to="." method="_on_activate_button_pressed"]
+[connection signal="pressed" from="NodePanel/ButtonContainer/CompleteButton" to="." method="_on_complete_button_pressed"]
+[connection signal="pressed" from="BottomPanel/BackButton" to="." method="_on_back_button_pressed"]

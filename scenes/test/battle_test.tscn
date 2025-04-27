@@ -1,0 +1,446 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8qvt5qjkuv7q1"]
+
+[ext_resource type="Script" path="res://scenes/test/battle_test.gd" id="1_yvnbx"]
+[ext_resource type="PackedScene" uid="uid://c8qvt5qjkuv7qa" path="res://scenes/chess_board/chess_board.tscn" id="2_n3m4p"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.1, 0.1, 0.15, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.15, 0.15, 0.2, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="BattleTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvnbx")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 1)
+
+[node name="TopPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 60.0
+grow_horizontal = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="TitleLabel" type="Label" parent="TopPanel"]
+layout_mode = 1
+anchors_preset = 4
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 20.0
+offset_top = -15.0
+offset_right = 200.0
+offset_bottom = 15.0
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "战斗测试"
+vertical_alignment = 1
+
+[node name="StateLabel" type="Label" parent="TopPanel"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -15.0
+offset_right = 100.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 20
+text = "设置阶段"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpeedLabel" type="Label" parent="TopPanel"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -15.0
+offset_right = -120.0
+offset_bottom = 15.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+text = "速度: 1.0x"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="SpeedSlider" type="HSlider" parent="TopPanel"]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -110.0
+offset_top = -10.0
+offset_right = -20.0
+offset_bottom = 10.0
+grow_horizontal = 0
+grow_vertical = 2
+min_value = 0.5
+max_value = 3.0
+step = 0.5
+value = 1.0
+
+[node name="BoardContainer" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -150.0
+offset_right = 300.0
+offset_bottom = 150.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="ChessBoard" parent="BoardContainer" instance=ExtResource("2_n3m4p")]
+position = Vector2(44, 22)
+
+[node name="SetupPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+offset_right = 300.0
+offset_top = 70.0
+offset_bottom = -70.0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="SetupPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="SetupLabel" type="Label" parent="SetupPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "战斗设置"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="SetupPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="PlayerSetup" type="VBoxContainer" parent="SetupPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 60.0
+offset_right = -10.0
+offset_bottom = 250.0
+theme_override_constants/separation = 5
+
+[node name="PlayerLabel" type="Label" parent="SetupPanel/PlayerSetup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.6, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "玩家棋子"
+
+[node name="PieceSelector" type="HBoxContainer" parent="SetupPanel/PlayerSetup"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="PieceDropdown" type="OptionButton" parent="SetupPanel/PlayerSetup/PieceSelector"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StarLevelSpinBox" type="SpinBox" parent="SetupPanel/PlayerSetup/PieceSelector"]
+layout_mode = 2
+min_value = 1.0
+max_value = 3.0
+value = 1.0
+prefix = "★"
+
+[node name="AddButton" type="Button" parent="SetupPanel/PlayerSetup/PieceSelector"]
+layout_mode = 2
+text = "添加"
+
+[node name="PieceList" type="ItemList" parent="SetupPanel/PlayerSetup"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RemoveButton" type="Button" parent="SetupPanel/PlayerSetup"]
+layout_mode = 2
+text = "移除选中棋子"
+
+[node name="HSeparator" type="HSeparator" parent="SetupPanel"]
+layout_mode = 2
+offset_left = 10.0
+offset_top = 260.0
+offset_right = 290.0
+offset_bottom = 264.0
+
+[node name="EnemySetup" type="VBoxContainer" parent="SetupPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 270.0
+offset_right = -10.0
+offset_bottom = 460.0
+theme_override_constants/separation = 5
+
+[node name="EnemyLabel" type="Label" parent="SetupPanel/EnemySetup"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_font_sizes/font_size = 18
+text = "敌方棋子"
+
+[node name="PieceSelector" type="HBoxContainer" parent="SetupPanel/EnemySetup"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="PieceDropdown" type="OptionButton" parent="SetupPanel/EnemySetup/PieceSelector"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="StarLevelSpinBox" type="SpinBox" parent="SetupPanel/EnemySetup/PieceSelector"]
+layout_mode = 2
+min_value = 1.0
+max_value = 3.0
+value = 1.0
+prefix = "★"
+
+[node name="AddButton" type="Button" parent="SetupPanel/EnemySetup/PieceSelector"]
+layout_mode = 2
+text = "添加"
+
+[node name="PieceList" type="ItemList" parent="SetupPanel/EnemySetup"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="RemoveButton" type="Button" parent="SetupPanel/EnemySetup"]
+layout_mode = 2
+text = "移除选中棋子"
+
+[node name="HSeparator2" type="HSeparator" parent="SetupPanel"]
+layout_mode = 2
+offset_left = 10.0
+offset_top = 470.0
+offset_right = 290.0
+offset_bottom = 474.0
+
+[node name="UtilityButtons" type="VBoxContainer" parent="SetupPanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -100.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_constants/separation = 10
+
+[node name="RandomGenerateButton" type="Button" parent="SetupPanel/UtilityButtons"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "随机生成"
+
+[node name="SaveConfigButton" type="Button" parent="SetupPanel/UtilityButtons"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "保存配置"
+
+[node name="LoadConfigButton" type="Button" parent="SetupPanel/UtilityButtons"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "加载配置"
+
+[node name="ResultsPanel" type="Panel" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.5
+anchor_right = 1.0
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -150.0
+offset_right = -20.0
+offset_bottom = 150.0
+grow_horizontal = 0
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ResultsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 10
+
+[node name="ResultsLabel" type="Label" parent="ResultsPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "战斗结果"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="ResultsPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="ResultLabel" type="Label" parent="ResultsPanel"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 50.0
+offset_right = -10.0
+offset_bottom = 90.0
+grow_horizontal = 2
+theme_override_font_sizes/font_size = 24
+text = "战斗结果：玩家胜利！"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatsLabel" type="Label" parent="ResultsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 100.0
+offset_right = -20.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 16
+text = "战斗统计：
+回合数：5
+战斗时间：25秒
+玩家伤害：120
+敌方伤害：80"
+
+[node name="BottomPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -60.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="ButtonContainer" type="HBoxContainer" parent="BottomPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 10.0
+offset_right = -20.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="StartButton" type="Button" parent="BottomPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "开始战斗"
+
+[node name="ResetButton" type="Button" parent="BottomPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "重置"
+disabled = true
+
+[node name="BackButton" type="Button" parent="BottomPanel/ButtonContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 20
+text = "返回"
+
+[node name="MessageLabel" type="Label" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -25.0
+offset_right = 200.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "配置已保存"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[connection signal="value_changed" from="TopPanel/SpeedSlider" to="." method="_on_speed_slider_value_changed"]
+[connection signal="pressed" from="SetupPanel/PlayerSetup/PieceSelector/AddButton" to="." method="_on_add_player_piece_button_pressed"]
+[connection signal="pressed" from="SetupPanel/PlayerSetup/RemoveButton" to="." method="_on_remove_player_piece_button_pressed"]
+[connection signal="pressed" from="SetupPanel/EnemySetup/PieceSelector/AddButton" to="." method="_on_add_enemy_piece_button_pressed"]
+[connection signal="pressed" from="SetupPanel/EnemySetup/RemoveButton" to="." method="_on_remove_enemy_piece_button_pressed"]
+[connection signal="pressed" from="SetupPanel/UtilityButtons/RandomGenerateButton" to="." method="_on_random_generate_button_pressed"]
+[connection signal="pressed" from="SetupPanel/UtilityButtons/SaveConfigButton" to="." method="_on_save_config_button_pressed"]
+[connection signal="pressed" from="SetupPanel/UtilityButtons/LoadConfigButton" to="." method="_on_load_config_button_pressed"]
+[connection signal="pressed" from="BottomPanel/ButtonContainer/StartButton" to="." method="_on_start_button_pressed"]
+[connection signal="pressed" from="BottomPanel/ButtonContainer/ResetButton" to="." method="_on_reset_button_pressed"]
+[connection signal="pressed" from="BottomPanel/ButtonContainer/BackButton" to="." method="_on_back_button_pressed"]

@@ -1,4 +1,5 @@
 extends "res://scripts/managers/core/base_manager.gd"
+
 ## 设置管理器
 ## 负责管理游戏设置的保存和加载
 
@@ -36,6 +37,9 @@ const DEFAULT_SETTINGS = {
 
 # 当前设置
 var current_settings = {}
+
+func _ready() -> void:
+	_do_initialize()
 
 # 初始化
 # 重写初始化方法

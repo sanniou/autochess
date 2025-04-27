@@ -1,0 +1,330 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8qvt5qjkuv7q9"]
+
+[ext_resource type="Script" path="res://scenes/test/test_hub.gd" id="1_yvnbx"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+bg_color = Color(0.1, 0.1, 0.15, 0.8)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+bg_color = Color(0.15, 0.15, 0.2, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.8, 0.8, 0.2)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+[node name="TestHub" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_yvnbx")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.05, 0.1, 1)
+
+[node name="Title" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -400.0
+offset_top = 50.0
+offset_right = 400.0
+offset_bottom = 110.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.8, 0.8, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 42
+text = "开发者测试中心"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -500.0
+offset_top = -200.0
+offset_right = 500.0
+offset_bottom = 250.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="TestCategoriesContainer" type="HBoxContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="GameplayTestsContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="CategoryPanel" type="Panel" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="CategoryLabel" type="Label" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer/CategoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "游戏玩法测试"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BattleTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "战斗测试"
+
+[node name="MapTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "地图测试"
+
+[node name="ShopTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "商店测试"
+
+[node name="BattleSimulationButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "战斗模拟测试"
+
+[node name="ComponentTestsContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="CategoryPanel" type="Panel" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="CategoryLabel" type="Label" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer/CategoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "组件测试"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ChessTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "棋子测试"
+
+[node name="EquipmentTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "装备测试"
+
+[node name="EventTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "事件测试"
+
+[node name="EnvironmentTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "环境特效测试"
+
+[node name="TechnicalTestsContainer" type="HBoxContainer" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 20
+
+[node name="PerformanceContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="CategoryPanel" type="Panel" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer/PerformanceContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="CategoryLabel" type="Label" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer/PerformanceContainer/CategoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "性能测试"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PerformanceTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer/PerformanceContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "性能测试"
+
+[node name="AutomationContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="CategoryPanel" type="Panel" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer/AutomationContainer"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="CategoryLabel" type="Label" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer/AutomationContainer/CategoryPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_bottom = 30.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 24
+text = "自动化测试"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AutomationTestButton" type="Button" parent="ScrollContainer/VBoxContainer/TechnicalTestsContainer/AutomationContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxFlat_2")
+text = "自动化测试"
+
+[node name="TestDescriptionPanel" type="Panel" parent="ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="ScrollContainer/VBoxContainer/TestDescriptionPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="DescriptionTitle" type="Label" parent="ScrollContainer/VBoxContainer/TestDescriptionPanel/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "测试说明"
+
+[node name="HSeparator" type="HSeparator" parent="ScrollContainer/VBoxContainer/TestDescriptionPanel/VBoxContainer"]
+layout_mode = 2
+
+[node name="DescriptionText" type="RichTextLabel" parent="ScrollContainer/VBoxContainer/TestDescriptionPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "测试中心提供了多种测试工具，用于验证游戏各个组件的功能和性能。
+
+[b]游戏玩法测试[/b]
+- 战斗测试：测试战斗系统的核心功能
+- 地图测试：测试地图生成和节点交互
+- 商店测试：测试商店系统和物品购买
+- 战斗模拟测试：模拟大量战斗并分析结果
+
+[b]组件测试[/b]
+- 棋子测试：测试棋子属性、技能和羁绊
+- 装备测试：测试装备效果和组合
+- 事件测试：测试随机事件系统
+- 环境特效测试：测试游戏环境和特效
+
+[b]技术测试[/b]
+- 性能测试：测试游戏在各种条件下的性能
+- 自动化测试：运行自动化测试套件
+
+选择一个测试项目开始测试。"
+
+[node name="BackButton" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -80.0
+offset_right = 100.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 20
+text = "返回主菜单"
+
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer/BattleTestButton" to="." method="_on_battle_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer/MapTestButton" to="." method="_on_map_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer/ShopTestButton" to="." method="_on_shop_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/GameplayTestsContainer/BattleSimulationButton" to="." method="_on_battle_simulation_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer/ChessTestButton" to="." method="_on_chess_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer/EquipmentTestButton" to="." method="_on_equipment_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer/EventTestButton" to="." method="_on_event_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TestCategoriesContainer/ComponentTestsContainer/EnvironmentTestButton" to="." method="_on_environment_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TechnicalTestsContainer/PerformanceContainer/PerformanceTestButton" to="." method="_on_performance_test_button_pressed"]
+[connection signal="pressed" from="ScrollContainer/VBoxContainer/TechnicalTestsContainer/AutomationContainer/AutomationTestButton" to="." method="_on_automation_test_button_pressed"]
+[connection signal="pressed" from="BackButton" to="." method="_on_back_button_pressed"]

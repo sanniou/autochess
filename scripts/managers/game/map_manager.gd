@@ -3,17 +3,6 @@ class_name MapManager
 ## 地图管理器
 ## 负责地图数据的加载、保存和管理，处理地图生成和随机化，管理地图的全局状态
 
-# 地图信号
-signal map_loaded(map_data)
-signal map_cleared
-signal node_selected(node_data)
-signal node_visited(node_data)
-signal node_hovered(node_data)
-signal node_unhovered(node_data)
-signal map_completed(map_data)
-signal path_highlighted(path_nodes)
-signal path_highlight_cleared
-
 # 地图组件
 var map_controller: MapController
 var map_config: MapConfig = MapConfig.new()
@@ -133,8 +122,8 @@ func load_map(map_data: MapData) -> void:
 	# 使用控制器加载地图
 	map_controller.load_map_data(current_map)
 
-	# 发送信号
-	map_loaded.emit(current_map)
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapLoadedEvent.new(current_map))
 
 ## 加载地图文件
 func load_map_file(file_path: String) -> void:
@@ -155,8 +144,8 @@ func clear_map() -> void:
 	# 使用控制器清除地图
 	map_controller.clear_map()
 
-	# 发送信号
-	map_cleared.emit()
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapClearedEvent.new())
 
 ## 选择节点
 func select_node(node_id: String) -> bool:
@@ -210,7 +199,11 @@ func visit_node(node_id: String) -> bool:
 
 	# 检查地图是否完成
 	if _is_map_completed():
-		map_completed.emit(current_map)
+		# 使用事件总线分发事件（新方式）
+		var completion_time = Time.get_unix_time_from_system() - current_map.creation_time
+		GlobalEventBus.map.dispatch_event(MapEvents.MapCompletedEvent.new(
+			current_map.id, completion_time, visited_nodes.size()
+		))
 
 	return true
 
@@ -277,35 +270,35 @@ func _start_battle(node: MapNode) -> void:
 	if not battle_config:
 		_log_error("无效的战斗类型: " + battle_type)
 		assert(false,"无效的战斗类型: " + battle_type)
-	
+
 	# 计算难度
 	var base_difficulty = node.get_property("difficulty", _calculate_battle_difficulty(node.layer, battle_type == "elite"))
 	var final_difficulty = base_difficulty
 	if difficulty_scaling:
 		final_difficulty *= battle_config.difficulty_multiplier
-	
+
 	# 创建战斗参数
 	var battle_params = BattleParams.new()
 	battle_params.difficulty = final_difficulty
 	battle_params.enemy_level = node.get_property("enemy_level", _calculate_enemy_level(node.layer))
 	battle_params.is_elite = (battle_type == "elite")
 	battle_params.is_boss = (battle_type == "boss")
-	
+
 	# 设置特殊参数
 	if battle_type == "boss":
 		battle_params.boss_id = node.get_property("boss_id", "")
-	
+
 	# 设置奖励
 	# 合并节点奖励和战斗配置奖励
 	var rewards = {}
 	rewards.merge(battle_config.rewards)
 	rewards.merge(node.rewards)
 	battle_params.rewards = rewards
-	
+
 	# 存储战斗参数
 	# todo
 	#GameManager.battle_params = battle_params
-	
+
 	# 切换到战斗状态
 	GameManager.change_state(GameManager.GameState.BATTLE)
 
@@ -461,35 +454,51 @@ func clear_path_highlights() -> void:
 
 ## 路径高亮事件处理
 func _on_path_highlighted(path_nodes: Array) -> void:
-	path_highlighted.emit(path_nodes)
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapPathHighlightedEvent.new(path_nodes))
 
 ## 路径高亮清除事件处理
 func _on_path_highlight_cleared() -> void:
-	path_highlight_cleared.emit()
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapPathHighlightClearedEvent.new())
 
 ## 地图加载事件处理
 func _on_map_loaded(map_data: MapData) -> void:
-	map_loaded.emit(map_data)
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapLoadedEvent.new(map_data))
 
 ## 地图清除事件处理
 func _on_map_cleared() -> void:
-	map_cleared.emit()
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapClearedEvent.new())
 
 ## 节点选择事件处理
 func _on_node_selected(node: MapNode) -> void:
-	node_selected.emit(node)
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapNodeSelectedEvent.new(
+		node.id, node.type, node.to_dict()
+	))
 
 ## 节点访问事件处理
 func _on_node_visited(node: MapNode) -> void:
-	node_visited.emit(node)
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapNodeVisitedEvent.new(
+		node.id, node.type, node.to_dict()
+	))
 
 ## 节点悬停事件处理
 func _on_node_hovered(node: MapNode) -> void:
-	node_hovered.emit(node)
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapNodeHoveredEvent.new(
+		node.id, node.type, node.to_dict(), true
+	))
 
 ## 节点取消悬停事件处理
 func _on_node_unhovered(node: MapNode) -> void:
-	node_unhovered.emit(node)
+	# 使用事件总线分发事件（新方式）
+	GlobalEventBus.map.dispatch_event(MapEvents.MapNodeHoveredEvent.new(
+		node.id, node.type, node.to_dict(), false
+	))
 
 ## 战斗结束事件处理
 func _on_battle_ended(event:BattleEvents.BattleEndedEvent) -> void:

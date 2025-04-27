@@ -40,54 +40,49 @@ func _check_saves() -> void:
 	var saves = save_manager.get_save_list()
 
 	# 更新继续按钮状态
-	if has_node("ButtonContainer/ContinueButton"):
-		$ButtonContainer/ContinueButton.disabled = saves.size() == 0
+	if has_node("MainContainer/GameButtonContainer/ContinueButton"):
+		$MainContainer/GameButtonContainer/ContinueButton.disabled = saves.size() == 0
 
 # 标题动画
 func _animate_title() -> void:
+	# 设置初始状态
+	if has_node("Title"):
+		$Title.modulate.a = 0
+		$Title.position.y += 50
+
+	if has_node("Subtitle"):
+		$Subtitle.modulate.a = 0
+		$Subtitle.position.y += 30
+
+	# 创建动画
+	var title_tween = create_tween()
 	_is_animating = true
 
-	# 设置初始状态
-	$Title.modulate.a = 0
-	$Subtitle.modulate.a = 0
+	# 标题淡入
+	if has_node("Title"):
+		title_tween.tween_property($Title, "modulate:a", 1.0, 0.8).set_ease(Tween.EASE_OUT)
+		title_tween.parallel().tween_property($Title, "position:y", $Title.position.y - 50, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
 
-	# 创建标题动画
-	var title_tween = create_tween()
-	title_tween.tween_property($Title, "modulate:a", 1.0, 1.0).set_ease(Tween.EASE_OUT)
-	title_tween.tween_property($Subtitle, "modulate:a", 1.0, 0.5).set_ease(Tween.EASE_OUT)
+	# 副标题淡入
+	if has_node("Subtitle"):
+		title_tween.tween_property($Subtitle, "modulate:a", 1.0, 0.5).set_ease(Tween.EASE_OUT)
+		title_tween.parallel().tween_property($Subtitle, "position:y", $Subtitle.position.y - 30, 0.5).set_ease(Tween.EASE_OUT)
 
 # 按钮动画
 func _animate_buttons() -> void:
 	# 设置初始状态
-	if has_node("ButtonContainer/ButtonBackground"):
-		$ButtonContainer/ButtonBackground.modulate.a = 0
+	if has_node("MainContainer"):
+		$MainContainer.modulate.a = 0
+		$MainContainer.position.y += 50
 
-	$ButtonContainer.modulate.a = 0
-	$ButtonContainer.position.y += 50
-
-	# 创建按钮动画
+	# 创建动画
 	var button_tween = create_tween()
-	button_tween.tween_interval(1.0)  # 等待标题动画完成
 
-	if has_node("ButtonContainer/ButtonBackground"):
-		button_tween.tween_property($ButtonContainer/ButtonBackground, "modulate:a", 1.0, 0.3).set_ease(Tween.EASE_OUT)
-
-	button_tween.tween_property($ButtonContainer, "modulate:a", 1.0, 0.5).set_ease(Tween.EASE_OUT)
-	button_tween.parallel().tween_property($ButtonContainer, "position:y", $ButtonContainer.position.y - 50, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
-	button_tween.tween_callback(func(): _is_animating = false)
-
-# 开始游戏按钮处理
-func _on_start_game_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	# 播放按钮音效
-	_play_button_sound()
-
-	# 显示难度选择对话框
-	# 创建过渡动画
-	_transition_to_scene("res://scenes/game.tscn")
+	# 按钮淡入
+	if has_node("MainContainer"):
+		button_tween.tween_property($MainContainer, "modulate:a", 1.0, 0.5).set_ease(Tween.EASE_OUT)
+		button_tween.parallel().tween_property($MainContainer, "position:y", $MainContainer.position.y - 50, 0.5).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_BACK)
+		button_tween.tween_callback(func(): _is_animating = false)
 
 # 播放按钮音效
 func _play_button_sound() -> void:
@@ -108,14 +103,10 @@ func _transition_to_scene(scene_path: String) -> void:
 	if has_node("Subtitle"):
 		fade_tween.parallel().tween_property($Subtitle, "modulate:a", 0.0, 0.4).set_ease(Tween.EASE_IN)
 
-	# 淡出按钮背景
-	if has_node("ButtonContainer/ButtonBackground"):
-		fade_tween.parallel().tween_property($ButtonContainer/ButtonBackground, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
-
 	# 淡出按钮
-	if has_node("ButtonContainer"):
-		fade_tween.parallel().tween_property($ButtonContainer, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
-		fade_tween.parallel().tween_property($ButtonContainer, "position:y", $ButtonContainer.position.y + 50, 0.5).set_ease(Tween.EASE_IN)
+	if has_node("MainContainer"):
+		fade_tween.parallel().tween_property($MainContainer, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
+		fade_tween.parallel().tween_property($MainContainer, "position:y", $MainContainer.position.y + 50, 0.5).set_ease(Tween.EASE_IN)
 
 	# 创建过渡效果
 	var transition = ColorRect.new()
@@ -130,104 +121,64 @@ func _transition_to_scene(scene_path: String) -> void:
 	# 动画完成后切换场景
 	fade_tween.tween_callback(func(): get_tree().change_scene_to_file(scene_path))
 
-# 战斗测试按钮处理
-func _on_battle_test_button_pressed():
+# 播放退出动画
+func _play_exit_animation(callback: Callable) -> void:
+	_is_animating = true
+
+	# 创建淡出动画
+	var fade_tween = create_tween()
+
+	# 淡出标题
+	if has_node("Title"):
+		fade_tween.parallel().tween_property($Title, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
+
+	# 淡出副标题
+	if has_node("Subtitle"):
+		fade_tween.parallel().tween_property($Subtitle, "modulate:a", 0.0, 0.4).set_ease(Tween.EASE_IN)
+
+	# 淡出按钮
+	if has_node("MainContainer"):
+		fade_tween.parallel().tween_property($MainContainer, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
+		fade_tween.parallel().tween_property($MainContainer, "position:y", $MainContainer.position.y + 50, 0.5).set_ease(Tween.EASE_IN)
+
+	# 创建过渡效果
+	var transition = ColorRect.new()
+	transition.color = Color(0, 0, 0, 0)
+	transition.size = get_viewport_rect().size
+	transition.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(transition)
+
+	# 添加淡入黑色效果
+	fade_tween.parallel().tween_property(transition, "color:a", 1.0, 0.8)
+
+	# 动画完成后执行回调
+	fade_tween.tween_callback(callback)
+
+# 开始游戏按钮处理
+func _on_start_game_button_pressed():
 	# 如果正在执行动画，忽略点击
 	if _is_animating:
 		return
 
+	# 播放按钮音效
 	_play_button_sound()
-	_transition_to_scene("res://scenes/test/battle_test.tscn")
 
-# 战斗模拟测试按钮处理
-func _on_battle_simulation_button_pressed():
+	# 显示难度选择对话框
+	# 创建过渡动画
+	_transition_to_scene("res://scenes/game.tscn")
+
+# 继续游戏按钮处理
+func _on_continue_button_pressed():
 	# 如果正在执行动画，忽略点击
 	if _is_animating:
 		return
 
-	_play_button_sound()
-	_transition_to_scene("res://scenes/test/battle_simulation_test.tscn")
-
-# 装备测试按钮处理
-func _on_equipment_test_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	_play_button_sound()
-	_transition_to_scene("res://scenes/test/equipment_test.tscn")
-
-# 棋子测试按钮处理
-func _on_chess_test_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	_play_button_sound()
-	_transition_to_scene("res://scenes/test/chess_test.tscn")
-
-# 地图测试按钮处理
-func _on_map_test_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	_play_button_sound()
-	# _transition_to_scene("res://scenes/test/map_test.tscn")
-	_transition_to_scene("res://scenes/test/map_integration_test.tscn")
-
-# 事件测试按钮处理
-func _on_event_test_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	_play_button_sound()
-	_transition_to_scene("res://scenes/test/event_test_new.tscn")
-
-# 商店测试按钮处理
-func _on_shop_test_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	_play_button_sound()
-	_transition_to_scene("res://scenes/test/shop_test_new.tscn")
-
-# 环境特效测试按钮处理
-func _on_environment_test_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	_play_button_sound()
-	_transition_to_scene("res://scenes/test/environment_test.tscn")
-
-# 性能测试按钮处理
-func _on_performance_test_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
-	_play_button_sound()
-	_transition_to_scene("res://scenes/test/performance_test.tscn")
-
-# 测试中心按钮处理
-func _on_test_hub_button_pressed():
-	# 如果正在执行动画，忽略点击
-	if _is_animating:
-		return
-
+	# 播放按钮音效
 	_play_button_sound()
 
-	# 获取测试管理器
-	var test_manager = GameManager.get_manager(MC.ManagerNames.TEST_MANAGER)
-	if test_manager:
-		# 使用测试管理器打开测试中心
-		test_manager.open_test_hub()
-	else:
-		# 直接切换到测试中心场景
-		_transition_to_scene("res://scenes/test/test_hub.tscn")
+	# 加载最新存档
+	# 创建过渡动画
+	_transition_to_scene("res://scenes/game.tscn")
 
 # 设置按钮处理
 func _on_settings_button_pressed():
@@ -258,39 +209,18 @@ func _on_quit_button_pressed():
 	# 显示确认对话框
 	_play_exit_animation(func(): GameManager.quit_game())
 
-# 播放退出动画
-func _play_exit_animation(callback: Callable) -> void:
-	_is_animating = true
+# 开发者模式按钮处理
+func _on_developer_mode_button_pressed():
+	# 如果正在执行动画，忽略点击
+	if _is_animating:
+		return
 
-	# 创建淡出动画
-	var fade_tween = create_tween()
+	_play_button_sound()
+	_transition_to_scene("res://scenes/test/test_hub.tscn")
 
-	# 淡出标题
-	if has_node("Title"):
-		fade_tween.parallel().tween_property($Title, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
-
-	# 淡出副标题
-	if has_node("Subtitle"):
-		fade_tween.parallel().tween_property($Subtitle, "modulate:a", 0.0, 0.4).set_ease(Tween.EASE_IN)
-
-	# 淡出按钮背景
-	if has_node("ButtonContainer/ButtonBackground"):
-		fade_tween.parallel().tween_property($ButtonContainer/ButtonBackground, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
-
-	# 淡出按钮
-	if has_node("ButtonContainer"):
-		fade_tween.parallel().tween_property($ButtonContainer, "modulate:a", 0.0, 0.5).set_ease(Tween.EASE_IN)
-		fade_tween.parallel().tween_property($ButtonContainer, "position:y", $ButtonContainer.position.y + 50, 0.5).set_ease(Tween.EASE_IN)
-
-	# 创建过渡效果
-	var transition = ColorRect.new()
-	transition.color = Color(0, 0, 0, 0)
-	transition.size = get_viewport_rect().size
-	transition.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(transition)
-
-	# 添加淡入黑色效果
-	fade_tween.parallel().tween_property(transition, "color:a", 1.0, 0.8)
-
-	# 动画完成后执行回调
-	fade_tween.tween_callback(callback)
+# 开发者模式快捷键处理
+func _input(event):
+	# 检测Ctrl+D组合键
+	if event is InputEventKey and event.pressed:
+		if event.keycode == KEY_D and event.ctrl_pressed:
+			_on_developer_mode_button_pressed()
