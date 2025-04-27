@@ -170,7 +170,7 @@ func _perform_save(save_name: String) -> void:
 		close_popup()
 	else:
 		# 显示失败提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.save.save_failed"), 2.0))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.save.save_failed"), "todo",2.0))
 
 # 取消按钮点击处理
 func _on_cancel_button_pressed() -> void:

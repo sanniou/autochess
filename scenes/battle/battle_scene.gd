@@ -206,7 +206,7 @@ func _on_skip_button_pressed() -> void:
 	if current_state == BattleState.PREPARE or current_state == BattleState.FIGHTING:
 		# 直接结束战斗
 		if current_state == BattleState.PREPARE:
-			GlobalEventBus.battle.dispatch_event(BattleEvents.BattleStartedEvent.new())
+			GlobalEventBus.battle.dispatch_event(BattleEvents.BattleStartedEvent.new("todo",1,[],[]))
 
 		_on_battle_ended(randf() > 0.5)  # 跳过时随机结果
 

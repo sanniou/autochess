@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://c8qvt5qjkuv7q1"]
+[gd_scene load_steps=5 format=3 uid="uid://c8qvt5qjk534uv7q1"]
 
 [ext_resource type="Script" path="res://scenes/test/battle_test.gd" id="1_yvnbx"]
 [ext_resource type="PackedScene" uid="uid://c8qvt5qjkuv7qa" path="res://scenes/chess_board/chess_board.tscn" id="2_n3m4p"]

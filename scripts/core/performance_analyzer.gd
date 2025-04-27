@@ -568,7 +568,7 @@ func _get_system_info() -> Dictionary:
 		"processor_count": OS.get_processor_count(),
 		"processor_name": OS.get_processor_name(),
 		"memory_static": OS.get_static_memory_usage() / (1024 * 1024),  # MB
-		"memory_dynamic": OS.get_dynamic_memory_usage() / (1024 * 1024),  # MB
+		#"memory_dynamic": OS.get_dynamic_memory_usage() / (1024 * 1024),  # MB
 		"video_adapter": OS.get_video_adapter_driver_info(),
 		"screen_size": DisplayServer.screen_get_size(),
 		"screen_dpi": DisplayServer.screen_get_dpi(),

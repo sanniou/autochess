@@ -76,7 +76,7 @@ func update_hud() -> void:
 		
 		# 如果有折扣，显示折扣信息
 		if discount > 0:
-			title_label.text += " (" + tr("ui.blacksmith.discount", [str(int(discount * 100))]) + ")"
+			title_label.text += " (" + tr("ui.blacksmith.discount")+ str(int(discount * 100)) + ")"
 	
 	# 更新服务描述
 	if has_node("ServiceDescriptionLabel"):
@@ -213,7 +213,7 @@ func _create_equipment_item(equipment: Dictionary, index: int) -> Control:
 	
 	# 创建品质标签
 	var quality_label = Label.new()
-	quality_label.text = tr("ui.equipment.quality", [str(equipment.quality)])
+	quality_label.text = tr("ui.equipment.quality", str(equipment.quality))
 	quality_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	
 	# 根据品质设置颜色
@@ -236,7 +236,7 @@ func _create_equipment_item(equipment: Dictionary, index: int) -> Control:
 		BlacksmithService.UPGRADE:
 			# 显示升级后的品质
 			var upgrade_label = Label.new()
-			upgrade_label.text = "→ " + tr("ui.equipment.quality", [str(equipment.quality + 1)])
+			upgrade_label.text = "→ " + tr("ui.equipment.quality", str(equipment.quality + 1))
 			upgrade_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			
 			# 设置升级后品质的颜色
@@ -255,7 +255,7 @@ func _create_equipment_item(equipment: Dictionary, index: int) -> Control:
 		BlacksmithService.REPAIR:
 			# 显示耐久度
 			var durability_label = Label.new()
-			durability_label.text = tr("ui.equipment.durability", [str(equipment.durability), str(equipment.max_durability)])
+			durability_label.text = tr("ui.equipment.durability", str(equipment.durability))+ str(equipment.max_durability)
 			durability_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			vbox.add_child(durability_label)
 		
@@ -270,7 +270,7 @@ func _create_equipment_item(equipment: Dictionary, index: int) -> Control:
 		BlacksmithService.ENCHANT:
 			# 显示附魔数量
 			var enchant_label = Label.new()
-			enchant_label.text = tr("ui.equipment.enchantments", [str(equipment.enchantments.size()), str(GameManager.equipment_manager.MAX_ENCHANTMENTS)])
+			enchant_label.text = tr("ui.equipment.enchantments")+ str(equipment.enchantments.size())+ str(GameManager.equipment_manager.MAX_ENCHANTMENTS)
 			enchant_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			vbox.add_child(enchant_label)
 	
@@ -326,7 +326,7 @@ func _update_action_buttons() -> void:
 			
 			# 更新按钮文本，显示价格
 			var price = _calculate_service_price(current_service, selected_equipment)
-			confirm_button.text = tr("ui.blacksmith.confirm", [str(price)])
+			confirm_button.text = tr("ui.blacksmith.confirm", str(price))
 		else:
 			confirm_button.disabled = true
 			confirm_button.text = tr("ui.blacksmith.confirm_default")
@@ -398,7 +398,7 @@ func _on_confirm_button_pressed() -> void:
 	var player_manager = GameManager.player_manager
 	if player_manager == null or player_manager.get_gold() < price:
 		# 显示金币不足提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.blacksmith.not_enough_gold")))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.blacksmith.not_enough_gold")))
 		return
 	
 	# 扣除金币
@@ -412,7 +412,7 @@ func _on_confirm_button_pressed() -> void:
 		play_ui_sound("blacksmith_success.ogg")
 		
 		# 显示成功提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(_get_service_success_message(current_service)))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",_get_service_success_message(current_service)))
 		
 		# 发送装备升级信号
 		GlobalEventBus.map.dispatch_event(MapEvents.EquipmentUpgradedEvent.new(selected_equipment, true))
@@ -427,11 +427,11 @@ func _on_confirm_button_pressed() -> void:
 		play_ui_sound("blacksmith_fail.ogg")
 		
 		# 显示失败提示
-		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(_get_service_fail_message(current_service)))
+		GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",_get_service_fail_message(current_service)))
 		
 		# 发送装备升级信号
 		GlobalEventBus.map.dispatch_event(MapEvents.EquipmentUpgradedEvent.new(selected_equipment, false))
-	}
+
 
 # 执行服务
 func _perform_service(service: BlacksmithService, equipment: Dictionary) -> bool:

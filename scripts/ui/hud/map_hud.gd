@@ -37,7 +37,7 @@ func update_hud() -> void:
 	# 更新层数显示
 	if has_node("LayerLabel") and current_node:
 		var layer_label = get_node("LayerLabel")
-		layer_label.text = tr("ui.map.layer", [str(current_node.layer + 1), str(map_data.layers)])
+		layer_label.text = tr("ui.map.layer")+ str(current_node.layer + 1)+ str(map_data.layers)
 
 	# 更新节点信息显示
 	_update_node_info(selected_node if selected_node else current_node)
@@ -87,7 +87,7 @@ func _on_map_node_hovered(node_data: MapNode) -> void:
 # 地图完成处理
 func _on_map_completed() -> void:
 	# 显示地图完成提示
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.map.completed")))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.map.completed")))
 
 	# 播放完成音效
 	AudioManager.play_sfx("map_completed.ogg")

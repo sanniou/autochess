@@ -141,12 +141,12 @@ func print_object_info(obj: Object) -> void:
 	if not debug_enabled or obj == null:
 		return
 	
-	var class_name = obj.get_class()
+	var clazz_name = obj.get_class()
 	var script = obj.get_script()
 	var script_path = script.resource_path if script else "无脚本"
 	
 	var info = "对象信息:\n"
-	info += "- 类: " + class_name + "\n"
+	info += "- 类: " + clazz_name + "\n"
 	info += "- 脚本: " + script_path + "\n"
 	
 	# 打印属性

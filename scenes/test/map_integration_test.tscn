@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://baa7tam06ng16"]
+[gd_scene load_steps=5 format=3 uid="uid://baa7tam06ng4316"]
 
 [ext_resource type="Script" uid="uid://dl03u26gci6k6" path="res://scenes/test/map_integration_test.gd" id="1_yvnbx"]
 [ext_resource type="Script" uid="uid://b6k3b3m6vuvfd" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="2_7yh2c"]

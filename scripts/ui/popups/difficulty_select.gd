@@ -1,4 +1,4 @@
-extends BasePopup
+extends BaseWindowPopup
 class_name DifficultySelect
 ## 难度选择弹窗
 ## 用于选择游戏难度

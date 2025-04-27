@@ -241,7 +241,7 @@ func _on_sacrifice_item_clicked(event: InputEvent, index: int, item_data: Dictio
 		# 显示确认对话框
 		var popup = GameManager.ui_manager.show_popup("confirm_dialog", {
 			"title": tr("ui.altar.sacrifice_title"),
-			"message": tr("ui.altar.sacrifice_message", [item_data.name, str(item_data.value)]),
+			"message": tr("ui.altar.sacrifice_message")+ item_data.name + str(item_data.value),
 			"confirm_text": tr("ui.altar.sacrifice_confirm"),
 			"cancel_text": tr("ui.altar.sacrifice_cancel")
 		})
@@ -273,7 +273,7 @@ func _perform_sacrifice(item_data: Dictionary) -> void:
 	update_hud()
 	
 	# 显示提示
-	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new(tr("ui.altar.sacrifice_success", [item_data.name, str(item_data.value))]))
+	GlobalEventBus.ui.dispatch_event(UIEvents.ToastShownEvent.new("todo",tr("ui.altar.sacrifice_success")+ item_data.name +  str(item_data.value)))
 
 # 牺牲棋子
 func _sacrifice_chess(item_data: Dictionary) -> void:

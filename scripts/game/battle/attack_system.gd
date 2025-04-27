@@ -276,7 +276,7 @@ func _apply_status_effects(target: ChessPieceEntity, effects: Array) -> void:
 				continue
 			"poisoned":
 				# 中毒效果使用持续伤害效果
-				GameManager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.POISONED, effect.value, effect.duration, "poison")
+				GameManager.battle_manager.apply_dot_effect(effect.source, target, DotEffect.DotType.POISON, effect.value, effect.duration, "poison")
 				continue
 			"frozen":
 				status_type = StatusEffect.StatusType.FROZEN

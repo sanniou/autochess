@@ -250,77 +250,35 @@ class MapCompletedEvent extends BusEvent:
 
 ## 装备升级事件
 class EquipmentUpgradedEvent extends BusEvent:
-	## 装备ID
-	var equipment_id: String
 
-	## 旧等级
-	var old_level: int
-
-	## 新等级
-	var new_level: int
-
-	## 升级成本
-	var upgrade_cost: int
+	var selected_equipment: Dictionary
+	
+	var success:bool
 
 	## 初始化
-	func _init(p_equipment_id: String, p_old_level: int, p_new_level: int, p_upgrade_cost: int):
-		equipment_id = p_equipment_id
-		old_level = p_old_level
-		new_level = p_new_level
-		upgrade_cost = p_upgrade_cost
+	func _init(p_selected_equipment: Dictionary, p_success: bool):
+		selected_equipment=p_selected_equipment
+		success=p_success
 
 	## 获取事件类型
 	static func get_type() -> String:
 		return "map.equipment_upgraded"
 
-	## 获取事件的字符串表示
-	func _to_string() -> String:
-		return "EquipmentUpgradedEvent[equipment_id=%s, old_level=%d, new_level=%d, upgrade_cost=%d]" % [
-			equipment_id, old_level, new_level, upgrade_cost
-		]
-
-	## 克隆事件
-	func clone() ->BusEvent:
-		var event = EquipmentUpgradedEvent.new(equipment_id, old_level, new_level, upgrade_cost)
-		event.timestamp = timestamp
-		event.canceled = canceled
-
-		return event
-
 ## 祭坛献祭事件
 class AltarSacrificeMadeEvent extends BusEvent:
-	## 献祭的棋子ID
-	var chess_id: String
-
-	## 献祭的棋子数据
-	var chess_data: Dictionary
-
-	## 获得的奖励
-	var rewards: Array
+	
+	var altar_type: String
+	
+	var altar_data: Dictionary
 
 	## 初始化
-	func _init(p_chess_id: String, p_chess_data: Dictionary, p_rewards: Array):
-		chess_id = p_chess_id
-		chess_data = p_chess_data
-		rewards = p_rewards
+	func _init(p_altar_type: String, p_altar_data: Dictionary):
+		altar_type = p_altar_type
+		altar_data = p_altar_data
 
 	## 获取事件类型
 	static func get_type() -> String:
 		return "map.altar_sacrifice_made"
-
-	## 获取事件的字符串表示
-	func _to_string() -> String:
-		return "AltarSacrificeMadeEvent[chess_id=%s, rewards=%d]" % [
-			chess_id, rewards.size()
-		]
-
-	## 克隆事件
-	func clone() ->BusEvent:
-		var event = AltarSacrificeMadeEvent.new(chess_id, chess_data.duplicate(true), rewards.duplicate(true))
-		event.timestamp = timestamp
-		event.canceled = canceled
-
-		return event
 
 class TreasureCollectedEvent extends BusEvent:
 	## 奖励数据
