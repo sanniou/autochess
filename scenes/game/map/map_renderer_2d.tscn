@@ -1,8 +1,21 @@
-[gd_scene load_steps=4 format=3 uid="uid://dupkkttoim2p1"]
+[gd_scene load_steps=6 format=3 uid="uid://dupkkttoim2p1"]
 
-[ext_resource type="Script" uid="uid://b6k3b3m6vuvfd" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="1_yjnqm"]
+[ext_resource type="Script" uid="uid://cjnsibbwhlq6q" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="1_yjnqm"]
 [ext_resource type="PackedScene" uid="uid://bqnvj8j4vx2yd" path="res://scenes/game/map/map_node.tscn" id="2_node"]
 [ext_resource type="PackedScene" uid="uid://c8yvxr1r1yvgj" path="res://scenes/game/map/map_connection.tscn" id="3_connection"]
+[ext_resource type="Script" uid="uid://byaq0rlyal7f1" path="res://scripts/game/map/ui/grid_background.gd" id="4_grid"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yjnqm"]
+bg_color = Color(0.1, 0.1, 0.1, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.3, 0.3, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
 
 [node name="MapRenderer2D" type="Control"]
 layout_mode = 3
@@ -15,6 +28,26 @@ script = ExtResource("1_yjnqm")
 node_scene = ExtResource("2_node")
 connection_scene = ExtResource("3_connection")
 
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_yjnqm")
+
+[node name="GridBackground" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("4_grid")
+
 [node name="Container" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
@@ -23,3 +56,47 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
+
+[node name="MapCamera" type="Camera2D" parent="."]
+position = Vector2(576, 324)
+limit_smoothed = true
+position_smoothing_enabled = true
+position_smoothing_speed = 4.0
+editor_draw_limits = true
+editor_draw_drag_margin = true
+
+[node name="ZoomControls" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -128.0
+offset_top = -40.0
+offset_right = -8.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+alignment = 2
+
+[node name="ZoomOut" type="Button" parent="ZoomControls"]
+layout_mode = 2
+text = "-"
+
+[node name="ZoomReset" type="Button" parent="ZoomControls"]
+layout_mode = 2
+text = "重置"
+
+[node name="ZoomIn" type="Button" parent="ZoomControls"]
+layout_mode = 2
+text = "+"
+
+[node name="MapInfo" type="Label" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 210.0
+offset_bottom = 36.0
+text = "地图信息"
+autowrap_mode = 3

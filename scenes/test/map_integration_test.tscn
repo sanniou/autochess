@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://blt185dclofhj"]
 
-[ext_resource type="Script" uid="uid://dl03u26gci6k6" path="res://scenes/test/map_integration_test.gd" id="1_yvnbx"]
+[ext_resource type="Script" uid="uid://dknoqvfrrd7gi" path="res://scenes/test/map_integration_test.gd" id="1_yvnbx"]
 [ext_resource type="PackedScene" uid="uid://dupkkttoim2p1" path="res://scenes/game/map/map_renderer_2d.tscn" id="4_renderer"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]

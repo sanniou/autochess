@@ -1,12 +1,27 @@
-[gd_scene load_steps=2 format=3 uid="uid://c8yvxr1r1yvgj"]
+[gd_scene load_steps=3 format=3 uid="uid://c8yvxr1r1yvgj"]
 
 [ext_resource type="Script" path="res://scripts/game/map/ui/map_connection_ui.gd" id="1_yjnqm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_yjnqm"]
+size = Vector2(100, 100)
 
 [node name="MapConnection" type="Control"]
 layout_mode = 3
 anchors_preset = 0
+mouse_filter = 1
 script = ExtResource("1_yjnqm")
 
 [node name="Line2D" type="Line2D" parent="."]
-width = 2.0
-default_color = Color(0.7, 0.7, 0.7, 0.7)
+z_index = -1
+width = 3.0
+default_color = Color(0.7, 0.7, 0.7, 0.8)
+antialiased = true
+begin_cap_mode = 2
+end_cap_mode = 2
+joint_mode = 2
+
+[node name="Area2D" type="Area2D" parent="."]
+z_index = -1
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_yjnqm")

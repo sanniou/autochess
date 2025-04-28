@@ -10,6 +10,8 @@
 
 继续
 
+继续修改，map_renderer_2d 可以分为多个文件进行输出，比如 map_renderer_2d.1  map_renderer_2d.2 我将手动进行合并
+
 分步进行修改。
 
 请保持激进，不要考虑兼容层，因为我们的模块设计是解耦的，不会影响到其他系统。
@@ -38,3 +40,6 @@ https://github.com/xiaomaogame/catctor
 Liweimin0512/-GodotPlatform2D
 https://github.com/SakuyaCN/TowDownGame
 https://github.com/SakuyaCN/Godot-4-test
+
+第二季起始项目GitHub：https://github.com/guladam/godot_autobattler_course/tree/season2_starter-project
+转自：https://youtu.be/MoMX5GOYcwQ?si=zVYwdGRWZ4Ib9M4J

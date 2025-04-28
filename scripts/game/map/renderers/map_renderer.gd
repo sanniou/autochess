@@ -66,7 +66,7 @@ func select_node(node_id: String) -> void:
 		node_instances[node_id].set_selected(true)
 
 	# 发送信号
-	node_clicked.emit(node)
+	#node_clicked.emit(node)
 
 ## 设置当前玩家节点
 func set_current_player_node(node_id: String) -> void:
