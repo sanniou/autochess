@@ -32,6 +32,7 @@ class_name MapTheme
 # 背景样式
 @export var background_color: Color = Color(0.1, 0.1, 0.1, 1.0)
 @export var grid_color: Color = Color(0.2, 0.2, 0.2, 0.5)
+@export var connection_color: Color = Color(0.2, 0.2, 0.2, 0.5)
 @export var background_texture: String = ""
 
 # 动画设置

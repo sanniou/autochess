@@ -1,7 +1,7 @@
 extends MapRenderer
 class_name MapRenderer2D
 ## 2D地图渲染器
-## 在2D空间中渲染地图，支持缩放、平移和主题
+## 在2D空间中渲染地图，支持缩放、平移和主题，模拟现代地图软件体验
 
 # 渲染设置
 @export var node_size: Vector2 = Vector2(80, 80)
@@ -9,13 +9,21 @@ class_name MapRenderer2D
 @export var horizontal_spacing: float = 120.0
 
 # 缩放设置
-@export var min_zoom: float = 0.5
-@export var max_zoom: float = 2.0
+@export var min_zoom: float = 0.3
+@export var max_zoom: float = 2.5
 @export var zoom_step: float = 0.1
 @export var initial_zoom: float = 1.0
 
-# 相机引用
+# 视图设置
+@export var focus_margin: float = 200.0  # 聚焦时的边距
+@export var auto_center_on_current: bool = true  # 自动居中到当前节点
+@export var show_only_reachable_area: bool = true  # 只显示可到达区域
+@export var smooth_camera_speed: float = 4.0  # 相机平滑移动速度
+
+# 组件引用
 var camera: Camera2D
+var map_viewport: SubViewport
+var map_content: Node2D
 
 # 主题管理器
 var theme_manager: MapThemeManager
@@ -24,32 +32,43 @@ var theme_manager: MapThemeManager
 var _node_positions: Dictionary = {}
 var _connection_points: Dictionary = {}
 var _path_cache: Dictionary = {}
+var _visible_nodes: Array = []  # 当前视图中可见的节点
 
 # 动画设置
 var use_animations: bool = true
 var animation_speed: float = 1.0
 
-# 背景网格
-var grid_background: GridBackground
-
 # 拖动状态
 var _is_dragging: bool = false
 var _drag_start_pos: Vector2 = Vector2.ZERO
 var _drag_start_camera_pos: Vector2 = Vector2.ZERO
+var _drag_enabled: bool = true  # 是否启用拖拽
+var _drag_button: int = MOUSE_BUTTON_LEFT  # 拖拽使用的鼠标按钮
+var _drag_inertia: Vector2 = Vector2.ZERO  # 拖拽惯性
+var _drag_inertia_enabled: bool = true  # 是否启用拖拽惯性
+var _last_drag_pos: Vector2 = Vector2.ZERO  # 上一次拖拽位置
+var _last_drag_time: float = 0.0  # 上一次拖拽时间
 
+# 当前主题
+var current_theme: MapTheme = null
 func _ready() -> void:
-	# 设置容器
-	if not container:
-		container = $Container
-		print("MapRenderer2D: 使用内部容器")
+	# 获取组件引用
+	camera = $MapViewportContainer/MapViewport/MapCamera
+	map_viewport = $MapViewportContainer/MapViewport
+	map_content = %MapContent
 
-	# 获取相机引用
-	camera = $MapCamera
+	# 确保 SubViewport 大小正确
+	if map_viewport:
+		map_viewport.size = $MapViewportContainer.size
+
 	if not camera:
 		push_error("MapRenderer2D: 缺少相机组件")
 	else:
 		# 设置初始缩放
 		camera.zoom = Vector2(initial_zoom, initial_zoom)
+		# 启用相机平滑
+		camera.position_smoothing_enabled = true
+		camera.position_smoothing_speed = smooth_camera_speed
 
 	# 检查必要的组件
 	if not node_scene:
@@ -65,67 +84,350 @@ func _ready() -> void:
 	# 连接主题变更信号
 	theme_manager.theme_changed.connect(_on_theme_changed)
 
-	# 获取网格背景引用
-	grid_background = $GridBackground
-	if grid_background and camera:
-		grid_background.set_camera(camera)
-
 	# 连接缩放控制按钮
 	$ZoomControls/ZoomIn.pressed.connect(_on_zoom_in_pressed)
 	$ZoomControls/ZoomOut.pressed.connect(_on_zoom_out_pressed)
 	$ZoomControls/ZoomReset.pressed.connect(_on_zoom_reset_pressed)
 
+	# 连接中心按钮
+	if has_node("MapControls/CenterButton"):
+		$MapControls/CenterButton.pressed.connect(_on_center_button_pressed)
+
+	# 连接切换可到达区域按钮
+	if has_node("MapControls/ToggleReachableButton"):
+		$MapControls/ToggleReachableButton.toggled.connect(_on_toggle_reachable_button_toggled)
+
 	# 连接全局事件总线
 	GlobalEventBus.ui.add_class_listener(ThemeEvents.MapThemeChangedEvent, _on_map_theme_changed)
 
+	# 连接窗口大小变化事件
+	get_tree().root.size_changed.connect(_on_window_size_changed)
+
 	# 连接输入事件
 	set_process_input(true)
+	set_process(true)  # 启用_process处理
 
 	print("MapRenderer2D 初始化完成")
 
+## 处理每帧更新
+func _process(delta: float) -> void:
+	# 处理拖拽惯性
+	if not _is_dragging and _drag_inertia.length() > 0.1 and camera:
+		camera.position -= _drag_inertia * delta
+		_drag_inertia = _drag_inertia.lerp(Vector2.ZERO, 5 * delta)
+
+		# 确保相机在边界内
+		_clamp_camera_position()
+
+	# 更新可见节点
+	_update_visible_nodes()
+
 ## 处理输入事件
 func _input(event: InputEvent) -> void:
+	# 检查事件是否在地图视口内
+	if event is InputEventMouse:
+		var viewport_rect = $MapViewportContainer.get_global_rect()
+		if not viewport_rect.has_point(event.position):
+			return
+
 	# 处理鼠标滚轮缩放
 	if event is InputEventMouseButton:
 		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			_zoom_in()
+			# 缩放时保持鼠标位置不变
+			_zoom_at_point(_zoom_in, event.position)
 			get_viewport().set_input_as_handled()
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			_zoom_out()
+			# 缩放时保持鼠标位置不变
+			_zoom_at_point(_zoom_out, event.position)
 			get_viewport().set_input_as_handled()
-		# 处理鼠标拖动
-		elif event.button_index == MOUSE_BUTTON_MIDDLE:
+		# 处理鼠标拖动 - 使用左键拖动，更符合现代地图软件
+		elif event.button_index == _drag_button:
 			if event.pressed:
 				_start_drag(event.position)
 			else:
-				_end_drag()
+				_end_drag(event.position)
 
 	# 处理鼠标移动
-	if event is InputEventMouseMotion and _is_dragging and camera:
-		_update_drag(event.position)
-
+	elif event is InputEventMouseMotion:
+		if _is_dragging:
+			_update_drag(event.position)
+		elif _drag_inertia_enabled and not _is_dragging:
+			# 更新拖拽惯性计算的参考点
+			var current_time = Time.get_ticks_msec() / 1000.0
+			var time_delta = current_time - _last_drag_time
+			if time_delta > 0:
+				_last_drag_pos = event.position
+				_last_drag_time = current_time
 ## 开始拖动
 func _start_drag(position: Vector2) -> void:
+	if not _drag_enabled or not camera:
+		return
+
 	_is_dragging = true
 	_drag_start_pos = position
-	if camera:
-		_drag_start_camera_pos = camera.position
+	_last_drag_pos = position
+	_last_drag_time = Time.get_ticks_msec() / 1000.0
+	_drag_inertia = Vector2.ZERO
+
+	# 记录相机的起始位置
+	_drag_start_camera_pos = camera.position
+
+	# 改变鼠标光标
+	Input.set_default_cursor_shape(Input.CURSOR_DRAG)
 
 ## 更新拖动
 func _update_drag(position: Vector2) -> void:
 	if not _is_dragging or not camera:
 		return
 
-	var delta = (_drag_start_pos - position) / camera.zoom
-	camera.position = _drag_start_camera_pos + delta
+	# 计算拖拽位移 - 反转方向使其符合直觉（拖向右边，地图向右移动）
+	var delta = (position - _drag_start_pos)
+	delta = delta / camera.zoom
+
+	# 移动相机
+	var new_pos = _drag_start_camera_pos - delta
+
+	# 计算拖拽速度，用于惯性
+	var current_time = Time.get_ticks_msec() / 1000.0
+	var time_delta = current_time - _last_drag_time
+	if time_delta > 0:
+		var inertia_factor = 0.3  # 正值，因为我们已经反转了方向
+		_drag_inertia = (position - _last_drag_pos) / time_delta * inertia_factor / camera.zoom
+		_last_drag_pos = position
+		_last_drag_time = current_time
+
+	# 应用新位置到相机
+	camera.position = new_pos
+
+	# 确保相机在边界内
+	_clamp_camera_position()
 
 ## 结束拖动
-func _end_drag() -> void:
+func _end_drag(_position: Vector2 = Vector2.ZERO) -> void:
+	if not _is_dragging:
+		return
+
 	_is_dragging = false
+
+	# 恢复鼠标光标
+	Input.set_default_cursor_shape(Input.CURSOR_ARROW)
+
+## 在指定点缩放
+func _zoom_at_point(zoom_function: Callable, _point: Vector2) -> void:
+	if not camera or not map_viewport:
+		return
+
+	# 将屏幕坐标转换为视口坐标
+	var viewport_container = $MapViewportContainer
+	var local_point = viewport_container.get_local_mouse_position()
+	var viewport_size = Vector2(map_viewport.size)
+	var container_size = Vector2(viewport_container.size)
+	var viewport_point = local_point * viewport_size / container_size
+
+	# 记录缩放前的世界坐标
+	var prev_zoom = camera.zoom
+	var world_pos = camera.position + (viewport_point - viewport_size / 2) / prev_zoom
+
+	# 执行缩放
+	zoom_function.call()
+
+	# 计算缩放后的位置调整
+	var new_world_pos = camera.position + (viewport_point - viewport_size / 2) / camera.zoom
+	var world_offset = world_pos - new_world_pos
+
+	# 应用位置调整，保持鼠标下方的点不变
+	camera.position += world_offset
+
+	# 确保相机在边界内
+	_clamp_camera_position()
+
+## 限制相机位置在边界内
+func _clamp_camera_position() -> void:
+	if not camera or not map_content:
+		return
+
+	# 获取地图内容的边界
+	var map_rect = Rect2(Vector2.ZERO, map_content.get_viewport_rect().size)
+	if map_rect.size == Vector2.ZERO:
+		return
+
+	# 获取视口大小
+	var viewport_size = map_viewport.size
+
+	# 计算相机可见区域的一半（考虑缩放）
+	var half_viewport = Vector2(viewport_size) / (2 * camera.zoom)
+
+	# 计算边界
+	var min_x = map_rect.position.x + half_viewport.x
+	var max_x = map_rect.end.x - half_viewport.x
+	var min_y = map_rect.position.y + half_viewport.y
+	var max_y = map_rect.end.y - half_viewport.y
+
+	# 确保边界有效（如果地图小于视口）
+	if min_x > max_x:
+		var mid_x = (map_rect.position.x + map_rect.end.x) / 2
+		min_x = max_x
+		max_x = mid_x
+
+	if min_y > max_y:
+		var mid_y = (map_rect.position.y + map_rect.end.y) / 2
+		min_y = max_y
+		max_y = mid_y
+
+	# 应用边界限制
+	camera.position.x = clamp(camera.position.x, min_x, max_x)
+	camera.position.y = clamp(camera.position.y, min_y, max_y)
+## 居中到当前节点
+func _center_on_current_node() -> void:
+	if not camera or not current_player_node:
+		return
+
+	var node_pos = _node_positions.get(current_player_node.id, Vector2.ZERO)
+	if node_pos == Vector2.ZERO:
+		return
+
+	# 使用动画平滑移动到节点位置
+	if use_animations:
+		var tween = create_tween()
+		tween.tween_property(camera, "position", node_pos, 0.5 * animation_speed)
+	else:
+		camera.position = node_pos
+
+	# 确保相机在边界内
+	_clamp_camera_position()
+
+## 居中按钮点击处理
+func _on_center_button_pressed() -> void:
+	_center_on_current_node()
+
+## 切换可到达区域按钮处理
+func _on_toggle_reachable_button_toggled(button_pressed: bool) -> void:
+	show_only_reachable_area = button_pressed
+	_update_visible_nodes()
+
+## 缩放处理
+func _zoom_in() -> void:
+	if not camera:
+		return
+
+	var new_zoom = min(camera.zoom.x + zoom_step, max_zoom)
+	_set_camera_zoom(new_zoom)
+
+func _zoom_out() -> void:
+	if not camera:
+		return
+
+	var new_zoom = max(camera.zoom.x - zoom_step, min_zoom)
+	_set_camera_zoom(new_zoom)
+
+func _on_zoom_in_pressed() -> void:
+	# 在视图中心缩放
+	var viewport_center = map_viewport.size / 2
+	_zoom_at_point(_zoom_in, viewport_center)
+
+func _on_zoom_out_pressed() -> void:
+	# 在视图中心缩放
+	var viewport_center = map_viewport.size / 2
+	_zoom_at_point(_zoom_out, viewport_center)
+
+func _on_zoom_reset_pressed() -> void:
+	if not camera:
+		return
+
+	# 保存当前位置
+	# 不需要额外的计算，直接重置缩放
+
+	# 设置为初始缩放
+	camera.zoom = Vector2(initial_zoom, initial_zoom)
+
+	# 确保相机在边界内
+	_clamp_camera_position()
+
+func _set_camera_zoom(zoom_level: float) -> void:
+	if not camera:
+		return
+
+	if use_animations:
+		# 使用动画缩放
+		var tween = create_tween()
+		tween.tween_property(camera, "zoom", Vector2(zoom_level, zoom_level), 0.2 * animation_speed)
+	else:
+		camera.zoom = Vector2(zoom_level, zoom_level)
+
+## 更新相机限制
+func _update_camera_limits() -> void:
+	if not camera or not map_content:
+		return
+
+	# 获取地图内容的边界
+	var map_rect = Rect2(Vector2.ZERO, map_content.custom_minimum_size)
+
+	# 设置相机限制
+	camera.limit_left = int(map_rect.position.x)
+	camera.limit_right = int(map_rect.end.x)
+	camera.limit_top = int(map_rect.position.y)
+	camera.limit_bottom = int(map_rect.end.y)
+## 应用当前主题
+func _apply_current_theme() -> void:
+	if not theme_manager:
+		return
+
+	# 获取当前主题
+	current_theme = theme_manager.get_current_theme()
+	if not current_theme:
+		return
+
+	# 应用背景颜色
+	var background = $Background
+	if background:
+		var style = background.get_theme_stylebox("panel")
+		if style is StyleBoxFlat:
+			style.bg_color = current_theme.background_color
+
+## 主题变更处理
+func _on_theme_changed(theme: MapTheme) -> void:
+	current_theme = theme
+	_apply_current_theme()
+
+	# 更新所有节点和连接的主题
+	for node_id in node_instances:
+		node_instances[node_id].apply_theme(current_theme)
+
+	for connection_id in connection_instances:
+		connection_instances[connection_id].apply_theme(current_theme)
+
+## 地图主题变更事件处理
+func _on_map_theme_changed(event) -> void:
+	if theme_manager:
+		theme_manager.set_theme_by_id(event.theme_id)
+
+## 清除地图
+func clear_map() -> void:
+	# 清除节点实例
+	for node_id in node_instances:
+		var node_instance = node_instances[node_id]
+		if is_instance_valid(node_instance):
+			node_instance.queue_free()
+
+	# 清除连接实例
+	for connection_id in connection_instances:
+		var connection_instance = connection_instances[connection_id]
+		if is_instance_valid(connection_instance):
+			connection_instance.queue_free()
+
+	# 清除字典
+	node_instances.clear()
+	connection_instances.clear()
+
+	# 清除缓存
+	_node_positions.clear()
+	_connection_points.clear()
+	_path_cache.clear()
+	_visible_nodes.clear()
 
 ## 渲染地图
 func render_map() -> void:
-	if not map_data or not container or not node_scene or not connection_scene:
+	if not map_data or not map_content or not node_scene or not connection_scene:
 		push_error("无法渲染地图：缺少必要的组件")
 		return
 
@@ -136,6 +438,7 @@ func render_map() -> void:
 	_node_positions.clear()
 	_connection_points.clear()
 	_path_cache.clear()
+	_visible_nodes.clear()
 
 	# 计算地图尺寸
 	var map_width = 0
@@ -145,8 +448,12 @@ func render_map() -> void:
 		var layer_nodes = map_data.get_nodes_by_layer(layer)
 		map_width = max(map_width, layer_nodes.size() * horizontal_spacing)
 
-	# 设置容器大小
-	container.custom_minimum_size = Vector2(map_width, map_height)
+	# 设置地图内容大小
+	var padding = 300  # 边距
+	map_content.custom_minimum_size = Vector2(map_width + padding, map_height + padding)
+
+	# 更新地图信息
+	_update_map_info()
 
 	# 更新相机限制
 	_update_camera_limits()
@@ -167,12 +474,126 @@ func render_map() -> void:
 	# 更新可到达节点
 	_update_reachable_nodes()
 
-	# 重置相机位置
-	if camera:
-		camera.position = Vector2(get_viewport().size.x / 2, get_viewport().size.y / 2)
+	# 设置相机位置 - 聚焦到当前节点
+	if camera and current_player_node:
+		var node_pos = _node_positions.get(current_player_node.id, Vector2.ZERO)
+		if node_pos != Vector2.ZERO:
+			camera.position = node_pos
+		else:
+			camera.position = Vector2(map_viewport.size) / 2
+	else:
+		if camera:
+			camera.position = Vector2(map_viewport.size) / 2
+
+	# 确保 SubViewport 大小正确
+	map_viewport.size = $MapViewportContainer.size
+
+	# 确保相机在边界内
+	_clamp_camera_position()
+
+	# 更新可见节点
+	_update_visible_nodes()
 
 	print("地图渲染完成，节点: ", node_instances.size(), ", 连接: ", connection_instances.size())
+## 更新可见节点
+## 根据当前视图和可到达性更新节点的可见性
+func _update_visible_nodes() -> void:
+	if not map_data or not camera:
+		return
 
+	_visible_nodes.clear()
+
+	# 计算相机可见区域
+	var viewport_size = map_viewport.size
+	var view_rect = Rect2(
+		camera.position - Vector2(viewport_size) / (2 * camera.zoom),
+		Vector2(viewport_size) / camera.zoom
+	)
+
+	# 扩展视图区域，包含边缘
+	view_rect = view_rect.grow(node_size.x * 2)
+
+	# 如果启用了只显示可到达区域，获取可到达节点
+	var reachable_nodes = []
+	if show_only_reachable_area and current_player_node:
+		reachable_nodes = map_data.get_reachable_nodes(current_player_node.id)
+		# 始终包含当前节点
+		if not reachable_nodes.has(current_player_node):
+			reachable_nodes.append(current_player_node)
+
+	# 遍历所有节点，更新可见性
+	for node_id in node_instances:
+		var node_instance = node_instances[node_id]
+		var node_data = map_data.get_node_by_id(node_id)
+		var node_pos = _node_positions.get(node_id, Vector2.ZERO)
+
+		# 检查节点是否在视图内
+		var is_in_view = view_rect.has_point(node_pos)
+
+		# 检查节点是否可到达（如果启用了只显示可到达区域）
+		var is_reachable = true
+		if show_only_reachable_area:
+			is_reachable = false
+			for reachable_node in reachable_nodes:
+				if reachable_node.id == node_id:
+					is_reachable = true
+					break
+
+		# 更新节点可见性
+		var should_be_visible = is_in_view and (not show_only_reachable_area or is_reachable)
+
+		# 特殊情况：当前节点和已访问节点始终可见（如果在视图内）
+		if (node_data == current_player_node or node_data.visited) and is_in_view:
+			should_be_visible = true
+
+		# 应用可见性
+		if should_be_visible:
+			node_instance.visible = true
+			_visible_nodes.append(node_id)
+		else:
+			# 使用淡出动画隐藏节点
+			if use_animations and node_instance.visible:
+				var tween = create_tween()
+				tween.tween_property(node_instance, "modulate:a", 0.0, 0.3 * animation_speed)
+				# 使用弱引用避免回调时节点已被销毁的问题
+				var node_instance_ref = weakref(node_instance)
+				tween.tween_callback(func():
+					var node = node_instance_ref.get_ref()
+					if node:
+						node.visible = false
+				)
+			else:
+				node_instance.visible = false
+
+	# 更新连接可见性
+	for connection_id in connection_instances:
+		var connection_instance = connection_instances[connection_id]
+		var connection_data = map_data.get_connection_by_id(connection_id)
+
+		# 检查连接的两端节点是否可见
+		var from_visible = _visible_nodes.has(connection_data.from_node_id)
+		var to_visible = _visible_nodes.has(connection_data.to_node_id)
+
+		# 只有当两端节点都可见时，连接才可见
+		var should_be_visible = from_visible and to_visible
+
+		# 应用可见性
+		if should_be_visible:
+			connection_instance.visible = true
+		else:
+			# 使用淡出动画隐藏连接
+			if use_animations and connection_instance.visible:
+				var tween = create_tween()
+				tween.tween_property(connection_instance, "modulate:a", 0.0, 0.3 * animation_speed)
+				# 使用弱引用避免回调时节点已被销毁的问题
+				var connection_instance_ref = weakref(connection_instance)
+				tween.tween_callback(func():
+					var conn = connection_instance_ref.get_ref()
+					if conn:
+						conn.visible = false
+				)
+			else:
+				connection_instance.visible = false
 ## 渲染节点
 func _render_node(node: MapNode) -> void:
 	if not node_scene:
@@ -180,34 +601,25 @@ func _render_node(node: MapNode) -> void:
 
 	# 实例化节点场景
 	var node_instance = node_scene.instantiate()
-	container.add_child(node_instance)
-
-	# 设置节点数据
-	# 使用MapConfig获取节点类型配置
-	var config = {}
-	if map_data and map_data.has_meta("config"):
-		var map_config = map_data.get_meta("config")
-		if map_config and map_config is MapConfig:
-			config = map_config.get_node_type(node.type)
-
-	node_instance.setup(node, config)
+	map_content.add_child(node_instance)
 
 	# 计算节点位置
-	var position = _calculate_node_position(node)
-
-	# 缓存节点位置
-	_node_positions[node.id] = position
+	var x_pos = node.x_position * horizontal_spacing
+	var y_pos = node.layer * layer_height
+	var node_pos = Vector2(x_pos, y_pos)
 
 	# 设置节点位置
-	node_instance.position = position - node_size / 2
+	node_instance.position = node_pos
 
-	# 如果启用动画，添加出现动画
-	if use_animations:
-		node_instance.modulate.a = 0
-		node_instance.scale = Vector2(0.8, 0.8)
-		var tween = create_tween()
-		tween.tween_property(node_instance, "modulate:a", 1.0, 0.3 * animation_speed)
-		tween.parallel().tween_property(node_instance, "scale", Vector2(1, 1), 0.3 * animation_speed)
+	# 保存节点位置到缓存
+	_node_positions[node.id] = node_pos
+
+	# 设置节点数据
+	node_instance.set_node_data(node)
+
+	# 应用主题
+	if current_theme:
+		node_instance.apply_theme(current_theme)
 
 	# 连接信号
 	node_instance.node_clicked.connect(_on_node_clicked.bind(node.id))
@@ -217,353 +629,265 @@ func _render_node(node: MapNode) -> void:
 	# 保存节点实例
 	node_instances[node.id] = node_instance
 
-	# 设置节点状态
-	if node == selected_node:
-		node_instance.set_selected(true)
-
-	if node == current_player_node:
-		node_instance.set_current(true)
-
-## 计算节点位置
-## 根据节点的层级和位置计算其在地图上的坐标
-func _calculate_node_position(node: MapNode) -> Vector2:
-	# 检查缓存
-	if _node_positions.has(node.id):
-		return _node_positions[node.id]
-
-	# 计算位置
-	var layer_nodes = map_data.get_nodes_by_layer(node.layer)
-	var layer_width = layer_nodes.size() * horizontal_spacing
-	var x_offset = (container.size.x - layer_width) / 2 + horizontal_spacing / 2
-	var x_pos = x_offset + node.position * horizontal_spacing
-	var y_pos = node.layer * layer_height + layer_height / 2
-
-	# 应用智能布局调整，避免节点重叠
-	x_pos = _adjust_node_position_x(node, x_pos)
-
-	return Vector2(x_pos, y_pos)
-
-## 调整节点X坐标以避免重叠
-func _adjust_node_position_x(node: MapNode, base_x: float) -> float:
-	# 获取同层的其他节点
-	var layer_nodes = map_data.get_nodes_by_layer(node.layer)
-
-	# 如果只有一个节点或者是第一个节点，不需要调整
-	if layer_nodes.size() <= 1 or node.position == 0:
-		return base_x
-
-	# 检查是否与前一个节点重叠
-	var prev_node = null
-	for n in layer_nodes:
-		if n.position == node.position - 1:
-			prev_node = n
-			break
-
-	if prev_node and _node_positions.has(prev_node.id):
-		var prev_pos = _node_positions[prev_node.id]
-		var min_distance = node_size.x + 10  # 最小间距
-
-		if base_x - prev_pos.x < min_distance:
-			# 调整位置以避免重叠
-			return prev_pos.x + min_distance
-
-	return base_x
-
 ## 渲染连接
 func _render_connection(connection: MapConnection) -> void:
-	if not connection_scene:
+	if not connection_scene or not map_data:
 		return
 
-	# 获取连接的节点
+	# 获取连接的两端节点
 	var from_node = map_data.get_node_by_id(connection.from_node_id)
 	var to_node = map_data.get_node_by_id(connection.to_node_id)
 
 	if not from_node or not to_node:
+		push_error("无法渲染连接：找不到节点")
 		return
 
-	# 实例化连接场景
-	var connection_instance = connection_scene.instantiate()
-	container.add_child(connection_instance)
+	# 计算节点位置
+	var from_x = from_node.x_position * horizontal_spacing
+	var from_y = from_node.layer * layer_height
+	var to_x = to_node.x_position * horizontal_spacing
+	var to_y = to_node.layer * layer_height
 
-	# 确保连接在节点下方
-	connection_instance.z_index = -10
+	var from_pos = Vector2(from_x, from_y)
+	var to_pos = Vector2(to_x, to_y)
 
-	# 设置连接数据
-	var connection_type = "standard"
-	if connection.has_property("type"):
-		connection_type = connection.get_property("type")
-
-	# 使用MapConfig获取连接类型配置
-	var config = {}
-	if map_data and map_data.has_meta("config"):
-		var map_config = map_data.get_meta("config")
-		if map_config and map_config is MapConfig:
-			config = map_config.get_connection_type(connection_type)
-
-	connection_instance.setup(connection, config)
-
-	# 计算连接的起点和终点
-	var from_pos = _calculate_node_position(from_node)
-	var to_pos = _calculate_node_position(to_node)
-
-	# 缓存连接点
-	var connection_key = connection.from_node_id + "_" + connection.to_node_id
+	# 保存连接点到缓存
+	var connection_key = connection.from_node_id + "_to_" + connection.to_node_id
 	_connection_points[connection_key] = {
 		"from": from_pos,
 		"to": to_pos
 	}
 
-	# 设置连接的起点和终点
+	# 实例化连接场景
+	var connection_instance = connection_scene.instantiate()
+	map_content.add_child(connection_instance)
+
+	# 确保连接在节点下方
+	connection_instance.z_index = -1
+
+	# 设置连接数据
+	connection_instance.set_connection_data(connection)
 	connection_instance.set_points(from_pos, to_pos)
 
-	# 连接信号
-	if connection_instance.has_signal("connection_clicked"):
-		connection_instance.connection_clicked.connect(_on_connection_clicked.bind(connection.id))
-
-	# 如果启用动画，添加出现动画
-	if use_animations:
-		connection_instance.modulate.a = 0
-		var tween = create_tween()
-		tween.tween_property(connection_instance, "modulate:a", 1.0, 0.5 * animation_speed)
+	# 应用主题
+	if current_theme:
+		connection_instance.apply_theme(current_theme)
 
 	# 保存连接实例
 	connection_instances[connection.id] = connection_instance
 
-## 连接点击处理
-func _on_connection_clicked(connection_id: String) -> void:
-	# 可以在这里处理连接点击事件
-	print("连接被点击: ", connection_id)
-
-	# 如果需要，可以发送信号
-	# connection_clicked.emit(connection_id)
-
-## 计算连接点
-## 根据节点ID计算连接的起点和终点
-func _calculate_connection_points(from_node_id: String, to_node_id: String) -> Dictionary:
-	# 检查缓存
-	var connection_key = from_node_id + "_" + to_node_id
-	if _connection_points.has(connection_key):
-		return _connection_points[connection_key]
-
-	# 获取节点
-	var from_node = map_data.get_node_by_id(from_node_id)
-	var to_node = map_data.get_node_by_id(to_node_id)
-
-	if not from_node or not to_node:
-		return {"from": Vector2.ZERO, "to": Vector2.ZERO}
-
-	# 计算位置
-	var from_pos = _calculate_node_position(from_node)
-	var to_pos = _calculate_node_position(to_node)
-
-	# 缓存结果
-	var result = {"from": from_pos, "to": to_pos}
-	_connection_points[connection_key] = result
-
-	return result
-
 ## 高亮路径
-## 高亮显示路径上的所有连接
-func highlight_path(path: Array) -> void:
-	if path.size() < 2:
+func highlight_path(path_nodes: Array) -> void:
+	if path_nodes.size() < 2:
 		return
 
 	# 清除现有高亮
 	clear_path_highlights()
 
-	# 高亮路径上的每一段连接
-	for i in range(path.size() - 1):
-		var from_id = path[i]
-		var to_id = path[i + 1]
+	# 高亮路径上的连接
+	for i in range(path_nodes.size() - 1):
+		var from_id = path_nodes[i]
+		var to_id = path_nodes[i + 1]
 
 		# 查找连接
-		for connection_id in connection_instances:
-			var connection = connection_instances[connection_id]
-			var connection_data = map_data.get_connection_by_id(connection_id)
+		var connection_id = _find_connection_id(from_id, to_id)
+		if connection_id.is_empty():
+			continue
 
-			if connection_data.from_node_id == from_id and connection_data.to_node_id == to_id:
-				# 高亮连接
-				if connection.has_method("set_highlighted"):
-					if use_animations:
-						# 使用动画高亮
-						connection.set_highlighted(true)
-					else:
-						connection.set_highlighted(true)
-				break
+		var connection_instance = connection_instances.get(connection_id)
+		if connection_instance:
+			connection_instance.highlight(true)
 
 ## 清除路径高亮
-## 清除所有高亮的路径
 func clear_path_highlights() -> void:
-	# 重置所有连接的高亮状态
 	for connection_id in connection_instances:
-		var connection = connection_instances[connection_id]
-		if connection.has_method("set_highlighted"):
-			connection.set_highlighted(false)
+		var connection_instance = connection_instances[connection_id]
+		if connection_instance:
+			connection_instance.highlight(false)
 
-## 更新相机限制
-func _update_camera_limits() -> void:
-	if not camera or not container:
+## 查找连接ID
+func _find_connection_id(from_node_id: String, to_node_id: String) -> String:
+	if not map_data:
+		return ""
+
+	# 查找直接连接
+	for connection in map_data.connections:
+		if (connection.from_node_id == from_node_id and connection.to_node_id == to_node_id) or \
+		   (connection.from_node_id == to_node_id and connection.to_node_id == from_node_id):
+			return connection.id
+
+	return ""
+## 设置当前玩家节点
+func set_current_player_node(node_id: String) -> void:
+	if not map_data:
 		return
 
-	# 设置相机限制
-	var map_size = container.custom_minimum_size
-	var viewport_size = get_viewport().size
-
-	# 计算限制，确保地图不会超出视图
-	var limit_left = 0
-	var limit_right = max(map_size.x, viewport_size.x)
-	var limit_top = 0
-	var limit_bottom = max(map_size.y, viewport_size.y)
-
-	# 应用限制
-	camera.limit_left = limit_left
-	camera.limit_right = limit_right
-	camera.limit_top = limit_top
-	camera.limit_bottom = limit_bottom
-
-## 缩放处理
-func _zoom_in() -> void:
-	if not camera:
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
 		return
 
-	var new_zoom = min(camera.zoom.x + zoom_step, max_zoom)
-	_set_camera_zoom(new_zoom)
+	# 更新当前节点
+	current_player_node = node
 
-func _zoom_out() -> void:
-	if not camera:
+	# 更新节点状态
+	for id in node_instances:
+		var node_instance = node_instances[id]
+		node_instance.set_current(id == node_id)
+
+	# 更新可到达节点
+	_update_reachable_nodes()
+
+	# 更新地图信息
+	_update_map_info()
+
+	# 如果启用了自动居中，居中到当前节点
+	if auto_center_on_current:
+		_center_on_current_node()
+
+## 选择节点
+func select_node(node_id: String) -> void:
+	if not map_data:
 		return
 
-	var new_zoom = max(camera.zoom.x - zoom_step, min_zoom)
-	_set_camera_zoom(new_zoom)
-
-func _on_zoom_in_pressed() -> void:
-	_zoom_in()
-
-func _on_zoom_out_pressed() -> void:
-	_zoom_out()
-
-func _on_zoom_reset_pressed() -> void:
-	if not camera:
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
 		return
 
-	_set_camera_zoom(initial_zoom)
+	# 更新选中节点
+	selected_node = node
 
-func _set_camera_zoom(zoom_level: float) -> void:
-	if not camera:
+	# 更新节点状态
+	for id in node_instances:
+		var node_instance = node_instances[id]
+		node_instance.set_selected(id == node_id)
+
+	# 发送信号
+	node_clicked.emit(node)
+
+## 更新节点状态
+func update_node_state(node_id: String, visited: bool) -> void:
+	if not map_data:
 		return
 
-	if use_animations:
-		# 使用动画缩放
-		var tween = create_tween()
-		tween.tween_property(camera, "zoom", Vector2(zoom_level, zoom_level), 0.2 * animation_speed)
-	else:
-		camera.zoom = Vector2(zoom_level, zoom_level)
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 更新节点数据
+	node.visited = visited
+
+	# 更新节点实例
+	var node_instance = node_instances.get(node_id)
+	if node_instance:
+		node_instance.set_visited(visited)
+
+	# 更新可见节点
+	_update_visible_nodes()
+
+	# 更新地图信息
+	_update_map_info()
+
+## 节点点击事件处理
+func _on_node_clicked(node_id: String) -> void:
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 发送信号
+	node_clicked.emit(node)
+
+## 节点悬停事件处理
+func _on_node_hovered(node_id: String) -> void:
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 发送信号
+	node_hovered.emit(node)
+
+## 节点取消悬停事件处理
+func _on_node_unhovered(node_id: String) -> void:
+	if not map_data:
+		return
+
+	var node = map_data.get_node_by_id(node_id)
+	if not node:
+		return
+
+	# 发送信号
+	node_unhovered.emit(node)
+
+## 更新地图信息
+func _update_map_info() -> void:
+	if not map_data:
+		return
+
+	# 获取地图信息标签
+	var map_info_label = $MapInfo
+	if not map_info_label:
+		return
+
+	# 构建地图信息文本
+	var info_text = "地图信息:\n"
+	info_text += "模板: " + map_data.template_id + "\n"
+	info_text += "层数: " + str(map_data.layers) + "\n"
+	info_text += "节点: " + str(map_data.nodes.size()) + "\n"
+	info_text += "连接: " + str(map_data.connections.size()) + "\n"
+
+	# 如果有当前节点，显示当前节点信息
+	if current_player_node:
+		info_text += "\n当前节点: " + current_player_node.id + "\n"
+		info_text += "类型: " + current_player_node.type + "\n"
+		info_text += "层级: " + str(current_player_node.layer) + "\n"
+
+		# 显示可到达节点数量
+		var reachable_nodes = map_data.get_reachable_nodes(current_player_node.id)
+		info_text += "可到达: " + str(reachable_nodes.size()) + " 个节点\n"
+
+	# 更新标签文本
+	map_info_label.text = info_text
+
+## 设置拖拽启用状态
+func set_drag_enabled(enabled: bool) -> void:
+	_drag_enabled = enabled
+
+## 设置动画启用状态
+func set_animations_enabled(enabled: bool) -> void:
+	use_animations = enabled
+
+## 设置动画速度
+func set_animation_speed(speed: float) -> void:
+	animation_speed = speed
+
+## 设置自动居中状态
+func set_auto_center_enabled(enabled: bool) -> void:
+	auto_center_on_current = enabled
+
+## 设置只显示可到达区域状态
+func set_show_only_reachable(enabled: bool) -> void:
+	show_only_reachable_area = enabled
+
+	# 更新UI按钮状态
+	if has_node("MapControls/ToggleReachableButton"):
+		$MapControls/ToggleReachableButton.button_pressed = enabled
+
+	# 更新可见节点
+	_update_visible_nodes()
+
+## 窗口大小变化处理
+func _on_window_size_changed() -> void:
+	# 更新 SubViewport 大小
+	if map_viewport and has_node("MapViewportContainer"):
+		map_viewport.size = $MapViewportContainer.size
 
 	# 更新相机限制
-	_update_camera_limits()
+	_clamp_camera_position()
 
-## 应用当前主题
-func _apply_current_theme() -> void:
-	if not theme_manager:
-		print("主题管理器未初始化")
-		return
-
-	var current_theme = theme_manager.get_current_theme()
-	if not current_theme:
-		print("当前主题为空")
-		return
-
-	print("应用主题: ", current_theme.id)
-
-	# 应用背景颜色
-	var background = $Background
-	if background:
-		var style = background.get_theme_stylebox("panel")
-		if style is StyleBoxFlat:
-			style.bg_color = current_theme.background_color
-
-	# 设置网格颜色
-	if grid_background:
-		grid_background.set_grid_color(current_theme.grid_color)
-
-	# 如果已有节点和连接实例，更新它们的颜色
-	for node_id in node_instances:
-		var node_instance = node_instances[node_id]
-		var node_data = map_data.get_node_by_id(node_id)
-		if node_data and node_instance.has_method("update_theme"):
-			var color = Color.WHITE
-			if current_theme.node_colors.has(node_data.type):
-				color = Color(current_theme.node_colors[node_data.type])
-			elif current_theme.node_colors.has("default"):
-				color = Color(current_theme.node_colors["default"])
-			node_instance.update_theme(color)
-
-	for connection_id in connection_instances:
-		var connection_instance = connection_instances[connection_id]
-		var connection_data = map_data.get_connection_by_id(connection_id)
-		if connection_data and connection_instance.has_method("update_theme"):
-			var connection_type = "default"
-			if connection_data.has_property("type"):
-				connection_type = connection_data.get_property("type")
-
-			var color = Color.WHITE
-			if current_theme.connection_colors.has(connection_type):
-				color = Color(current_theme.connection_colors[connection_type])
-			elif current_theme.connection_colors.has("default"):
-				color = Color(current_theme.connection_colors["default"])
-			connection_instance.update_theme(color)
-
-## 主题变更处理
-func _on_theme_changed(theme_id: String) -> void:
-	_apply_current_theme()
-
-## 地图主题变更事件处理
-func _on_map_theme_changed(event: ThemeEvents.MapThemeChangedEvent) -> void:
-	# 更新节点颜色
-	for node_id in node_instances:
-		var node_instance = node_instances[node_id]
-		var node_data = map_data.get_node_by_id(node_id)
-		if node_data and node_instance.has_method("update_theme"):
-			var color = Color.WHITE
-			if event.node_colors.has(node_data.type):
-				color = Color(event.node_colors[node_data.type])
-			elif event.node_colors.has("default"):
-				color = Color(event.node_colors["default"])
-			node_instance.update_theme(color)
-
-	# 更新连接颜色
-	for connection_id in connection_instances:
-		var connection_instance = connection_instances[connection_id]
-		var connection_data = map_data.get_connection_by_id(connection_id)
-		if connection_data and connection_instance.has_method("update_theme"):
-			var connection_type = "default"
-			if connection_data.has_property("type"):
-				connection_type = connection_data.get_property("type")
-
-			var color = Color.WHITE
-			if event.connection_colors.has(connection_type):
-				color = Color(event.connection_colors[connection_type])
-			elif event.connection_colors.has("default"):
-				color = Color(event.connection_colors["default"])
-			connection_instance.update_theme(color)
-
-	# 更新背景颜色
-	var background = $Background
-	if background:
-		var style = background.get_theme_stylebox("panel")
-		if style is StyleBoxFlat:
-			if use_animations:
-				# 使用动画更新背景颜色
-				var tween = create_tween()
-				tween.tween_method(
-					func(value): style.bg_color = value,
-					style.bg_color, event.background_color, 0.5 * animation_speed
-				)
-			else:
-				style.bg_color = event.background_color
-
-	# 更新网格颜色
-	if grid_background:
-		var grid_color = event.background_color.lightened(0.1)
-		grid_color.a = 0.2
-		grid_background.set_grid_color(grid_color)
+	# 更新可见节点
+	_update_visible_nodes()

@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://dupkkttoim2p1"]
+[gd_scene load_steps=6 format=3 uid="uid://dupkkttoim2p2"]
 
-[ext_resource type="Script" uid="uid://b6k3b3m6vuvfd" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="1_yjnqm"]
-[ext_resource type="Script" uid="uid://cwov8fy6ukyvm" path="res://scripts/game/map/ui/grid_background.gd" id="4_grid"]
+[ext_resource type="Script" path="res://scripts/game/map/renderers/map_renderer_2d.gd" id="1_yjnqm"]
+[ext_resource type="PackedScene" uid="uid://bqnvj8j4vx2yd" path="res://scenes/game/map/map_node.tscn" id="2_node"]
+[ext_resource type="PackedScene" uid="uid://c8yvxr1r1yvgj" path="res://scenes/game/map/map_connection.tscn" id="3_connection"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yjnqm"]
 bg_color = Color(0.1, 0.1, 0.1, 1)
@@ -15,6 +16,18 @@ corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_border"]
+bg_color = Color(0.15, 0.15, 0.15, 0)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4, 0.4, 0.4, 0.5)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
 [node name="MapRenderer2D" type="Control"]
 layout_mode = 3
 anchors_preset = 15
@@ -23,6 +36,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_yjnqm")
+node_scene = ExtResource("2_node")
+connection_scene = ExtResource("3_connection")
 
 [node name="Background" type="Panel" parent="."]
 layout_mode = 1
@@ -34,32 +49,49 @@ grow_vertical = 2
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_yjnqm")
 
-[node name="GridBackground" type="Control" parent="."]
+[node name="MapViewportContainer" type="SubViewportContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = 60.0
+offset_right = -60.0
+offset_bottom = -60.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("4_grid")
+stretch = true
 
-[node name="Container" type="Control" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 1
+[node name="MapViewport" type="SubViewport" parent="MapViewportContainer"]
+handle_input_locally = false
+size = Vector2i(1032, 528)
+render_target_update_mode = 4
 
-[node name="MapCamera" type="Camera2D" parent="."]
-position = Vector2(576, 324)
+[node name="MapCamera" type="Camera2D" parent="MapViewportContainer/MapViewport"]
+position = Vector2(516, 264)
+current = true
 limit_smoothed = true
 position_smoothing_enabled = true
 position_smoothing_speed = 4.0
 editor_draw_limits = true
 editor_draw_drag_margin = true
+
+[node name="MapContent" type="Node2D" parent="MapViewportContainer/MapViewport"]
+unique_name_in_owner = true
+
+[node name="MapBorder" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 60.0
+offset_top = 60.0
+offset_right = -60.0
+offset_bottom = -60.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_border")
 
 [node name="ZoomControls" type="HBoxContainer" parent="."]
 layout_mode = 1
@@ -111,21 +143,6 @@ toggle_mode = true
 button_pressed = true
 text = "只显示可达"
 icon_alignment = 1
-
-[node name="MapInfoRect" type="ReferenceRect" parent="."]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 60.0
-offset_top = 60.0
-offset_right = -60.0
-offset_bottom = -60.0
-grow_horizontal = 2
-grow_vertical = 2
-border_color = Color(0.501961, 0.501961, 0.501961, 0.501961)
-border_width = 2.0
-editor_only = false
 
 [node name="MapInfo" type="Label" parent="."]
 layout_mode = 0

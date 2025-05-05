@@ -1,0 +1,35 @@
+[gd_scene load_steps=3 format=3 uid="uid://dupkkttoim2p3"]
+
+[ext_resource type="PackedScene" uid="uid://dupkkttoim2p2" path="res://scenes/game/map/map_renderer_2d_new.tscn" id="1_map_renderer"]
+[ext_resource type="Script" path="res://scripts/game/map/map_test_scene.gd" id="2_test_script"]
+
+[node name="MapTestScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("2_test_script")
+
+[node name="MapRenderer2D" parent="." instance=ExtResource("1_map_renderer")]
+layout_mode = 1
+
+[node name="TestControls" type="VBoxContainer" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 40.0
+offset_right = 210.0
+offset_bottom = 140.0
+
+[node name="GenerateMapButton" type="Button" parent="TestControls"]
+layout_mode = 2
+text = "生成测试地图"
+
+[node name="ClearMapButton" type="Button" parent="TestControls"]
+layout_mode = 2
+text = "清除地图"
+
+[node name="VisitRandomNodeButton" type="Button" parent="TestControls"]
+layout_mode = 2
+text = "访问随机节点"

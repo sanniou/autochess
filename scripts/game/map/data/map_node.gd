@@ -8,6 +8,8 @@ class_name MapNode
 @export var type: String = ""
 @export var layer: int = 0
 @export var position: int = 0
+@export var position_x: int = 0
+@export var position_y: int = 0
 @export var visited: bool = false
 
 # 节点属性

@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://blt185dclofhj"]
 
-[ext_resource type="Script" uid="uid://dknoqvfrrd7gi" path="res://scenes/test/map_integration_test.gd" id="1_yvnbx"]
-[ext_resource type="PackedScene" uid="uid://dupkkttoim2p1" path="res://scenes/game/map/map_renderer_2d.tscn" id="4_renderer"]
+[ext_resource type="Script" uid="uid://dl03u26gci6k6" path="res://scenes/test/map_integration_test.gd" id="1_yvnbx"]
+[ext_resource type="PackedScene" uid="uid://dwwfiassdkhyo" path="res://scenes/game/map/map_renderer_2d_new.tscn" id="4_renderer"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
 bg_color = Color(0.1, 0.1, 0.15, 0.8)
@@ -220,6 +220,8 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_1")
 
 [node name="MapRenderer2D" parent="MapContainer" instance=ExtResource("4_renderer")]
 layout_mode = 1
+node_scene = null
+connection_scene = null
 
 [node name="InfoPanel" type="Panel" parent="."]
 layout_mode = 1
