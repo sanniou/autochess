@@ -50,9 +50,10 @@ func _connect_events() -> void:
 	GlobalEventBus.battle.add_listener("healing_done", _on_healing_done)
 
 	# 经济事件
-	GlobalEventBus.economy.add_listener("gold_changed", _on_gold_changed)
-	GlobalEventBus.economy.add_listener("item_purchased", _on_item_purchased)
-	GlobalEventBus.economy.add_listener("item_sold", _on_item_sold)
+	GlobalEventBus.economy.add_class_listener(EconomyEvents.PlayerGoldChangedEvent, _on_player_gold_changed) # Updated listener
+	GlobalEventBus.economy.add_class_listener(EconomyEvents.ItemPurchasedEvent, _on_item_purchased)
+	GlobalEventBus.economy.add_class_listener(EconomyEvents.ItemSoldEvent, _on_item_sold)
+	GlobalEventBus.economy.add_class_listener(EconomyEvents.ShopRefreshedEvent, _on_stats_shop_refreshed)
 
 	# 棋子事件
 	GlobalEventBus.chess.add_listener("chess_piece_bought", _on_chess_piece_bought)
@@ -235,10 +236,13 @@ func _on_healing_done(target, amount: float) -> void:
 	if target and target.is_player_piece:
 		increment_stat("total_healing", int(amount))
 
-# 金币变化事件处理
-func _on_gold_changed(old_value: int, new_value: int) -> void:
-	if new_value > old_value:
-		increment_stat("total_gold_earned", new_value - old_value)
+# 金币变化事件处理 (Now PlayerGoldChangedEvent)
+func _on_player_gold_changed(event: EconomyEvents.PlayerGoldChangedEvent) -> void:
+	if event.amount_changed > 0: # Gold was granted
+		increment_stat("total_gold_earned", event.amount_changed)
+	# If spending needs to be tracked as a stat (e.g., "total_gold_spent"), it could be done here:
+	# elif event.amount_changed < 0:
+	#	increment_stat("total_gold_spent", -event.amount_changed)
 
 # 物品购买事件处理
 func _on_item_purchased(item_data: Dictionary) -> void:
@@ -314,9 +318,10 @@ func _do_cleanup() -> void:
 	GlobalEventBus.battle.remove_listener("healing_done", _on_healing_done)
 
 	# 断开经济事件
-	GlobalEventBus.economy.remove_listener("gold_changed", _on_gold_changed)
-	GlobalEventBus.economy.remove_listener("item_purchased", _on_item_purchased)
-	GlobalEventBus.economy.remove_listener("item_sold", _on_item_sold)
+	GlobalEventBus.economy.remove_class_listener(EconomyEvents.PlayerGoldChangedEvent, _on_player_gold_changed) # Updated listener removal
+	GlobalEventBus.economy.remove_class_listener(EconomyEvents.ItemPurchasedEvent, _on_item_purchased)
+	GlobalEventBus.economy.remove_class_listener(EconomyEvents.ItemSoldEvent, _on_item_sold)
+	GlobalEventBus.economy.remove_class_listener(EconomyEvents.ShopRefreshedEvent, _on_stats_shop_refreshed)
 
 	# 断开棋子事件
 	GlobalEventBus.chess.remove_listener("chess_piece_bought", _on_chess_piece_bought)
@@ -369,3 +374,10 @@ func check_stat_achievement(stat_name: String, value) -> void:
 				achievement_manager.unlock_achievement("earn_5000_gold")
 			if value >= 20000:
 				achievement_manager.unlock_achievement("earn_20000_gold")
+
+# Handler for ShopRefreshedEvent
+func _on_stats_shop_refreshed(_event: EconomyEvents.ShopRefreshedEvent) -> void:
+	increment_stat("shop_refreshes")
+
+# Removed redundant public check_stat_achievement method.
+# The internal _check_achievements method correctly delegates to AchievementManager.

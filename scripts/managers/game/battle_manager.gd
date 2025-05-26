@@ -56,6 +56,10 @@ func _do_initialize() -> void:
 	GlobalEventBus.battle.add_class_listener(BattleEvents.BattleFightingPhaseStartedEvent, _on_battle_fighting_phase_started)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.UnitDiedEvent, _on_unit_died)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.DamageDealtEvent, _on_damage_dealt)
+
+	# Add listeners for GameFlowEvents
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BattleStateExitedEvent, _on_battle_state_exited)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.HealReceivedEvent, _on_heal_received)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.AbilityUsedEvent, _on_ability_used)
 	GlobalEventBus.battle.add_class_listener(BattleEvents.DelayedStunRemovalEvent, _on_delayed_stun_removal)
@@ -231,6 +235,10 @@ func _do_cleanup() -> void:
 	GlobalEventBus.battle.remove_class_listener(BattleEvents.HealReceivedEvent, _on_heal_received)
 	GlobalEventBus.battle.remove_class_listener(BattleEvents.AbilityUsedEvent, _on_ability_used)
 	GlobalEventBus.battle.remove_class_listener(BattleEvents.DelayedStunRemovalEvent, _on_delayed_stun_removal)
+
+	# Remove listeners for GameFlowEvents
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BattleStateExitedEvent, _on_battle_state_exited)
 
 	_log_info("战斗管理器清理完成")
 
@@ -584,3 +592,54 @@ func _on_battle_engine_command_executed(command):
 func _on_battle_engine_event_triggered(event_type, data):
 	# 处理战斗事件触发
 	_log_info("战斗事件触发: " + event_type)
+
+
+# GameFlow Event Handlers
+func _on_battle_state_entered(event: GameFlowEvents.BattleStateEnteredEvent) -> void:
+	_log_info("BattleStateEnteredEvent received, starting battle...")
+	# Assuming event.params contains "player_team" and "enemy_team" if needed by start_battle
+	# If not, start_battle might need to get this data from other managers or use defaults
+	var p_team = []
+	var e_team = []
+	if event.params and event.params.has("player_team"):
+		p_team = event.params.player_team
+	if event.params and event.params.has("enemy_team"):
+		e_team = event.params.enemy_team
+	
+	# If start_battle is designed to fetch teams from BoardManager or PlayerManager,
+	# then params might not be strictly necessary here, or could provide override/specific encounter data.
+	# For now, passing what might be in params.
+	start_battle(p_team, e_team)
+
+func _on_battle_state_exited(_event: GameFlowEvents.BattleStateExitedEvent) -> void:
+	_log_info("BattleStateExitedEvent received, ending battle...")
+	# The 'victory' parameter for end_battle() is usually determined by battle_engine's result.
+	# The BattleEndedEvent (which triggers _on_battle_engine_ended) handles this.
+	# If battle_engine is null here (e.g. battle ended prematurely or by external factor),
+	# we might need a default. For now, assuming normal flow where battle_engine determines victory.
+	if battle_engine and battle_engine.current_state != BC.BattleState.ENDED:
+		# If battle didn't end through normal engine flow, end it (e.g. player fled, dev command)
+		# This might need a parameter to indicate non-standard end if rewards/stats are affected.
+		end_battle(false) # Default to loss if ended externally before resolution
+	elif not battle_engine:
+		_log_warning("BattleStateExitedEvent: Battle engine not found. Battle might have already cleaned up or not started properly.")
+	# If battle_engine exists and is already in ENDED state, _cleanup_battle would have been called by _on_battle_engine_ended.
+	# Redundant end_battle call is handled by BattleEngine's internal state check.
+	# No explicit call to end_battle() here might be needed if all battle conclusions flow through battle_engine.end_battle()
+	# which then triggers BattleEndedEvent. Let's assume for now this exit event is a signal to ensure cleanup if not already done.
+	# GameManager's _exit_battle_state used to call battle_manager.end_battle().
+	# This is now replaced by this event.
+	# The battle_engine itself should be the one to call its end_battle method.
+	# This event handler ensures that if the state exited for any other reason, the battle manager is notified.
+	# However, end_battle in BattleManager calls battle_engine.end_battle().
+	# This can create a loop if not handled carefully.
+	# The primary trigger for ending a battle should be internal to BattleManager (e.g. via BattleEngine).
+	# This event can serve as a "double check" or for external triggers to end the battle.
+	# For now, let's assume if battle_engine exists, it manages its own end.
+	# The crucial part is that GameManager no longer calls manager.end_battle() directly.
+	# If battle_engine is active, it should complete its course. If it's not, then perhaps cleanup.
+	if battle_engine and battle_engine.current_state != BC.BattleState.IDLE and battle_engine.current_state != BC.BattleState.ENDED :
+		_log_info("BattleStateExitedEvent: Forcing battle_engine to end due to state exit.")
+		battle_engine.end_battle(false) # Default to loss
+	else:
+		_log_info("BattleStateExitedEvent: Battle engine already ended or not active. Cleanup should have occurred.")

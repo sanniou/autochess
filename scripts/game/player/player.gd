@@ -106,7 +106,7 @@ func add_gold(amount: int) -> void:
 
 	# 发送金币变化信号
 	gold_changed.emit(old_gold, gold)
-	GlobalEventBus.economy.dispatch_event(EconomyEvents.GoldChangedEvent.new(old_gold, gold))
+	# GlobalEventBus.economy.dispatch_event(EconomyEvents.GoldChangedEvent.new(old_gold, gold)) # Removed, EconomyManager will dispatch PlayerGoldChangedEvent
 
 # 扣除金币
 func spend_gold(amount: int) -> bool:
@@ -118,7 +118,7 @@ func spend_gold(amount: int) -> bool:
 
 	# 发送金币变化信号
 	gold_changed.emit(old_gold, gold)
-	GlobalEventBus.economy.dispatch_event(EconomyEvents.GoldChangedEvent.new(old_gold, gold))
+	# GlobalEventBus.economy.dispatch_event(EconomyEvents.GoldChangedEvent.new(old_gold, gold)) # Removed, EconomyManager will dispatch PlayerGoldChangedEvent
 
 	return true
 
@@ -152,18 +152,19 @@ func add_exp(amount: int) -> void:
 		level_changed.emit(old_level, level)
 		GlobalEventBus.game.dispatch_event(GameEvents.PlayerLevelChangedEvent.new(old_level, level))
 
-# 购买经验
-func buy_exp(amount: int = 4, cost: int = 4) -> bool:
-	if gold < cost:
-		return false
+# 购买经验 (Gold spending logic moved to caller, now only adds EXP)
+# Consider removing this method if callers directly call add_exp after successful gold spend via EconomyManager.
+func buy_exp(amount: int) -> void: # Cost is no longer handled here
+	# if gold < cost: # Gold check is done by EconomyManager
+	# 	return false
 
-	# 扣除金币
-	if spend_gold(cost):
+	# # 扣除金币
+	# if spend_gold(cost): # Gold spending is done by EconomyManager
 		# 增加经验
-		add_exp(amount)
-		return true
+	add_exp(amount)
+		# return true
 
-	return false
+	# return false
 
 # 获取下一级所需经验
 func get_exp_required_for_next_level() -> int:
@@ -204,8 +205,8 @@ func on_battle_win() -> void:
 	elif win_streak >= 2:
 		streak_bonus = 1
 
-	# 添加基础金币和连胜奖励
-	add_gold(5 + streak_bonus)
+	# 添加基础金币和连胜奖励 (Removed - Gold handling moved to PlayerManager._on_battle_ended via EconomyManager)
+	# add_gold(5 + streak_bonus)
 
 # 战斗失败处理
 func on_battle_loss(damage: int) -> void:
@@ -227,15 +228,15 @@ func on_battle_loss(damage: int) -> void:
 	elif lose_streak >= 2:
 		streak_bonus = 1
 
-	# 添加基础金币和连败奖励
-	add_gold(2 + streak_bonus)
+	# 添加基础金币和连败奖励 (Removed - Gold handling moved to PlayerManager._on_battle_ended via EconomyManager)
+	# add_gold(2 + streak_bonus)
 
 	# 受到伤害
 	take_damage(damage)
 
-	# 破产保护
-	if current_health < 20 and gold == 0:
-		add_gold(5)  # 破产补助
+	# 破产保护 (Removed - This logic should be part of EconomyManager's grant_gold or a specific bankruptcy event/handler)
+	# if current_health < 20 and gold == 0:
+	# 	add_gold(5)  # 破产补助
 
 # 添加棋子
 func add_chess_piece(piece: ChessPieceEntity) -> bool:
@@ -264,17 +265,19 @@ func remove_chess_piece(piece: ChessPieceEntity) -> bool:
 	return false
 
 # 出售棋子
-func sell_chess_piece(piece: ChessPieceEntity) -> bool:
+func sell_chess_piece(piece: ChessPieceEntity) -> int: # Now returns sell value
 	if remove_chess_piece(piece):
-		# 返还金币
-		add_gold(piece.cost * piece.star_level)
+		var sell_value = piece.cost * piece.star_level
+		# 返还金币 - Removed: add_gold(piece.cost * piece.star_level)
+		# This will now be handled by PlayerManager calling EconomyManager.grant_gold
 
-		# 发送棋子出售信号
-		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceSoldEvent.new(piece,piece.cost * piece.star_level))
+		# 发送棋子出售信号 - This can remain if other systems use it,
+		# or be removed if PlayerGoldChangedEvent + specific item events are enough.
+		# For now, keeping it but noting it might be redundant with EconomyManager's event.
+		GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceSoldEvent.new(piece, sell_value))
+		return sell_value
 
-		return true
-
-	return false
+	return 0 # Return 0 if piece couldn't be removed/sold
 
 # 添加装备
 func add_equipment(equipment: Equipment) -> bool:
@@ -312,13 +315,13 @@ func remove_relic(relic) -> bool:
 
 # 回合开始处理
 func on_round_start() -> void:
-	# 添加基础收入
-	add_gold(5)
+	# 添加基础收入 (Removed - Handled by EconomyManager._on_battle_round_started via calculate_round_income)
+	# add_gold(5)
 
-	# 添加利息收入 (每10金币1金币，最多5金币)
-	var interest = min(5, gold / 10)
-	if interest > 0:
-		add_gold(interest)
+	# 添加利息收入 (Removed - Handled by EconomyManager._on_battle_round_started via calculate_round_income)
+	# var interest = min(5, gold / 10)
+	# if interest > 0:
+	# 	add_gold(interest)
 
 	# 添加自动经验
 	add_exp(2)

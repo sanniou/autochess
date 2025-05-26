@@ -8,19 +8,45 @@ var altar_type: String = ""
 
 # 初始化
 func _ready() -> void:
-	# 获取祭坛参数
-	var altar_params = GameManager.altar_params
-	if altar_params:
-		altar_type = altar_params.get("altar_type", "")
+	# 连接信号 - GameFlowEvents for state management
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_altar_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.AltarStateExitedEvent, _on_altar_state_exited)
 
-	# 连接信号
+	# 连接信号 - Internal Altar logic
 	GlobalEventBus.map.add_listener("altar_sacrifice_made", _on_altar_sacrifice_made)
+
+	# Initial setup that doesn't depend on AltarStateEnteredEvent can remain here, if any.
+	# For now, most setup is moved to _on_altar_state_entered.
+
+func _notification(what):
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_EXIT_TREE:
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_altar_state_entered)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.AltarStateExitedEvent, _on_altar_state_exited)
+		GlobalEventBus.map.remove_listener("altar_sacrifice_made", _on_altar_sacrifice_made)
+
+# GameFlow Event Handlers
+func _on_altar_state_entered(event: GameFlowEvents.AltarStateEnteredEvent) -> void:
+	print("AltarScene: AltarStateEnteredEvent received")
+	if event.params:
+		altar_type = event.params.get("altar_type", "")
+		print("AltarScene: Altar type set to: ", altar_type)
+	else:
+		altar_type = "" # Default or error
+		print("AltarScene: Warning - AltarStateEnteredEvent received no params.")
 
 	# 播放背景音乐
 	AudioManager.play_music("altar_theme.ogg")
 
 	# 显示祭坛效果
 	_show_altar_effect()
+
+func _on_altar_state_exited(_event: GameFlowEvents.AltarStateExitedEvent) -> void:
+	print("AltarScene: AltarStateExitedEvent received. Performing cleanup if necessary.")
+	# Add any specific cleanup for the Altar scene itself when the state is exited.
+	# For example, stopping particles, specific sounds, etc.
+	# Currently, GameManager.change_state handles scene switching, so direct scene manipulation
+	# might not be needed here unless it's for elements specific to this AltarScene node.
+	pass
 
 # 显示祭坛效果
 func _show_altar_effect() -> void:

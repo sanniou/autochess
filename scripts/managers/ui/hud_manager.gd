@@ -45,7 +45,18 @@ func _do_initialize() -> void:
 		return
 
 	# 连接信号
-	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
+	# GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed) # Removed
+
+	# Add listeners for GameFlowEvents
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.MainMenuStateEnteredEvent, _on_main_menu_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.MapStateEnteredEvent, _on_map_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_event_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_altar_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_blacksmith_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.GameOverStateEnteredEvent, _on_game_over_state_entered_hud)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.VictoryStateEnteredEvent, _on_victory_state_entered_hud)
 
 # 加载HUD
 func load_hud(hud_name: String, show_immediately: bool = true, data: Dictionary = {}) -> BaseHUD:
@@ -225,28 +236,58 @@ func unload_all_huds() -> void:
 	for hud_name in loaded_huds.keys().duplicate():
 		unload_hud(hud_name)
 
-# 根据游戏状态加载相应的HUD
-func _on_game_state_changed(_old_state: int, new_state: int) -> void:
-	# 根据游戏状态加载不同的HUD
-	match new_state:
-		GameManager.GameState.MAIN_MENU:
-			# 主菜单不需要特殊HUD
-			hide_all_huds()
-		GameManager.GameState.MAP:
-			load_hud("map_hud")
-		GameManager.GameState.BATTLE:
-			load_hud("battle_hud")
-		GameManager.GameState.SHOP:
-			load_hud("shop_hud")
-		GameManager.GameState.EVENT:
-			load_hud("event_hud")
-		GameManager.GameState.ALTAR:
-			load_hud("altar_hud")
-		GameManager.GameState.BLACKSMITH:
-			load_hud("blacksmith_hud")
-		_:
-			# 默认HUD
-			load_hud("default_hud")
+# # 根据游戏状态加载相应的HUD (Removed - logic moved to specific event handlers)
+# func _on_game_state_changed(_old_state: int, new_state: int) -> void:
+# 	# 根据游戏状态加载不同的HUD
+# 	match new_state:
+# 		GameManager.GameState.MAIN_MENU:
+# 			# 主菜单不需要特殊HUD
+# 			hide_all_huds()
+# 		GameManager.GameState.MAP:
+# 			load_hud("map_hud")
+# 		GameManager.GameState.BATTLE:
+# 			load_hud("battle_hud")
+# 		GameManager.GameState.SHOP:
+# 			load_hud("shop_hud")
+# 		GameManager.GameState.EVENT:
+# 			load_hud("event_hud")
+# 		GameManager.GameState.ALTAR:
+# 			load_hud("altar_hud")
+# 		GameManager.GameState.BLACKSMITH:
+# 			load_hud("blacksmith_hud")
+# 		_:
+# 			# 默认HUD
+# 			load_hud("default_hud")
+
+# GameFlow Event Handlers for HUDs
+func _on_main_menu_state_entered_hud(_event: GameFlowEvents.MainMenuStateEnteredEvent) -> void:
+	hide_all_huds()
+
+func _on_map_state_entered_hud(_event: GameFlowEvents.MapStateEnteredEvent) -> void:
+	load_hud("map_hud")
+
+func _on_battle_state_entered_hud(_event: GameFlowEvents.BattleStateEnteredEvent) -> void:
+	load_hud("battle_hud")
+
+func _on_shop_state_entered_hud(_event: GameFlowEvents.ShopStateEnteredEvent) -> void:
+	load_hud("shop_hud")
+
+func _on_event_state_entered_hud(_event: GameFlowEvents.EventStateEnteredEvent) -> void:
+	load_hud("event_hud")
+
+func _on_altar_state_entered_hud(_event: GameFlowEvents.AltarStateEnteredEvent) -> void:
+	load_hud("altar_hud")
+
+func _on_blacksmith_state_entered_hud(_event: GameFlowEvents.BlacksmithStateEnteredEvent) -> void:
+	load_hud("blacksmith_hud")
+
+func _on_game_over_state_entered_hud(_event: GameFlowEvents.GameOverStateEnteredEvent) -> void:
+	# Assuming "default_hud" is appropriate for game over, or a specific "game_over_hud" could be created.
+	load_hud("default_hud") 
+
+func _on_victory_state_entered_hud(_event: GameFlowEvents.VictoryStateEnteredEvent) -> void:
+	# Assuming "default_hud" is appropriate for victory, or a specific "victory_hud" could be created.
+	load_hud("default_hud")
 
 # 记录错误信息
 func _log_error(error_message: String) -> void:
@@ -268,7 +309,18 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开信号连接
-	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
+	# GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed) # Removed
+
+	# Remove listeners for GameFlowEvents
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.MainMenuStateEnteredEvent, _on_main_menu_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.MapStateEnteredEvent, _on_map_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_event_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_altar_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_blacksmith_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.GameOverStateEnteredEvent, _on_game_over_state_entered_hud)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.VictoryStateEnteredEvent, _on_victory_state_entered_hud)
 
 	# 卸载所有HUD
 	unload_all_huds()

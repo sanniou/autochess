@@ -112,6 +112,7 @@ func get_group(group_name: String) -> EventGroup:
 func add_listener(event_type: String, callback: Callable, priority: int = 0,
 				 filter_func: Callable = Callable(), process_canceled: bool = false,
 				 once: bool = false) -> void:
+	push_warning("EventBus.add_listener(event_type: String, ...) is deprecated. Use add_class_listener(EventClass, ...) instead.")
 	# 输出警告信息
 	if debug_logging:
 		print("[EventBus] 警告：add_listener 方法已过时，请使用 add_class_listener 代替")
@@ -149,6 +150,7 @@ func _get_event_type_from_class(event_class) -> String:
 ## @param callback 回调函数
 ## @deprecated 请使用 remove_class_listener 代替
 func remove_listener(event_type: String, callback: Callable) -> void:
+	push_warning("EventBus.remove_listener(event_type: String, ...) is deprecated. Use remove_class_listener(EventClass, ...) instead.")
 	# 输出警告信息
 	if debug_logging:
 		print("[EventBus] 警告：remove_listener 方法已过时，请使用 remove_class_listener 代替")
@@ -248,6 +250,7 @@ class EventGroup extends Node:
 	func add_listener(event_type: String, callback: Callable, priority: int = 0,
 					 filter_func: Callable = Callable(), process_canceled: bool = false,
 					 once: bool = false) -> void:
+		push_warning("EventGroup.add_listener(event_type: String, ...) is deprecated. Use EventGroup.add_class_listener(EventClass, ...) or directly use GlobalEventBus.add_class_listener(EventClass, ...) instead.")
 		# 输出警告信息
 		if _event_bus.debug_logging:
 			print("[EventGroup] 警告：add_listener 方法已过时，请使用 add_class_listener 代替")
@@ -274,6 +277,7 @@ class EventGroup extends Node:
 	## @param callback 回调函数
 	## @deprecated 请使用 remove_class_listener 代替
 	func remove_listener(event_type: String, callback: Callable) -> void:
+		push_warning("EventGroup.remove_listener(event_type: String, ...) is deprecated. Use EventGroup.remove_class_listener(EventClass, ...) or directly use GlobalEventBus.remove_class_listener(EventClass, ...) instead.")
 		# 输出警告信息
 		if _event_bus.debug_logging:
 			print("[EventGroup] 警告：remove_listener 方法已过时，请使用 remove_class_listener 代替")

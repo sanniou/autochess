@@ -49,7 +49,26 @@ func _do_initialize() -> void:
 	manager_name = "SceneManager"
 
 	# 连接信号
-	GlobalEventBus.ui.add_listener("transition_midpoint", _on_transition_midpoint)
+	# GlobalEventBus.ui.add_listener("transition_midpoint", _on_transition_midpoint) # Original listener
+	# No longer listening to "transition_midpoint" directly from UI if all scene changes are event-driven.
+	# If transition_midpoint is still needed for general UI transitions not tied to game flow, it should remain.
+	# For this refactor, we assume game flow events dictate scene changes.
+
+	# Add listeners for GameFlowEvents
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.MainMenuStateEnteredEvent, _on_main_menu_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.MapStateEnteredEvent, _on_map_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_event_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_altar_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_blacksmith_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.GameOverStateEnteredEvent, _on_game_over_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.VictoryStateEnteredEvent, _on_victory_state_entered)
+	
+	# Example of how transition_midpoint might still be used if needed for non-gameflow transitions
+	# For now, assuming it's not directly needed by these new event handlers for scene loading itself.
+	# If load_scene's use_transition=true relies on it, this might need adjustment.
+	# However, the provided load_scene logic seems to handle transitions internally.
 
 	# 获取当前场景
 	var root = get_tree().get_root()
@@ -344,7 +363,18 @@ func _do_reset() -> void:
 # 重写清理方法
 func _do_cleanup() -> void:
 	# 断开事件连接
-	GlobalEventBus.ui.remove_listener("transition_midpoint", _on_transition_midpoint)
+	# GlobalEventBus.ui.remove_listener("transition_midpoint", _on_transition_midpoint) # Original listener removal
+
+	# Remove listeners for GameFlowEvents
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.MainMenuStateEnteredEvent, _on_main_menu_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.MapStateEnteredEvent, _on_map_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_event_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_altar_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_blacksmith_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.GameOverStateEnteredEvent, _on_game_over_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.VictoryStateEnteredEvent, _on_victory_state_entered)
 
 	# 清空场景历史记录
 	scene_history.clear()
@@ -358,3 +388,37 @@ func _do_cleanup() -> void:
 		loading_thread = null
 
 	_log_info("场景管理器清理完成")
+
+
+# Event Handlers for GameFlowEvents
+func _on_main_menu_state_entered(_event: GameFlowEvents.MainMenuStateEnteredEvent) -> void:
+	load_scene("main_menu", true)
+
+func _on_map_state_entered(_event: GameFlowEvents.MapStateEnteredEvent) -> void:
+	load_scene("map", true)
+
+func _on_battle_state_entered(event: GameFlowEvents.BattleStateEnteredEvent) -> void:
+	# event.params could be used here if load_scene or the battle scene itself needs them
+	load_scene("battle", true)
+
+func _on_shop_state_entered(event: GameFlowEvents.ShopStateEnteredEvent) -> void:
+	# event.params could be used here
+	load_scene("shop", true)
+
+func _on_event_state_entered(event: GameFlowEvents.EventStateEnteredEvent) -> void:
+	# event.params could be used here
+	load_scene("event", true)
+
+func _on_altar_state_entered(event: GameFlowEvents.AltarStateEnteredEvent) -> void:
+	# event.params could be used here
+	load_scene("altar", true)
+
+func _on_blacksmith_state_entered(event: GameFlowEvents.BlacksmithStateEnteredEvent) -> void:
+	# event.params could be used here
+	load_scene("blacksmith", true)
+
+func _on_game_over_state_entered(_event: GameFlowEvents.GameOverStateEnteredEvent) -> void:
+	load_scene("game_over", true)
+
+func _on_victory_state_entered(_event: GameFlowEvents.VictoryStateEnteredEvent) -> void:
+	load_scene("victory", true)

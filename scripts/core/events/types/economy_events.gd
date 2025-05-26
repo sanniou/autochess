@@ -3,39 +3,38 @@ class_name EconomyEvents
 ## 经济事件类型
 ## 定义与经济系统相关的事件
 
-## 金币变化事件
-class GoldChangedEvent extends BusEvent:
-	## 旧金币数量
-	var old_amount: int
-
-	## 新金币数量
-	var new_amount: int
-
-	## 变化原因
+## 金币变化事件 (Renamed to PlayerGoldChangedEvent, parameters updated)
+class PlayerGoldChangedEvent extends BusEvent: # Renamed from GoldChangedEvent
+	var player # Player instance or ID
+	var old_gold: int
+	var new_gold: int
+	var amount_changed: int
 	var reason: String
 
 	## 初始化
-	func _init(p_old_amount: int, p_new_amount: int, p_reason: String = ""):
-		old_amount = p_old_amount
-		new_amount = p_new_amount
+	func _init(p_player, p_old_gold: int, p_new_gold: int, p_amount_changed: int, p_reason: String = ""):
+		player = p_player
+		old_gold = p_old_gold
+		new_gold = p_new_gold
+		amount_changed = p_amount_changed
 		reason = p_reason
 
 	## 获取事件类型
 	static func get_type() -> String:
-		return "economy.gold_changed"
+		return "economy.player_gold_changed" # Updated type string
 
 	## 获取事件的字符串表示
 	func _to_string() -> String:
-		return "GoldChangedEvent[old_amount=%d, new_amount=%d, reason=%s]" % [
-			old_amount, new_amount, reason
+		var player_id_str = str(player.id if player and player.has_method("get_id") else player) # Basic player string representation
+		return "PlayerGoldChangedEvent[player=%s, old_gold=%d, new_gold=%d, amount_changed=%d, reason=%s]" % [
+			player_id_str, old_gold, new_gold, amount_changed, reason
 		]
 
 	## 克隆事件
 	func clone() ->BusEvent:
-		var event = GoldChangedEvent.new(old_amount, new_amount, reason)
+		var event = PlayerGoldChangedEvent.new(player, old_gold, new_gold, amount_changed, reason)
 		event.timestamp = timestamp
 		event.canceled = canceled
-
 		return event
 
 ## 商店刷新事件

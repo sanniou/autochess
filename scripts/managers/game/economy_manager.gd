@@ -60,6 +60,51 @@ func _do_initialize() -> void:
 
 	_log_info("经济管理器初始化完成")
 
+# Gold Management Methods
+func grant_gold(player_instance: Player, amount: int, reason: String = "unknown") -> bool:
+	if not is_instance_valid(player_instance):
+		_log_warning("grant_gold: Invalid player_instance.")
+		return false
+	if amount <= 0:
+		_log_warning("grant_gold: Amount must be positive. Received: " + str(amount))
+		return false
+
+	var old_gold = player_instance.gold
+	player_instance.gold += amount
+	# Player class itself might emit its own 'gold_changed' signal here if needed for direct UI bindings.
+	# player_instance.emit_signal("gold_changed", old_gold, player_instance.gold) 
+
+	GlobalEventBus.economy.dispatch_event(EconomyEvents.PlayerGoldChangedEvent.new(player_instance, old_gold, player_instance.gold, amount, reason))
+	_log_info("Granted %d gold to player %s for reason: %s. Old: %d, New: %d" % [amount, player_instance.player_name if player_instance else "Unknown", reason, old_gold, player_instance.gold])
+	return true
+
+func spend_gold(player_instance: Player, amount: int, reason: String = "unknown") -> bool:
+	if not is_instance_valid(player_instance):
+		_log_warning("spend_gold: Invalid player_instance.")
+		return false
+	if amount <= 0:
+		_log_warning("spend_gold: Amount must be positive. Received: " + str(amount))
+		return false
+
+	if player_instance.gold >= amount:
+		var old_gold = player_instance.gold
+		player_instance.gold -= amount
+		# Player class itself might emit its own 'gold_changed' signal here.
+		# player_instance.emit_signal("gold_changed", old_gold, player_instance.gold)
+
+		GlobalEventBus.economy.dispatch_event(EconomyEvents.PlayerGoldChangedEvent.new(player_instance, old_gold, player_instance.gold, -amount, reason))
+		_log_info("Spent %d gold from player %s for reason: %s. Old: %d, New: %d" % [amount, player_instance.player_name if player_instance else "Unknown", reason, old_gold, player_instance.gold])
+		return true
+	else:
+		_log_warning("spend_gold: Insufficient gold for player %s. Needed: %d, Has: %d, Reason: %s" % [player_instance.player_name if player_instance else "Unknown", amount, player_instance.gold, reason])
+		return false
+
+func get_player_gold(player_instance: Player) -> int:
+	if not is_instance_valid(player_instance):
+		_log_warning("get_player_gold: Invalid player_instance.")
+		return 0
+	return player_instance.gold
+
 # 计算回合收入
 func calculate_round_income(player: Player) -> int:
 	var income = economy_params.base_income
@@ -141,7 +186,8 @@ func _on_battle_round_started(round_number: int) -> void:
 		var income = calculate_round_income(player)
 
 		# 发放收入
-		player.add_gold(income)
+		# player.add_gold(income) # Replaced by self.grant_gold
+		grant_gold(player, income, "round_income")
 
 		# 发送收入发放信号
 		GlobalEventBus.economy.dispatch_event(EconomyEvents.IncomeGrantedEvent.new(income))
@@ -151,42 +197,45 @@ func _on_battle_round_started(round_number: int) -> void:
 
 # 商店刷新事件处理
 func _on_shop_refreshed() -> void:
-	# 记录刷新次数统计
-	var stats_manager = GameManager.stats_manager
-	if stats_manager:
-		stats_manager.increment_stat("shop_refreshes")
+	# 记录刷新次数统计 (Removed - StatsManager now listens to EconomyEvents.ShopRefreshedEvent directly)
+	# var stats_manager = GameManager.stats_manager
+	# if stats_manager:
+	# 	stats_manager.increment_stat("shop_refreshes")
+	pass # Logic moved to StatsManager
 
 # 物品购买事件处理
 func _on_item_purchased(item_data: Dictionary) -> void:
-	# 记录购买统计
-	var stats_manager = GameManager.stats_manager
-	if stats_manager:
-		stats_manager.increment_stat("items_purchased")
+	# 记录购买统计 (Removed - StatsManager now listens to EconomyEvents.ItemPurchasedEvent directly)
+	# var stats_manager = GameManager.stats_manager
+	# if stats_manager:
+	# 	stats_manager.increment_stat("items_purchased")
 
-		# 根据物品类型记录不同的统计
-		if item_data.has("type"):
-			match item_data.type:
-				"chess_piece":
-					stats_manager.increment_stat("chess_pieces_purchased")
-				"equipment":
-					stats_manager.increment_stat("equipments_purchased")
-				"exp":
-					stats_manager.increment_stat("exp_purchased")
+	# 	# 根据物品类型记录不同的统计
+	# 	if item_data.has("type"):
+	# 		match item_data.type:
+	# 			"chess_piece":
+	# 				stats_manager.increment_stat("chess_pieces_purchased")
+	# 			"equipment":
+	# 				stats_manager.increment_stat("equipments_purchased")
+	# 			"exp":
+	# 				stats_manager.increment_stat("exp_purchased")
+	pass # Logic moved to StatsManager
 
 # 物品出售事件处理
 func _on_item_sold(item_data: Dictionary) -> void:
-	# 记录出售统计
-	var stats_manager = GameManager.stats_manager
-	if stats_manager:
-		stats_manager.increment_stat("items_sold")
+	# 记录出售统计 (Removed - StatsManager now listens to EconomyEvents.ItemSoldEvent directly)
+	# var stats_manager = GameManager.stats_manager
+	# if stats_manager:
+	# 	stats_manager.increment_stat("items_sold")
 
-		# 根据物品类型记录不同的统计
-		if item_data.has("type"):
-			match item_data.type:
-				"chess_piece":
-					stats_manager.increment_stat("chess_pieces_sold")
-				"equipment":
-					stats_manager.increment_stat("equipments_sold")
+	# 	# 根据物品类型记录不同的统计
+	# 	if item_data.has("type"):
+	# 		match item_data.type:
+	# 			"chess_piece":
+	# 				stats_manager.increment_stat("chess_pieces_sold")
+	# 			"equipment":
+	# 				stats_manager.increment_stat("equipments_sold")
+	pass # Logic moved to StatsManager
 
 # 应用遗物效果到收入
 func _apply_relic_effects_to_income(player: Player, base_income: int) -> int:

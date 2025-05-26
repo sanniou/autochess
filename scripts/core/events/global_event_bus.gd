@@ -16,7 +16,32 @@ func _ready() -> void:
 	event_bus.debug_logging = debug_mode
 	event_bus.enable_history = debug_mode
 
+	# 预加载事件类型
+	_preload_event_types()
+
 	print("[GlobalEventBus] 全局事件总线初始化完成")
+
+## 预加载事件类型
+func _preload_event_types() -> void:
+	# 预加载所有事件类型，确保它们在内存中
+	var event_types = [
+		preload("res://scripts/core/events/types/game_events.gd"),
+		preload("res://scripts/core/events/types/battle_events.gd"),
+		preload("res://scripts/core/events/types/event_system_events.gd"),
+		preload("res://scripts/core/events/types/ui_events.gd"),
+		preload("res://scripts/core/events/types/debug_events.gd"),
+		preload("res://scripts/core/events/types/game_flow_events.gd"), # Added
+		preload("res://scripts/core/events/types/economy_events.gd") # Ensure economy_events is preloaded
+	]
+	
+	# 预加载工具类
+	var utils = [
+		preload("res://scripts/core/events/utils/batch_processor.gd"),
+		preload("res://scripts/core/events/utils/event_utils.gd"),
+		preload("res://scripts/core/events/utils/event_migration.gd")
+	]
+	
+	print("[GlobalEventBus] 预加载了 %d 个事件类型和 %d 个工具类" % [event_types.size(), utils.size()])
 
 ## 获取事件分组
 ## @param group_name 分组名称
@@ -140,3 +165,7 @@ var status_effect: EventBus.EventGroup:
 ## 便捷属性：调试事件分组
 var debug: EventBus.EventGroup:
 	get: return get_group("debug")
+
+## 便捷属性：游戏流程事件分组
+var gameflow: EventBus.EventGroup:
+	get: return get_group("gameflow")

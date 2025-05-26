@@ -9,19 +9,44 @@ var discount: float = 0.0
 
 # 初始化
 func _ready() -> void:
-	# 获取铁匠铺参数
-	var blacksmith_params = GameManager.blacksmith_params
-	if blacksmith_params:
-		discount = blacksmith_params.get("discount", 0.0)
+	# 连接信号 - GameFlowEvents for state management
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_blacksmith_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BlacksmithStateExitedEvent, _on_blacksmith_state_exited)
 
-	# 连接信号
+	# 连接信号 - Internal Blacksmith logic
 	GlobalEventBus.map.add_listener("equipment_upgraded", _on_equipment_upgraded)
+
+	# Initial setup that doesn't depend on BlacksmithStateEnteredEvent can remain here, if any.
+	# For now, most setup is moved to _on_blacksmith_state_entered.
+
+func _notification(what):
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_EXIT_TREE:
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_blacksmith_state_entered)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BlacksmithStateExitedEvent, _on_blacksmith_state_exited)
+		GlobalEventBus.map.remove_listener("equipment_upgraded", _on_equipment_upgraded)
+
+# GameFlow Event Handlers
+func _on_blacksmith_state_entered(event: GameFlowEvents.BlacksmithStateEnteredEvent) -> void:
+	print("BlacksmithScene: BlacksmithStateEnteredEvent received")
+	if event.params:
+		discount = event.params.get("discount", 0.0)
+		print("BlacksmithScene: Discount set to: ", discount * 100, "%")
+	else:
+		discount = 0.0 # Default or error
+		print("BlacksmithScene: Warning - BlacksmithStateEnteredEvent received no params.")
 
 	# 播放背景音乐
 	AudioManager.play_music("blacksmith_theme.ogg")
 
 	# 显示铁匠铺效果
 	_show_blacksmith_effect()
+
+func _on_blacksmith_state_exited(_event: GameFlowEvents.BlacksmithStateExitedEvent) -> void:
+	print("BlacksmithScene: BlacksmithStateExitedEvent received. Performing cleanup if necessary.")
+	# Add any specific cleanup for the Blacksmith scene itself when the state is exited.
+	# For example, stopping particles, specific sounds, etc.
+	# GameManager.change_state handles scene switching.
+	pass
 
 # 显示铁匠铺效果
 func _show_blacksmith_effect() -> void:

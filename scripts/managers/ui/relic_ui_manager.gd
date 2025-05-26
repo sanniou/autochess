@@ -1,4 +1,4 @@
-extends "res://scripts/managers/core/base_manager.gd"
+extends Node # Changed from BaseManager
 class_name RelicUiManager
 ## 遗物UI管理器
 ## 负责管理遗物UI的显示和交互
@@ -21,21 +21,57 @@ var relic_tooltip = null
 # 遗物管理器引用
 var relic_manager = null
 
-# 初始化
-# 重写初始化方法
-func _do_initialize() -> void:
-	# 设置管理器名称
-	manager_name = "RelicUiManager"
-
-	# 原 _ready 函数的内容
-	# 获取遗物管理器引用
-	relic_manager = get_node_or_null("/root/GameManager/RelicManager")
+# 初始化 - Now a standard _ready
+func _ready():
+	# Dependencies are now injected by UIManager
+	# relic_manager = get_node_or_null("/root/GameManager/RelicManager") # Removed
 
 	# 连接信号
-	GlobalEventBus.relic.add_listener("relic_acquired", _on_relic_acquired)
-	GlobalEventBus.relic.add_listener("show_relic_info", _on_show_relic_info)
-	GlobalEventBus.relic.add_listener("hide_relic_info", _on_hide_relic_info)
-	GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed)
+	GlobalEventBus.relic.add_class_listener(RelicEvents.RelicAcquiredEvent, _on_relic_acquired)
+	GlobalEventBus.relic.add_class_listener(RelicEvents.ShowRelicInfoEvent, _on_show_relic_info)
+	GlobalEventBus.relic.add_class_listener(RelicEvents.HideRelicInfoEvent, _on_hide_relic_info)
+	# GlobalEventBus.game.add_listener("game_state_changed", _on_game_state_changed) # Removed
+
+	# Add listeners for GameFlowEvents to control panel visibility
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.MapStateEnteredEvent, _on_map_state_entered_relic_ui)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered_relic_ui)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered_relic_ui)
+	# Add listeners for other states where panel might need to be explicitly hidden or shown
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.MainMenuStateEnteredEvent, _on_other_state_entered_relic_ui)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_other_state_entered_relic_ui)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_other_state_entered_relic_ui)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_other_state_entered_relic_ui)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.GameOverStateEnteredEvent, _on_other_state_entered_relic_ui)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.VictoryStateEnteredEvent, _on_other_state_entered_relic_ui)
+
+
+func _notification(what):
+	if what == NOTIFICATION_PREDELETE or what == NOTIFICATION_EXIT_TREE:
+		GlobalEventBus.relic.remove_class_listener(RelicEvents.RelicAcquiredEvent, _on_relic_acquired)
+		GlobalEventBus.relic.remove_class_listener(RelicEvents.ShowRelicInfoEvent, _on_show_relic_info)
+		GlobalEventBus.relic.remove_class_listener(RelicEvents.HideRelicInfoEvent, _on_hide_relic_info)
+		
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.MapStateEnteredEvent, _on_map_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BattleStateEnteredEvent, _on_battle_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.MainMenuStateEnteredEvent, _on_other_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_other_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.AltarStateEnteredEvent, _on_other_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.BlacksmithStateEnteredEvent, _on_other_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.GameOverStateEnteredEvent, _on_other_state_entered_relic_ui)
+		GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.VictoryStateEnteredEvent, _on_other_state_entered_relic_ui)
+
+		# Cleanup logic from _do_cleanup
+		if relic_panel and is_instance_valid(relic_panel):
+			relic_panel.queue_free()
+			relic_panel = null
+		if relic_tooltip and is_instance_valid(relic_tooltip):
+			relic_tooltip.queue_free()
+			relic_tooltip = null
+		relic_manager = null # Nullify the reference
+
+func set_relic_manager(p_relic_manager) -> void:
+	relic_manager = p_relic_manager
 
 	## 显示遗物面板
 func show_relic_panel() -> void:
@@ -114,52 +150,43 @@ func _on_hide_relic_info() -> void:
 	# 隐藏遗物提示
 	hide_relic_tooltip()
 
-## 游戏状态变化事件处理
-func _on_game_state_changed(old_state, new_state) -> void:
-	# 根据游戏状态显示或隐藏遗物面板
-	match new_state:
-		GameManager.GameState.MAP:
-			# 在地图界面可以查看遗物
-			if relic_panel and is_instance_valid(relic_panel):
-				relic_panel.visible = false  # 默认隐藏，点击按钮时显示
-		GameManager.GameState.BATTLE:
-			# 战斗中隐藏遗物面板
-			hide_relic_panel()
-		GameManager.GameState.SHOP:
-			# 商店中可以查看遗物
-			if relic_panel and is_instance_valid(relic_panel):
-				relic_panel.visible = false  # 默认隐藏，点击按钮时显示
+## 游戏状态变化事件处理 (Removed, replaced by specific GameFlowEvent handlers)
+# func _on_game_state_changed(old_state, new_state) -> void:
+# 	# 根据游戏状态显示或隐藏遗物面板
+# 	match new_state:
+# 		GameManager.GameState.MAP:
+# 			# 在地图界面可以查看遗物
+# 			if relic_panel and is_instance_valid(relic_panel):
+# 				relic_panel.visible = false  # 默认隐藏，点击按钮时显示
+# 		GameManager.GameState.BATTLE:
+# 			# 战斗中隐藏遗物面板
+# 			hide_relic_panel()
+# 		GameManager.GameState.SHOP:
+# 			# 商店中可以查看遗物
+# 			if relic_panel and is_instance_valid(relic_panel):
+# 				relic_panel.visible = false  # 默认隐藏，点击按钮时显示
 
+# GameFlow Event Handlers for Relic UI
+func _on_map_state_entered_relic_ui(_event: GameFlowEvents.MapStateEnteredEvent) -> void:
+	if relic_panel and is_instance_valid(relic_panel):
+		relic_panel.visible = false # Default to hidden on map, shown by button
+	# Or, ensure it's available to be shown:
+	# show_relic_panel() # If it should always be visible or ready
 
-# 重写重置方法
-func _do_reset() -> void:
-	# 隐藏遗物面板
+func _on_battle_state_entered_relic_ui(_event: GameFlowEvents.BattleStateEnteredEvent) -> void:
 	hide_relic_panel()
 
-	# 隐藏遗物提示
-	hide_relic_tooltip()
-
-	_log_info("遗物UI管理器重置完成")
-
-# 重写清理方法
-func _do_cleanup() -> void:
-	# 断开信号连接
-	GlobalEventBus.relic.remove_listener("relic_acquired", _on_relic_acquired)
-	GlobalEventBus.relic.remove_listener("show_relic_info", _on_show_relic_info)
-	GlobalEventBus.relic.remove_listener("hide_relic_info", _on_hide_relic_info)
-	GlobalEventBus.game.remove_listener("game_state_changed", _on_game_state_changed)
-
-	# 清理遗物面板
+func _on_shop_state_entered_relic_ui(_event: GameFlowEvents.ShopStateEnteredEvent) -> void:
 	if relic_panel and is_instance_valid(relic_panel):
-		relic_panel.queue_free()
-		relic_panel = null
+		relic_panel.visible = false # Default to hidden in shop, shown by button
 
-	# 清理遗物提示
-	if relic_tooltip and is_instance_valid(relic_tooltip):
-		relic_tooltip.queue_free()
-		relic_tooltip = null
+func _on_other_state_entered_relic_ui(_event) -> void:
+	# For states like MainMenu, Event, Altar, Blacksmith, GameOver, Victory
+	# Typically, the relic panel should be hidden unless explicitly requested.
+	hide_relic_panel()
 
-	# 重置遗物管理器引用
-	relic_manager = null
 
-	_log_info("遗物UI管理器清理完成")
+# BaseManager methods removed: _do_initialize, _do_reset, _do_cleanup
+# Cleanup is now handled in _notification(NOTIFICATION_PREDELETE) or _exit_tree()
+# Reset logic (hide panel/tooltip) can be triggered by specific game events if needed,
+# or when the UIManager itself is reset.

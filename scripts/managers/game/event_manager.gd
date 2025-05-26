@@ -27,6 +27,10 @@ func _do_initialize() -> void:
 	# 连接信号
 	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
 
+	# Add listeners for GameFlowEvents
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_event_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.EventStateExitedEvent, _on_event_state_exited)
+
 # 初始化事件工厂
 func _initialize_event_factory() -> void:
 	# 加载所有事件配置
@@ -333,6 +337,10 @@ func _do_cleanup() -> void:
 	# 断开事件连接
 	GlobalEventBus.map.remove_listener("map_node_selected", _on_map_node_selected)
 
+	# Remove listeners for GameFlowEvents
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.EventStateEnteredEvent, _on_event_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.EventStateExitedEvent, _on_event_state_exited)
+
 	# 清理当前事件
 	clear_current_event()
 
@@ -349,3 +357,25 @@ func _do_reset() -> void:
 	reset_events()
 
 	_log_info("事件管理器重置完成")
+
+
+# GameFlow Event Handlers
+func _on_event_state_entered(event: GameFlowEvents.EventStateEnteredEvent) -> void:
+	_log_info("EventStateEnteredEvent received, triggering event...")
+	if event.params and event.params.has("event_id"):
+		var event_id = event.params.get("event_id")
+		if not event_id.is_empty():
+			trigger_event(event_id)
+		else:
+			_log_warning("EventStateEnteredEvent: 'event_id' in params is empty. Triggering random event.")
+			trigger_random_event(event.params.get("context", {}), event.params.get("event_type", ""))
+	elif event.params and event.params.has("event_type"):
+		_log_info("EventStateEnteredEvent: 'event_type' found in params. Triggering random event of type: " + event.params.event_type)
+		trigger_random_event(event.params.get("context", {}), event.params.event_type)
+	else:
+		_log_warning("EventStateEnteredEvent: No 'event_id' or 'event_type' in params. Triggering a completely random event.")
+		trigger_random_event() # Fallback to a completely random event if no specific id or type is provided
+
+func _on_event_state_exited(_event: GameFlowEvents.EventStateExitedEvent) -> void:
+	_log_info("EventStateExitedEvent received, clearing current event...")
+	clear_current_event()

@@ -63,7 +63,7 @@ func _connect_event_signals() -> void:
 	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
 	GlobalEventBus.map.add_listener("rest_completed", _on_rest_completed)
 
-	## 初始化玩家
+## 初始化玩家
 ## @param player_name 玩家名称
 ## @return void
 func initialize_player(player_name: String = "玩家") -> void:
@@ -132,6 +132,8 @@ func add_exp(amount: int) -> bool:
 	_log_info("玩家获得经验: %d" % amount)
 	return true
 
+# Removed add_gold method from PlayerManager
+
 ## 购买棋子
 ## @param piece_id 棋子ID
 ## @return 购买的棋子实例，如果购买失败则返回 null
@@ -157,8 +159,14 @@ func purchase_chess_piece(piece_id: String) -> ChessPieceEntity:
 		_log_warning("无法购买棋子：创建棋子实例失败 %s" % piece_id)
 		return null
 
-	# 扣除金币
-	if current_player.spend_gold(piece_config.cost):
+	# 扣除金币 (Refactored to use EconomyManager)
+	var economy_manager = GameManager.get_manager("EconomyManager")
+	if not economy_manager:
+		_log_error("purchase_chess_piece: EconomyManager not found.")
+		if piece: piece.queue_free() # Clean up created piece if not used
+		return null
+
+	if economy_manager.spend_gold(current_player, piece_config.cost, "purchase_chess_piece_" + piece_id):
 		# 添加到玩家棋子列表
 		if current_player.add_chess_piece(piece):
 			_log_info("玩家购买棋子: %s, 花费: %d 金币" % [piece_id, piece_config.cost])
@@ -166,11 +174,15 @@ func purchase_chess_piece(piece_id: String) -> ChessPieceEntity:
 			GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPiecePurchasedEvent.new(piece, piece_config.cost))
 			return piece
 		else:
-			_log_warning("无法购买棋子：添加棋子到玩家失败")
+			_log_warning("无法购买棋子：添加棋子到玩家失败. Refunding gold.")
 			# 退还金币
-			current_player.add_gold(piece_config.cost)
-
-	return null
+			economy_manager.grant_gold(current_player, piece_config.cost, "refund_failed_purchase_" + piece_id)
+			if piece: piece.queue_free() # Clean up created piece
+			return null
+	else:
+		_log_warning("无法购买棋子：金币不足 (EconomyManager reported failure)")
+		if piece: piece.queue_free() # Clean up created piece
+		return null
 
 ## 出售棋子
 ## @param piece 要出售的棋子
@@ -184,11 +196,36 @@ func sell_chess_piece(piece: ChessPieceEntity) -> bool:
 		_log_warning("无法出售棋子：棋子为空")
 		return false
 
-	var result = current_player.sell_chess_piece(piece)
-	if result:
-		_log_info("玩家出售棋子: %s, 获得: %d 金币" % [piece.id, piece.cost * piece.star_level])
+	# Player.sell_chess_piece should now ideally just calculate the value or handle non-gold logic
+	# For now, we'll assume Player.sell_chess_piece still removes the piece and returns its sell value.
+	# A better refactor might be Player.get_sell_value() and Player.remove_piece_for_sell().
+	
+	# Temporarily, let's assume current_player.sell_chess_piece still does the gold part internally for now,
+	# and we will refactor Player.sell_chess_piece in a subsequent step if this subtask scope is limited.
+	# However, the goal is to centralize gold. So, Player.sell_chess_piece should NOT call add_gold.
+	# It should remove the piece and return its value.
+	
+	var sell_value = piece.cost * piece.star_level # Assuming this is how sell value is determined. Player.get_sell_value() would be better.
+	
+	if current_player.remove_chess_piece(piece): # Assume this method just removes the piece from lists
+		var economy_manager = GameManager.get_manager("EconomyManager")
+		if not economy_manager:
+			_log_error("sell_chess_piece: EconomyManager not found. Cannot grant gold.")
+			# Potentially re-add piece to player if critical, or handle error
+			return false
 
-	return result
+		if economy_manager.grant_gold(current_player, sell_value, "sell_chess_piece_" + piece.id):
+			_log_info("玩家出售棋子: %s, 获得: %d 金币" % [piece.id, sell_value])
+			# 发送棋子出售信号 (This might be redundant if PlayerGoldChangedEvent is sufficient)
+			GlobalEventBus.chess.dispatch_event(ChessEvents.ChessPieceSoldEvent.new(piece, sell_value))
+			return true
+		else:
+			_log_error("sell_chess_piece: Failed to grant gold via EconomyManager.")
+			# Potentially re-add piece to player
+			return false
+	else:
+		_log_warning("sell_chess_piece: Failed to remove piece from player.")
+		return false
 
 ## 回合开始处理
 ## @return void
@@ -219,16 +256,58 @@ func _on_battle_ended(result: Dictionary) -> void:
 
 	# 处理战斗结果
 	var is_victory = result.get("is_victory", false)
+	var economy_manager = GameManager.get_manager("EconomyManager")
+
+	if not economy_manager:
+		_log_error("_on_battle_ended: EconomyManager not found. Cannot process gold rewards.")
+		# Process non-gold parts of win/loss
+		if is_victory:
+			current_player.on_battle_win() # Handles win streak, etc.
+		else:
+			var player_impact = result.get("player_impact", {})
+			var damage = player_impact.get("health_change", -10) * -1
+			current_player.on_battle_loss(damage) # Handles lose streak, damage
+		return
+
 	if is_victory:
 		# 玩家胜利
-		current_player.on_battle_win()
-		_log_info("玩家战斗胜利，连胜数: %d" % current_player.win_streak)
+		current_player.on_battle_win() # Handles win streak update, etc.
+		
+		var base_gold = 5 # Standard win gold
+		var streak_bonus = 0
+		if current_player.win_streak >= 5: streak_bonus = 3
+		elif current_player.win_streak >= 3: streak_bonus = 2
+		elif current_player.win_streak >= 2: streak_bonus = 1
+		
+		var total_gold_reward = base_gold + streak_bonus
+		if total_gold_reward > 0:
+			economy_manager.grant_gold(current_player, total_gold_reward, "battle_win_reward")
+		
+		_log_info("玩家战斗胜利，连胜数: %d, 获得金币: %d" % [current_player.win_streak, total_gold_reward])
 	else:
 		# 玩家失败
 		var player_impact = result.get("player_impact", {})
 		var damage = player_impact.get("health_change", -10) * -1  # 转换为正数
-		current_player.on_battle_loss(damage)
-		_log_info("玩家战斗失败，损失生命值: %d, 当前生命值: %d" % [damage, current_player.current_health])
+		current_player.on_battle_loss(damage) # Handles lose streak, damage
+		
+		var base_gold = 2 # Standard loss gold
+		var streak_bonus = 0
+		if current_player.lose_streak >= 5: streak_bonus = 3
+		elif current_player.lose_streak >= 3: streak_bonus = 2
+		elif current_player.lose_streak >= 2: streak_bonus = 1
+		
+		var total_gold_reward = base_gold + streak_bonus
+		
+		# Bankruptcy protection logic (previously in Player.on_battle_loss)
+		if current_player.current_health < 20 and current_player.gold == 0: # Check gold *before* granting loss gold
+			total_gold_reward = max(total_gold_reward, 5) # Ensure at least 5 if bankrupt
+			# Or grant the bankruptcy gold separately
+			# economy_manager.grant_gold(current_player, 5, "bankruptcy_protection")
+
+		if total_gold_reward > 0:
+			economy_manager.grant_gold(current_player, total_gold_reward, "battle_loss_compensation")
+
+		_log_info("玩家战斗失败，损失生命值: %d, 当前生命值: %d, 获得金币: %d" % [damage, current_player.current_health, total_gold_reward])
 
 ## 游戏开始事件处理
 ## @return void
@@ -450,22 +529,7 @@ func _on_rest_completed(heal_amount: int) -> void:
 	current_player.heal(heal_amount)
 	_log_info("休息完成，恢复生命值: %d, 生命值变化: %d -> %d" % [heal_amount, old_health, current_player.current_health])
 
-## 添加金币
-## @param amount 要添加的金币数量
-## @return void
-func add_gold(amount: int) -> bool:
-	if current_player == null:
-		_log_warning("无法添加金币：当前玩家未初始化")
-		return false
-
-	if amount <= 0:
-		_log_warning("无法添加金币：数量必须大于0")
-		return false
-
-	var old_gold = current_player.gold
-	current_player.add_gold(amount)
-	_log_info("玩家获得金币: %d, 金币变化: %d -> %d" % [amount, old_gold, current_player.gold])
-	return true
+# Removed add_gold(amount: int) -> bool method from PlayerManager
 
 ## 恢复玩家生命值
 ## @param amount 要恢复的生命值数量

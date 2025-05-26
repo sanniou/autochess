@@ -37,6 +37,10 @@ func _do_initialize() -> void:
 	GlobalEventBus.map.add_listener("map_node_selected", _on_map_node_selected)
 	GlobalEventBus.game.add_listener("difficulty_changed", _on_difficulty_changed)
 
+	# Add listeners for GameFlowEvents
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered)
+	GlobalEventBus.gameflow.add_class_listener(GameFlowEvents.ShopStateExitedEvent, _on_shop_state_exited)
+
 	_log_info("商店管理器初始化完成")
 
 # 刷新商店
@@ -201,6 +205,10 @@ func _do_cleanup() -> void:
 		shop_system.queue_free()
 		shop_system = null
 
+	# Remove listeners for GameFlowEvents
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.ShopStateEnteredEvent, _on_shop_state_entered)
+	GlobalEventBus.gameflow.remove_class_listener(GameFlowEvents.ShopStateExitedEvent, _on_shop_state_exited)
+
 	_log_info("商店管理器清理完成")
 
 # 重写重置方法
@@ -210,3 +218,33 @@ func _do_reset() -> void:
 		shop_system.reset()
 
 	_log_info("商店管理器重置完成")
+
+
+# GameFlow Event Handlers
+func _on_shop_state_entered(event: GameFlowEvents.ShopStateEnteredEvent) -> void:
+	_log_info("ShopStateEnteredEvent received, preparing shop...")
+	# event.params can be used here if the shop needs specific setup data.
+	# For example, event.params could dictate shop type, special inventory, or discounts.
+	# Currently, just refreshing the shop as a default action.
+	# If shop_params are set on GameManager, shop_system might fetch them if needed.
+	# GameManager.shop_params = event.params # This would be done in GameManager if it needs to store them.
+	
+	# Example: Apply specific parameters if they exist
+	if event.params and event.params.has("shop_type"):
+		match event.params.shop_type:
+			"black_market":
+				trigger_black_market()
+			"mystery_shop":
+				trigger_mystery_shop()
+			"equipment_shop":
+				shop_system.trigger_equipment_shop()
+			# Add other shop types if necessary
+	
+	if event.params and event.params.has("discount_rate"):
+		apply_discount(event.params.discount_rate)
+
+	refresh_shop(true) # Force refresh on entering shop state
+
+func _on_shop_state_exited(_event: GameFlowEvents.ShopStateExitedEvent) -> void:
+	_log_info("ShopStateExitedEvent received, resetting shop...")
+	reset() # Calls _do_reset, which calls shop_system.reset()

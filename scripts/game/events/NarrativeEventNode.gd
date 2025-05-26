@@ -1,5 +1,5 @@
 extends Node
-class_name Event
+class_name NarrativeEventNode
 ## 事件基类
 ## 定义事件的基本属性和行为
 
